@@ -2,7 +2,7 @@
 
 ## AndroidToolsKit
 
-![Build status](https://img.shields.io/github/actions/workflow/status/LazyIonEs/AndroidToolsKit/build-release-binaries.yml)
+![Build status](https://img.shields.io/github/actions/workflow/status/LazyIonEs/AndroidToolsKit/build-release.yml)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/LazyIonEs/AndroidToolsKit/total)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/LazyIonEs/AndroidToolsKit/total)
 ![Latest release](https://img.shields.io/github/release/LazyIonEs/AndroidToolsKit.svg)
