@@ -194,7 +194,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                         throw Exception("请先在设置页设置aapt路径")
                     }
                     val builder = ProcessBuilder()
-                    process = builder.command("aapt", "dump", "badging", input).start()
+                    process = builder.command(aapt, "dump", "badging", input).start()
                     inputStream = process!!.inputStream
                     bufferedReader = BufferedReader(InputStreamReader(inputStream!!, "utf-8"))
                     var line: String?
