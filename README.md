@@ -19,6 +19,12 @@
 ### 下载安装
 - [Github Releases](https://github.com/LazyIonEs/AndroidToolsKit/releases)
 
+| 设备 | 芯片 | 下载 |
+|:----:|:----:|:----:|
+| windows | amd/intel | AndroidToolsKit-版本号-windows-x64.msi |
+| macos | apple | AndroidToolsKit-版本号-macos-arm64.dmg |
+| macos | intel | AndroidToolsKit-版本号-macos-x64.dmg |
+
 ### 使用示例
 
 #### 签名信息
