@@ -19,7 +19,7 @@ sqldelight {
 
 val kitVersion by extra("1.0.0")
 val kitPackageName = "AndroidToolsKit"
-val kitDescription = "适用于安卓开发的桌面工具，支持 Windows 和 Mac"
+val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
 val kitVendor = "LazyIonEs"
 val kitLicenseFile = project.rootProject.file("LICENSE")
