@@ -1,0 +1,41 @@
+[versions]
+compose = "1.6.1"
+compose-compiler = "1.5.8"
+compose-plugin = "1.5.12"
+junit = "4.13.2"
+kotlin = "1.9.21"
+apksig = "8.2.2"
+sqlDelight = "2.0.1"
+mpfilepicker = "3.1.0"
+tools = "31.2.2"
+slf4j = "2.0.12"
+buildconfig = "5.3.5"
+commons-codec = "1.16.1"
+
+[libraries]
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+compose-ui = { module = "androidx.compose.ui:ui", version.ref = "compose" }
+compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "compose" }
+compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
+compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
+compose-material = { module = "androidx.compose.material:material", version.ref = "compose" }
+compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "compose" }
+compose-material-icons-extended-desktop = { module = "androidx.compose.material:material-icons-extended-desktop", version.ref = "compose" }
+android-apksig = { module = "com.android.tools.build:apksig", version.ref = "apksig" }
+sqlDelight-runtime = { module = "app.cash.sqldelight:runtime", version.ref = "sqlDelight" }
+sqlDelight-coroutine = { module = "app.cash.sqldelight:coroutines-extensions", version.ref = "sqlDelight" }
+sqlDelight-driver = { module = "app.cash.sqldelight:sqlite-driver", version.ref = "sqlDelight" }
+mpfilepicker = { module = "com.darkrockstudios:mpfilepicker", version.ref = "mpfilepicker" }
+android-tools-sdk-common = { module = "com.android.tools:sdk-common", version.ref = "tools" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec" }
+
+[plugins]
+jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+sqlDelight = { id = "app.cash.sqldelight", version.ref = "sqlDelight" }
+githubBuildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
+

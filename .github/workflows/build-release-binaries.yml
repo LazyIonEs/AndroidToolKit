@@ -1,0 +1,102 @@
+name: Build Release Binaries
+
+on:
+  [ workflow_dispatch ]
+
+env:
+  TAG_VERSION: 1.0.0
+
+jobs:
+  create-win-x64-package:
+    runs-on: windows-latest
+    name: Create Windows x64 Package
+    steps:
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+          architecture: x64
+
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+
+      - name: Desktop App Package
+        run: ./gradlew packageReleaseMsi
+
+      - name: Prep build artifacts for release
+        run: |
+          $ErrorActionPreference = "Stop"
+          mv D:\a\AndroidToolsKit\AndroidToolsKit\composeApp\output\main-release\msi\AndroidToolsKit-${{ env.TAG_VERSION }}.msi D:\a\AndroidToolsKit\AndroidToolsKit\composeApp\output\main-release\msi\AndroidToolsKit-${{ env.TAG_VERSION }}-windows-x64.msi
+
+      - name: Draft Release
+        uses: ncipollo/release-action@v1
+        with:
+          draft: true
+          allowUpdates: true
+          tag: "v${{ env.TAG_VERSION }}"
+          artifacts: "composeApp/output/main-release/msi/*"
+          token: ${{ secrets.GH_TOKEN }}
+
+  create-mac-x64-package:
+    runs-on: macos-13
+    name: Create Mac x64 Package
+    steps:
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+          architecture: x64
+
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+
+      - name: Desktop App Package
+        run: ./gradlew packageReleaseDmg
+
+      - name: Prep build artifacts for release
+        run: |
+          set -e
+          mv  /Users/runner/work/AndroidToolsKit/AndroidToolsKit/composeApp/output/main-release/dmg/AndroidToolsKit-${{ env.TAG_VERSION }}.dmg  /Users/runner/work/AndroidToolsKit/AndroidToolsKit/composeApp/output/main-release/dmg/AndroidToolsKit-${{ env.TAG_VERSION }}-macos-x64.dmg
+
+      - name: Draft Release
+        uses: ncipollo/release-action@v1
+        with:
+          draft: true
+          allowUpdates: true
+          tag: "v${{ env.TAG_VERSION }}"
+          artifacts: "composeApp/output/main-release/dmg/*"
+          token: ${{ secrets.GH_TOKEN }}
+
+  create-mac-arm64-package:
+    runs-on: macos-14
+    name: Create Mac arm64 Package
+    steps:
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+          architecture: aarch64
+
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+
+      - name: Desktop App Package
+        run: ./gradlew packageReleaseDmg
+
+      - name: Prep build artifacts for release
+        run: |
+          set -e
+          mv /Users/runner/work/AndroidToolsKit/AndroidToolsKit/composeApp/output/main-release/dmg/AndroidToolsKit-${{ env.TAG_VERSION }}.dmg /Users/runner/work/AndroidToolsKit/AndroidToolsKit/composeApp/output/main-release/dmg/AndroidToolsKit-${{ env.TAG_VERSION }}-macos-arm64.dmg
+
+      - name: Draft Release
+        uses: ncipollo/release-action@v1
+        with:
+          draft: true
+          allowUpdates: true
+          tag: "v${{ env.TAG_VERSION }}"
+          artifacts: "composeApp/output/main-release/dmg/*"
+          token: ${{ secrets.GH_TOKEN }}
+

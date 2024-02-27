@@ -1,0 +1,36 @@
+import kotlin.Boolean;
+
+CREATE TABLE Config (
+   id INTEGER NOT NULL PRIMARY KEY,
+   dark_mode INTEGER NOT NULL,
+   aapt_path TEXT NOT NULL,
+   flag_delete INTEGER AS Boolean NOT NULL,
+   signer_suffix TEXT NOT NULL
+);
+
+INSERT INTO Config(id, dark_mode, aapt_path, flag_delete, signer_suffix)
+VALUES (0, 0,"", 1, "_sign");
+
+getAaptPath:
+SELECT aapt_path FROM Config WHERE id = 0;
+
+getFlagDelete:
+SELECT flag_delete FROM Config WHERE id = 0;
+
+getSignerSuffix:
+SELECT signer_suffix FROM Config WHERE id = 0;
+
+getDarkMode:
+SELECT dark_mode FROM Config WHERE id = 0;
+
+updateAaptPath:
+UPDATE Config SET aapt_path = ? WHERE id = 0;
+
+updateFlagDelete:
+UPDATE Config SET flag_delete = ? WHERE id = 0;
+
+updateSignerSuffix:
+UPDATE Config SET signer_suffix = ? WHERE id = 0;
+
+updateDarkMode:
+UPDATE Config SET dark_mode = ? WHERE id = 0;
