@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Desktop App Package
-        run: ./gradlew packageReleaseMsi
+        run: ./gradlew packageReleaseDistributionForCurrentOS
 
       - name: Prep build artifacts for release
         run: |
@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Desktop App Package
-        run: ./gradlew packageReleaseDmg
+        run: ./gradlew packageReleaseDistributionForCurrentOS
 
       - name: Prep build artifacts for release
         run: |
@@ -84,7 +84,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Desktop App Package
-        run: ./gradlew packageReleaseDmg
+        run: ./gradlew packageReleaseDistributionForCurrentOS
 
       - name: Prep build artifacts for release
         run: |
