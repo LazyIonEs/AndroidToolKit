@@ -66,7 +66,7 @@ fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel, toastS
         UIState.WAIT -> Unit
         UIState.Loading -> {
             Box(modifier = modifier.padding(6.dp), contentAlignment = Alignment.Center) {
-                LottieAnimation(scope, "lottie_loading.json", modifier)
+                LottieAnimation(scope, "files/lottie_loading.json", modifier)
             }
         }
 

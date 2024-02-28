@@ -41,10 +41,12 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.android.ide.common.resources.toFileResourcePathString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.resource
+import org.jetbrains.compose.resources.InternalResourceApi
+import org.jetbrains.compose.resources.readResourceBytes
+import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.skia.Rect
 import org.jetbrains.skia.skottie.Animation
 import org.jetbrains.skia.sksg.InvalidationController
@@ -151,7 +153,7 @@ private fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel
 @Composable
 private fun SignatureGeneration(modifier: Modifier = Modifier, scope: CoroutineScope) {
     Box(modifier = modifier.padding(6.dp), contentAlignment = Alignment.Center) {
-        LottieAnimation(scope, "lottie_404.json", modifier)
+        LottieAnimation(scope, "files/lottie_404.json", modifier)
     }
 }
 
@@ -166,12 +168,12 @@ private fun SetUp(modifier: Modifier = Modifier, viewModel: MainViewModel) {
 /**
  * 加载json动画
  */
-@OptIn(ExperimentalResourceApi::class)
+@OptIn(InternalResourceApi::class)
 @Composable
 fun LottieAnimation(scope: CoroutineScope, path: String, modifier: Modifier = Modifier) {
     var animation by remember { mutableStateOf<Animation?>(null) }
     scope.launch {
-        val json = resource(path).readBytes().decodeToString()
+        val json = readResourceBytes(path).decodeToString()
         animation = Animation.makeFromString(json)
     }
     animation?.let { InfiniteAnimation(it, modifier.fillMaxSize()) }

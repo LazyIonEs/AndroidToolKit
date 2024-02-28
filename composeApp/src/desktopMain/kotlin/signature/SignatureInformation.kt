@@ -89,7 +89,7 @@ fun SignatureInformation(modifier: Modifier = Modifier, viewModel: MainViewModel
 @Composable
 private fun SignatureMain(modifier: Modifier = Modifier, scope: CoroutineScope) {
     Box(modifier = modifier.padding(6.dp), contentAlignment = Alignment.Center) {
-        LottieAnimation(scope, "lottie_main_2.json", modifier)
+        LottieAnimation(scope, "files/lottie_main_2.json", modifier)
     }
 }
 
@@ -129,7 +129,7 @@ private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel
 @Composable
 private fun SignatureLoading(modifier: Modifier = Modifier, scope: CoroutineScope) {
     Box(modifier = modifier.padding(6.dp), contentAlignment = Alignment.Center) {
-        LottieAnimation(scope, "lottie_loading.json", modifier)
+        LottieAnimation(scope, "files/lottie_loading.json", modifier)
     }
 }
 
