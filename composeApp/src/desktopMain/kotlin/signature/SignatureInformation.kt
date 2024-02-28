@@ -26,7 +26,6 @@ import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.SentimentSatisfied
 import androidx.compose.material.icons.rounded.Subject
 import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -210,7 +209,6 @@ private fun SignatureFloatingButton(modifier: Modifier = Modifier, uiState: UISt
 /**
  * 签名信息 - { Subject，Valid from，Valid until}
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SignatureListTop(modifier: Modifier = Modifier, apkVerifier: ApkVerifier, scope: CoroutineScope, toastState: ToastUIState) {
     Card(
@@ -267,7 +265,6 @@ private fun SignatureListTop(modifier: Modifier = Modifier, apkVerifier: ApkVeri
 /**
  * 签名信息 - { Public Key Type，Modulus，Signature Type}
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SignatureListCenter(modifier: Modifier = Modifier, apkVerifier: ApkVerifier, scope: CoroutineScope, toastState: ToastUIState) {
     Card(
@@ -323,7 +320,6 @@ private fun SignatureListCenter(modifier: Modifier = Modifier, apkVerifier: ApkV
 /**
  * 签名信息 - { MD5，SHA-1，SHA-256}
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SignatureListBottom(modifier: Modifier = Modifier, apkVerifier: ApkVerifier, scope: CoroutineScope, toastState: ToastUIState) {
     Card(

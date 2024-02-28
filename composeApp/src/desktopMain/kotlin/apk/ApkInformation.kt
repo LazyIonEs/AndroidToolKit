@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.DragData
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.HorizontalAlignmentLine
 import androidx.compose.ui.onExternalDrag
 import androidx.compose.ui.unit.dp
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
@@ -45,8 +44,6 @@ import vm.MainViewModel
 import vm.UIState
 import java.io.File
 import java.net.URI
-import kotlin.math.max
-import kotlin.math.min
 
 /**
  * @Author      : LazyIonEs
@@ -151,12 +148,6 @@ private fun ApkFloatingButton(modifier: Modifier = Modifier, viewModel: MainView
     }
 }
 
-// icon的最高点
-private val topIconValue = HorizontalAlignmentLine(merger = { old, new -> min(old, new) })
-
-// icon的最低点
-private val bottomIconValue = HorizontalAlignmentLine(merger = { old, new -> max(old, new) })
-
 @Composable
 private fun ApkInformationBox(modifier: Modifier = Modifier, viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
     val uiState = (viewModel.apkInformationState as UIState.Success).result as ApkInformation
@@ -207,7 +198,6 @@ private fun ApkInformationBox(modifier: Modifier = Modifier, viewModel: MainView
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppInfoItem(modifier: Modifier, title: String, value: String, toastState: ToastUIState, scope: CoroutineScope) {
     Card(

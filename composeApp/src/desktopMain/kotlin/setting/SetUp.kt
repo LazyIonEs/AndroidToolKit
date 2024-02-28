@@ -15,7 +15,6 @@ import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedFilterChip
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -159,7 +158,6 @@ private fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Conventional(modifier: Modifier = Modifier, viewModel: MainViewModel) {
     Card(modifier.fillMaxWidth()) {

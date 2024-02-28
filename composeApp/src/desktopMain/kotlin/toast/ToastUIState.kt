@@ -40,27 +40,10 @@ import kotlin.math.roundToLong
 class ToastUIState {
     private val mutex = Mutex()
 
-    public var currentData: ToastData? by mutableStateOf(null)
+    var currentData: ToastData? by mutableStateOf(null)
         private set
 
-    public suspend fun show(
-        message: String,
-        icon: ImageVector? = null,
-    ): Unit = mutex.withLock {
-        try {
-            return suspendCancellableCoroutine { cont ->
-                currentData = ToastDataImpl(
-                    message,
-                    icon,
-                    cont,
-                )
-            }
-        } finally {
-            currentData = null
-        }
-    }
-
-    public suspend fun show(
+    suspend fun show(
         toastModel: ToastModel
     ): Unit = mutex.withLock {
         try {
@@ -77,7 +60,7 @@ class ToastUIState {
         }
     }
 
-    public suspend fun show(
+    suspend fun show(
         toastModel: ToastModel,
         timeout: Long
     ): Unit = mutex.withLock {
@@ -175,7 +158,7 @@ class ToastUIState {
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
-public fun ToastUI(
+fun ToastUI(
     hostState: ToastUIState,
     modifier: Modifier = Modifier,
     toast: @Composable (ToastData) -> Unit = { Toast(it) },
