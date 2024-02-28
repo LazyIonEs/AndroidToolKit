@@ -43,7 +43,7 @@ import file.showFileSelector
 import file.showFolderSelector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import main.LottieAnimation
+import LottieAnimation
 import model.SignatureEnum
 import model.SignaturePolicy
 import toast.ToastModel

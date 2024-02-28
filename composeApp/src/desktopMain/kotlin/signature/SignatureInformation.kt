@@ -46,7 +46,7 @@ import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import file.showFileSelector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import main.LottieAnimation
+import LottieAnimation
 import model.ApkVerifier
 import model.ApkVerifierResult
 import toast.ToastModel

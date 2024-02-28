@@ -18,7 +18,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
-import main.Page
+import Page
 import model.ApkInformation
 import model.ApkSignature
 import model.ApkVerifierResult
