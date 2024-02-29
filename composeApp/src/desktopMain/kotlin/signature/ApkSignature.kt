@@ -1,5 +1,6 @@
 package signature
 
+import LottieAnimation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,7 +17,6 @@ import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedFilterChip
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,7 +43,6 @@ import file.showFileSelector
 import file.showFolderSelector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import LottieAnimation
 import model.SignatureEnum
 import model.SignaturePolicy
 import toast.ToastModel
@@ -65,7 +64,10 @@ fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel, toastS
     when (val uiState = viewModel.apkSignatureUIState) {
         UIState.WAIT -> Unit
         UIState.Loading -> {
-            Box(modifier = modifier.padding(6.dp), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = modifier.padding(6.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 LottieAnimation(scope, "files/lottie_loading.json", modifier)
             }
         }
@@ -96,12 +98,8 @@ private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel
     val isSignaturePasswordError = viewModel.apkSignatureState.signaturePassword.isNotBlank() && viewModel.apkSignatureState.signatureAlisa.isBlank()
     val isSignatureAlisaPasswordError = viewModel.apkSignatureState.signatureAlisa.isNotBlank() && viewModel.apkSignatureState.signatureAlisaPassword.isNotBlank() && !viewModel.verifyAlisaPassword()
     Box(modifier = modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp).onExternalDrag(
-        onDragStart = {
-            isDragging = true
-        },
-        onDragExit = {
-            isDragging = false
-        },
+        onDragStart = { isDragging = true },
+        onDragExit = { isDragging = false },
         onDrop = { state ->
             val dragData = state.dragData
             if (dragData is DragData.FilesList) {
@@ -122,8 +120,11 @@ private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel
                 }
             }
             isDragging = false
-        })) {
-        Card(modifier.fillMaxHeight().fillMaxWidth()) {
+        })
+    ) {
+        Card(
+            modifier = modifier.fillMaxHeight().fillMaxWidth()
+        ) {
             LazyColumn(
                 modifier = modifier.fillMaxHeight().fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -257,17 +258,20 @@ private fun SignatureOutput(modifier: Modifier = Modifier, viewModel: MainViewMo
 /**
  * 签名策略
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SignaturePolicy(modifier: Modifier = Modifier, viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
     val policyList = listOf(SignaturePolicy.V1, SignaturePolicy.V2, SignaturePolicy.V2Only, SignaturePolicy.V3)
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Text("签名策略：", style = MaterialTheme.typography.titleMedium, modifier = modifier.padding(start = 24.dp))
             Text(viewModel.apkSignatureState.signaturePolicy.value, style = MaterialTheme.typography.bodyMedium)
         }
         Spacer(Modifier.size(2.dp))
-        Row(modifier = modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)) {
+        Row(
+            modifier = modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)
+        ) {
             policyList.forEach { signaturePolicy ->
                 ElevatedFilterChip(
                     modifier = modifier.weight(1f).padding(horizontal = 8.dp),
@@ -281,9 +285,7 @@ private fun SignaturePolicy(modifier: Modifier = Modifier, viewModel: MainViewMo
                         }
                         viewModel.updateApkSignature(SignatureEnum.SIGNATURE_POLICY, signaturePolicy)
                     },
-                    label = {
-                        Text(signaturePolicy.title, textAlign = TextAlign.End, modifier = modifier.fillMaxWidth().padding(8.dp))
-                    },
+                    label = { Text(signaturePolicy.title, textAlign = TextAlign.End, modifier = modifier.fillMaxWidth().padding(8.dp)) },
                     leadingIcon = if (viewModel.apkSignatureState.signaturePolicy == signaturePolicy) {
                         { Icon(imageVector = Icons.Rounded.Done, contentDescription = "Done icon", modifier = Modifier.size(FilterChipDefaults.IconSize)) }
                     } else {

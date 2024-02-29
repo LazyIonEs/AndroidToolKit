@@ -55,7 +55,7 @@ import kotlin.math.roundToInt
 @Composable
 fun App() {
     val viewModel = remember { MainViewModel() }
-    val useDarkTheme = when(viewModel.darkMode) {
+    val useDarkTheme = when (viewModel.darkMode) {
         1L -> false
         2L -> true
         else -> isSystemInDarkTheme()
@@ -75,14 +75,22 @@ fun App() {
 fun MainContentScreen(modifier: Modifier = Modifier, viewModel: MainViewModel) {
     val toastState = remember { ToastUIState() }
     val scope = rememberCoroutineScope()
-    Box(modifier.fillMaxWidth().fillMaxHeight(), contentAlignment = Alignment.TopCenter) {
-        Row(modifier.fillMaxWidth().fillMaxHeight(), verticalAlignment = Alignment.CenterVertically) {
+    Box(
+        modifier = modifier.fillMaxWidth().fillMaxHeight(),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        Row(
+            modifier = modifier.fillMaxWidth().fillMaxHeight(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             val pages = Page.entries.toTypedArray()
             // 导航栏
             NavigationRail(modifier.fillMaxHeight().padding(start = 8.dp, end = 8.dp)) {
-                Column(modifier.fillMaxHeight(),
+                Column(
+                    modifier = modifier.fillMaxHeight(),
                     verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     pages.forEachIndexed { _, page ->
                         NavigationRailItem(
                             label = { Text(page.title) },

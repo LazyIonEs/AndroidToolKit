@@ -54,7 +54,10 @@ import java.net.URI
 fun ApkInformation(modifier: Modifier = Modifier, viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
     when (val uiState = viewModel.apkInformationState) {
         UIState.WAIT, is UIState.Error -> {
-            Box(modifier = modifier.padding(6.dp), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = modifier.padding(6.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 LottieAnimation(scope, "files/lottie_main_1.json", modifier)
             }
             if (uiState is UIState.Error) {
@@ -66,7 +69,10 @@ fun ApkInformation(modifier: Modifier = Modifier, viewModel: MainViewModel, toas
         }
 
         UIState.Loading -> {
-            Box(modifier = modifier.padding(6.dp), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = modifier.padding(6.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 LottieAnimation(scope, "files/lottie_loading.json", modifier)
             }
         }
@@ -80,25 +86,24 @@ fun ApkInformation(modifier: Modifier = Modifier, viewModel: MainViewModel, toas
 @Composable
 private fun ApkDraggingBox(modifier: Modifier = Modifier, viewModel: MainViewModel) {
     var isDragging by remember { mutableStateOf(false) }
-    Box(modifier = modifier.padding(6.dp).onExternalDrag(
-        onDragStart = {
-            isDragging = true
-        },
-        onDragExit = {
-            isDragging = false
-        },
-        onDrop = { state ->
-            val dragData = state.dragData
-            if (dragData is DragData.FilesList) {
-                dragData.readFiles().first().let {
-                    if (it.endsWith(".apk")) {
-                        val path = File(URI.create(it)).path
-                        viewModel.apkInformation(path)
+    Box(
+        modifier = modifier.padding(6.dp).onExternalDrag(
+            onDragStart = { isDragging = true },
+            onDragExit = { isDragging = false },
+            onDrop = { state ->
+                val dragData = state.dragData
+                if (dragData is DragData.FilesList) {
+                    dragData.readFiles().first().let {
+                        if (it.endsWith(".apk")) {
+                            val path = File(URI.create(it)).path
+                            viewModel.apkInformation(path)
+                        }
                     }
                 }
-            }
-            isDragging = false
-        }), contentAlignment = Alignment.TopCenter) {
+                isDragging = false
+            }),
+        contentAlignment = Alignment.TopCenter
+    ) {
         ApkFloatingButton(modifier, viewModel, isDragging)
     }
 }
@@ -110,8 +115,12 @@ private fun ApkDraggingBox(modifier: Modifier = Modifier, viewModel: MainViewMod
 private fun ApkFloatingButton(modifier: Modifier = Modifier, viewModel: MainViewModel, isDragging: Boolean) {
     val isWindows = System.getProperty("os.name").startsWith("Win")
     var showFilePickerApk by remember { mutableStateOf(false) }
-    Box(modifier.fillMaxWidth().fillMaxHeight()) {
-        Box(modifier = modifier.align(Alignment.BottomEnd).padding(end = 8.dp)) {
+    Box(
+        modifier = modifier.fillMaxWidth().fillMaxHeight()
+    ) {
+        Box(
+            modifier = modifier.align(Alignment.BottomEnd).padding(end = 8.dp)
+        ) {
             AnimatedVisibility(
                 visible = viewModel.apkInformationState != UIState.Loading
             ) {
@@ -138,7 +147,10 @@ private fun ApkFloatingButton(modifier: Modifier = Modifier, viewModel: MainView
         }
     }
     if (isWindows) {
-        FilePicker(show = showFilePickerApk, fileExtensions = listOf("apk")) { platformFile ->
+        FilePicker(
+            show = showFilePickerApk,
+            fileExtensions = listOf("apk")
+        ) { platformFile ->
             showFilePickerApk = false
             if (platformFile?.path?.isNotBlank() == true && platformFile.path.endsWith("apk")) {
                 viewModel.apkInformation(platformFile.path)
@@ -154,7 +166,9 @@ private fun ApkInformationBox(modifier: Modifier = Modifier, viewModel: MainView
         modifier = modifier.fillMaxHeight().fillMaxWidth().padding(top = 20.dp, bottom = 20.dp, end = 14.dp),
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline)
     ) {
-        Box(modifier = modifier.fillMaxHeight().fillMaxWidth().padding(vertical = 12.dp)) {
+        Box(
+            modifier = modifier.fillMaxHeight().fillMaxWidth().padding(vertical = 12.dp)
+        ) {
             LazyColumn {
                 item {
                     AppInfoItem(modifier, "应用名称：", uiState.label, toastState, scope)
@@ -207,7 +221,9 @@ fun AppInfoItem(modifier: Modifier, title: String, value: String, toastState: To
             }
         }
     ) {
-        Row(modifier = modifier.fillMaxHeight().fillMaxWidth().padding(horizontal = 24.dp)) {
+        Row(
+            modifier = modifier.fillMaxHeight().fillMaxWidth().padding(horizontal = 24.dp)
+        ) {
             Text(title, style = MaterialTheme.typography.titleMedium, modifier = modifier.weight(1f).align(Alignment.CenterVertically))
             Text(value, style = MaterialTheme.typography.bodyMedium, modifier = modifier.weight(4f).align(Alignment.CenterVertically))
         }
@@ -220,9 +236,13 @@ fun PermissionsList(modifier: Modifier, permissions: ArrayList<String>?) {
         Column(
             modifier = modifier.padding(horizontal = 12.dp),
         ) {
-            Row(modifier = modifier.fillMaxHeight().fillMaxWidth().padding(horizontal = 24.dp)) {
+            Row(
+                modifier = modifier.fillMaxHeight().fillMaxWidth().padding(horizontal = 24.dp)
+            ) {
                 Text("应用权限列表：", modifier = modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
-                Column(modifier = modifier.weight(4f)) {
+                Column(
+                    modifier = modifier.weight(4f)
+                ) {
                     it.forEach { permission ->
                         Text(text = permission, style = MaterialTheme.typography.bodyMedium)
                     }

@@ -87,7 +87,10 @@ fun SignatureInformation(modifier: Modifier = Modifier, viewModel: MainViewModel
  */
 @Composable
 private fun SignatureMain(modifier: Modifier = Modifier, scope: CoroutineScope) {
-    Box(modifier = modifier.padding(6.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = modifier.padding(6.dp),
+        contentAlignment = Alignment.Center
+    ) {
         LottieAnimation(scope, "files/lottie_main_2.json", modifier)
     }
 }
@@ -99,17 +102,14 @@ private fun SignatureMain(modifier: Modifier = Modifier, scope: CoroutineScope) 
 @Composable
 private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel, uiState: UIState) {
     var isDragging by remember { mutableStateOf(false) }
-    Box(modifier = modifier.padding(6.dp).onExternalDrag(
-        onDragStart = {
-            isDragging = true
-        },
-        onDragExit = {
-            isDragging = false
-        },
-        onDrop = { state ->
-            val dragData = state.dragData
-            if (dragData is DragData.FilesList) {
-                dragData.readFiles().first().let {
+    Box(
+        modifier = modifier.padding(6.dp).onExternalDrag(
+            onDragStart = { isDragging = true },
+            onDragExit = { isDragging = false },
+            onDrop = { state ->
+                val dragData = state.dragData
+                if (dragData is DragData.FilesList) {
+                    dragData.readFiles().first().let {
                     if (it.endsWith(".apk")) {
                         val path = File(URI.create(it)).path
                         viewModel.apkVerifier(path)
@@ -117,7 +117,9 @@ private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel
                 }
             }
             isDragging = false
-        }), contentAlignment = Alignment.TopCenter) {
+        }),
+        contentAlignment = Alignment.TopCenter
+    ) {
         SignatureFloatingButton(modifier, uiState, viewModel, isDragging)
     }
 }
@@ -127,7 +129,10 @@ private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel
  */
 @Composable
 private fun SignatureLoading(modifier: Modifier = Modifier, scope: CoroutineScope) {
-    Box(modifier = modifier.padding(6.dp), contentAlignment = Alignment.Center) {
+    Box(
+        modifier = modifier.padding(6.dp),
+        contentAlignment = Alignment.Center
+    ) {
         LottieAnimation(scope, "files/lottie_loading.json", modifier)
     }
 }
@@ -169,7 +174,9 @@ private fun SignatureFloatingButton(modifier: Modifier = Modifier, uiState: UISt
     val isWindows = System.getProperty("os.name").startsWith("Win")
     var showFilePickerApk by remember { mutableStateOf(false) }
     Box(modifier.fillMaxWidth().fillMaxHeight()) {
-        Box(modifier = modifier.align(Alignment.BottomEnd).padding(end = 8.dp)) {
+        Box(
+            modifier = modifier.align(Alignment.BottomEnd).padding(end = 8.dp)
+        ) {
             AnimatedVisibility(
                 visible = uiState != UIState.Loading
             ) {
@@ -196,7 +203,10 @@ private fun SignatureFloatingButton(modifier: Modifier = Modifier, uiState: UISt
         }
     }
     if (isWindows) {
-        FilePicker(show = showFilePickerApk, fileExtensions = listOf("apk")) { platformFile ->
+        FilePicker(
+            show = showFilePickerApk,
+            fileExtensions = listOf("apk")
+        ) { platformFile ->
             showFilePickerApk = false
             if (platformFile?.path?.isNotBlank() == true && platformFile.path.endsWith("apk")) {
                 viewModel.apkVerifier(platformFile.path)
@@ -215,12 +225,17 @@ private fun SignatureListTop(modifier: Modifier = Modifier, apkVerifier: ApkVeri
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
         modifier = modifier.padding(vertical = 4.dp).fillMaxWidth()
     ) {
-        Column(modifier.padding(vertical = 20.dp, horizontal = 16.dp)) {
-            Card(modifier = modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(apkVerifier.subject, toastState)
+        Column(
+            modifier = modifier.padding(vertical = 20.dp, horizontal = 16.dp)
+        ) {
+            Card(
+                modifier = modifier.fillMaxWidth(),
+                onClick = {
+                    scope.launch {
+                        copy(apkVerifier.subject, toastState)
+                    }
                 }
-            }) {
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Rounded.Subject, contentDescription = "Subject", modifier = modifier.padding(end = 14.dp))
                     Column {
@@ -230,11 +245,14 @@ private fun SignatureListTop(modifier: Modifier = Modifier, apkVerifier: ApkVeri
                 }
             }
             Spacer(Modifier.size(16.dp))
-            Card(modifier = modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(apkVerifier.validFrom, toastState)
+            Card(
+                modifier = modifier.fillMaxWidth(),
+                onClick = {
+                    scope.launch {
+                        copy(apkVerifier.validFrom, toastState)
+                    }
                 }
-            }) {
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Rounded.QueryBuilder, contentDescription = "Valid from", modifier = modifier.padding(end = 14.dp))
                     Column {
@@ -244,11 +262,14 @@ private fun SignatureListTop(modifier: Modifier = Modifier, apkVerifier: ApkVeri
                 }
             }
             Spacer(Modifier.size(16.dp))
-            Card(modifier = modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(apkVerifier.validUntil, toastState)
+            Card(
+                modifier = modifier.fillMaxWidth(),
+                onClick = {
+                    scope.launch {
+                        copy(apkVerifier.validUntil, toastState)
+                    }
                 }
-            }) {
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Rounded.Restore, contentDescription = "Valid until", modifier = modifier.padding(end = 14.dp))
                     Column {
@@ -271,12 +292,17 @@ private fun SignatureListCenter(modifier: Modifier = Modifier, apkVerifier: ApkV
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
         modifier = modifier.padding(vertical = 4.dp).fillMaxWidth()
     ) {
-        Column(modifier.padding(vertical = 20.dp, horizontal = 16.dp)) {
-            Card(modifier = modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(apkVerifier.publicKeyType, toastState)
+        Column(
+            modifier = modifier.padding(vertical = 20.dp, horizontal = 16.dp)
+        ) {
+            Card(
+                modifier = modifier.fillMaxWidth(),
+                onClick = {
+                    scope.launch {
+                        copy(apkVerifier.publicKeyType, toastState)
+                    }
                 }
-            }) {
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Rounded.Public, contentDescription = "Public Key Type", modifier = modifier.padding(end = 14.dp))
                     Column {
@@ -286,11 +312,14 @@ private fun SignatureListCenter(modifier: Modifier = Modifier, apkVerifier: ApkV
                 }
             }
             Spacer(Modifier.size(16.dp))
-            Card(modifier = modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(apkVerifier.modulus, toastState)
+            Card(
+                modifier = modifier.fillMaxWidth(),
+                onClick = {
+                    scope.launch {
+                        copy(apkVerifier.modulus, toastState)
+                    }
                 }
-            }) {
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Outlined.LibraryBooks, contentDescription = "Modulus", modifier = modifier.padding(end = 14.dp))
                     Column {
@@ -300,11 +329,14 @@ private fun SignatureListCenter(modifier: Modifier = Modifier, apkVerifier: ApkV
                 }
             }
             Spacer(Modifier.size(16.dp))
-            Card(modifier = modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(apkVerifier.signatureType, toastState)
+            Card(
+                modifier = modifier.fillMaxWidth(),
+                onClick = {
+                    scope.launch {
+                        copy(apkVerifier.signatureType, toastState)
+                    }
                 }
-            }) {
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Outlined.Lock, contentDescription = "Signature Type", modifier = modifier.padding(end = 14.dp))
                     Column {
@@ -326,12 +358,17 @@ private fun SignatureListBottom(modifier: Modifier = Modifier, apkVerifier: ApkV
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
         modifier = modifier.padding(top = 4.dp, bottom = 8.dp).fillMaxWidth()
     ) {
-        Column(modifier.padding(vertical = 20.dp, horizontal = 16.dp)) {
-            Card(modifier = modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(apkVerifier.md5, toastState)
+        Column(
+            modifier = modifier.padding(vertical = 20.dp, horizontal = 16.dp)
+        ) {
+            Card(
+                modifier = modifier.fillMaxWidth(),
+                onClick = {
+                    scope.launch {
+                        copy(apkVerifier.md5, toastState)
+                    }
                 }
-            }) {
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Rounded.SentimentSatisfied, contentDescription = "MD5", modifier = modifier.padding(end = 14.dp))
                     Column {
@@ -341,11 +378,14 @@ private fun SignatureListBottom(modifier: Modifier = Modifier, apkVerifier: ApkV
                 }
             }
             Spacer(Modifier.size(16.dp))
-            Card(modifier = modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(apkVerifier.sha1, toastState)
+            Card(
+                modifier = modifier.fillMaxWidth(),
+                onClick = {
+                    scope.launch {
+                        copy(apkVerifier.sha1, toastState)
+                    }
                 }
-            }) {
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(imageVector = Icons.Outlined.SentimentDissatisfied, contentDescription = "SHA-1", modifier = modifier.padding(end = 14.dp))
                     Column {
