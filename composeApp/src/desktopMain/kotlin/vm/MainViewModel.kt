@@ -454,6 +454,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     fun updateOutputPath(outputPath: String) {
         dataBase.updateOutputPath(outputPath)
         this.outputPath = dataBase.getOutputPath()
+        apkSignatureState.outPutPath = this.outputPath
     }
 
     /**
