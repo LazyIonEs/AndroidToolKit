@@ -11,18 +11,15 @@ import java.io.File
  * @Description : 数据库驱动工厂
  * @Version     : 1.0
  */
-actual class DatabaseDriverFactory {
-    actual fun createDriver(): SqlDriver {
-        val databaseDirFile = File(System.getProperty("user.home"), "config.db")
-        if (!databaseDirFile.exists()) {
-            databaseDirFile.mkdirs()
-        }
-        val databaseFile = File(databaseDirFile, "config.db")
-        return JdbcSqliteDriver("jdbc:sqlite:" + databaseFile.absolutePath).also {
+actual fun createDriver(): SqlDriver {
+    val databaseDirFile = File(System.getProperty("user.home"), ".android_tools_kit")
+    if (!databaseDirFile.exists()) {
+        databaseDirFile.mkdirs()
+    }
+    val databaseFile = File(databaseDirFile, "config.db")
+    return JdbcSqliteDriver(url = "jdbc:sqlite:" + databaseFile.absolutePath).also {
             if (!databaseFile.exists()) {
                 ToolsKitDatabase.Schema.create(it)
             }
         }
-    }
 }
-

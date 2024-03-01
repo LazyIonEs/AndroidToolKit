@@ -41,8 +41,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.InternalResourceApi
-import org.jetbrains.compose.resources.readResourceBytes
+import org.apk.tools.composeapp.generated.resources.Res
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.skia.Rect
 import org.jetbrains.skia.skottie.Animation
 import org.jetbrains.skia.sksg.InvalidationController
@@ -172,12 +172,12 @@ private fun SetUp(modifier: Modifier = Modifier, viewModel: MainViewModel) {
 /**
  * 加载json动画
  */
-@OptIn(InternalResourceApi::class)
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 fun LottieAnimation(scope: CoroutineScope, path: String, modifier: Modifier = Modifier) {
     var animation by remember { mutableStateOf<Animation?>(null) }
     scope.launch {
-        val json = readResourceBytes(path).decodeToString()
+        val json = Res.readBytes(path).decodeToString()
         animation = Animation.makeFromString(json)
     }
     animation?.let { InfiniteAnimation(it, modifier.fillMaxSize()) }

@@ -47,6 +47,7 @@ import model.SignatureEnum
 import model.SignaturePolicy
 import toast.ToastModel
 import toast.ToastUIState
+import utils.isWindows
 import vm.MainViewModel
 import vm.UIState
 import java.io.File
@@ -91,7 +92,6 @@ fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel, toastS
 @Composable
 private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
     var isDragging by remember { mutableStateOf(false) }
-    val isWindows = System.getProperty("os.name").startsWith("Win")
     val isApkError = viewModel.apkSignatureState.apkPath.isNotBlank() && !File(viewModel.apkSignatureState.apkPath).isFile
     val isOutputError = viewModel.apkSignatureState.outPutPath.isNotBlank() && !File(viewModel.apkSignatureState.outPutPath).isDirectory
     val isSignatureError = viewModel.apkSignatureState.signaturePath.isNotBlank() && !File(viewModel.apkSignatureState.signaturePath).isFile
@@ -131,11 +131,11 @@ private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel
             ) {
                 item {
                     Spacer(Modifier.size(16.dp))
-                    SignatureApk(modifier, viewModel, isApkError, isWindows)
+                    SignatureApk(modifier, viewModel, isApkError)
                 }
                 item {
                     Spacer(Modifier.size(8.dp))
-                    SignatureOutput(modifier, viewModel, isOutputError, isWindows)
+                    SignatureOutput(modifier, viewModel, isOutputError)
                 }
                 item {
                     Spacer(Modifier.size(8.dp))
@@ -143,7 +143,7 @@ private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel
                 }
                 item {
                     Spacer(Modifier.size(8.dp))
-                    SignaturePath(modifier, viewModel, isSignatureError, isWindows)
+                    SignaturePath(modifier, viewModel, isSignatureError)
                 }
                 item {
                     Spacer(Modifier.size(8.dp))
@@ -171,7 +171,7 @@ private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel
  * APK文件
  */
 @Composable
-private fun SignatureApk(modifier: Modifier = Modifier, viewModel: MainViewModel, isApkError: Boolean, isWindows: Boolean) {
+private fun SignatureApk(modifier: Modifier = Modifier, viewModel: MainViewModel, isApkError: Boolean) {
     var showFilePickerApk by remember { mutableStateOf(false) }
     Row(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -215,7 +215,7 @@ private fun SignatureApk(modifier: Modifier = Modifier, viewModel: MainViewModel
  * 签名输出路径
  */
 @Composable
-private fun SignatureOutput(modifier: Modifier = Modifier, viewModel: MainViewModel, isOutputError: Boolean, isWindows: Boolean) {
+private fun SignatureOutput(modifier: Modifier = Modifier, viewModel: MainViewModel, isOutputError: Boolean) {
     var showDirPicker by remember { mutableStateOf(false) }
     Row(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -301,7 +301,7 @@ private fun SignaturePolicy(modifier: Modifier = Modifier, viewModel: MainViewMo
  * 签名文件
  */
 @Composable
-private fun SignaturePath(modifier: Modifier = Modifier, viewModel: MainViewModel, isSignatureError: Boolean, isWindows: Boolean) {
+private fun SignaturePath(modifier: Modifier = Modifier, viewModel: MainViewModel, isSignatureError: Boolean) {
     var showFilePickerSignature by remember { mutableStateOf(false) }
     Row(
         modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),

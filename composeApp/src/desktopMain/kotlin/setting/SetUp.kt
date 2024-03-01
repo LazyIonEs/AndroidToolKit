@@ -31,10 +31,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import file.showExecuteSelector
+import file.showFolderSelector
 import model.Exterior
 import org.apk.tools.composeApp.BuildConfig
+import utils.isWindows
 import vm.MainViewModel
 import java.awt.Desktop
 import java.io.File
@@ -47,20 +50,20 @@ import java.io.File
  */
 @Composable
 fun SetUp(modifier: Modifier = Modifier, viewModel: MainViewModel) {
-    val isWindows = System.getProperty("os.name").startsWith("Win")
     val aaptFile = File(viewModel.aapt)
     val isAaptError = viewModel.aapt.isNotBlank() && !aaptFile.isFile && (!aaptFile.canExecute() || aaptFile.isDirectory)
     val isSignerSuffixError = viewModel.signerSuffix.isBlank()
+    val isOutPutError = viewModel.outputPath.isNotBlank() && !File(viewModel.outputPath).isDirectory
     Box(modifier = modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp)) {
         LazyColumn {
-            item { ApkInformation(modifier, viewModel, isAaptError, isWindows) }
+            item { ApkInformation(modifier, viewModel, isAaptError) }
             item {
                 Spacer(Modifier.size(16.dp))
                 ApkSignature(modifier, viewModel, isSignerSuffixError)
             }
             item {
                 Spacer(Modifier.size(16.dp))
-                Conventional(modifier, viewModel)
+                Conventional(modifier, viewModel, isOutPutError)
             }
             item {
                 Spacer(Modifier.size(16.dp))
@@ -71,7 +74,7 @@ fun SetUp(modifier: Modifier = Modifier, viewModel: MainViewModel) {
 }
 
 @Composable
-private fun ApkInformation(modifier: Modifier = Modifier, viewModel: MainViewModel, isAaptError: Boolean, isWindows: Boolean) {
+private fun ApkInformation(modifier: Modifier = Modifier, viewModel: MainViewModel, isAaptError: Boolean) {
     Card(modifier.fillMaxWidth()) {
         Column(modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -154,16 +157,68 @@ private fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel
                     onCheckedChange = { viewModel.updateFlagDelete(it) }
                 )
             }
+            Row(
+                modifier = modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = modifier.weight(1f)) {
+                    Text("启用文件对齐", style = MaterialTheme.typography.bodyLarge)
+                    if (!viewModel.isAlignFileSize) {
+                        Text("注意：当未启用文件对齐，签名之后对APK做出了进一步更改，签名便会失效", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+                Switch(
+                    checked = viewModel.isAlignFileSize,
+                    onCheckedChange = { viewModel.updateIsAlignFileSize(it) }
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun Conventional(modifier: Modifier = Modifier, viewModel: MainViewModel) {
+private fun Conventional(modifier: Modifier = Modifier, viewModel: MainViewModel, isOutPutError: Boolean) {
     Card(modifier.fillMaxWidth()) {
         Column(modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
             Text("常规", modifier = modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium)
+            var showDirPicker by remember { mutableStateOf(false) }
+            Row(
+                modifier = modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    modifier = modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+                    value = viewModel.outputPath,
+                    onValueChange = { path ->
+                        viewModel.updateOutputPath(path)
+                    },
+                    label = { Text("默认输出路径", style = MaterialTheme.typography.labelLarge) },
+                    singleLine = true,
+                    isError = isOutPutError
+                )
+                SmallFloatingActionButton(
+                    onClick = {
+                        if (isWindows) {
+                            showDirPicker = true
+                        } else {
+                            showFolderSelector { path ->
+                                viewModel.updateOutputPath(path)
+                            }
+                        }
+                    }
+                ) {
+                    Icon(Icons.Rounded.FolderOpen, "选择文件夹")
+                }
+            }
+            if (isWindows) {
+                DirectoryPicker(showDirPicker) { path ->
+                    showDirPicker = false
+                    if (path?.isNotBlank() == true) {
+                        viewModel.updateOutputPath(path)
+                    }
+                }
+            }
             Spacer(Modifier.size(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("外观", modifier = modifier.padding(start = 24.dp), style = MaterialTheme.typography.bodyLarge)

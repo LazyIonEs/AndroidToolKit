@@ -1,4 +1,3 @@
-import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -17,7 +16,7 @@ sqldelight {
     }
 }
 
-val kitVersion by extra("1.0.0")
+val kitVersion by extra("1.1.0")
 val kitPackageName = "AndroidToolsKit"
 val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
@@ -55,7 +54,6 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.material)
             implementation(compose.ui)
-            @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.components.resources)
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)

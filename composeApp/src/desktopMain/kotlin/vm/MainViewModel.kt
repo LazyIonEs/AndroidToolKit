@@ -1,5 +1,6 @@
 package vm
 
+import Page
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -18,7 +19,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
-import Page
 import model.ApkInformation
 import model.ApkSignature
 import model.ApkVerifierResult
@@ -26,7 +26,6 @@ import model.SignatureEnum
 import model.SignaturePolicy
 import org.apache.commons.codec.digest.DigestUtils
 import org.jetbrains.skia.Image
-import platform.DatabaseDriverFactory
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -49,7 +48,7 @@ import java.util.zip.ZipFile
 class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     // 数据库
-    private val dataBase = DataBase(DatabaseDriverFactory())
+    private val dataBase = DataBase()
 
     // 暗色模式
     var darkMode by mutableStateOf(dataBase.getDarkMode())
@@ -67,6 +66,14 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     var signerSuffix by mutableStateOf(dataBase.getSignerSuffix())
         private set
 
+    // 默认输出路径
+    var outputPath by mutableStateOf(dataBase.getOutputPath())
+        private set
+
+    // 文件对齐标识
+    var isAlignFileSize by mutableStateOf(dataBase.getIsAlignFileSize())
+        private set
+
     // 主页选中下标
     var uiPageIndex by mutableStateOf(Page.SIGNATURE_INFORMATION)
         private set
@@ -80,7 +87,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
         private set
 
     // APK签名UI信息
-    var apkSignatureState by mutableStateOf(ApkSignature())
+    var apkSignatureState by mutableStateOf(ApkSignature(outPutPath = outputPath))
         private set
 
     // Apk签名UI状态
@@ -101,9 +108,11 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
         when (enum) {
             SignatureEnum.APK_PATH -> {
                 apkSignature.apkPath = value as String
-                val file = File(value)
-                if (file.exists()) {
-                    apkSignature.outPutPath = file.parentFile.path
+                if (apkSignature.outPutPath.isBlank()) {
+                    val file = File(value)
+                    if (file.exists()) {
+                        apkSignature.outPutPath = file.parentFile.path
+                    }
                 }
             }
 
@@ -159,11 +168,10 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             val apkSigner = signerBuild
                 .setInputApk(inputApk)
                 .setOutputApk(outputApk)
-                .setAlignFileSize(true)
+                .setAlignFileSize(isAlignFileSize)
                 .setV1SigningEnabled(v1SigningEnabled)
                 .setV2SigningEnabled(v2SigningEnabled)
                 .setV3SigningEnabled(v3SigningEnabled)
-                .setVerityEnabled(true)
                 .build()
             apkSigner.sign()
             apkSignatureUIState = UIState.Success("签名成功")
@@ -437,6 +445,24 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     fun updateDarkMode(darkMode: Long) {
         dataBase.updateDarkMode(darkMode)
         this.darkMode = dataBase.getDarkMode()
+    }
+
+    /**
+     * 更新默认输出路径
+     * @param outputPath 路径
+     */
+    fun updateOutputPath(outputPath: String) {
+        dataBase.updateOutputPath(outputPath)
+        this.outputPath = dataBase.getOutputPath()
+    }
+
+    /**
+     * 更新文件对齐标识
+     * @param isAlignFileSize 是否开启文件对齐
+     */
+    fun updateIsAlignFileSize(isAlignFileSize: Boolean) {
+        dataBase.updateIsAlignFileSize(isAlignFileSize)
+        this.isAlignFileSize = dataBase.getIsAlignFileSize()
     }
 
     private fun getThumbPrint(cert: X509Certificate?, type: String?): String? {

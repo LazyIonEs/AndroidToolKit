@@ -1,5 +1,6 @@
 package signature
 
+import LottieAnimation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -46,12 +47,12 @@ import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import file.showFileSelector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import LottieAnimation
 import model.ApkVerifier
 import model.ApkVerifierResult
 import toast.ToastModel
 import toast.ToastUIState
 import utils.copy
+import utils.isWindows
 import vm.MainViewModel
 import vm.UIState
 import java.io.File
@@ -171,7 +172,6 @@ private fun SignatureList(modifier: Modifier = Modifier, uiState: UIState, toast
  */
 @Composable
 private fun SignatureFloatingButton(modifier: Modifier = Modifier, uiState: UIState, viewModel: MainViewModel, isDragging: Boolean) {
-    val isWindows = System.getProperty("os.name").startsWith("Win")
     var showFilePickerApk by remember { mutableStateOf(false) }
     Box(modifier.fillMaxWidth().fillMaxHeight()) {
         Box(

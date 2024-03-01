@@ -1,5 +1,6 @@
 package apk
 
+import LottieAnimation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -34,11 +35,11 @@ import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import file.showFileSelector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import LottieAnimation
 import model.ApkInformation
 import toast.ToastModel
 import toast.ToastUIState
 import utils.copy
+import utils.isWindows
 import vm.MainViewModel
 import vm.UIState
 import java.io.File
@@ -113,7 +114,6 @@ private fun ApkDraggingBox(modifier: Modifier = Modifier, viewModel: MainViewMod
  */
 @Composable
 private fun ApkFloatingButton(modifier: Modifier = Modifier, viewModel: MainViewModel, isDragging: Boolean) {
-    val isWindows = System.getProperty("os.name").startsWith("Win")
     var showFilePickerApk by remember { mutableStateOf(false) }
     Box(
         modifier = modifier.fillMaxWidth().fillMaxHeight()
