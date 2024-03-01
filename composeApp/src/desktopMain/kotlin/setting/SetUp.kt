@@ -36,7 +36,7 @@ import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import file.showExecuteSelector
 import file.showFolderSelector
 import model.Exterior
-import org.apk.tools.composeApp.BuildConfig
+import org.apk.tools.BuildConfig
 import utils.isWindows
 import vm.MainViewModel
 import java.awt.Desktop

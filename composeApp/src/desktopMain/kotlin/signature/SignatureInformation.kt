@@ -16,7 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.LibraryBooks
+import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
+import androidx.compose.material.icons.automirrored.rounded.Subject
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SentimentDissatisfied
 import androidx.compose.material.icons.outlined.SentimentVeryDissatisfied
@@ -25,7 +26,6 @@ import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.QueryBuilder
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.SentimentSatisfied
-import androidx.compose.material.icons.rounded.Subject
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -237,7 +237,7 @@ private fun SignatureListTop(modifier: Modifier = Modifier, apkVerifier: ApkVeri
                 }
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Rounded.Subject, contentDescription = "Subject", modifier = modifier.padding(end = 14.dp))
+                    Icon(imageVector = Icons.AutoMirrored.Rounded.Subject, contentDescription = "Subject", modifier = modifier.padding(end = 14.dp))
                     Column {
                         Text("Subject", style = MaterialTheme.typography.titleMedium)
                         Text(apkVerifier.subject, style = MaterialTheme.typography.bodySmall)
@@ -321,7 +321,7 @@ private fun SignatureListCenter(modifier: Modifier = Modifier, apkVerifier: ApkV
                 }
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Outlined.LibraryBooks, contentDescription = "Modulus", modifier = modifier.padding(end = 14.dp))
+                    Icon(imageVector = Icons.AutoMirrored.Outlined.LibraryBooks, contentDescription = "Modulus", modifier = modifier.padding(end = 14.dp))
                     Column {
                         Text("Modulus", style = MaterialTheme.typography.titleMedium)
                         Text(apkVerifier.modulus, style = MaterialTheme.typography.bodySmall)

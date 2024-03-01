@@ -130,6 +130,8 @@ compose.desktop {
 }
 
 buildConfig {
+    className("BuildConfig")
+    packageName("org.apk.tools")
     buildConfigField("APP_NAME", kitPackageName)
     buildConfigField("APP_VERSION", kitVersion)
     buildConfigField("APP_DESCRIPTION", kitDescription)
