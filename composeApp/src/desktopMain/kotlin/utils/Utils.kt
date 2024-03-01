@@ -1,5 +1,8 @@
 package utils
 
+import java.math.BigDecimal
+import java.math.RoundingMode
+
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/3/1 09:02
@@ -7,4 +10,39 @@ package utils
  * @Version     : 1.0
  */
 
+private enum class FileSizeType(val id: Int, val unit: String) {
+    SIZE_TYPE_B(1, "B"),
+    SIZE_TYPE_KB(2, "KB"),
+    SIZE_TYPE_MB(3, "M"),
+    SIZE_TYPE_GB(4, "GB"),
+    SIZE_TYPE_TB(5, "TB")
+}
+
 val isWindows = System.getProperty("os.name").startsWith("Win")
+
+/**
+ * @param scale 精确到小数点以后几位 (Accurate to a few decimal places)
+ */
+fun formatFileSize(size: Long, scale: Int, withUnit: Boolean = false): String {
+    val divisor = 1024L //ROUND_DOWN 1023 -> 1023B ; ROUND_HALF_UP  1023 -> 1KB
+    val kiloByte: BigDecimal = formatSizeByTypeWithDivisor(BigDecimal.valueOf(size), scale, FileSizeType.SIZE_TYPE_B, divisor)
+    if (kiloByte.toDouble() < 1) {
+        return "${kiloByte.toPlainString()}${if (withUnit) FileSizeType.SIZE_TYPE_B.unit else ""}"
+    } //KB
+    val megaByte = formatSizeByTypeWithDivisor(kiloByte, scale, FileSizeType.SIZE_TYPE_KB, divisor)
+    if (megaByte.toDouble() < 1) {
+        return "${kiloByte.toPlainString()}${if (withUnit) FileSizeType.SIZE_TYPE_KB.unit else ""}"
+    } //M
+    val gigaByte = formatSizeByTypeWithDivisor(megaByte, scale, FileSizeType.SIZE_TYPE_MB, divisor)
+    if (gigaByte.toDouble() < 1) {
+        return "${megaByte.toPlainString()}${if (withUnit) FileSizeType.SIZE_TYPE_MB.unit else ""}"
+    } //GB
+    val teraBytes = formatSizeByTypeWithDivisor(gigaByte, scale, FileSizeType.SIZE_TYPE_GB, divisor)
+    if (teraBytes.toDouble() < 1) {
+        return "${gigaByte.toPlainString()}${if (withUnit) FileSizeType.SIZE_TYPE_GB.unit else ""}"
+    } //TB
+    return "${teraBytes.toPlainString()}${if (withUnit) FileSizeType.SIZE_TYPE_TB.unit else ""}"
+}
+
+private fun formatSizeByTypeWithDivisor(size: BigDecimal, scale: Int, sizeType: FileSizeType, divisor: Long): BigDecimal =
+    size.divide(BigDecimal.valueOf(divisor), scale, if (sizeType == FileSizeType.SIZE_TYPE_B) RoundingMode.DOWN else RoundingMode.HALF_UP)

@@ -39,6 +39,7 @@ import model.ApkInformation
 import toast.ToastModel
 import toast.ToastUIState
 import utils.copy
+import utils.formatFileSize
 import utils.isWindows
 import vm.MainViewModel
 import vm.UIState
@@ -198,7 +199,7 @@ private fun ApkInformationBox(modifier: Modifier = Modifier, viewModel: MainView
                     AppInfoItem(modifier, "文件MD5：", uiState.md5, toastState, scope)
                 }
                 item {
-                    AppInfoItem(modifier, "大小：", uiState.size.toString(), toastState, scope)
+                    AppInfoItem(modifier, "大小：", formatFileSize(uiState.size, 2, true), toastState, scope)
                 }
                 item {
                     PermissionsList(modifier, uiState.usesPermissionList)
