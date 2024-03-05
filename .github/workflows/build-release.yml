@@ -4,7 +4,7 @@ on:
   [ workflow_dispatch ]
 
 env:
-  TAG_VERSION: 1.1.0
+  TAG_VERSION: 1.2.0
 
 jobs:
   create-win-x64-package:
