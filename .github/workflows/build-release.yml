@@ -17,18 +17,14 @@ jobs:
           distribution: 'zulu'
           java-version: 17
           architecture: x64
-
       - name: Fetch Sources
         uses: actions/checkout@v4
-
       - name: Desktop App Package
         run: ./gradlew packageReleaseDistributionForCurrentOS
-
       - name: Prep build artifacts for release
         run: |
           $ErrorActionPreference = "Stop"
           mv D:\a\AndroidToolsKit\AndroidToolsKit\composeApp\output\main-release\msi\AndroidToolsKit-${{ env.TAG_VERSION }}.msi D:\a\AndroidToolsKit\AndroidToolsKit\composeApp\output\main-release\msi\AndroidToolsKit-${{ env.TAG_VERSION }}-windows-x64.msi
-
       - name: Draft Release
         uses: ncipollo/release-action@v1
         with:
@@ -48,18 +44,14 @@ jobs:
           distribution: 'zulu'
           java-version: 17
           architecture: x64
-
       - name: Fetch Sources
         uses: actions/checkout@v4
-
       - name: Desktop App Package
         run: ./gradlew packageReleaseDistributionForCurrentOS
-
       - name: Prep build artifacts for release
         run: |
           set -e
           mv  /Users/runner/work/AndroidToolsKit/AndroidToolsKit/composeApp/output/main-release/dmg/AndroidToolsKit-${{ env.TAG_VERSION }}.dmg  /Users/runner/work/AndroidToolsKit/AndroidToolsKit/composeApp/output/main-release/dmg/AndroidToolsKit-${{ env.TAG_VERSION }}-macos-x64.dmg
-
       - name: Draft Release
         uses: ncipollo/release-action@v1
         with:
@@ -79,18 +71,14 @@ jobs:
           distribution: 'zulu'
           java-version: 17
           architecture: aarch64
-
       - name: Fetch Sources
         uses: actions/checkout@v4
-
       - name: Desktop App Package
         run: ./gradlew packageReleaseDistributionForCurrentOS
-
       - name: Prep build artifacts for release
         run: |
           set -e
           mv /Users/runner/work/AndroidToolsKit/AndroidToolsKit/composeApp/output/main-release/dmg/AndroidToolsKit-${{ env.TAG_VERSION }}.dmg /Users/runner/work/AndroidToolsKit/AndroidToolsKit/composeApp/output/main-release/dmg/AndroidToolsKit-${{ env.TAG_VERSION }}-macos-arm64.dmg
-
       - name: Draft Release
         uses: ncipollo/release-action@v1
         with:
@@ -99,7 +87,6 @@ jobs:
           tag: "v${{ env.TAG_VERSION }}"
           artifacts: "composeApp/output/main-release/dmg/*"
           token: ${{ secrets.GH_TOKEN }}
-          
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
