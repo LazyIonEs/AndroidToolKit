@@ -5,6 +5,7 @@
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/LazyIonEs/AndroidToolsKit/build-release.yml)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/LazyIonEs/AndroidToolsKit/total)
 ![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/LazyIonEs/AndroidToolsKit/latest/total)
+[![codecov](https://codecov.io/gh/LazyIonEs/AndroidToolsKit/graph/badge.svg?token=D2RG6BENI6)](https://codecov.io/gh/LazyIonEs/AndroidToolsKit)
 ![GitHub Release](https://img.shields.io/github/v/release/LazyIonEs/AndroidToolsKit)
 ![GitHub License](https://img.shields.io/github/license/LazyIonEs/AndroidToolsKit)
 
