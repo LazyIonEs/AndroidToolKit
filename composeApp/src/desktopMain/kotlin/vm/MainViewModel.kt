@@ -21,11 +21,12 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import model.ApkInformation
 import model.ApkSignature
-import model.ApkVerifierResult
 import model.SignatureEnum
 import model.SignaturePolicy
+import model.VerifierResult
 import org.apache.commons.codec.digest.DigestUtils
 import org.jetbrains.skia.Image
+import utils.isWindows
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -83,7 +84,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     }
 
     // 签名信息UI状态
-    var apkVerifierState by mutableStateOf<UIState>(UIState.WAIT)
+    var verifierState by mutableStateOf<UIState>(UIState.WAIT)
         private set
 
     // APK签名UI信息
@@ -187,69 +188,71 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      * APK信息
      * @param input 输入APK路径
      */
-    fun apkInformation(input: String) = runBlocking(Dispatchers.IO) {
-        var process: Process? = null
-        var inputStream: InputStream? = null
-        var bufferedReader: BufferedReader? = null
-        CoroutineScope(SupervisorJob() + CoroutineExceptionHandler { _, e ->
-            apkInformationState = UIState.Error(e.message ?: "APK解析失败")
-            e.printStackTrace()
-        }).async {
-            supervisorScope {
-                launch {
-                    apkInformationState = UIState.Loading
-                    if (aapt.isBlank()) {
-                        throw Exception("请先在设置页设置aapt路径")
-                    }
-                    val builder = ProcessBuilder()
-                    process = builder.command(aapt, "dump", "badging", input).start()
-                    inputStream = process!!.inputStream
-                    bufferedReader = BufferedReader(InputStreamReader(inputStream!!, "utf-8"))
-                    var line: String?
-                    val apkInformation = ApkInformation()
-                    val apkFile = File(input)
-                    apkInformation.size = apkFile.length()
-                    apkInformation.md5 = DigestUtils.md5Hex(FileInputStream(apkFile))
-                    while (bufferedReader!!.readLine().also { line = it } != null) {
-                        line?.let {
-                            if (it.startsWith("application:")) {
-                                apkInformation.label = extractValue(it, "label")
-                                apkInformation.icon = extractIcon(input, extractValue(it, "icon"))
-                            } else if (it.startsWith("package:")) {
-                                apkInformation.packageName = extractValue(it, "name")
-                                apkInformation.versionCode = extractValue(it, "versionCode")
-                                apkInformation.versionName = extractValue(it, "versionName")
-                                apkInformation.compileSdkVersion = extractValue(it, "compileSdkVersion")
-                            } else if (it.startsWith("targetSdkVersion:")) {
-                                apkInformation.targetSdkVersion = extractVersion(it, "targetSdkVersion")
-                            } else if (it.startsWith("sdkVersion:")) {
-                                apkInformation.minSdkVersion = extractVersion(it, "sdkVersion")
-                            } else if (it.startsWith("uses-permission:")) {
-                                if (apkInformation.usesPermissionList == null) {
-                                    apkInformation.usesPermissionList = ArrayList()
-                                }
-                                apkInformation.usesPermissionList?.add(extractValue(it, "name"))
-                            } else if (it.startsWith("native-code:")) {
-                                apkInformation.nativeCode = (it.split("native-code:").getOrNull(1) ?: "").trim().replace("'", "")
-                            } else {
+    fun apkInformation(input: String) = launch(Dispatchers.IO) {
+        runBlocking {
+            var process: Process? = null
+            var inputStream: InputStream? = null
+            var bufferedReader: BufferedReader? = null
+            CoroutineScope(SupervisorJob() + CoroutineExceptionHandler { _, e ->
+                apkInformationState = UIState.Error(e.message ?: "APK解析失败")
+                e.printStackTrace()
+            }).async {
+                supervisorScope {
+                    launch {
+                        apkInformationState = UIState.Loading
+                        if (aapt.isBlank()) {
+                            throw Exception("请先在设置页设置aapt路径")
+                        }
+                        val builder = ProcessBuilder()
+                        process = builder.command(aapt, "dump", "badging", input).start()
+                        inputStream = process!!.inputStream
+                        bufferedReader = BufferedReader(InputStreamReader(inputStream!!, "utf-8"))
+                        var line: String?
+                        val apkInformation = ApkInformation()
+                        val apkFile = File(input)
+                        apkInformation.size = apkFile.length()
+                        apkInformation.md5 = DigestUtils.md5Hex(FileInputStream(apkFile))
+                        while (bufferedReader!!.readLine().also { line = it } != null) {
+                            line?.let {
+                                if (it.startsWith("application:")) {
+                                    apkInformation.label = extractValue(it, "label")
+                                    apkInformation.icon = extractIcon(input, extractValue(it, "icon"))
+                                } else if (it.startsWith("package:")) {
+                                    apkInformation.packageName = extractValue(it, "name")
+                                    apkInformation.versionCode = extractValue(it, "versionCode")
+                                    apkInformation.versionName = extractValue(it, "versionName")
+                                    apkInformation.compileSdkVersion = extractValue(it, "compileSdkVersion")
+                                } else if (it.startsWith("targetSdkVersion:")) {
+                                    apkInformation.targetSdkVersion = extractVersion(it, "targetSdkVersion")
+                                } else if (it.startsWith("sdkVersion:")) {
+                                    apkInformation.minSdkVersion = extractVersion(it, "sdkVersion")
+                                } else if (it.startsWith("uses-permission:")) {
+                                    if (apkInformation.usesPermissionList == null) {
+                                        apkInformation.usesPermissionList = ArrayList()
+                                    }
+                                    apkInformation.usesPermissionList?.add(extractValue(it, "name"))
+                                } else if (it.startsWith("native-code:")) {
+                                    apkInformation.nativeCode = (it.split("native-code:").getOrNull(1) ?: "").trim().replace("'", "")
+                                } else {
 
+                                }
                             }
                         }
+                        apkInformationState = UIState.Success(apkInformation)
                     }
-                    apkInformationState = UIState.Success(apkInformation)
                 }
-            }
-            kotlin.runCatching {
-                process?.destroy()
-                inputStream?.close()
-                bufferedReader?.close()
-            }
-            launch {
-                if (apkInformationState is UIState.Error) {
-                    delay(1000)
-                    apkInformationState = UIState.WAIT
+                kotlin.runCatching {
+                    process?.destroy()
+                    inputStream?.close()
+                    bufferedReader?.close()
                 }
-            }
+                launch {
+                    if (apkInformationState is UIState.Error) {
+                        delay(1000)
+                        apkInformationState = UIState.WAIT
+                    }
+                }
+            }.await()
         }
     }
 
@@ -261,12 +264,58 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     }
 
     /**
-     * 签名验证
+     * 签名信息
+     * @param input 输入签名的路径
+     * @param password 签名密码
+     * @param alisa 签名别名
+     */
+    fun signerVerifier(input: String, password: String, alisa: String) = launch(Dispatchers.IO) {
+        verifierState = UIState.Loading
+        var fileInputStream: FileInputStream? = null
+        val inputFile = File(input)
+        try {
+            val list = ArrayList<model.Verifier>()
+            val keyStore = KeyStore.getInstance("PKCS12")
+            fileInputStream = FileInputStream(inputFile)
+            keyStore.load(fileInputStream, password.toCharArray())
+            val cert = keyStore.getCertificate(alisa)
+            if (cert.type == "X.509") {
+                cert as X509Certificate
+                val subject = cert.subjectX500Principal.name
+                val validFrom = cert.notBefore.toString()
+                val validUntil = cert.notAfter.toString()
+                val publicKeyType = (cert.publicKey as? RSAPublicKey)?.algorithm ?: ""
+                val modulus = (cert.publicKey as? RSAPublicKey)?.modulus?.toString(10) ?: ""
+                val signatureType = cert.sigAlgName
+                val md5 = getThumbPrint(cert, "MD5") ?: ""
+                val sha1 = getThumbPrint(cert, "SHA-1") ?: ""
+                val sha256 = getThumbPrint(cert, "SHA-256") ?: ""
+                val apkVerifier = model.Verifier(cert.version, subject, validFrom, validUntil, publicKeyType, modulus, signatureType, md5, sha1, sha256)
+                list.add(apkVerifier)
+                val apkVerifierResult = VerifierResult(isSuccess = true, isApk = false, path = input, name = inputFile.name, data = list)
+                verifierState = UIState.Success(apkVerifierResult)
+            } else {
+                throw Exception("Key Certificate Type Is Not X509Certificate")
+            }
+        } catch (e: Exception) {
+            verifierState = UIState.Error(e.message ?: "签名验证失败")
+            e.printStackTrace()
+        } finally {
+            fileInputStream?.close()
+        }
+        if (verifierState is UIState.Error) {
+            delay(1000)
+            verifierState = UIState.WAIT
+        }
+    }
+
+    /**
+     * APK签名信息
      * @param input 输入APK的路径
      */
     fun apkVerifier(input: String) = launch(Dispatchers.IO) {
-        apkVerifierState = UIState.Loading
-        val list = ArrayList<model.ApkVerifier>()
+        verifierState = UIState.Loading
+        val list = ArrayList<model.Verifier>()
         val inputFile = File(input)
         val path = inputFile.path
         val name = inputFile.name
@@ -294,7 +343,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                         val md5 = getThumbPrint(cert, "MD5") ?: ""
                         val sha1 = getThumbPrint(cert, "SHA-1") ?: ""
                         val sha256 = getThumbPrint(cert, "SHA-256") ?: ""
-                        val apkVerifier = model.ApkVerifier(1, subject, validFrom, validUntil, publicKeyType, modulus, signatureType, md5, sha1, sha256)
+                        val apkVerifier = model.Verifier(1, subject, validFrom, validUntil, publicKeyType, modulus, signatureType, md5, sha1, sha256)
                         list.add(apkVerifier)
                     }
                     signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
@@ -317,7 +366,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                         val md5 = getThumbPrint(cert, "MD5") ?: ""
                         val sha1 = getThumbPrint(cert, "SHA-1") ?: ""
                         val sha256 = getThumbPrint(cert, "SHA-256") ?: ""
-                        val apkVerifier = model.ApkVerifier(2, subject, validFrom, validUntil, publicKeyType, modulus, signatureType, md5, sha1, sha256)
+                        val apkVerifier = model.Verifier(2, subject, validFrom, validUntil, publicKeyType, modulus, signatureType, md5, sha1, sha256)
                         list.add(apkVerifier)
                     }
                     signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
@@ -340,7 +389,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                         val md5 = getThumbPrint(cert, "MD5") ?: ""
                         val sha1 = getThumbPrint(cert, "SHA-1") ?: ""
                         val sha256 = getThumbPrint(cert, "SHA-256") ?: ""
-                        val apkVerifier = model.ApkVerifier(3, subject, validFrom, validUntil, publicKeyType, modulus, signatureType, md5, sha1, sha256)
+                        val apkVerifier = model.Verifier(3, subject, validFrom, validUntil, publicKeyType, modulus, signatureType, md5, sha1, sha256)
                         list.add(apkVerifier)
                     }
                     signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
@@ -351,43 +400,45 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             }
 
             if (isSuccess || list.isNotEmpty()) {
-                val apkVerifierResult = ApkVerifierResult(isSuccess, path, name, list)
-                apkVerifierState = UIState.Success(apkVerifierResult)
+                val apkVerifierResult = VerifierResult(isSuccess, true, path, name, list)
+                verifierState = UIState.Success(apkVerifierResult)
             } else {
                 if (error.isBlank()) {
                     error = "APK签名验证失败"
                 }
-                apkVerifierState = UIState.Error(error)
+                verifierState = UIState.Error(error)
             }
         } catch (e: Exception) {
-            apkVerifierState = UIState.Error(e.message ?: "APK签名验证失败")
+            verifierState = UIState.Error(e.message ?: "APK签名验证失败")
             e.printStackTrace()
         }
-        if (apkVerifierState is UIState.Error) {
+        if (verifierState is UIState.Error) {
             delay(1000)
-            apkVerifierState = UIState.WAIT
+            verifierState = UIState.WAIT
         }
     }
 
     /**
      * 验证签名
+     * @param path 签名路径
+     * @param password 签名密码
      */
-    fun verifyAlisa() {
+    fun verifyAlisa(path: String, password: String): String {
         var fileInputStream: FileInputStream? = null
         try {
-            val keyStore = KeyStore.getInstance("JKS")
-            fileInputStream = FileInputStream(apkSignatureState.signaturePath)
-            keyStore.load(fileInputStream, apkSignatureState.signaturePassword.toCharArray())
+            val keyStore = KeyStore.getInstance("PKCS12")
+            fileInputStream = FileInputStream(path)
+            keyStore.load(fileInputStream, password.toCharArray())
             val aliases = keyStore.aliases()
             while (aliases.hasMoreElements()) {
-                val alias = aliases.nextElement()
-                updateApkSignature(SignatureEnum.SIGNATURE_ALISA, alias)
+                return aliases.nextElement()
             }
-        } catch (e: Exception) {
-            updateApkSignature(SignatureEnum.SIGNATURE_ALISA, "")
+        } catch (_: Exception) {
+
         } finally {
             fileInputStream?.close()
         }
+        return ""
     }
 
     /**
@@ -396,7 +447,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     fun verifyAlisaPassword(): Boolean {
         var fileInputStream: FileInputStream? = null
         try {
-            val keyStore = KeyStore.getInstance("JKS")
+            val keyStore = KeyStore.getInstance("PKCS12")
             fileInputStream = FileInputStream(apkSignatureState.signaturePath)
             keyStore.load(fileInputStream, apkSignatureState.signaturePassword.toCharArray())
             if (keyStore.containsAlias(apkSignatureState.signatureAlisa)) {
@@ -409,6 +460,20 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             fileInputStream?.close()
         }
         return false
+    }
+
+    /**
+     * 使用内置aapt
+     */
+    fun useInternalAaptPath() {
+        val resourcesDir = File(System.getProperty("compose.application.resources.dir"))
+        val aaptFile = if (isWindows) {
+            resourcesDir.resolve("aapt.exe")
+        } else {
+            resourcesDir.resolve("aapt")
+        }
+        dataBase.updateAaptPath(aaptFile.absolutePath)
+        this.aapt = dataBase.getAaptPath()
     }
 
     /**
@@ -516,7 +581,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                     return Image.makeFromEncoded(bytes).toComposeImageBitmap()
                 }
             }
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             e.printStackTrace()
         } finally {
             try {

@@ -4,6 +4,7 @@ import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import kit.ToolsKitDatabase
 import java.io.File
+import java.util.Properties
 
 /**
  * @Author      : LazyIonEs
@@ -12,14 +13,19 @@ import java.io.File
  * @Version     : 1.0
  */
 actual fun createDriver(): SqlDriver {
-    val databaseDirFile = File(System.getProperty("user.home"), ".android_tools_kit")
-    if (!databaseDirFile.exists()) {
-        databaseDirFile.mkdirs()
+    val database = JdbcSqliteDriver(
+        url = "jdbc:sqlite:${getDatabaseFile().absolutePath}",
+        properties = Properties(),
+        schema = ToolsKitDatabase.Schema,
+    ).also {
+        ToolsKitDatabase.Schema.create(it)
     }
-    val databaseFile = File(databaseDirFile, "config.db")
-    return JdbcSqliteDriver(url = "jdbc:sqlite:" + databaseFile.absolutePath).also {
-            if (!databaseFile.exists()) {
-                ToolsKitDatabase.Schema.create(it)
-            }
-        }
+    return database
+}
+
+private fun getDatabaseFile(): File {
+    return File(
+        File(System.getProperty("user.home"), ".android_tools_kit").also { if (!it.exists()) it.mkdirs() },
+        "config.db"
+    )
 }

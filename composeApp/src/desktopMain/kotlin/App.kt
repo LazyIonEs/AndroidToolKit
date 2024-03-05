@@ -76,11 +76,11 @@ fun MainContentScreen(modifier: Modifier = Modifier, viewModel: MainViewModel) {
     val toastState = remember { ToastUIState() }
     val scope = rememberCoroutineScope()
     Box(
-        modifier = modifier.fillMaxWidth().fillMaxHeight(),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
     ) {
         Row(
-            modifier = modifier.fillMaxWidth().fillMaxHeight(),
+            modifier = modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val pages = Page.entries.toTypedArray()

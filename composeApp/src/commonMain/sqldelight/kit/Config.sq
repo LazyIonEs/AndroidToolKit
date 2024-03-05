@@ -1,6 +1,6 @@
 import kotlin.Boolean;
 
-CREATE TABLE Config (
+CREATE TABLE IF NOT EXISTS Config (
    id INTEGER NOT NULL PRIMARY KEY,
    dark_mode INTEGER NOT NULL,
    aapt_path TEXT NOT NULL,
@@ -11,7 +11,8 @@ CREATE TABLE Config (
 );
 
 INSERT INTO Config(id, dark_mode, aapt_path, flag_delete, signer_suffix, output_path, is_align_file_size)
-VALUES (0, 0,"", 1, "_sign", "", 1);
+SELECT 0, 0, "", 1, "_sign", "", 1
+WHERE (SELECT COUNT(*) FROM Config WHERE id = 0) = 0;
 
 getAaptPath:
 SELECT aapt_path FROM Config WHERE id = 0;

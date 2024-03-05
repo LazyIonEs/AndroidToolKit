@@ -47,6 +47,7 @@ class ToastUIState {
         toastModel: ToastModel
     ): Unit = mutex.withLock {
         try {
+            currentData?.dismiss()
             return suspendCancellableCoroutine { cont ->
                 currentData = ToastDataImpl(
                     toastModel.message,

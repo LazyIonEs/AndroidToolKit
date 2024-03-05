@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.FolderOpen
+import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedFilterChip
@@ -81,7 +82,7 @@ private fun ApkInformation(modifier: Modifier = Modifier, viewModel: MainViewMod
             Text("APK信息", modifier = modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium)
             var showFilePickerApk by remember { mutableStateOf(false) }
             Row(
-                modifier = modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 6.dp),
+                modifier = modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
@@ -106,6 +107,12 @@ private fun ApkInformation(modifier: Modifier = Modifier, viewModel: MainViewMod
                     }
                 ) {
                     Icon(Icons.Rounded.FolderOpen, "选择文件")
+                }
+                Spacer(Modifier.size(4.dp))
+                SmallFloatingActionButton(
+                    onClick = { viewModel.useInternalAaptPath() }
+                ) {
+                    Icon(Icons.Rounded.Restore, "重置")
                 }
             }
             if (isWindows) {

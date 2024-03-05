@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -64,7 +65,6 @@ fun ApkInformation(modifier: Modifier = Modifier, viewModel: MainViewModel, toas
             }
             if (uiState is UIState.Error) {
                 scope.launch {
-                    toastState.currentData?.dismiss()
                     toastState.show(ToastModel(uiState.msg, ToastModel.Type.Error))
                 }
             }
@@ -117,7 +117,7 @@ private fun ApkDraggingBox(modifier: Modifier = Modifier, viewModel: MainViewMod
 private fun ApkFloatingButton(modifier: Modifier = Modifier, viewModel: MainViewModel, isDragging: Boolean) {
     var showFilePickerApk by remember { mutableStateOf(false) }
     Box(
-        modifier = modifier.fillMaxWidth().fillMaxHeight()
+        modifier = modifier.fillMaxSize()
     ) {
         Box(
             modifier = modifier.align(Alignment.BottomEnd).padding(end = 8.dp)
@@ -153,7 +153,7 @@ private fun ApkFloatingButton(modifier: Modifier = Modifier, viewModel: MainView
             fileExtensions = listOf("apk")
         ) { platformFile ->
             showFilePickerApk = false
-            if (platformFile?.path?.isNotBlank() == true && platformFile.path.endsWith("apk")) {
+            if (platformFile?.path?.isNotBlank() == true && platformFile.path.endsWith(".apk")) {
                 viewModel.apkInformation(platformFile.path)
             }
         }

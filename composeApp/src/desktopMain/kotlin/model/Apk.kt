@@ -30,11 +30,12 @@ data class ApkInformation(
 /**
  * Apk签名信息结果
  */
-data class ApkVerifierResult(
+data class VerifierResult(
     val isSuccess: Boolean,
+    val isApk: Boolean,
     val path: String,
     val name: String,
-    val data: ArrayList<ApkVerifier>
+    val data: ArrayList<Verifier>
 )
 
 /**
@@ -84,9 +85,9 @@ enum class SignaturePolicy(val title: String, val value: String) {
 }
 
 /**
- * Apk签名信息结果
+ * 签名信息结果
  */
-data class ApkVerifier(
+data class Verifier(
     val version: Int,
     val subject: String,
     val validFrom: String,

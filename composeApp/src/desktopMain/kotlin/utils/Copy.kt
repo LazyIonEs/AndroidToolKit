@@ -15,7 +15,6 @@ import java.awt.datatransfer.StringSelection
  */
 
 suspend fun copy(value: String, toastUIState: ToastUIState) {
-    toastUIState.currentData?.dismiss()
     copy(value)
     toastUIState.show(ToastModel("已复制到剪切板", ToastModel.Type.Success))
 }

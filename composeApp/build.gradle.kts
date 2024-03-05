@@ -16,7 +16,7 @@ sqldelight {
     }
 }
 
-val kitVersion by extra("1.1.0")
+val kitVersion by extra("1.2.0")
 val kitPackageName = "AndroidToolsKit"
 val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
@@ -94,6 +94,7 @@ compose.desktop {
             modules("jdk.unsupported", "java.sql")
 
             outputBaseDir.set(project.layout.projectDirectory.dir("output"))
+            appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
 
             linux {
                 debPackageVersion = packageVersion

@@ -74,12 +74,10 @@ fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel, toastS
         }
 
         is UIState.Success -> scope.launch {
-            toastState.currentData?.dismiss()
             toastState.show(ToastModel(uiState.result as String, ToastModel.Type.Success))
         }
 
         is UIState.Error -> scope.launch {
-            toastState.currentData?.dismiss()
             toastState.show(ToastModel(uiState.msg, ToastModel.Type.Error))
         }
     }
@@ -204,7 +202,7 @@ private fun SignatureApk(modifier: Modifier = Modifier, viewModel: MainViewModel
     if (isWindows) {
         FilePicker(show = showFilePickerApk, fileExtensions = listOf("apk")) { platformFile ->
             showFilePickerApk = false
-            if (platformFile?.path?.isNotBlank() == true && platformFile.path.endsWith("apk")) {
+            if (platformFile?.path?.isNotBlank() == true && platformFile.path.endsWith(".apk")) {
                 viewModel.updateApkSignature(SignatureEnum.APK_PATH, platformFile.path)
             }
         }
@@ -334,7 +332,7 @@ private fun SignaturePath(modifier: Modifier = Modifier, viewModel: MainViewMode
     if (isWindows) {
         FilePicker(show = showFilePickerSignature, fileExtensions = listOf("jks", "keystore")) { platformFile ->
             showFilePickerSignature = false
-            if (platformFile?.path?.isNotBlank() == true && (platformFile.path.endsWith("jks") || platformFile.path.endsWith("keystore"))) {
+            if (platformFile?.path?.isNotBlank() == true && (platformFile.path.endsWith(".jks") || platformFile.path.endsWith(".keystore"))) {
                 viewModel.updateApkSignature(SignatureEnum.SIGNATURE_PATH, platformFile.path)
             }
         }
@@ -356,7 +354,7 @@ private fun SignaturePassword(modifier: Modifier = Modifier, viewModel: MainView
             onValueChange = { path ->
                 viewModel.updateApkSignature(SignatureEnum.SIGNATURE_PASSWORD, path)
                 if (viewModel.apkSignatureState.signaturePath.isNotBlank() && File(viewModel.apkSignatureState.signaturePath).isFile) {
-                    viewModel.verifyAlisa()
+                    viewModel.updateApkSignature(SignatureEnum.SIGNATURE_ALISA, viewModel.verifyAlisa(viewModel.apkSignatureState.signaturePath, viewModel.apkSignatureState.signaturePassword))
                 }
             },
             label = { Text("签名密码", style = MaterialTheme.typography.labelLarge) },

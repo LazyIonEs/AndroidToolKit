@@ -7,17 +7,23 @@ import java.io.File
 /**
  * 显示文件选择器
  * @param isApk 是APK还是签名
+ * @param isAll 可选APK或签名
  * @param onFileSelected 选择回调
  */
 fun showFileSelector(
     isApk: Boolean = true,
+    isAll: Boolean = false,
     onFileSelected: (String) -> Unit
 ) {
     val fileDialog = FileDialog(ComposeWindow())
     fileDialog.isMultipleMode = false
     fileDialog.setFilenameFilter { file, name ->
         val sourceFile = File(file, name)
-        sourceFile.isFile && if (isApk) sourceFile.name.endsWith(".apk") else (sourceFile.name.endsWith(".keystore") || sourceFile.name.endsWith(".jks"))
+        sourceFile.isFile && if (isAll) {
+            sourceFile.name.endsWith(".apk") || sourceFile.name.endsWith(".keystore") || sourceFile.name.endsWith(".jks")
+        } else {
+            if (isApk) sourceFile.name.endsWith(".apk") else (sourceFile.name.endsWith(".keystore") || sourceFile.name.endsWith(".jks"))
+        }
     }
     fileDialog.isVisible = true
     val directory = fileDialog.directory
