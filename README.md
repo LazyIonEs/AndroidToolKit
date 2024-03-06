@@ -30,32 +30,44 @@
 #### 签名信息
 > 支持文件拖拽
 <div align="center">
-<img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/signature_information.gif width=100% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/signature_information.gif width=100% />
 </div>
 
 #### APK信息
 > 支持文件拖拽、使用前请先设置`aapt`路径
 <div align="center">
-<img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/apk_information.gif width=100% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/apk_information.gif width=100% />
 </div>
 
 #### APK签名
 > 支持文件拖拽、签名校验
 <div align="center">
-<img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/apk_signature.gif width=100% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/apk_signature.gif width=100% />
 </div>
 
 #### 深色模式
 <div align="center">
-<img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/exterior.gif width=100% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/exterior.gif width=100% />
 </div>
 
 ### 常见问题
 #### 无法打开 "AndroidToolsKit。app"，因为Apple无法检查其是否包含恶意软件。
+<div align="center">
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/unopen_1.png width=30% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/unopen_2.png width=30% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/unopen_3.png width=30% />
+</div>
+出现此问题，按照图片依次点击解决
 
-#### 使用内置"aapt、keytool"出现报错
-到设置页复制内置(aapt\keytool)路径，打开终端输入以下命令
-chmod +x (aapt\keytool)路径
+#### 使用内置(aapt/keytool)出现报错 Cannot run program...
+<div align="center">
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/cannot_run_program.png width=100% />
+</div>
+出现此问题，到设置页复制内置(aapt/keytool)路径，打开终端输入以下命令
+
+```
+chmod +x (aapt/keytool)路径
+```
 
 ### 技术栈
 - [Kotlin Multiplatform](https://kotlinlang.org/lp/multiplatform/)
