@@ -11,7 +11,7 @@
 适用于安卓开发的桌面工具，支持 Windows 和 Mac  :tada:
 
 ### 主要功能
-- [x] 签名信息 - 分析APK的签名信息（modulus、md5、sha-1、sha-256等）
+- [x] 签名信息 - 分析(APK/签名)的签名信息（modulus、md5、sha-1、sha-256等）
 - [x] APK信息 - 解析`AndroidManifest.xml`，提取部分信息
 - [x] APK签名 - 对APK进行签名
 - [ ] 签名生成 - 生成签名证书
@@ -24,6 +24,8 @@
 | windows | amd/intel | AndroidToolsKit-版本号-windows-x64.msi |
 | macos | apple | AndroidToolsKit-版本号-macos-arm64.dmg |
 | macos | intel | AndroidToolsKit-版本号-macos-x64.dmg |
+
+遇到问题可以看看 [FAQ](FAQ.md) 
 
 ### 使用示例
 
@@ -49,25 +51,6 @@
 <div align="center">
   <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/exterior.gif width=100% />
 </div>
-
-### 常见问题
-#### 无法打开 "AndroidToolsKit。app"，因为Apple无法检查其是否包含恶意软件。
-<div align="center">
-  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/unopen_1.png width=30% />
-  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/unopen_2.png width=30% />
-  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/unopen_3.png width=30% />
-</div>
-出现此问题，按照图片依次点击解决
-
-#### 使用内置(aapt/keytool)出现报错 Cannot run program...
-<div align="center">
-  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/cannot_run_program.png width=100% />
-</div>
-出现此问题，到设置页复制内置(aapt/keytool)路径，打开终端输入以下命令
-
-```
-chmod +x (aapt/keytool)路径
-```
 
 ### 技术栈
 - [Kotlin Multiplatform](https://kotlinlang.org/lp/multiplatform/)
