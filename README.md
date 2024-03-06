@@ -50,6 +50,13 @@
 <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/exterior.gif width=100% />
 </div>
 
+### 常见问题
+#### 无法打开 "AndroidToolsKit。app"，因为Apple无法检查其是否包含恶意软件。
+
+#### 使用内置"aapt、keytool"出现报错
+到设置页复制内置(aapt\keytool)路径，打开终端输入以下命令
+chmod +x (aapt\keytool)路径
+
 ### 技术栈
 - [Kotlin Multiplatform](https://kotlinlang.org/lp/multiplatform/)
 - [Kotlin Coroutines](https://github.com/Kotlin/kotlinx.coroutines)
