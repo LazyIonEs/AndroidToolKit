@@ -7,7 +7,7 @@
   <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/unopen_3.png width=30% />
 </div>
 
-## 2.使用内置(aapt/keytool)出现报错 Cannot run program...
+## 2.使用内置(aapt/keytool)出现报错 Cannot run program...Permission denied
 <div align="center">
   <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/cannot_run_program.png width=100% />
 </div>

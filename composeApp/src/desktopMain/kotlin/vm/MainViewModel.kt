@@ -26,7 +26,9 @@ import model.SignaturePolicy
 import model.VerifierResult
 import org.apache.commons.codec.digest.DigestUtils
 import org.jetbrains.skia.Image
+import utils.isMacos
 import utils.isWindows
+import utils.resourcesDir
 import java.io.BufferedReader
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -73,6 +75,10 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     // 文件对齐标识
     var isAlignFileSize by mutableStateOf(dataBase.getIsAlignFileSize())
+        private set
+
+    // keytool路径
+    var keytool by mutableStateOf(dataBase.getKeytoolPath())
         private set
 
     // 主页选中下标
@@ -463,16 +469,49 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     }
 
     /**
-     * 使用内置aapt
+     * 初始化内置
+     * 如果为空，填充内置路径
      */
-    fun useInternalAaptPath() {
-        val resourcesDir = File(System.getProperty("compose.application.resources.dir"))
+    fun initInternal() = launch(Dispatchers.IO) {
+        val resourcesDir = File(resourcesDir)
         val aaptFile = if (isWindows) {
             resourcesDir.resolve("aapt.exe")
         } else {
             resourcesDir.resolve("aapt")
         }
-        dataBase.updateAaptPath(aaptFile.absolutePath)
+        val keytoolFile = if (isWindows) {
+            resourcesDir.resolve("keytool.exe")
+        } else {
+            resourcesDir.resolve("keytool")
+        }
+        // 赋予可执行权限
+        if (isMacos && (!aaptFile.canExecute() || !keytoolFile.canExecute())) {
+            val builder = ProcessBuilder()
+            builder.command("chmod", "+x", aaptFile.absolutePath).start()
+            builder.command("chmod", "+x", keytoolFile.absolutePath).start()
+        }
+        if (aaptFile.exists() && keytoolFile.exists()) {
+            dataBase.initInternal(aaptFile.absolutePath, keytoolFile.absolutePath)
+            this@MainViewModel.aapt = dataBase.getAaptPath()
+            this@MainViewModel.keytool = dataBase.getKeytoolPath()
+        }
+    }
+
+    /**
+     * 使用内置aapt
+     */
+    fun useInternalAaptPath() {
+        val resourcesDir = File(resourcesDir)
+        val aaptFile = if (isWindows) {
+            resourcesDir.resolve("aapt.exe")
+        } else {
+            resourcesDir.resolve("aapt")
+        }
+        if (aaptFile.exists()) {
+            dataBase.updateAaptPath(aaptFile.absolutePath)
+        } else {
+            dataBase.updateAaptPath("")
+        }
         this.aapt = dataBase.getAaptPath()
     }
 
@@ -545,9 +584,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
         for (aByte in bytes) {
             buf.append(hexDigits[aByte.toInt() and 0xf0 shr 4])
             buf.append(hexDigits[aByte.toInt() and 0x0f])
-            if (bytes.indexOf(aByte) != bytes.size - 1) {
-                buf.append(':')
-            }
+            buf.append(' ')
         }
         return buf.toString()
     }

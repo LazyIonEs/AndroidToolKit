@@ -15,6 +15,10 @@ internal class DataBase {
 
     private val dbQuery = database.configQueries
 
+    internal fun initInternal(aapt: String, keytool: String) {
+        dbQuery.initInternal(aapt, keytool)
+    }
+
     internal fun getDarkMode(): Long {
         return dbQuery.getDarkMode().executeAsOne()
     }
@@ -39,6 +43,10 @@ internal class DataBase {
         return dbQuery.getIsAlignFileSize().executeAsOne()
     }
 
+    internal fun getKeytoolPath(): String {
+        return dbQuery.getKeytoolPath().executeAsOne()
+    }
+
     internal fun updateAaptPath(aaptPath: String) {
         dbQuery.updateAaptPath(aaptPath)
     }
@@ -61,5 +69,9 @@ internal class DataBase {
 
     internal fun updateIsAlignFileSize(isAlignFileSize: Boolean) {
         dbQuery.updateIsAlignFileSize(isAlignFileSize)
+    }
+
+    internal fun updateKeytoolPath(keytoolPath: String) {
+        dbQuery.updateKeytoolPath(keytoolPath)
     }
 }

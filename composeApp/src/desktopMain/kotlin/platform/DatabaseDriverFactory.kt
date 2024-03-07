@@ -13,14 +13,15 @@ import java.util.Properties
  * @Version     : 1.0
  */
 actual fun createDriver(): SqlDriver {
-    val database = JdbcSqliteDriver(
-        url = "jdbc:sqlite:${getDatabaseFile().absolutePath}",
+    val dbFile = getDatabaseFile()
+    return JdbcSqliteDriver(
+        url = "jdbc:sqlite:${dbFile.absolutePath}",
         properties = Properties(),
         schema = ToolsKitDatabase.Schema,
+        migrateEmptySchema = dbFile.exists(),
     ).also {
         ToolsKitDatabase.Schema.create(it)
     }
-    return database
 }
 
 private fun getDatabaseFile(): File {

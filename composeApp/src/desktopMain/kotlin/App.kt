@@ -60,6 +60,7 @@ fun App() {
         2L -> true
         else -> isSystemInDarkTheme()
     }
+    viewModel.initInternal()
     AppTheme(useDarkTheme) {
         val modifier = Modifier
         Surface(color = MaterialTheme.colorScheme.background) {

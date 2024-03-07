@@ -1,5 +1,6 @@
 package utils
 
+import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -10,6 +11,32 @@ import java.math.RoundingMode
  * @Version     : 1.0
  */
 
+val isWindows = System.getProperty("os.name").startsWith("Win")
+
+val isMacos = System.getProperty("os.name").contains("mac")
+
+val resourcesDir: String = System.getProperty("compose.application.resources.dir") ?: File(File(System.getProperty("user.dir"), "resources"), appInternalResourcesDir).absolutePath
+
+private val appInternalResourcesDir: String
+    get() {
+        val os = System.getProperty("os.name").lowercase()
+        return when {
+            os.contains("win") -> {
+                "windows"
+            }
+
+            os.contains("mac") -> {
+                when (val osArch = System.getProperty("os.arch")) {
+                    "x86_64", "amd64" -> "macos-x64"
+                    "aarch64" -> "macos-arm64"
+                    else -> error("Unsupported arch: $osArch")
+                }
+            }
+
+            else -> error("Unsupported operating system")
+        }
+    }
+
 private enum class FileSizeType(val id: Int, val unit: String) {
     SIZE_TYPE_B(1, "B"),
     SIZE_TYPE_KB(2, "KB"),
@@ -17,8 +44,6 @@ private enum class FileSizeType(val id: Int, val unit: String) {
     SIZE_TYPE_GB(4, "GB"),
     SIZE_TYPE_TB(5, "TB")
 }
-
-val isWindows = System.getProperty("os.name").startsWith("Win")
 
 /**
  * @param scale 精确到小数点以后几位 (Accurate to a few decimal places)
