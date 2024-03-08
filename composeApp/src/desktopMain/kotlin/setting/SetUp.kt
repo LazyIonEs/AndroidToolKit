@@ -37,6 +37,7 @@ import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import file.showExecuteSelector
 import file.showFolderSelector
 import model.Exterior
+import model.StoreType
 import org.apk.tools.BuildConfig
 import utils.isWindows
 import vm.MainViewModel
@@ -52,7 +53,11 @@ import java.io.File
 @Composable
 fun SetUp(modifier: Modifier = Modifier, viewModel: MainViewModel) {
     val aaptFile = File(viewModel.aapt)
-    val isAaptError = viewModel.aapt.isNotBlank() && !aaptFile.isFile && (!aaptFile.canExecute() || aaptFile.isDirectory)
+    val keytoolFile = File(viewModel.keytool)
+    val isAaptError =
+        viewModel.aapt.isNotBlank() && !aaptFile.isFile && (!aaptFile.canExecute() || aaptFile.isDirectory)
+    val isKeytoolError =
+        viewModel.keytool.isNotBlank() && !keytoolFile.isFile && (!keytoolFile.canExecute() || keytoolFile.isDirectory)
     val isSignerSuffixError = viewModel.signerSuffix.isBlank()
     val isOutPutError = viewModel.outputPath.isNotBlank() && !File(viewModel.outputPath).isDirectory
     Box(modifier = modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp)) {
@@ -61,6 +66,10 @@ fun SetUp(modifier: Modifier = Modifier, viewModel: MainViewModel) {
             item {
                 Spacer(Modifier.size(16.dp))
                 ApkSignature(modifier, viewModel, isSignerSuffixError)
+            }
+            item {
+                Spacer(Modifier.size(16.dp))
+                KeyStore(modifier, viewModel, isKeytoolError)
             }
             item {
                 Spacer(Modifier.size(16.dp))
@@ -75,14 +84,24 @@ fun SetUp(modifier: Modifier = Modifier, viewModel: MainViewModel) {
 }
 
 @Composable
-private fun ApkInformation(modifier: Modifier = Modifier, viewModel: MainViewModel, isAaptError: Boolean) {
+private fun ApkInformation(
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel,
+    isAaptError: Boolean
+) {
     Card(modifier.fillMaxWidth()) {
         Column(modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
-            Text("APK信息", modifier = modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium)
+            Text(
+                "APK信息",
+                modifier = modifier.padding(horizontal = 16.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium
+            )
             var showFilePickerApk by remember { mutableStateOf(false) }
             Row(
-                modifier = modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp),
+                modifier = modifier.fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
@@ -116,12 +135,23 @@ private fun ApkInformation(modifier: Modifier = Modifier, viewModel: MainViewMod
                 }
             }
             if (isWindows) {
-                Text("AAPT可执行文件： 一般位于/Android Studio SDK 安装目录/sdk/build-tools/版本号/aapt", modifier = modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.labelSmall)
+                Text(
+                    "AAPT可执行文件： 一般位于/Android Studio SDK 安装目录/sdk/build-tools/版本号/aapt",
+                    modifier = modifier.padding(horizontal = 24.dp),
+                    style = MaterialTheme.typography.labelSmall
+                )
             } else {
-                Text("AAPT可执行文件： 一般位于/Users/用户名/Library/Android/sdk/build-tools/版本号/aapt", modifier = modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.labelSmall)
+                Text(
+                    "AAPT可执行文件： 一般位于/Users/用户名/Library/Android/sdk/build-tools/版本号/aapt",
+                    modifier = modifier.padding(horizontal = 24.dp),
+                    style = MaterialTheme.typography.labelSmall
+                )
             }
             if (isWindows) {
-                FilePicker(show = showFilePickerApk, fileExtensions = listOf("exe")) { platformFile ->
+                FilePicker(
+                    show = showFilePickerApk,
+                    fileExtensions = listOf("exe")
+                ) { platformFile ->
                     showFilePickerApk = false
                     if (platformFile?.path?.isNotBlank() == true && File(platformFile.path).canExecute()) {
                         viewModel.updateAaptPath(platformFile.path)
@@ -133,13 +163,23 @@ private fun ApkInformation(modifier: Modifier = Modifier, viewModel: MainViewMod
 }
 
 @Composable
-private fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel, isSignerSuffixError: Boolean) {
+private fun ApkSignature(
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel,
+    isSignerSuffixError: Boolean
+) {
     Card(modifier.fillMaxWidth()) {
         Column(modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
-            Text("APK签名", modifier = modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium)
+            Text(
+                "APK签名",
+                modifier = modifier.padding(horizontal = 16.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium
+            )
             OutlinedTextField(
-                modifier = modifier.fillMaxWidth().padding(start = 24.dp, end = 72.dp, top = 20.dp, bottom = 6.dp),
+                modifier = modifier.fillMaxWidth()
+                    .padding(start = 24.dp, end = 72.dp, top = 20.dp, bottom = 6.dp),
                 value = viewModel.signerSuffix,
                 onValueChange = { signerSuffix ->
                     viewModel.updateSignerSuffix(signerSuffix)
@@ -148,7 +188,11 @@ private fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel
                 isError = isSignerSuffixError,
                 singleLine = true
             )
-            Text("签名后缀： Apk签名后输出名称（比如：输入Apk名称为apk_unsign.apk，则输入Apk名称为apk_unsign${viewModel.signerSuffix}.apk）", modifier = modifier.padding(horizontal = 24.dp), style = MaterialTheme.typography.labelSmall)
+            Text(
+                "签名后缀： Apk签名后输出名称（比如：输入Apk名称为apk_unsign.apk，则输入Apk名称为apk_unsign${viewModel.signerSuffix}.apk）",
+                modifier = modifier.padding(horizontal = 24.dp),
+                style = MaterialTheme.typography.labelSmall
+            )
             Row(
                 modifier = modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -156,7 +200,11 @@ private fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel
                 Column(modifier = modifier.weight(1f)) {
                     Text("输出文件重复是否删除重复文件", style = MaterialTheme.typography.bodyLarge)
                     if (!viewModel.flagDelete) {
-                        Text("注意：输出文件重复后无法成功签名，会提示输出文件已存在", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            "注意：输出文件重复后无法成功签名，会提示输出文件已存在",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall
+                        )
                     }
                 }
                 Switch(
@@ -171,7 +219,11 @@ private fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel
                 Column(modifier = modifier.weight(1f)) {
                     Text("启用文件对齐", style = MaterialTheme.typography.bodyLarge)
                     if (!viewModel.isAlignFileSize) {
-                        Text("注意：当未启用文件对齐，签名之后对APK做出了进一步更改，签名便会失效", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall)
+                        Text(
+                            "注意：当未启用文件对齐，签名之后对APK做出了进一步更改，签名便会失效",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall
+                        )
                     }
                 }
                 Switch(
@@ -184,14 +236,123 @@ private fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel
 }
 
 @Composable
-private fun Conventional(modifier: Modifier = Modifier, viewModel: MainViewModel, isOutPutError: Boolean) {
+fun KeyStore(modifier: Modifier, viewModel: MainViewModel, isKeytoolError: Boolean) {
     Card(modifier.fillMaxWidth()) {
         Column(modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
-            Text("常规", modifier = modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium)
+            Text(
+                "签名生成",
+                modifier = modifier.padding(horizontal = 16.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium
+            )
+            var showFilePickerApk by remember { mutableStateOf(false) }
+            Row(
+                modifier = modifier.fillMaxWidth()
+                    .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    modifier = modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+                    value = viewModel.keytool,
+                    onValueChange = { path ->
+                        viewModel.updateKeytoolPath(path)
+                    },
+                    label = {
+                        Text(
+                            "Keytool可执行文件",
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    },
+                    singleLine = true,
+                    isError = isKeytoolError
+                )
+                SmallFloatingActionButton(
+                    onClick = {
+                        if (isWindows) {
+                            showFilePickerApk = true
+                        } else {
+                            showExecuteSelector { path ->
+                                viewModel.updateKeytoolPath(path)
+                            }
+                        }
+                    }
+                ) {
+                    Icon(Icons.Rounded.FolderOpen, "选择文件")
+                }
+            }
+            if (isWindows) {
+                Text(
+                    "Keytool可执行文件： 一般位于/JDK 安装目录/bin/keytool",
+                    modifier = modifier.padding(horizontal = 24.dp),
+                    style = MaterialTheme.typography.labelSmall
+                )
+            } else {
+                Text(
+                    "Keytool可执行文件： 一般位于/JDK 安装目录/Contents/Home/bin/keytool",
+                    modifier = modifier.padding(horizontal = 24.dp),
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
+            Row(
+                modifier = modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = modifier.weight(1f)) {
+                    Text("目标密钥类型", style = MaterialTheme.typography.bodyLarge)
+                }
+                Text(StoreType.JKS.value, style = MaterialTheme.typography.titleSmall)
+                Switch(
+                    checked = viewModel.destStoreType == StoreType.PKCS12.value,
+                    onCheckedChange = { viewModel.updateDestStoreType(if (it) StoreType.PKCS12 else StoreType.JKS) },
+                    modifier = modifier.padding(horizontal = 12.dp)
+                )
+                Text(StoreType.PKCS12.value, style = MaterialTheme.typography.titleSmall)
+            }
+            Text(
+                text = if (viewModel.destStoreType == StoreType.JKS.value) {
+                    "注意：JKS 密钥库使用专用格式。使用的 1024 位 RSA 密钥 被视为存在安全风险。此密钥大小将在未来的更新中被禁用。建议使用行业标准格式 PKCS12。"
+                } else {
+                    "注意：PKCS12 密钥库使用专用格式。该类型不支持其他存储和密钥口令，会忽略用户指定的别名密码（-keypass）。别名密码将与密钥密码保持一致。"
+                },
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = modifier.padding(start = 24.dp, end = 16.dp)
+            )
+            if (isWindows) {
+                FilePicker(
+                    show = showFilePickerApk,
+                    fileExtensions = listOf("exe")
+                ) { platformFile ->
+                    showFilePickerApk = false
+                    if (platformFile?.path?.isNotBlank() == true && File(platformFile.path).canExecute()) {
+                        viewModel.updateKeytoolPath(platformFile.path)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun Conventional(
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel,
+    isOutPutError: Boolean
+) {
+    Card(modifier.fillMaxWidth()) {
+        Column(modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
+            Spacer(Modifier.size(4.dp))
+            Text(
+                "常规",
+                modifier = modifier.padding(horizontal = 16.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium
+            )
             var showDirPicker by remember { mutableStateOf(false) }
             Row(
-                modifier = modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 6.dp),
+                modifier = modifier.fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
@@ -228,7 +389,11 @@ private fun Conventional(modifier: Modifier = Modifier, viewModel: MainViewModel
             }
             Spacer(Modifier.size(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("外观", modifier = modifier.padding(start = 24.dp), style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    "外观",
+                    modifier = modifier.padding(start = 24.dp),
+                    style = MaterialTheme.typography.bodyLarge
+                )
                 Row(modifier = modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)) {
                     val modeList = listOf(Exterior.AutoMode, Exterior.LightMode, Exterior.DarkMode)
                     modeList.forEach { exterior ->
@@ -237,10 +402,20 @@ private fun Conventional(modifier: Modifier = Modifier, viewModel: MainViewModel
                             selected = viewModel.darkMode == exterior.mode,
                             onClick = { viewModel.updateDarkMode(exterior.mode) },
                             label = {
-                                Text(exterior.title, textAlign = TextAlign.End, modifier = modifier.fillMaxWidth().padding(8.dp))
+                                Text(
+                                    exterior.title,
+                                    textAlign = TextAlign.End,
+                                    modifier = modifier.fillMaxWidth().padding(8.dp)
+                                )
                             },
                             leadingIcon = if (viewModel.darkMode == exterior.mode) {
-                                { Icon(imageVector = Icons.Rounded.Done, contentDescription = "Done icon", modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+                                {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Done,
+                                        contentDescription = "Done icon",
+                                        modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                    )
+                                }
                             } else {
                                 null
                             }
@@ -257,7 +432,12 @@ private fun About(modifier: Modifier) {
     Card(modifier.fillMaxWidth()) {
         Column(modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
-            Text("关于", modifier = modifier.padding(horizontal = 16.dp), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleMedium)
+            Text(
+                "关于",
+                modifier = modifier.padding(horizontal = 16.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium
+            )
             Spacer(Modifier.size(12.dp))
             Row(
                 modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),

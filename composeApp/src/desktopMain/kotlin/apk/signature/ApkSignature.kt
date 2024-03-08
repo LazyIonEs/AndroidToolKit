@@ -1,11 +1,10 @@
-package signature
+package apk.signature
 
-import LottieAnimation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -47,6 +46,7 @@ import model.SignatureEnum
 import model.SignaturePolicy
 import toast.ToastModel
 import toast.ToastUIState
+import utils.LottieAnimation
 import utils.isWindows
 import vm.MainViewModel
 import vm.UIState
@@ -56,7 +56,7 @@ import java.net.URI
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/2/6 10:43
- * @Description : 描述
+ * @Description : Apk签名
  * @Version     : 1.0
  */
 @Composable
@@ -92,9 +92,9 @@ private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel
     var isDragging by remember { mutableStateOf(false) }
     val isApkError = viewModel.apkSignatureState.apkPath.isNotBlank() && !File(viewModel.apkSignatureState.apkPath).isFile
     val isOutputError = viewModel.apkSignatureState.outPutPath.isNotBlank() && !File(viewModel.apkSignatureState.outPutPath).isDirectory
-    val isSignatureError = viewModel.apkSignatureState.signaturePath.isNotBlank() && !File(viewModel.apkSignatureState.signaturePath).isFile
-    val isSignaturePasswordError = viewModel.apkSignatureState.signaturePassword.isNotBlank() && viewModel.apkSignatureState.signatureAlisa.isBlank()
-    val isSignatureAlisaPasswordError = viewModel.apkSignatureState.signatureAlisa.isNotBlank() && viewModel.apkSignatureState.signatureAlisaPassword.isNotBlank() && !viewModel.verifyAlisaPassword()
+    val isSignatureError = viewModel.apkSignatureState.keyStorePath.isNotBlank() && !File(viewModel.apkSignatureState.keyStorePath).isFile
+    val isSignaturePasswordError = viewModel.apkSignatureState.keyStorePassword.isNotBlank() && viewModel.apkSignatureState.keyStoreAlisa.isBlank()
+    val isSignatureAlisaPasswordError = viewModel.apkSignatureState.keyStoreAlisa.isNotBlank() && viewModel.apkSignatureState.keyStoreAlisaPassword.isNotBlank() && !viewModel.verifyAlisaPassword()
     Box(modifier = modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp).onExternalDrag(
         onDragStart = { isDragging = true },
         onDragExit = { isDragging = false },
@@ -114,17 +114,17 @@ private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel
                     viewModel.updateApkSignature(SignatureEnum.APK_PATH, mApkPath)
                 }
                 if (mSignaturePath.isNotBlank()) {
-                    viewModel.updateApkSignature(SignatureEnum.SIGNATURE_PATH, mSignaturePath)
+                    viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, mSignaturePath)
                 }
             }
             isDragging = false
         })
     ) {
         Card(
-            modifier = modifier.fillMaxHeight().fillMaxWidth()
+            modifier = modifier.fillMaxSize()
         ) {
             LazyColumn(
-                modifier = modifier.fillMaxHeight().fillMaxWidth(),
+                modifier = modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 item {
@@ -132,27 +132,27 @@ private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel
                     SignatureApk(modifier, viewModel, isApkError)
                 }
                 item {
-                    Spacer(Modifier.size(8.dp))
+                    Spacer(Modifier.size(6.dp))
                     SignatureOutput(modifier, viewModel, isOutputError)
                 }
                 item {
-                    Spacer(Modifier.size(8.dp))
+                    Spacer(Modifier.size(6.dp))
                     SignaturePolicy(modifier, viewModel, toastState, scope)
                 }
                 item {
-                    Spacer(Modifier.size(8.dp))
+                    Spacer(Modifier.size(6.dp))
                     SignaturePath(modifier, viewModel, isSignatureError)
                 }
                 item {
-                    Spacer(Modifier.size(8.dp))
+                    Spacer(Modifier.size(6.dp))
                     SignaturePassword(modifier, viewModel, isSignaturePasswordError)
                 }
                 item {
-                    Spacer(Modifier.size(8.dp))
+                    Spacer(Modifier.size(6.dp))
                     SignatureAlisa(modifier, viewModel)
                 }
                 item {
-                    Spacer(Modifier.size(8.dp))
+                    Spacer(Modifier.size(6.dp))
                     SignatureAlisaPassword(modifier, viewModel, isSignatureAlisaPasswordError)
                 }
                 item {
@@ -264,7 +264,7 @@ private fun SignaturePolicy(modifier: Modifier = Modifier, viewModel: MainViewMo
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text("签名策略：", style = MaterialTheme.typography.titleMedium, modifier = modifier.padding(start = 24.dp))
-            Text(viewModel.apkSignatureState.signaturePolicy.value, style = MaterialTheme.typography.bodyMedium)
+            Text(viewModel.apkSignatureState.keyStorePolicy.value, style = MaterialTheme.typography.bodyMedium)
         }
         Spacer(Modifier.size(2.dp))
         Row(
@@ -273,7 +273,7 @@ private fun SignaturePolicy(modifier: Modifier = Modifier, viewModel: MainViewMo
             policyList.forEach { signaturePolicy ->
                 ElevatedFilterChip(
                     modifier = modifier.weight(1f).padding(horizontal = 8.dp),
-                    selected = viewModel.apkSignatureState.signaturePolicy == signaturePolicy,
+                    selected = viewModel.apkSignatureState.keyStorePolicy == signaturePolicy,
                     onClick = {
                         toastState.currentData?.dismiss()
                         if (signaturePolicy == SignaturePolicy.V2Only) {
@@ -281,10 +281,10 @@ private fun SignaturePolicy(modifier: Modifier = Modifier, viewModel: MainViewMo
                                 toastState.show(ToastModel("使用 V2 Only 签名的APK包仅支持Android 7及更高版本的系统安装和使用，请注意", ToastModel.Type.Warning), 8000L)
                             }
                         }
-                        viewModel.updateApkSignature(SignatureEnum.SIGNATURE_POLICY, signaturePolicy)
+                        viewModel.updateApkSignature(SignatureEnum.KEY_STORE_POLICY, signaturePolicy)
                     },
                     label = { Text(signaturePolicy.title, textAlign = TextAlign.End, modifier = modifier.fillMaxWidth().padding(8.dp)) },
-                    leadingIcon = if (viewModel.apkSignatureState.signaturePolicy == signaturePolicy) {
+                    leadingIcon = if (viewModel.apkSignatureState.keyStorePolicy == signaturePolicy) {
                         { Icon(imageVector = Icons.Rounded.Done, contentDescription = "Done icon", modifier = Modifier.size(FilterChipDefaults.IconSize)) }
                     } else {
                         null
@@ -307,9 +307,9 @@ private fun SignaturePath(modifier: Modifier = Modifier, viewModel: MainViewMode
     ) {
         OutlinedTextField(
             modifier = modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
-            value = viewModel.apkSignatureState.signaturePath,
+            value = viewModel.apkSignatureState.keyStorePath,
             onValueChange = { path ->
-                viewModel.updateApkSignature(SignatureEnum.SIGNATURE_PATH, path)
+                viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, path)
             },
             label = { Text("签名文件", style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
@@ -321,7 +321,7 @@ private fun SignaturePath(modifier: Modifier = Modifier, viewModel: MainViewMode
                     showFilePickerSignature = true
                 } else {
                     showFileSelector(false) { path ->
-                        viewModel.updateApkSignature(SignatureEnum.SIGNATURE_PATH, path)
+                        viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, path)
                     }
                 }
             }
@@ -333,7 +333,7 @@ private fun SignaturePath(modifier: Modifier = Modifier, viewModel: MainViewMode
         FilePicker(show = showFilePickerSignature, fileExtensions = listOf("jks", "keystore")) { platformFile ->
             showFilePickerSignature = false
             if (platformFile?.path?.isNotBlank() == true && (platformFile.path.endsWith(".jks") || platformFile.path.endsWith(".keystore"))) {
-                viewModel.updateApkSignature(SignatureEnum.SIGNATURE_PATH, platformFile.path)
+                viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, platformFile.path)
             }
         }
     }
@@ -350,11 +350,11 @@ private fun SignaturePassword(modifier: Modifier = Modifier, viewModel: MainView
     ) {
         OutlinedTextField(
             modifier = modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
-            value = viewModel.apkSignatureState.signaturePassword,
+            value = viewModel.apkSignatureState.keyStorePassword,
             onValueChange = { path ->
-                viewModel.updateApkSignature(SignatureEnum.SIGNATURE_PASSWORD, path)
-                if (viewModel.apkSignatureState.signaturePath.isNotBlank() && File(viewModel.apkSignatureState.signaturePath).isFile) {
-                    viewModel.updateApkSignature(SignatureEnum.SIGNATURE_ALISA, viewModel.verifyAlisa(viewModel.apkSignatureState.signaturePath, viewModel.apkSignatureState.signaturePassword))
+                viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PASSWORD, path)
+                if (viewModel.apkSignatureState.keyStorePath.isNotBlank() && File(viewModel.apkSignatureState.keyStorePath).isFile) {
+                    viewModel.updateApkSignature(SignatureEnum.KEY_STORE_ALISA, viewModel.verifyAlisa(viewModel.apkSignatureState.keyStorePath, viewModel.apkSignatureState.keyStorePassword))
                 }
             },
             label = { Text("签名密码", style = MaterialTheme.typography.labelLarge) },
@@ -377,7 +377,7 @@ private fun SignatureAlisa(modifier: Modifier = Modifier, viewModel: MainViewMod
     ) {
         OutlinedTextField(
             modifier = modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
-            value = viewModel.apkSignatureState.signatureAlisa,
+            value = viewModel.apkSignatureState.keyStoreAlisa,
             readOnly = true,
             onValueChange = { _ -> },
             label = { Text("签名别名", style = MaterialTheme.typography.labelLarge) },
@@ -397,9 +397,9 @@ private fun SignatureAlisaPassword(modifier: Modifier = Modifier, viewModel: Mai
     ) {
         OutlinedTextField(
             modifier = modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
-            value = viewModel.apkSignatureState.signatureAlisaPassword,
+            value = viewModel.apkSignatureState.keyStoreAlisaPassword,
             onValueChange = { path ->
-                viewModel.updateApkSignature(SignatureEnum.SIGNATURE_ALISA_PASSWORD, path)
+                viewModel.updateApkSignature(SignatureEnum.KEY_STORE_ALISA_PASSWORD, path)
             },
             label = { Text("签名别名密码", style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
@@ -433,10 +433,10 @@ private fun Signature(modifier: Modifier = Modifier, viewModel: MainViewModel, i
 private fun signatureApk(viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
     if (viewModel.apkSignatureState.apkPath.isBlank() ||
         viewModel.apkSignatureState.outPutPath.isBlank() ||
-        viewModel.apkSignatureState.signaturePath.isBlank() ||
-        viewModel.apkSignatureState.signaturePassword.isBlank() ||
-        viewModel.apkSignatureState.signatureAlisa.isBlank() ||
-        viewModel.apkSignatureState.signatureAlisaPassword.isBlank()
+        viewModel.apkSignatureState.keyStorePath.isBlank() ||
+        viewModel.apkSignatureState.keyStorePassword.isBlank() ||
+        viewModel.apkSignatureState.keyStoreAlisa.isBlank() ||
+        viewModel.apkSignatureState.keyStoreAlisaPassword.isBlank()
     ) {
         scope.launch {
             toastState.show(ToastModel("请检查空项", ToastModel.Type.Error))

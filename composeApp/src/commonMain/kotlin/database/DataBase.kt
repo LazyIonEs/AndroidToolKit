@@ -15,36 +15,40 @@ internal class DataBase {
 
     private val dbQuery = database.configQueries
 
-    internal fun initInternal(aapt: String, keytool: String) {
-        dbQuery.initInternal(aapt, keytool)
+    internal fun initInternal(aapt: String) {
+        dbQuery.initInternal(aapt)
     }
 
     internal fun getDarkMode(): Long {
-        return dbQuery.getDarkMode().executeAsOne()
+        return dbQuery.getDarkMode().executeAsOneOrNull() ?: 0L
     }
 
     internal fun getAaptPath(): String {
-        return dbQuery.getAaptPath().executeAsOne()
+        return dbQuery.getAaptPath().executeAsOneOrNull() ?: ""
     }
 
     internal fun getFlagDelete(): Boolean {
-        return dbQuery.getFlagDelete().executeAsOne()
+        return dbQuery.getFlagDelete().executeAsOneOrNull() ?: true
     }
 
     internal fun getSignerSuffix(): String {
-        return dbQuery.getSignerSuffix().executeAsOne()
+        return dbQuery.getSignerSuffix().executeAsOneOrNull() ?: "_sign"
     }
 
     internal fun getOutputPath(): String {
-        return dbQuery.getOutputPath().executeAsOne()
+        return dbQuery.getOutputPath().executeAsOneOrNull() ?: ""
     }
 
     internal fun getIsAlignFileSize(): Boolean {
-        return dbQuery.getIsAlignFileSize().executeAsOne()
+        return dbQuery.getIsAlignFileSize().executeAsOneOrNull() ?: true
     }
 
     internal fun getKeytoolPath(): String {
-        return dbQuery.getKeytoolPath().executeAsOne()
+        return dbQuery.getKeytoolPath().executeAsOneOrNull() ?: ""
+    }
+
+    internal fun getDestStoreType(): String {
+        return dbQuery.getDestStoreType().executeAsOneOrNull() ?: "JKS"
     }
 
     internal fun updateAaptPath(aaptPath: String) {
@@ -73,5 +77,9 @@ internal class DataBase {
 
     internal fun updateKeytoolPath(keytoolPath: String) {
         dbQuery.updateKeytoolPath(keytoolPath)
+    }
+
+    internal fun updateDestStoreType(destStoreType: String) {
+        dbQuery.updateDestStoreType(destStoreType)
     }
 }

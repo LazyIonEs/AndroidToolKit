@@ -1,6 +1,6 @@
-package signature
+package signature.information
 
-import LottieAnimation
+import utils.LottieAnimation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -70,11 +69,16 @@ import java.net.URI
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/2/5 19:47
- * @Description : 描述
+ * @Description : 签名信息
  * @Version     : 1.0
  */
 @Composable
-fun SignatureInformation(modifier: Modifier = Modifier, viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
+fun SignatureInformation(
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel,
+    toastState: ToastUIState,
+    scope: CoroutineScope
+) {
     val signaturePath = remember { mutableStateOf("") }
     when (val uiState = viewModel.verifierState) {
         UIState.WAIT, is UIState.Error -> {
@@ -111,7 +115,11 @@ private fun SignatureMain(modifier: Modifier = Modifier, scope: CoroutineScope) 
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel, signaturePath: MutableState<String>) {
+private fun SignatureBox(
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel,
+    signaturePath: MutableState<String>
+) {
     var isDragging by remember { mutableStateOf(false) }
     Box(
         modifier = modifier.padding(6.dp).onExternalDrag(
@@ -127,7 +135,8 @@ private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel
                         } else if (it.endsWith(".jks") || it.endsWith(".keystore")) {
                             val path = File(URI.create(it)).path
                             signaturePath.value = path
-                        } else { }
+                        } else {
+                        }
                     }
                 }
                 isDragging = false
@@ -156,10 +165,16 @@ private fun SignatureLoading(modifier: Modifier = Modifier, scope: CoroutineScop
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun SignatureList(modifier: Modifier = Modifier, uiState: UIState, toastState: ToastUIState, scope: CoroutineScope) {
+private fun SignatureList(
+    modifier: Modifier = Modifier,
+    uiState: UIState,
+    toastState: ToastUIState,
+    scope: CoroutineScope
+) {
     if (uiState is UIState.Success) {
         LazyColumn(
-            modifier = modifier.fillMaxHeight().fillMaxWidth().padding(top = 6.dp, bottom = 6.dp, end = 14.dp),
+            modifier = modifier.fillMaxSize()
+                .padding(top = 6.dp, bottom = 6.dp, end = 14.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -170,9 +185,21 @@ private fun SignatureList(modifier: Modifier = Modifier, uiState: UIState, toast
                         modifier = modifier.padding(vertical = 4.dp).fillMaxWidth()
                     ) {
                         if (uiState.result.isApk) {
-                            Text("Valid APK signature V${verifier.version} found", modifier = modifier.padding(horizontal = 8.dp, vertical = 16.dp).fillMaxWidth(), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                "Valid APK signature V${verifier.version} found",
+                                modifier = modifier.padding(horizontal = 8.dp, vertical = 16.dp)
+                                    .fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium
+                            )
                         } else {
-                            Text("Valid Signature V${verifier.version} found", modifier = modifier.padding(horizontal = 8.dp, vertical = 16.dp).fillMaxWidth(), textAlign = TextAlign.Center, style = MaterialTheme.typography.titleMedium)
+                            Text(
+                                "Valid Signature V${verifier.version} found",
+                                modifier = modifier.padding(horizontal = 8.dp, vertical = 16.dp)
+                                    .fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.titleMedium
+                            )
                         }
                     }
                     SignatureListTop(modifier, verifier, scope, toastState)
@@ -188,7 +215,12 @@ private fun SignatureList(modifier: Modifier = Modifier, uiState: UIState, toast
  * 选择文件按钮
  */
 @Composable
-private fun SignatureFloatingButton(modifier: Modifier = Modifier, viewModel: MainViewModel, isDragging: Boolean, signaturePath: MutableState<String>) {
+private fun SignatureFloatingButton(
+    modifier: Modifier = Modifier,
+    viewModel: MainViewModel,
+    isDragging: Boolean,
+    signaturePath: MutableState<String>
+) {
     var showFilePickerApk by remember { mutableStateOf(false) }
     Box(modifier.fillMaxSize()) {
         Box(
@@ -213,11 +245,13 @@ private fun SignatureFloatingButton(modifier: Modifier = Modifier, viewModel: Ma
                     },
                     icon = { Icon(Icons.Rounded.DriveFolderUpload, "准备选择文件") },
                     text = {
-                        Text(if (isDragging) {
-                            "愣着干嘛，还不松手"
-                        } else {
-                            "点击选择或拖拽上传(APK/签名)文件"
-                        })
+                        Text(
+                            if (isDragging) {
+                                "愣着干嘛，还不松手"
+                            } else {
+                                "点击选择或拖拽上传(APK/签名)文件"
+                            }
+                        )
                     }
                 )
             }
@@ -231,7 +265,10 @@ private fun SignatureFloatingButton(modifier: Modifier = Modifier, viewModel: Ma
             showFilePickerApk = false
             if (platformFile?.path?.isNotBlank() == true && platformFile.path.endsWith(".apk")) {
                 viewModel.apkVerifier(platformFile.path)
-            } else if (platformFile?.path?.isNotBlank() == true && (platformFile.path.endsWith(".jks") || platformFile.path.endsWith(".keystore"))) {
+            } else if (platformFile?.path?.isNotBlank() == true && (platformFile.path.endsWith(".jks") || platformFile.path.endsWith(
+                    ".keystore"
+                ))
+            ) {
                 signaturePath.value = platformFile.path
             }
         }
@@ -242,7 +279,13 @@ private fun SignatureFloatingButton(modifier: Modifier = Modifier, viewModel: Ma
  * 签名验证弹窗
  */
 @Composable
-private fun SignatureDialog(modifier: Modifier, viewModel: MainViewModel, signaturePath: MutableState<String>, toastState: ToastUIState, scope: CoroutineScope) {
+private fun SignatureDialog(
+    modifier: Modifier,
+    viewModel: MainViewModel,
+    signaturePath: MutableState<String>,
+    toastState: ToastUIState,
+    scope: CoroutineScope
+) {
     if (signaturePath.value.isNotBlank()) {
         val password = remember { mutableStateOf("") }
         val alisa = remember { mutableStateOf("") }
@@ -285,7 +328,11 @@ private fun SignatureDialog(modifier: Modifier, viewModel: MainViewModel, signat
                 TextButton(
                     onClick = {
                         if (alisa.value.isNotBlank()) {
-                            viewModel.signerVerifier(signaturePath.value, password.value, alisa.value)
+                            viewModel.signerVerifier(
+                                signaturePath.value,
+                                password.value,
+                                alisa.value
+                            )
                             signaturePath.value = ""
                         } else {
                             scope.launch {
@@ -314,7 +361,12 @@ private fun SignatureDialog(modifier: Modifier, viewModel: MainViewModel, signat
  * 签名信息 - { Subject，Valid from，Valid until}
  */
 @Composable
-private fun SignatureListTop(modifier: Modifier = Modifier, verifier: Verifier, scope: CoroutineScope, toastState: ToastUIState) {
+private fun SignatureListTop(
+    modifier: Modifier = Modifier,
+    verifier: Verifier,
+    scope: CoroutineScope,
+    toastState: ToastUIState
+) {
     Card(
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
         modifier = modifier.padding(vertical = 4.dp).fillMaxWidth()
@@ -331,7 +383,11 @@ private fun SignatureListTop(modifier: Modifier = Modifier, verifier: Verifier, 
                 }
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.AutoMirrored.Rounded.Subject, contentDescription = "Subject", modifier = modifier.padding(end = 14.dp))
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.Subject,
+                        contentDescription = "Subject",
+                        modifier = modifier.padding(end = 14.dp)
+                    )
                     Column {
                         Text("Subject", style = MaterialTheme.typography.titleMedium)
                         Text(verifier.subject, style = MaterialTheme.typography.bodySmall)
@@ -348,7 +404,11 @@ private fun SignatureListTop(modifier: Modifier = Modifier, verifier: Verifier, 
                 }
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Rounded.QueryBuilder, contentDescription = "Valid from", modifier = modifier.padding(end = 14.dp))
+                    Icon(
+                        imageVector = Icons.Rounded.QueryBuilder,
+                        contentDescription = "Valid from",
+                        modifier = modifier.padding(end = 14.dp)
+                    )
                     Column {
                         Text("Valid from", style = MaterialTheme.typography.titleMedium)
                         Text(verifier.validFrom, style = MaterialTheme.typography.bodySmall)
@@ -365,7 +425,11 @@ private fun SignatureListTop(modifier: Modifier = Modifier, verifier: Verifier, 
                 }
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Rounded.Restore, contentDescription = "Valid until", modifier = modifier.padding(end = 14.dp))
+                    Icon(
+                        imageVector = Icons.Rounded.Restore,
+                        contentDescription = "Valid until",
+                        modifier = modifier.padding(end = 14.dp)
+                    )
                     Column {
                         Text("Valid until", style = MaterialTheme.typography.titleMedium)
                         Text(verifier.validUntil, style = MaterialTheme.typography.bodySmall)
@@ -381,7 +445,12 @@ private fun SignatureListTop(modifier: Modifier = Modifier, verifier: Verifier, 
  * 签名信息 - { Public Key Type，Modulus，Signature Type}
  */
 @Composable
-private fun SignatureListCenter(modifier: Modifier = Modifier, verifier: Verifier, scope: CoroutineScope, toastState: ToastUIState) {
+private fun SignatureListCenter(
+    modifier: Modifier = Modifier,
+    verifier: Verifier,
+    scope: CoroutineScope,
+    toastState: ToastUIState
+) {
     Card(
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
         modifier = modifier.padding(vertical = 4.dp).fillMaxWidth()
@@ -398,7 +467,11 @@ private fun SignatureListCenter(modifier: Modifier = Modifier, verifier: Verifie
                 }
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Rounded.Public, contentDescription = "Public Key Type", modifier = modifier.padding(end = 14.dp))
+                    Icon(
+                        imageVector = Icons.Rounded.Public,
+                        contentDescription = "Public Key Type",
+                        modifier = modifier.padding(end = 14.dp)
+                    )
                     Column {
                         Text("Public Key Type", style = MaterialTheme.typography.titleMedium)
                         Text(verifier.publicKeyType, style = MaterialTheme.typography.bodySmall)
@@ -415,7 +488,11 @@ private fun SignatureListCenter(modifier: Modifier = Modifier, verifier: Verifie
                 }
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.AutoMirrored.Outlined.LibraryBooks, contentDescription = "Modulus", modifier = modifier.padding(end = 14.dp))
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Outlined.LibraryBooks,
+                        contentDescription = "Modulus",
+                        modifier = modifier.padding(end = 14.dp)
+                    )
                     Column {
                         Text("Modulus", style = MaterialTheme.typography.titleMedium)
                         Text(verifier.modulus, style = MaterialTheme.typography.bodySmall)
@@ -432,7 +509,11 @@ private fun SignatureListCenter(modifier: Modifier = Modifier, verifier: Verifie
                 }
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Outlined.Lock, contentDescription = "Signature Type", modifier = modifier.padding(end = 14.dp))
+                    Icon(
+                        imageVector = Icons.Outlined.Lock,
+                        contentDescription = "Signature Type",
+                        modifier = modifier.padding(end = 14.dp)
+                    )
                     Column {
                         Text("Signature Type", style = MaterialTheme.typography.titleMedium)
                         Text(verifier.signatureType, style = MaterialTheme.typography.bodySmall)
@@ -447,7 +528,12 @@ private fun SignatureListCenter(modifier: Modifier = Modifier, verifier: Verifie
  * 签名信息 - { MD5，SHA-1，SHA-256}
  */
 @Composable
-private fun SignatureListBottom(modifier: Modifier = Modifier, verifier: Verifier, scope: CoroutineScope, toastState: ToastUIState) {
+private fun SignatureListBottom(
+    modifier: Modifier = Modifier,
+    verifier: Verifier,
+    scope: CoroutineScope,
+    toastState: ToastUIState
+) {
     Card(
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
         modifier = modifier.padding(top = 4.dp, bottom = 8.dp).fillMaxWidth()
@@ -464,7 +550,11 @@ private fun SignatureListBottom(modifier: Modifier = Modifier, verifier: Verifie
                 }
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Rounded.SentimentSatisfied, contentDescription = "MD5", modifier = modifier.padding(end = 14.dp))
+                    Icon(
+                        imageVector = Icons.Rounded.SentimentSatisfied,
+                        contentDescription = "MD5",
+                        modifier = modifier.padding(end = 14.dp)
+                    )
                     Column {
                         Text("MD5", style = MaterialTheme.typography.titleMedium)
                         Text(verifier.md5, style = MaterialTheme.typography.bodySmall)
@@ -481,7 +571,11 @@ private fun SignatureListBottom(modifier: Modifier = Modifier, verifier: Verifie
                 }
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Outlined.SentimentDissatisfied, contentDescription = "SHA-1", modifier = modifier.padding(end = 14.dp))
+                    Icon(
+                        imageVector = Icons.Outlined.SentimentDissatisfied,
+                        contentDescription = "SHA-1",
+                        modifier = modifier.padding(end = 14.dp)
+                    )
                     Column {
                         Text("SHA-1", style = MaterialTheme.typography.titleMedium)
                         Text(verifier.sha1, style = MaterialTheme.typography.bodySmall)
@@ -495,7 +589,11 @@ private fun SignatureListBottom(modifier: Modifier = Modifier, verifier: Verifie
                 }
             }) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(imageVector = Icons.Outlined.SentimentVeryDissatisfied, contentDescription = "SHA-256", modifier = modifier.padding(end = 14.dp))
+                    Icon(
+                        imageVector = Icons.Outlined.SentimentVeryDissatisfied,
+                        contentDescription = "SHA-256",
+                        modifier = modifier.padding(end = 14.dp)
+                    )
                     Column {
                         Text("SHA-256", style = MaterialTheme.typography.titleMedium)
                         Text(verifier.sha256, style = MaterialTheme.typography.bodySmall)

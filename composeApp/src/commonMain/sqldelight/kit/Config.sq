@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS Config (
    signer_suffix TEXT NOT NULL,
    output_path TEXT NOT NULL,
    is_align_file_size INTEGER AS Boolean NOT NULL,
-   keytool_path TEXT NOT NULL DEFAULT ''
+   keytool_path TEXT NOT NULL DEFAULT '',
+   dest_store_type TEXT NOT NULL DEFAULT 'JKS'
 );
 
 INSERT INTO Config(id, dark_mode, aapt_path, flag_delete, signer_suffix, output_path, is_align_file_size)
@@ -17,9 +18,7 @@ WHERE (SELECT COUNT(*) FROM Config WHERE id = 0) = 0;
 
 initInternal:
 UPDATE Config
-SET
-    aapt_path = CASE WHEN aapt_path = '' THEN ? ELSE aapt_path END,
-    keytool_path = CASE WHEN keytool_path = '' THEN ? ELSE keytool_path END
+SET aapt_path = CASE WHEN aapt_path = '' THEN ? ELSE aapt_path END
 WHERE id = 0;
 
 getAaptPath:
@@ -43,6 +42,9 @@ SELECT is_align_file_size FROM Config WHERE id = 0;
 getKeytoolPath:
 SELECT keytool_path FROM Config WHERE id = 0;
 
+getDestStoreType:
+SELECT dest_store_type FROM Config WHERE id = 0;
+
 updateAaptPath:
 UPDATE Config SET aapt_path = ? WHERE id = 0;
 
@@ -63,3 +65,6 @@ UPDATE Config SET is_align_file_size = ? WHERE id = 0;
 
 updateKeytoolPath:
 UPDATE Config SET keytool_path = ? WHERE id = 0;
+
+updateDestStoreType:
+UPDATE Config SET dest_store_type = ? WHERE id = 0;

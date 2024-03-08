@@ -1,15 +1,13 @@
-package apk
+package apk.information
 
-import LottieAnimation
+import utils.LottieAnimation
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -50,7 +48,7 @@ import java.net.URI
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/2/8 16:13
- * @Description : 描述
+ * @Description : APK信息
  * @Version     : 1.0
  */
 @Composable
@@ -164,11 +162,11 @@ private fun ApkFloatingButton(modifier: Modifier = Modifier, viewModel: MainView
 private fun ApkInformationBox(modifier: Modifier = Modifier, viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
     val uiState = (viewModel.apkInformationState as UIState.Success).result as ApkInformation
     Card(
-        modifier = modifier.fillMaxHeight().fillMaxWidth().padding(top = 20.dp, bottom = 20.dp, end = 14.dp),
+        modifier = modifier.fillMaxSize().padding(top = 20.dp, bottom = 20.dp, end = 14.dp),
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline)
     ) {
         Box(
-            modifier = modifier.fillMaxHeight().fillMaxWidth().padding(vertical = 12.dp)
+            modifier = modifier.fillMaxSize().padding(vertical = 12.dp)
         ) {
             LazyColumn {
                 item {
@@ -223,7 +221,7 @@ fun AppInfoItem(modifier: Modifier, title: String, value: String, toastState: To
         }
     ) {
         Row(
-            modifier = modifier.fillMaxHeight().fillMaxWidth().padding(horizontal = 24.dp)
+            modifier = modifier.fillMaxSize().padding(horizontal = 24.dp)
         ) {
             Text(title, style = MaterialTheme.typography.titleMedium, modifier = modifier.weight(1f).align(Alignment.CenterVertically))
             Text(value, style = MaterialTheme.typography.bodyMedium, modifier = modifier.weight(4f).align(Alignment.CenterVertically))
@@ -238,7 +236,7 @@ fun PermissionsList(modifier: Modifier, permissions: ArrayList<String>?) {
             modifier = modifier.padding(horizontal = 12.dp),
         ) {
             Row(
-                modifier = modifier.fillMaxHeight().fillMaxWidth().padding(horizontal = 24.dp)
+                modifier = modifier.fillMaxSize().padding(horizontal = 24.dp)
             ) {
                 Text("应用权限列表：", modifier = modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
                 Column(

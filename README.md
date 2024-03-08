@@ -14,7 +14,7 @@
 - [x] 签名信息 - 分析(APK/签名)的签名信息（modulus、md5、sha-1、sha-256等）
 - [x] APK信息 - 解析`AndroidManifest.xml`，提取部分信息
 - [x] APK签名 - 对APK进行签名
-- [ ] 签名生成 - 生成签名证书
+- [x] 签名生成 - 生成签名证书
 
 ### 下载安装
 - [Github Releases](https://github.com/LazyIonEs/AndroidToolsKit/releases)
