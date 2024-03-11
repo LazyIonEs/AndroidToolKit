@@ -15,6 +15,7 @@
 - [x] APK信息 - 解析`AndroidManifest.xml`，提取部分信息
 - [x] APK签名 - 对APK进行签名
 - [x] 签名生成 - 生成签名证书
+> 支持文件拖拽；自定义aapt、keytool；apk签名文件对齐；生成签名指定密钥类型；外观浅色深色模式。
 
 ### 下载安装
 - [Github Releases](https://github.com/LazyIonEs/AndroidToolsKit/releases)
@@ -27,29 +28,29 @@
 
 遇到问题可以看看 [FAQ](FAQ.md) 
 
-### 使用示例
-
+### 截屏
 #### 签名信息
-> 支持文件拖拽
 <div align="center">
-  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/signature_information.gif width=100% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/screenshot_signature_information_1.png width=33% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/screenshot_signature_information_2.png width=33% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/screenshot_signature_information_3.png width=33% />
 </div>
 
 #### APK信息
-> 支持文件拖拽、使用前请先设置`aapt`路径
 <div align="center">
-  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/apk_information.gif width=100% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/screenshot_apk_information_1.png width=100% />
 </div>
 
 #### APK签名
-> 支持文件拖拽、签名校验
 <div align="center">
-  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/apk_signature.gif width=100% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/screenshot_apk_signature_1.png width=49% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/screenshot_apk_signature_2.png width=49% />
 </div>
 
-#### 深色模式
+#### 签名生成
 <div align="center">
-  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/exterior.gif width=100% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/screenshot_signature_generation_1.png width=49% />
+  <img src=https://github.com/LazyIonEs/AndroidToolsKit/blob/main/screenshots/screenshot_signature_generation_2.png width=49% />
 </div>
 
 ### 技术栈
