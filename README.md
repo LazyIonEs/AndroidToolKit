@@ -25,8 +25,8 @@
 | windows | amd/intel | AndroidToolsKit-版本号-windows-x64.msi |
 | macos | apple | AndroidToolsKit-版本号-macos-arm64.dmg |
 | macos | intel | AndroidToolsKit-版本号-macos-x64.dmg |
-
-遇到问题可以看看 [FAQ](FAQ.md) 
+> [!CAUTION]
+> windows版不建议安装到C盘（默认安装路径是C盘 :clown_face:），可能会有权限等问题。遇到问题可以看看 [FAQ](FAQ.md) 
 
 ### 截屏
 #### 签名信息
