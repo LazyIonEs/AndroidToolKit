@@ -4,8 +4,6 @@ import Page
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.toComposeImageBitmap
 import com.android.apksig.ApkSigner
 import com.android.apksig.ApkVerifier
 import com.android.ide.common.signing.KeystoreHelper
@@ -28,22 +26,21 @@ import model.SignaturePolicy
 import model.StoreType
 import model.VerifierResult
 import org.apache.commons.codec.digest.DigestUtils
-import org.jetbrains.skia.Image
-import utils.isMacos
+import utils.extractIcon
+import utils.extractValue
+import utils.extractVersion
+import utils.getThumbPrint
 import utils.isWindows
 import utils.resourcesDir
 import java.io.BufferedReader
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.security.KeyStore
-import java.security.MessageDigest
 import java.security.cert.X509Certificate
 import java.security.interfaces.RSAPublicKey
-import java.util.zip.ZipFile
+
 
 /**
  * @Author      : LazyIonEs
@@ -139,8 +136,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             }
 
             SignatureEnum.OUT_PUT_PATH -> apkSignature.outPutPath = value as String
-            SignatureEnum.KEY_STORE_POLICY -> apkSignature.keyStorePolicy =
-                value as SignaturePolicy
+            SignatureEnum.KEY_STORE_POLICY -> apkSignature.keyStorePolicy = value as SignaturePolicy
 
             SignatureEnum.KEY_STORE_PATH -> {
                 // 更换签名路径后清空签名信息
@@ -183,8 +179,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
             KeyStoreEnum.VALIDITY_PERIOD -> keyStoreInfo.validityPeriod = value as String
             KeyStoreEnum.AUTHOR_NAME -> keyStoreInfo.authorName = value as String
-            KeyStoreEnum.ORGANIZATIONAL_UNIT -> keyStoreInfo.organizationalUnit =
-                value as String
+            KeyStoreEnum.ORGANIZATIONAL_UNIT -> keyStoreInfo.organizationalUnit = value as String
 
             KeyStoreEnum.ORGANIZATIONAL -> keyStoreInfo.organizational = value as String
             KeyStoreEnum.CITY -> keyStoreInfo.city = value as String
@@ -202,8 +197,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             apkSignatureUIState = UIState.Loading
             val inputApk = File(apkSignatureState.apkPath)
             val outputApk = File(
-                apkSignatureState.outPutPath,
-                "${inputApk.nameWithoutExtension}${signerSuffix}.apk"
+                apkSignatureState.outPutPath, "${inputApk.nameWithoutExtension}${signerSuffix}.apk"
             )
             if (outputApk.exists()) {
                 if (flagDelete) {
@@ -230,14 +224,9 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             val signerConfig =
                 ApkSigner.SignerConfig.Builder("CERT", privateKey, listOf(certificate)).build()
             val signerBuild = ApkSigner.Builder(listOf(signerConfig))
-            val apkSigner = signerBuild
-                .setInputApk(inputApk)
-                .setOutputApk(outputApk)
-                .setAlignFileSize(isAlignFileSize)
-                .setV1SigningEnabled(v1SigningEnabled)
-                .setV2SigningEnabled(v2SigningEnabled)
-                .setV3SigningEnabled(v3SigningEnabled)
-                .build()
+            val apkSigner = signerBuild.setInputApk(inputApk).setOutputApk(outputApk)
+                .setAlignFileSize(isAlignFileSize).setV1SigningEnabled(v1SigningEnabled)
+                .setV2SigningEnabled(v2SigningEnabled).setV3SigningEnabled(v3SigningEnabled).build()
             apkSigner.sign()
             apkSignatureUIState = UIState.Success("签名成功")
         } catch (e: Exception) {
@@ -328,7 +317,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     /**
      * 生成签名
      */
-    fun createSignature()  = launch(Dispatchers.IO) {
+    fun createSignature() = launch(Dispatchers.IO) {
         var process: Process? = null
         try {
             keyStoreInfoUIState = UIState.Loading
@@ -339,8 +328,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             val isJKSType = destStoreType == StoreType.JKS.value
             val outputFile = File(keyStoreInfoState.keyStorePath, keyStoreInfoState.keyStoreName)
             val builder = ProcessBuilder()
-            process = builder.command(
-                keytool,
+            process = builder.command(keytool,
                 "-genkeypair",
                 "-keyalg",
                 "RSA",
@@ -353,14 +341,14 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                 "-keypass",
                 keyStoreInfoState.keyStoreAlisaPassword,
                 "-validity",
-                keyStoreInfoState.validityPeriod.toIntOrNull()?.let { (it * 365).toString() } ?: "36500",
+                keyStoreInfoState.validityPeriod.toIntOrNull()?.let { (it * 365).toString() }
+                    ?: "36500",
                 "-dname",
                 "CN=${keyStoreInfoState.authorName},OU=${keyStoreInfoState.organizationalUnit},O=${keyStoreInfoState.organizational},L=${keyStoreInfoState.city},S=${keyStoreInfoState.province}, C=${keyStoreInfoState.countryCode}",
                 "-deststoretype",
                 if (isJKSType) "JKS" else "PKCS12",
                 "-keysize",
-                if (isJKSType) "1024" else "2048"
-                ).start()
+                if (isJKSType) "1024" else "2048").start()
             // 等待进程执行完成
             val exitValue = process?.waitFor()
             keyStoreInfoUIState = if (exitValue == 0) {
@@ -595,6 +583,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             keyStore.load(fileInputStream, password.toCharArray())
             val aliases = keyStore.aliases()
             while (aliases.hasMoreElements()) {
+                // 返回一个列表，可选择？
                 return aliases.nextElement()
             }
         } catch (_: Exception) {
@@ -640,12 +629,11 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
         } else {
             resourcesDir.resolve("aapt")
         }
-        // 赋予可执行权限
-        if (isMacos && !aaptFile.canExecute()) {
-            val builder = ProcessBuilder()
-            builder.command("chmod", "+x", aaptFile.absolutePath).start()
-        }
         if (aaptFile.exists()) {
+            // 赋予可执行权限
+            if (!aaptFile.canExecute()) {
+                aaptFile.setExecutable(true)
+            }
             dataBase.initInternal(aaptFile.absolutePath)
             this@MainViewModel.aapt = dataBase.getAaptPath()
         }
@@ -662,6 +650,10 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             resourcesDir.resolve("aapt")
         }
         if (aaptFile.exists()) {
+            // 赋予可执行权限
+            if (!aaptFile.canExecute()) {
+                aaptFile.setExecutable(true)
+            }
             dataBase.updateAaptPath(aaptFile.absolutePath)
         } else {
             dataBase.updateAaptPath("")
@@ -741,88 +733,6 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     fun updateDestStoreType(type: StoreType) {
         dataBase.updateDestStoreType(type.value)
         destStoreType = dataBase.getDestStoreType()
-    }
-
-    private fun getThumbPrint(cert: X509Certificate?, type: String?): String? {
-        val md = MessageDigest.getInstance(type) // lgtm [java/weak-cryptographic-algorithm]
-        val der: ByteArray = cert?.encoded ?: return null
-        md.update(der)
-        val digest = md.digest()
-        return hexify(digest)
-    }
-
-    private fun hexify(bytes: ByteArray): String {
-        val hexDigits = charArrayOf(
-            '0',
-            '1',
-            '2',
-            '3',
-            '4',
-            '5',
-            '6',
-            '7',
-            '8',
-            '9',
-            'A',
-            'B',
-            'C',
-            'D',
-            'E',
-            'F'
-        )
-        val buf = StringBuilder(bytes.size * 3)
-        for (aByte in bytes) {
-            buf.append(hexDigits[aByte.toInt() and 0xf0 shr 4])
-            buf.append(hexDigits[aByte.toInt() and 0x0f])
-            buf.append(' ')
-        }
-        return buf.toString()
-    }
-
-    private fun extractValue(line: String, attribute: String): String {
-        val pattern = Regex("$attribute='([^']*)'")
-        val matchResult = pattern.find(line)
-        return matchResult?.groups?.get(1)?.value ?: ""
-    }
-
-    private fun extractVersion(line: String, attribute: String): String {
-        val pattern = Regex("$attribute:'(\\d+)'")
-        val matchResult = pattern.find(line)
-        return matchResult?.groups?.get(1)?.value ?: ""
-    }
-
-    private fun extractIcon(apkPath: String, iconPath: String): ImageBitmap? {
-        var inputStream: InputStream? = null
-        var outputStream: ByteArrayOutputStream? = null
-        try {
-            ZipFile(apkPath).use { zipFile ->
-                zipFile.getEntry(iconPath)?.let { entry ->
-                    inputStream = zipFile.getInputStream(entry)
-                    outputStream = ByteArrayOutputStream()
-                    val buffer = ByteArray(1024)
-                    var len: Int
-                    while (inputStream!!.read(buffer).also { len = it } != -1) {
-                        outputStream!!.write(buffer, 0, len)
-                    }
-                    val bytes: ByteArray = outputStream!!.toByteArray()
-                    return Image.makeFromEncoded(bytes).toComposeImageBitmap()
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            try {
-                inputStream?.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-            try {
-                outputStream?.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-        return null
     }
 }
 

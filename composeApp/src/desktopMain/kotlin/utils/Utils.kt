@@ -1,8 +1,15 @@
 package utils
 
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.toComposeImageBitmap
+import org.jetbrains.skia.Image
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.security.MessageDigest
+import java.security.cert.X509Certificate
+import java.util.zip.ZipFile
 
 /**
  * @Author      : LazyIonEs
@@ -13,9 +20,86 @@ import java.math.RoundingMode
 
 val isWindows = System.getProperty("os.name").startsWith("Win")
 
-val isMacos = System.getProperty("os.name").contains("mac")
-
 val resourcesDir: String = System.getProperty("compose.application.resources.dir") ?: File(File(System.getProperty("user.dir"), "resources"), appInternalResourcesDir).absolutePath
+
+fun getThumbPrint(cert: X509Certificate?, type: String?): String? {
+    val md = MessageDigest.getInstance(type) // lgtm [java/weak-cryptographic-algorithm]
+    val der: ByteArray = cert?.encoded ?: return null
+    md.update(der)
+    val digest = md.digest()
+    return hexify(digest)
+}
+
+private fun hexify(bytes: ByteArray): String {
+    val hexDigits = charArrayOf(
+        '0',
+        '1',
+        '2',
+        '3',
+        '4',
+        '5',
+        '6',
+        '7',
+        '8',
+        '9',
+        'A',
+        'B',
+        'C',
+        'D',
+        'E',
+        'F'
+    )
+    val buf = StringBuilder(bytes.size * 3)
+    for (aByte in bytes) {
+        buf.append(hexDigits[aByte.toInt() and 0xf0 shr 4])
+        buf.append(hexDigits[aByte.toInt() and 0x0f])
+        buf.append(' ')
+    }
+    return buf.toString()
+}
+
+fun extractValue(line: String, attribute: String): String {
+    val pattern = Regex("$attribute='([^']*)'")
+    val matchResult = pattern.find(line)
+    return matchResult?.groups?.get(1)?.value ?: ""
+}
+
+fun extractVersion(line: String, attribute: String): String {
+    val pattern = Regex("$attribute:'(\\d+)'")
+    val matchResult = pattern.find(line)
+    return matchResult?.groups?.get(1)?.value ?: ""
+}
+
+fun extractIcon(apkPath: String, iconPath: String): ImageBitmap? {
+    try {
+        if (iconPath.endsWith(".xml")) {
+            // adaptive icon ?
+            return null
+        } else {
+            ZipFile(apkPath).use { zipFile ->
+                val bytes = zipFile.getZipFileData(iconPath)
+                return Image.makeFromEncoded(bytes).toComposeImageBitmap()
+            }
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return null
+}
+
+fun ZipFile.getZipFileData(path: String): ByteArray? {
+    val zipEntry = this.getEntry(path) ?: return null
+    val inputStream = this.getInputStream(zipEntry)
+    inputStream.use {
+        val outputStream = ByteArrayOutputStream()
+        val buffer = ByteArray(1024 * 8)
+        var len: Int
+        while (inputStream!!.read(buffer).also { len = it } != -1) {
+            outputStream.write(buffer, 0, len)
+        }
+        return outputStream.toByteArray()
+    }
+}
 
 private val appInternalResourcesDir: String
     get() {

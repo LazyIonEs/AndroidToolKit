@@ -1,4 +1,4 @@
-package apk.information
+package ui
 
 import utils.LottieAnimation
 import androidx.compose.animation.AnimatedVisibility

@@ -26,11 +26,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import apk.information.ApkInformation
-import setting.SetUp
-import apk.signature.ApkSignature
-import signature.generation.SignatureGeneration
-import signature.information.SignatureInformation
+import ui.ApkInformation
+import ui.SetUp
+import ui.ApkSignature
+import ui.SignatureGeneration
+import ui.SignatureInformation
 import theme.AppTheme
 import toast.ToastUI
 import toast.ToastUIState
