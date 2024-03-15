@@ -1,5 +1,15 @@
 package ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -35,6 +46,7 @@ import androidx.compose.ui.onExternalDrag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
@@ -60,19 +72,10 @@ import java.net.URI
  * @Version     : 1.0
  */
 @Composable
-fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
-    SignatureBox(modifier, viewModel, toastState, scope)
+fun ApkSignature(viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
+    SignatureBox(viewModel, toastState, scope)
     when (val uiState = viewModel.apkSignatureUIState) {
-        UIState.WAIT -> Unit
-        UIState.Loading -> {
-            Box(
-                modifier = modifier.padding(6.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                LottieAnimation(scope, "files/lottie_loading.json", modifier)
-            }
-        }
-
+        UIState.WAIT, UIState.Loading -> Unit
         is UIState.Success -> scope.launch {
             toastState.show(ToastModel(uiState.result as String, ToastModel.Type.Success))
         }
@@ -88,95 +91,114 @@ fun ApkSignature(modifier: Modifier = Modifier, viewModel: MainViewModel, toastS
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun SignatureBox(modifier: Modifier = Modifier, viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
+private fun SignatureBox(
+    viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
+) {
     var isDragging by remember { mutableStateOf(false) }
-    val isApkError = viewModel.apkSignatureState.apkPath.isNotBlank() && !File(viewModel.apkSignatureState.apkPath).isFile
-    val isOutputError = viewModel.apkSignatureState.outPutPath.isNotBlank() && !File(viewModel.apkSignatureState.outPutPath).isDirectory
-    val isSignatureError = viewModel.apkSignatureState.keyStorePath.isNotBlank() && !File(viewModel.apkSignatureState.keyStorePath).isFile
-    val isSignaturePasswordError = viewModel.apkSignatureState.keyStorePassword.isNotBlank() && viewModel.apkSignatureState.keyStoreAlisa.isBlank()
-    val isSignatureAlisaPasswordError = viewModel.apkSignatureState.keyStoreAlisa.isNotBlank() && viewModel.apkSignatureState.keyStoreAlisaPassword.isNotBlank() && !viewModel.verifyAlisaPassword()
-    Box(modifier = modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp).onExternalDrag(
-        onDragStart = { isDragging = true },
-        onDragExit = { isDragging = false },
-        onDrop = { state ->
-            val dragData = state.dragData
-            if (dragData is DragData.FilesList) {
-                var mApkPath = ""
-                var mSignaturePath = ""
-                dragData.readFiles().forEach {
-                    if (it.endsWith(".apk") && mApkPath.isBlank()) {
-                        mApkPath = File(URI.create(it)).path
-                    } else if ((it.endsWith(".jks") || it.endsWith(".keystore")) && mSignaturePath.isBlank()) {
-                        mSignaturePath = File(URI.create(it)).path
+    val isApkError =
+        viewModel.apkSignatureState.apkPath.isNotBlank() && !File(viewModel.apkSignatureState.apkPath).isFile
+    val isOutputError =
+        viewModel.apkSignatureState.outPutPath.isNotBlank() && !File(viewModel.apkSignatureState.outPutPath).isDirectory
+    val isSignatureError =
+        viewModel.apkSignatureState.keyStorePath.isNotBlank() && !File(viewModel.apkSignatureState.keyStorePath).isFile
+    val isSignaturePasswordError =
+        viewModel.apkSignatureState.keyStorePassword.isNotBlank() && viewModel.apkSignatureState.keyStoreAlisa.isBlank()
+    val isSignatureAlisaPasswordError =
+        viewModel.apkSignatureState.keyStoreAlisa.isNotBlank() && viewModel.apkSignatureState.keyStoreAlisaPassword.isNotBlank() && !viewModel.verifyAlisaPassword()
+    Box(
+        modifier = Modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp).onExternalDrag(
+            onDragStart = { isDragging = true },
+            onDragExit = { isDragging = false },
+            onDrop = { state ->
+                val dragData = state.dragData
+                if (dragData is DragData.FilesList) {
+                    var mApkPath = ""
+                    var mSignaturePath = ""
+                    dragData.readFiles().forEach {
+                        if (it.endsWith(".apk") && mApkPath.isBlank()) {
+                            mApkPath = File(URI.create(it)).path
+                        } else if ((it.endsWith(".jks") || it.endsWith(".keystore")) && mSignaturePath.isBlank()) {
+                            mSignaturePath = File(URI.create(it)).path
+                        }
+                    }
+                    if (mApkPath.isNotBlank()) {
+                        viewModel.updateApkSignature(SignatureEnum.APK_PATH, mApkPath)
+                    }
+                    if (mSignaturePath.isNotBlank()) {
+                        viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, mSignaturePath)
                     }
                 }
-                if (mApkPath.isNotBlank()) {
-                    viewModel.updateApkSignature(SignatureEnum.APK_PATH, mApkPath)
-                }
-                if (mSignaturePath.isNotBlank()) {
-                    viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, mSignaturePath)
-                }
-            }
-            isDragging = false
-        })
+                isDragging = false
+            })
     ) {
         Card(
-            modifier = modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
             LazyColumn(
-                modifier = modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 item {
                     Spacer(Modifier.size(16.dp))
-                    SignatureApk(modifier, viewModel, isApkError)
+                    SignatureApk(viewModel, isApkError)
                 }
                 item {
                     Spacer(Modifier.size(6.dp))
-                    SignatureOutput(modifier, viewModel, isOutputError)
+                    SignatureOutput(viewModel, isOutputError)
                 }
                 item {
                     Spacer(Modifier.size(6.dp))
-                    SignaturePolicy(modifier, viewModel, toastState, scope)
+                    SignaturePolicy(viewModel, toastState, scope)
                 }
                 item {
                     Spacer(Modifier.size(6.dp))
-                    SignaturePath(modifier, viewModel, isSignatureError)
+                    SignaturePath(viewModel, isSignatureError)
                 }
                 item {
                     Spacer(Modifier.size(6.dp))
-                    SignaturePassword(modifier, viewModel, isSignaturePasswordError)
+                    SignaturePassword(viewModel, isSignaturePasswordError)
                 }
                 item {
                     Spacer(Modifier.size(6.dp))
-                    SignatureAlisa(modifier, viewModel)
+                    SignatureAlisa(viewModel)
                 }
                 item {
                     Spacer(Modifier.size(6.dp))
-                    SignatureAlisaPassword(modifier, viewModel, isSignatureAlisaPasswordError)
+                    SignatureAlisaPassword(viewModel, isSignatureAlisaPasswordError)
                 }
                 item {
                     Spacer(Modifier.size(12.dp))
-                    Signature(modifier, viewModel, isApkError, isOutputError, isSignatureError, isSignaturePasswordError, isSignatureAlisaPasswordError, toastState, scope)
+                    Signature(
+                        viewModel,
+                        isApkError,
+                        isOutputError,
+                        isSignatureError,
+                        isSignaturePasswordError,
+                        isSignatureAlisaPasswordError,
+                        toastState,
+                        scope
+                    )
                     Spacer(Modifier.size(24.dp))
                 }
             }
         }
     }
+    SignatureLoading(viewModel, scope)
+    SignatureUpload(isDragging, scope)
 }
 
 /**
  * APK文件
  */
 @Composable
-private fun SignatureApk(modifier: Modifier = Modifier, viewModel: MainViewModel, isApkError: Boolean) {
+private fun SignatureApk(viewModel: MainViewModel, isApkError: Boolean) {
     var showFilePickerApk by remember { mutableStateOf(false) }
     Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            modifier = modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
             value = viewModel.apkSignatureState.apkPath,
             onValueChange = { path ->
                 viewModel.updateApkSignature(SignatureEnum.APK_PATH, path)
@@ -185,17 +207,15 @@ private fun SignatureApk(modifier: Modifier = Modifier, viewModel: MainViewModel
             singleLine = true,
             isError = isApkError
         )
-        SmallFloatingActionButton(
-            onClick = {
-                if (isWindows) {
-                    showFilePickerApk = true
-                } else {
-                    showFileSelector { path ->
-                        viewModel.updateApkSignature(SignatureEnum.APK_PATH, path)
-                    }
+        SmallFloatingActionButton(onClick = {
+            if (isWindows) {
+                showFilePickerApk = true
+            } else {
+                showFileSelector { path ->
+                    viewModel.updateApkSignature(SignatureEnum.APK_PATH, path)
                 }
             }
-        ) {
+        }) {
             Icon(Icons.Rounded.FolderOpen, "选择文件")
         }
     }
@@ -213,14 +233,14 @@ private fun SignatureApk(modifier: Modifier = Modifier, viewModel: MainViewModel
  * 签名输出路径
  */
 @Composable
-private fun SignatureOutput(modifier: Modifier = Modifier, viewModel: MainViewModel, isOutputError: Boolean) {
+private fun SignatureOutput(viewModel: MainViewModel, isOutputError: Boolean) {
     var showDirPicker by remember { mutableStateOf(false) }
     Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            modifier = modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
             value = viewModel.apkSignatureState.outPutPath,
             onValueChange = { path ->
                 viewModel.updateApkSignature(SignatureEnum.OUT_PUT_PATH, path)
@@ -229,17 +249,15 @@ private fun SignatureOutput(modifier: Modifier = Modifier, viewModel: MainViewMo
             singleLine = true,
             isError = isOutputError
         )
-        SmallFloatingActionButton(
-            onClick = {
-                if (isWindows) {
-                    showDirPicker = true
-                } else {
-                    showFolderSelector { path ->
-                        viewModel.updateApkSignature(SignatureEnum.OUT_PUT_PATH, path)
-                    }
+        SmallFloatingActionButton(onClick = {
+            if (isWindows) {
+                showDirPicker = true
+            } else {
+                showFolderSelector { path ->
+                    viewModel.updateApkSignature(SignatureEnum.OUT_PUT_PATH, path)
                 }
             }
-        ) {
+        }) {
             Icon(Icons.Rounded.FolderOpen, "选择文件夹")
         }
     }
@@ -257,39 +275,66 @@ private fun SignatureOutput(modifier: Modifier = Modifier, viewModel: MainViewMo
  * 签名策略
  */
 @Composable
-private fun SignaturePolicy(modifier: Modifier = Modifier, viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
-    val policyList = listOf(SignaturePolicy.V1, SignaturePolicy.V2, SignaturePolicy.V2Only, SignaturePolicy.V3)
+private fun SignaturePolicy(
+    viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
+) {
+    val policyList =
+        listOf(SignaturePolicy.V1, SignaturePolicy.V2, SignaturePolicy.V2Only, SignaturePolicy.V3)
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("签名策略：", style = MaterialTheme.typography.titleMedium, modifier = modifier.padding(start = 24.dp))
-            Text(viewModel.apkSignatureState.keyStorePolicy.value, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                "签名策略：",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(start = 24.dp)
+            )
+            Text(
+                viewModel.apkSignatureState.keyStorePolicy.value,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
         Spacer(Modifier.size(2.dp))
         Row(
-            modifier = modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)
+            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)
         ) {
             policyList.forEach { signaturePolicy ->
-                ElevatedFilterChip(
-                    modifier = modifier.weight(1f).padding(horizontal = 8.dp),
+                ElevatedFilterChip(modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
                     selected = viewModel.apkSignatureState.keyStorePolicy == signaturePolicy,
                     onClick = {
                         toastState.currentData?.dismiss()
                         if (signaturePolicy == SignaturePolicy.V2Only) {
                             scope.launch {
-                                toastState.show(ToastModel("使用 V2 Only 签名的APK包仅支持Android 7及更高版本的系统安装和使用，请注意", ToastModel.Type.Warning), 8000L)
+                                toastState.show(
+                                    ToastModel(
+                                        "使用 V2 Only 签名的APK包仅支持Android 7及更高版本的系统安装和使用，请注意",
+                                        ToastModel.Type.Warning
+                                    ), 8000L
+                                )
                             }
                         }
-                        viewModel.updateApkSignature(SignatureEnum.KEY_STORE_POLICY, signaturePolicy)
+                        viewModel.updateApkSignature(
+                            SignatureEnum.KEY_STORE_POLICY, signaturePolicy
+                        )
                     },
-                    label = { Text(signaturePolicy.title, textAlign = TextAlign.End, modifier = modifier.fillMaxWidth().padding(8.dp)) },
+                    label = {
+                        Text(
+                            signaturePolicy.title,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.fillMaxWidth().padding(8.dp)
+                        )
+                    },
                     leadingIcon = if (viewModel.apkSignatureState.keyStorePolicy == signaturePolicy) {
-                        { Icon(imageVector = Icons.Rounded.Done, contentDescription = "Done icon", modifier = Modifier.size(FilterChipDefaults.IconSize)) }
+                        {
+                            Icon(
+                                imageVector = Icons.Rounded.Done,
+                                contentDescription = "Done icon",
+                                modifier = Modifier.size(FilterChipDefaults.IconSize)
+                            )
+                        }
                     } else {
                         null
-                    }
-                )
+                    })
             }
         }
     }
@@ -299,14 +344,14 @@ private fun SignaturePolicy(modifier: Modifier = Modifier, viewModel: MainViewMo
  * 签名文件
  */
 @Composable
-private fun SignaturePath(modifier: Modifier = Modifier, viewModel: MainViewModel, isSignatureError: Boolean) {
+private fun SignaturePath(viewModel: MainViewModel, isSignatureError: Boolean) {
     var showFilePickerSignature by remember { mutableStateOf(false) }
     Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            modifier = modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
             value = viewModel.apkSignatureState.keyStorePath,
             onValueChange = { path ->
                 viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, path)
@@ -315,24 +360,27 @@ private fun SignaturePath(modifier: Modifier = Modifier, viewModel: MainViewMode
             singleLine = true,
             isError = isSignatureError
         )
-        SmallFloatingActionButton(
-            onClick = {
-                if (isWindows) {
-                    showFilePickerSignature = true
-                } else {
-                    showFileSelector(false) { path ->
-                        viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, path)
-                    }
+        SmallFloatingActionButton(onClick = {
+            if (isWindows) {
+                showFilePickerSignature = true
+            } else {
+                showFileSelector(false) { path ->
+                    viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, path)
                 }
             }
-        ) {
+        }) {
             Icon(Icons.Rounded.FolderOpen, "选择文件")
         }
     }
     if (isWindows) {
-        FilePicker(show = showFilePickerSignature, fileExtensions = listOf("jks", "keystore")) { platformFile ->
+        FilePicker(
+            show = showFilePickerSignature, fileExtensions = listOf("jks", "keystore")
+        ) { platformFile ->
             showFilePickerSignature = false
-            if (platformFile?.path?.isNotBlank() == true && (platformFile.path.endsWith(".jks") || platformFile.path.endsWith(".keystore"))) {
+            if (platformFile?.path?.isNotBlank() == true && (platformFile.path.endsWith(".jks") || platformFile.path.endsWith(
+                    ".keystore"
+                ))
+            ) {
                 viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, platformFile.path)
             }
         }
@@ -343,18 +391,23 @@ private fun SignaturePath(modifier: Modifier = Modifier, viewModel: MainViewMode
  * 签名密码
  */
 @Composable
-private fun SignaturePassword(modifier: Modifier = Modifier, viewModel: MainViewModel, isSignaturePasswordError: Boolean) {
+private fun SignaturePassword(viewModel: MainViewModel, isSignaturePasswordError: Boolean) {
     Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            modifier = modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
+            modifier = Modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
             value = viewModel.apkSignatureState.keyStorePassword,
             onValueChange = { path ->
                 viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PASSWORD, path)
                 if (viewModel.apkSignatureState.keyStorePath.isNotBlank() && File(viewModel.apkSignatureState.keyStorePath).isFile) {
-                    viewModel.updateApkSignature(SignatureEnum.KEY_STORE_ALISA, viewModel.verifyAlisa(viewModel.apkSignatureState.keyStorePath, viewModel.apkSignatureState.keyStorePassword))
+                    viewModel.updateApkSignature(
+                        SignatureEnum.KEY_STORE_ALISA, viewModel.verifyAlisa(
+                            viewModel.apkSignatureState.keyStorePath,
+                            viewModel.apkSignatureState.keyStorePassword
+                        )
+                    )
                 }
             },
             label = { Text("签名密码", style = MaterialTheme.typography.labelLarge) },
@@ -370,13 +423,13 @@ private fun SignaturePassword(modifier: Modifier = Modifier, viewModel: MainView
  * 签名别名
  */
 @Composable
-private fun SignatureAlisa(modifier: Modifier = Modifier, viewModel: MainViewModel) {
+private fun SignatureAlisa(viewModel: MainViewModel) {
     Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            modifier = modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
+            modifier = Modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
             value = viewModel.apkSignatureState.keyStoreAlisa,
             readOnly = true,
             onValueChange = { _ -> },
@@ -390,13 +443,15 @@ private fun SignatureAlisa(modifier: Modifier = Modifier, viewModel: MainViewMod
  * 签名别名密码
  */
 @Composable
-private fun SignatureAlisaPassword(modifier: Modifier = Modifier, viewModel: MainViewModel, isSignatureAlisaPasswordError: Boolean) {
+private fun SignatureAlisaPassword(
+    viewModel: MainViewModel, isSignatureAlisaPasswordError: Boolean
+) {
     Row(
-        modifier = modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            modifier = modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
+            modifier = Modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
             value = viewModel.apkSignatureState.keyStoreAlisaPassword,
             onValueChange = { path ->
                 viewModel.updateApkSignature(SignatureEnum.KEY_STORE_ALISA_PASSWORD, path)
@@ -414,34 +469,86 @@ private fun SignatureAlisaPassword(modifier: Modifier = Modifier, viewModel: Mai
  * 开始签名按钮
  */
 @Composable
-private fun Signature(modifier: Modifier = Modifier, viewModel: MainViewModel, isApkError: Boolean, isOutputError: Boolean, isSignatureError: Boolean, isSignaturePasswordError: Boolean, isSignatureAlisaPasswordError: Boolean, toastState: ToastUIState, scope: CoroutineScope) {
-    ElevatedButton(
-        onClick = {
-            if (isApkError || isOutputError || isSignatureError || isSignaturePasswordError || isSignatureAlisaPasswordError) {
-                scope.launch {
-                    toastState.show(ToastModel("请检查Error项", ToastModel.Type.Error))
-                }
-                return@ElevatedButton
+private fun Signature(
+    viewModel: MainViewModel,
+    isApkError: Boolean,
+    isOutputError: Boolean,
+    isSignatureError: Boolean,
+    isSignaturePasswordError: Boolean,
+    isSignatureAlisaPasswordError: Boolean,
+    toastState: ToastUIState,
+    scope: CoroutineScope
+) {
+    ElevatedButton(onClick = {
+        if (isApkError || isOutputError || isSignatureError || isSignaturePasswordError || isSignatureAlisaPasswordError) {
+            scope.launch {
+                toastState.show(ToastModel("请检查Error项", ToastModel.Type.Error))
             }
-            signatureApk(viewModel, toastState, scope)
+            return@ElevatedButton
         }
-    ) {
-        Text("开始签名", style = MaterialTheme.typography.titleMedium, modifier = modifier.padding(horizontal = 48.dp))
+        signatureApk(viewModel, toastState, scope)
+    }) {
+        Text(
+            "开始签名",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(horizontal = 48.dp)
+        )
     }
 }
 
-private fun signatureApk(viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
-    if (viewModel.apkSignatureState.apkPath.isBlank() ||
-        viewModel.apkSignatureState.outPutPath.isBlank() ||
-        viewModel.apkSignatureState.keyStorePath.isBlank() ||
-        viewModel.apkSignatureState.keyStorePassword.isBlank() ||
-        viewModel.apkSignatureState.keyStoreAlisa.isBlank() ||
-        viewModel.apkSignatureState.keyStoreAlisaPassword.isBlank()
-    ) {
+private fun signatureApk(
+    viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
+) {
+    if (viewModel.apkSignatureState.apkPath.isBlank() || viewModel.apkSignatureState.outPutPath.isBlank() || viewModel.apkSignatureState.keyStorePath.isBlank() || viewModel.apkSignatureState.keyStorePassword.isBlank() || viewModel.apkSignatureState.keyStoreAlisa.isBlank() || viewModel.apkSignatureState.keyStoreAlisaPassword.isBlank()) {
         scope.launch {
             toastState.show(ToastModel("请检查空项", ToastModel.Type.Error))
         }
         return
     }
     viewModel.apkSigner()
+}
+
+/**
+ * Loading动画
+ */
+@Composable
+private fun SignatureLoading(
+    viewModel: MainViewModel, scope: CoroutineScope
+) {
+    AnimatedVisibility(
+        visible = viewModel.apkSignatureUIState == UIState.Loading,
+        enter = fadeIn() + expandHorizontally(),
+        exit = scaleOut() + fadeOut(),
+    ) {
+        Box(
+            modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
+        ) {
+            LottieAnimation(scope, "files/lottie_loading.json")
+        }
+    }
+}
+
+@Composable
+private fun SignatureUpload(isDragging: Boolean, scope: CoroutineScope) {
+    AnimatedVisibility(
+        visible = isDragging,
+        enter = fadeIn() + slideIn(
+            tween(
+                durationMillis = 400, easing = LinearOutSlowInEasing
+            )
+        ) { fullSize -> IntOffset(fullSize.width, fullSize.height) },
+        exit = slideOut(
+            tween(
+                durationMillis = 400, easing = FastOutLinearInEasing
+            )
+        ) { fullSize -> IntOffset(fullSize.width, fullSize.height) } + fadeOut(),
+    ) {
+        Card(
+            modifier = Modifier.fillMaxSize(), colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.background,
+            )
+        ) {
+            LottieAnimation(scope, "files/upload.json")
+        }
+    }
 }

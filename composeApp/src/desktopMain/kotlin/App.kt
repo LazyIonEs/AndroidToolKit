@@ -26,14 +26,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import ui.ApkInformation
-import ui.SetUp
-import ui.ApkSignature
-import ui.SignatureGeneration
-import ui.SignatureInformation
 import theme.AppTheme
 import toast.ToastUI
 import toast.ToastUIState
+import ui.ApkInformation
+import ui.ApkSignature
+import ui.SetUp
+import ui.SignatureGeneration
+import ui.SignatureInformation
 import vm.MainViewModel
 
 @Composable
@@ -46,9 +46,8 @@ fun App() {
     }
     viewModel.initInternal()
     AppTheme(useDarkTheme) {
-        val modifier = Modifier
         Surface(color = MaterialTheme.colorScheme.background) {
-            MainContentScreen(modifier, viewModel)
+            MainContentScreen(viewModel)
         }
     }
 }
@@ -57,22 +56,22 @@ fun App() {
  * 主要模块
  */
 @Composable
-fun MainContentScreen(modifier: Modifier = Modifier, viewModel: MainViewModel) {
+fun MainContentScreen(viewModel: MainViewModel) {
     val toastState = remember { ToastUIState() }
     val scope = rememberCoroutineScope()
     Box(
-        modifier = modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter
     ) {
         Row(
-            modifier = modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val pages = Page.entries.toTypedArray()
             // 导航栏
-            NavigationRail(modifier.fillMaxHeight().padding(start = 8.dp, end = 8.dp)) {
+            NavigationRail(Modifier.fillMaxHeight().padding(start = 8.dp, end = 8.dp)) {
                 Column(
-                    modifier = modifier.fillMaxHeight(),
+                    modifier = Modifier.fillMaxHeight(),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -90,15 +89,15 @@ fun MainContentScreen(modifier: Modifier = Modifier, viewModel: MainViewModel) {
             // 主界面
             val content: @Composable (Page) -> Unit = { page ->
                 when (page) {
-                    Page.SIGNATURE_INFORMATION -> SignatureInformation(modifier, viewModel, toastState, scope)
-                    Page.APK_INFORMATION -> ApkInformation(modifier, viewModel, toastState, scope)
-                    Page.APK_SIGNATURE -> ApkSignature(modifier, viewModel, toastState, scope)
-                    Page.SIGNATURE_GENERATION -> SignatureGeneration(modifier, viewModel, toastState, scope)
-                    Page.SET_UP -> SetUp(modifier, viewModel)
+                    Page.SIGNATURE_INFORMATION -> SignatureInformation(viewModel, toastState, scope)
+                    Page.APK_INFORMATION -> ApkInformation(viewModel, toastState, scope)
+                    Page.APK_SIGNATURE -> ApkSignature(viewModel, toastState, scope)
+                    Page.SIGNATURE_GENERATION -> SignatureGeneration(viewModel, toastState, scope)
+                    Page.SET_UP -> SetUp(viewModel)
                 }
             }
             // 淡入淡出切换页面
-            Crossfade(targetState = viewModel.uiPageIndex, modifier = modifier.fillMaxSize(), content = content)
+            Crossfade(targetState = viewModel.uiPageIndex, modifier = Modifier.fillMaxSize(), content = content)
         }
         ToastUI(toastState)
     }
