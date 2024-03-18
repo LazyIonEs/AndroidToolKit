@@ -141,5 +141,5 @@ buildConfig {
     buildConfigField("APP_LICENSE_URI", uri("https://opensource.org/license/mit"))
     buildConfigField("APP_LICENSE_FILE", kitLicenseFile)
     buildConfigField("AUTHOR_GITHUB_URI", uri("https://github.com/LazyIonEs"))
-    buildConfigField("APP_GITHUB_URI", uri("https://github.com/LazyIonEs/AndroidToolsKit"))
+    buildConfigField("APP_GITHUB_URI", uri("https://github.com/LazyIonEs/AndroidToolKit"))
 }

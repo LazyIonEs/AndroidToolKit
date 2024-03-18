@@ -11,7 +11,7 @@ import org.jetbrains.compose.resources.painterResource
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
-        title = "AndroidToolsKit",
+        title = "AndroidToolKit",
         icon = painterResource(Res.drawable.icon)
     ) {
         App()
