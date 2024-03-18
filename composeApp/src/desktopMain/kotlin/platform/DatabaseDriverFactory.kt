@@ -20,6 +20,7 @@ actual fun createDriver(): SqlDriver {
             oldDbDir.renameTo(dbFile.parentFile)
         }
     }
+    dbFile.parentFile.also {  if (!it.exists()) it.mkdirs() }
     return JdbcSqliteDriver(
         url = "jdbc:sqlite:${dbFile.absolutePath}",
         properties = Properties(),
@@ -30,16 +31,6 @@ actual fun createDriver(): SqlDriver {
     }
 }
 
-private fun getDatabaseFile(): File {
-    return File(
-        File(
-            System.getProperty("user.home"),
-            ".android_tool_kit"
-        ).also { if (!it.exists()) it.mkdirs() },
-        "config.db"
-    )
-}
+private fun getDatabaseFile() = File(File(System.getProperty("user.home"), ".android_tool_kit"), "config.db")
 
-private fun getOldDatabaseDir(): File {
-    return File(System.getProperty("user.home"), ".android_tools_kit")
-}
+private fun getOldDatabaseDir() = File(System.getProperty("user.home"), ".android_tools_kit")
