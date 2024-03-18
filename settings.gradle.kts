@@ -1,4 +1,4 @@
-rootProject.name = "AndroidToolsKit"
+rootProject.name = "AndroidToolKit"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
