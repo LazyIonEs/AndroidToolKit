@@ -38,7 +38,7 @@ import file.showExecuteSelector
 import file.showFolderSelector
 import model.Exterior
 import model.StoreType
-import org.apk.tools.BuildConfig
+import org.tool.kit.BuildConfig
 import utils.isWindows
 import vm.MainViewModel
 import java.awt.Desktop

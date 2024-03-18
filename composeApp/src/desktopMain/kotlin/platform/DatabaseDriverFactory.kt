@@ -2,7 +2,7 @@ package platform
 
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
-import kit.ToolsKitDatabase
+import kit.ToolKitDatabase
 import java.io.File
 import java.util.Properties
 
@@ -17,10 +17,10 @@ actual fun createDriver(): SqlDriver {
     return JdbcSqliteDriver(
         url = "jdbc:sqlite:${dbFile.absolutePath}",
         properties = Properties(),
-        schema = ToolsKitDatabase.Schema,
+        schema = ToolKitDatabase.Schema,
         migrateEmptySchema = dbFile.exists(),
     ).also {
-        ToolsKitDatabase.Schema.create(it)
+        ToolKitDatabase.Schema.create(it)
     }
 }
 

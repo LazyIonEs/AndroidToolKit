@@ -4,7 +4,7 @@ on:
   [ workflow_dispatch ]
 
 env:
-  TAG_VERSION: 1.3.0
+  TAG_VERSION: 1.3.1
 
 jobs:
   create-win-x64-package:
@@ -24,7 +24,7 @@ jobs:
       - name: Prep build artifacts for release
         run: |
           $ErrorActionPreference = "Stop"
-          mv D:\a\AndroidToolsKit\AndroidToolsKit\composeApp\output\main-release\msi\AndroidToolsKit-${{ env.TAG_VERSION }}.msi D:\a\AndroidToolsKit\AndroidToolsKit\composeApp\output\main-release\msi\AndroidToolsKit-${{ env.TAG_VERSION }}-windows-x64.msi
+          mv D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\msi\AndroidToolKit-${{ env.TAG_VERSION }}.msi D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\msi\AndroidToolKit-${{ env.TAG_VERSION }}-windows-x64.msi
       - name: Draft Release
         uses: ncipollo/release-action@v1
         with:
@@ -51,7 +51,7 @@ jobs:
       - name: Prep build artifacts for release
         run: |
           set -e
-          mv  /Users/runner/work/AndroidToolsKit/AndroidToolsKit/composeApp/output/main-release/dmg/AndroidToolsKit-${{ env.TAG_VERSION }}.dmg  /Users/runner/work/AndroidToolsKit/AndroidToolsKit/composeApp/output/main-release/dmg/AndroidToolsKit-${{ env.TAG_VERSION }}-macos-x64.dmg
+          mv  /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ env.TAG_VERSION }}.dmg  /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ env.TAG_VERSION }}-macos-x64.dmg
       - name: Draft Release
         uses: ncipollo/release-action@v1
         with:
@@ -78,7 +78,7 @@ jobs:
       - name: Prep build artifacts for release
         run: |
           set -e
-          mv /Users/runner/work/AndroidToolsKit/AndroidToolsKit/composeApp/output/main-release/dmg/AndroidToolsKit-${{ env.TAG_VERSION }}.dmg /Users/runner/work/AndroidToolsKit/AndroidToolsKit/composeApp/output/main-release/dmg/AndroidToolsKit-${{ env.TAG_VERSION }}-macos-arm64.dmg
+          mv /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ env.TAG_VERSION }}.dmg /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ env.TAG_VERSION }}-macos-arm64.dmg
       - name: Draft Release
         uses: ncipollo/release-action@v1
         with:

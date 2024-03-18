@@ -1,10 +1,10 @@
 package platform
 
 import app.cash.sqldelight.db.SqlDriver
-import kit.ToolsKitDatabase
+import kit.ToolKitDatabase
 
 expect fun createDriver(): SqlDriver
 
-fun createDatabase(driver: SqlDriver): ToolsKitDatabase {
-    return ToolsKitDatabase(driver)
+fun createDatabase(driver: SqlDriver): ToolKitDatabase {
+    return ToolKitDatabase(driver)
 }

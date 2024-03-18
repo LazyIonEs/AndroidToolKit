@@ -10,20 +10,20 @@ plugins {
 
 sqldelight {
     databases {
-        create("ToolsKitDatabase") {
+        create("ToolKitDatabase") {
             packageName.set("kit")
         }
     }
 }
 
-val kitVersion by extra("1.3.0")
-val kitPackageName = "AndroidToolsKit"
+val kitVersion by extra("1.3.1")
+val kitPackageName = "AndroidToolKit"
 val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
 val kitVendor = "LazyIonEs"
 val kitLicenseFile = project.rootProject.file("LICENSE")
 
-group = "org.apk.tools"
+group = "org.tool.kit"
 version = kitVersion
 
 val osName: String = System.getProperty("os.name")
@@ -107,7 +107,7 @@ compose.desktop {
                 packageBuildVersion = packageVersion
                 dmgPackageBuildVersion = packageVersion
                 pkgPackageBuildVersion = packageVersion
-                bundleID = "org.apk.tools"
+                bundleID = "org.tool.kit"
 
                 dockName = kitPackageName
                 iconFile.set(project.file("launcher/icon.icns"))
@@ -131,7 +131,7 @@ compose.desktop {
 
 buildConfig {
     className("BuildConfig")
-    packageName("org.apk.tools")
+    packageName("org.tool.kit")
     buildConfigField("APP_NAME", kitPackageName)
     buildConfigField("APP_VERSION", kitVersion)
     buildConfigField("APP_DESCRIPTION", kitDescription)

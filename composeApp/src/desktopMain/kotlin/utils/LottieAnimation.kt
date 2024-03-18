@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.apk.tools.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.Res
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.skia.Rect
 import org.jetbrains.skia.skottie.Animation
