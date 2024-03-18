@@ -14,12 +14,14 @@ import java.util.Properties
  */
 actual fun createDriver(): SqlDriver {
     val dbFile = getDatabaseFile()
+    // 后续删除
     if (!dbFile.exists()) {
         val oldDbDir = getOldDatabaseDir()
         if (oldDbDir.exists()) {
             oldDbDir.renameTo(dbFile.parentFile)
         }
     }
+    // 移动至getDatabaseFile()
     dbFile.parentFile.also {  if (!it.exists()) it.mkdirs() }
     return JdbcSqliteDriver(
         url = "jdbc:sqlite:${dbFile.absolutePath}",
