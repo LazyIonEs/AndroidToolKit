@@ -14,6 +14,12 @@ import java.util.Properties
  */
 actual fun createDriver(): SqlDriver {
     val dbFile = getDatabaseFile()
+    if (!dbFile.exists()) {
+        val oldDbDir = getOldDatabaseDir()
+        if (oldDbDir.exists()) {
+            oldDbDir.renameTo(dbFile.parentFile)
+        }
+    }
     return JdbcSqliteDriver(
         url = "jdbc:sqlite:${dbFile.absolutePath}",
         properties = Properties(),
@@ -26,7 +32,14 @@ actual fun createDriver(): SqlDriver {
 
 private fun getDatabaseFile(): File {
     return File(
-        File(System.getProperty("user.home"), ".android_tools_kit").also { if (!it.exists()) it.mkdirs() },
+        File(
+            System.getProperty("user.home"),
+            ".android_tool_kit"
+        ).also { if (!it.exists()) it.mkdirs() },
         "config.db"
     )
+}
+
+private fun getOldDatabaseDir(): File {
+    return File(System.getProperty("user.home"), ".android_tools_kit")
 }
