@@ -356,7 +356,7 @@ private fun SignaturePath(viewModel: MainViewModel, isSignatureError: Boolean) {
             onValueChange = { path ->
                 viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, path)
             },
-            label = { Text("签名文件", style = MaterialTheme.typography.labelLarge) },
+            label = { Text("密钥文件", style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
             isError = isSignatureError
         )
@@ -410,7 +410,7 @@ private fun SignaturePassword(viewModel: MainViewModel, isSignaturePasswordError
                     )
                 }
             },
-            label = { Text("签名密码", style = MaterialTheme.typography.labelLarge) },
+            label = { Text("密钥密码", style = MaterialTheme.typography.labelLarge) },
             isError = isSignaturePasswordError,
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
@@ -433,7 +433,7 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
             value = viewModel.apkSignatureState.keyStoreAlisa,
             readOnly = true,
             onValueChange = { _ -> },
-            label = { Text("签名别名", style = MaterialTheme.typography.labelLarge) },
+            label = { Text("密钥别名", style = MaterialTheme.typography.labelLarge) },
             singleLine = true
         )
     }
@@ -456,7 +456,7 @@ private fun SignatureAlisaPassword(
             onValueChange = { path ->
                 viewModel.updateApkSignature(SignatureEnum.KEY_STORE_ALISA_PASSWORD, path)
             },
-            label = { Text("签名别名密码", style = MaterialTheme.typography.labelLarge) },
+            label = { Text("密钥别名密码", style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
             isError = isSignatureAlisaPasswordError,
             visualTransformation = PasswordVisualTransformation(),
