@@ -44,7 +44,8 @@ data class ApkSignature(
     var keyStorePolicy: SignaturePolicy = SignaturePolicy.V2, // 密钥策略
     var keyStorePath: String = "", // 密钥路径
     var keyStorePassword: String = "", // 密钥密码
-    var keyStoreAlisa: String = "", // 别名
+    var keyStoreAlisaList: ArrayList<String>? = null,  // 别名列表
+    var keyStoreAlisaIndex: Int = 0, // 别名选中下标
     var keyStoreAlisaPassword: String = "" // 别名密码
 ) {
     constructor(apkSignature: ApkSignature) : this(
@@ -53,7 +54,8 @@ data class ApkSignature(
         apkSignature.keyStorePolicy,
         apkSignature.keyStorePath,
         apkSignature.keyStorePassword,
-        apkSignature.keyStoreAlisa,
+        apkSignature.keyStoreAlisaList,
+        apkSignature.keyStoreAlisaIndex,
         apkSignature.keyStoreAlisaPassword
     )
 }
@@ -67,7 +69,8 @@ enum class SignatureEnum {
     KEY_STORE_POLICY,
     KEY_STORE_PATH,
     KEY_STORE_PASSWORD,
-    KEY_STORE_ALISA,
+    KEY_STORE_ALISA_LIST,
+    KEY_STORE_ALISA_INDEX,
     KEY_STORE_ALISA_PASSWORD,
 }
 

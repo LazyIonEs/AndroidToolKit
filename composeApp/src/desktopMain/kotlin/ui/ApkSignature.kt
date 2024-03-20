@@ -25,8 +25,13 @@ import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ElevatedFilterChip
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -102,9 +107,9 @@ private fun SignatureBox(
     val isSignatureError =
         viewModel.apkSignatureState.keyStorePath.isNotBlank() && !File(viewModel.apkSignatureState.keyStorePath).isFile
     val isSignaturePasswordError =
-        viewModel.apkSignatureState.keyStorePassword.isNotBlank() && viewModel.apkSignatureState.keyStoreAlisa.isBlank()
+        viewModel.apkSignatureState.keyStorePassword.isNotBlank() && viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty()
     val isSignatureAlisaPasswordError =
-        viewModel.apkSignatureState.keyStoreAlisa.isNotBlank() && viewModel.apkSignatureState.keyStoreAlisaPassword.isNotBlank() && !viewModel.verifyAlisaPassword()
+        !viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty() && viewModel.apkSignatureState.keyStoreAlisaPassword.isNotBlank() && !viewModel.verifyAlisaPassword()
     Box(
         modifier = Modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp).onExternalDrag(
             onDragStart = { isDragging = true },
@@ -403,7 +408,7 @@ private fun SignaturePassword(viewModel: MainViewModel, isSignaturePasswordError
                 viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PASSWORD, path)
                 if (viewModel.apkSignatureState.keyStorePath.isNotBlank() && File(viewModel.apkSignatureState.keyStorePath).isFile) {
                     viewModel.updateApkSignature(
-                        SignatureEnum.KEY_STORE_ALISA, viewModel.verifyAlisa(
+                        SignatureEnum.KEY_STORE_ALISA_LIST, viewModel.verifyAlisa(
                             viewModel.apkSignatureState.keyStorePath,
                             viewModel.apkSignatureState.keyStorePassword
                         )
@@ -422,20 +427,46 @@ private fun SignaturePassword(viewModel: MainViewModel, isSignaturePasswordError
 /**
  * 签名别名
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SignatureAlisa(viewModel: MainViewModel) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+    var expanded by remember { mutableStateOf(false) }
+    val options = viewModel.apkSignatureState.keyStoreAlisaList
+    val selectedOptionText = options?.getOrNull(viewModel.apkSignatureState.keyStoreAlisaIndex) ?: ""
+    ExposedDropdownMenuBox(
+        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 72.dp, bottom = 3.dp),
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
     ) {
         OutlinedTextField(
-            modifier = Modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
-            value = viewModel.apkSignatureState.keyStoreAlisa,
+            modifier = Modifier.menuAnchor().fillMaxWidth(),
+            value = selectedOptionText,
             readOnly = true,
-            onValueChange = { _ -> },
+            onValueChange = { },
             label = { Text("密钥别名", style = MaterialTheme.typography.labelLarge) },
-            singleLine = true
+            singleLine = true,
+            trailingIcon = { TrailingIcon(expanded = expanded) },
+            colors = ExposedDropdownMenuDefaults.textFieldColors()
         )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            options?.forEach { selectionOption ->
+                DropdownMenuItem(
+                    text = { Text(selectionOption) },
+                    onClick = {
+                        val index = options.indexOf(selectionOption)
+                        if (index != viewModel.apkSignatureState.keyStoreAlisaIndex) {
+                            viewModel.updateApkSignature(SignatureEnum.KEY_STORE_ALISA_PASSWORD, "")
+                        }
+                        viewModel.updateApkSignature(SignatureEnum.KEY_STORE_ALISA_INDEX, index)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
+            }
+        }
     }
 }
 
@@ -499,7 +530,7 @@ private fun Signature(
 private fun signatureApk(
     viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
 ) {
-    if (viewModel.apkSignatureState.apkPath.isBlank() || viewModel.apkSignatureState.outPutPath.isBlank() || viewModel.apkSignatureState.keyStorePath.isBlank() || viewModel.apkSignatureState.keyStorePassword.isBlank() || viewModel.apkSignatureState.keyStoreAlisa.isBlank() || viewModel.apkSignatureState.keyStoreAlisaPassword.isBlank()) {
+    if (viewModel.apkSignatureState.apkPath.isBlank() || viewModel.apkSignatureState.outPutPath.isBlank() || viewModel.apkSignatureState.keyStorePath.isBlank() || viewModel.apkSignatureState.keyStorePassword.isBlank() || viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty() || viewModel.apkSignatureState.keyStoreAlisaPassword.isBlank()) {
         scope.launch {
             toastState.show(ToastModel("请检查空项", ToastModel.Type.Error))
         }

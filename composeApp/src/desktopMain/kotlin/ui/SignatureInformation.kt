@@ -38,6 +38,10 @@ import androidx.compose.material.icons.rounded.SentimentSatisfied
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -64,6 +68,7 @@ import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import file.showFileSelector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import model.SignatureEnum
 import model.Verifier
 import model.VerifierResult
 import toast.ToastModel
@@ -298,6 +303,7 @@ private fun SignatureFloatingButton(
 /**
  * 签名验证弹窗
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SignatureDialog(
     viewModel: MainViewModel,
@@ -307,42 +313,72 @@ private fun SignatureDialog(
 ) {
     if (signaturePath.value.isNotBlank()) {
         val password = remember { mutableStateOf("") }
-        val alisa = remember { mutableStateOf("") }
+        var options by remember { mutableStateOf<ArrayList<String>?>(null) }
+        var alisa by remember { mutableStateOf(options?.getOrNull(0) ?: "") }
         AlertDialog(icon = {
             Icon(Icons.Rounded.Password, contentDescription = "Password")
         }, title = {
             Text(text = "请输入签名密码")
         }, text = {
+            var expanded by remember { mutableStateOf(false) }
             Column {
                 OutlinedTextField(
                     modifier = Modifier.padding(vertical = 4.dp),
                     value = password.value,
                     onValueChange = { value ->
                         password.value = value
-                        alisa.value = viewModel.verifyAlisa(signaturePath.value, value)
+                        options = viewModel.verifyAlisa(signaturePath.value, value)
+                        alisa = if (!options.isNullOrEmpty()) {
+                            options?.getOrNull(0) ?: ""
+                        } else {
+                            ""
+                        }
                     },
                     label = { Text("签名密码", style = MaterialTheme.typography.labelLarge) },
-                    isError = alisa.value.isBlank(),
+                    isError = alisa.isBlank(),
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                 )
-                OutlinedTextField(
+                ExposedDropdownMenuBox(
                     modifier = Modifier.padding(vertical = 6.dp),
-                    value = alisa.value,
-                    readOnly = true,
-                    onValueChange = { _ -> },
-                    label = { Text("签名别名", style = MaterialTheme.typography.labelLarge) },
-                    singleLine = true
-                )
+                    expanded = expanded,
+                    onExpandedChange = { expanded = it }
+                ) {
+                    OutlinedTextField(
+                        modifier = Modifier.menuAnchor(),
+                        value = alisa,
+                        readOnly = true,
+                        onValueChange = { },
+                        label = { Text("密钥别名", style = MaterialTheme.typography.labelLarge) },
+                        singleLine = true,
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        colors = ExposedDropdownMenuDefaults.textFieldColors()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                    ) {
+                        options?.forEach { selectionOption ->
+                            DropdownMenuItem(
+                                text = { Text(selectionOption) },
+                                onClick = {
+                                    alisa = selectionOption
+                                    expanded = false
+                                },
+                                contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                            )
+                        }
+                    }
+                }
             }
         }, onDismissRequest = {
             signaturePath.value = ""
         }, confirmButton = {
             TextButton(onClick = {
-                if (alisa.value.isNotBlank()) {
+                if (alisa.isNotBlank()) {
                     viewModel.signerVerifier(
-                        signaturePath.value, password.value, alisa.value
+                        signaturePath.value, password.value, alisa
                     )
                     signaturePath.value = ""
                 } else {

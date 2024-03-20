@@ -122,7 +122,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      * @param enum 需要更新的索引
      * @param value 需要更新的值
      */
-    fun updateApkSignature(enum: SignatureEnum, value: Any) {
+    fun updateApkSignature(enum: SignatureEnum, value: Any?) {
         val apkSignature = ApkSignature(apkSignatureState)
         when (enum) {
             SignatureEnum.APK_PATH -> {
@@ -142,14 +142,16 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                 // 更换签名路径后清空签名信息
                 if (apkSignature.keyStorePath != value) {
                     apkSignature.keyStorePassword = ""
-                    apkSignature.keyStoreAlisa = ""
+                    apkSignature.keyStoreAlisaList = null
+                    apkSignature.keyStoreAlisaIndex = 0
                     apkSignature.keyStoreAlisaPassword = ""
                 }
                 apkSignature.keyStorePath = value as String
             }
 
             SignatureEnum.KEY_STORE_PASSWORD -> apkSignature.keyStorePassword = value as String
-            SignatureEnum.KEY_STORE_ALISA -> apkSignature.keyStoreAlisa = value as String
+            SignatureEnum.KEY_STORE_ALISA_LIST -> apkSignature.keyStoreAlisaList = value as? ArrayList<String>
+            SignatureEnum.KEY_STORE_ALISA_INDEX -> apkSignature.keyStoreAlisaIndex = value as Int
             SignatureEnum.KEY_STORE_ALISA_PASSWORD -> apkSignature.keyStoreAlisaPassword =
                 value as String
         }
@@ -212,12 +214,13 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             val v2SigningEnabled =
                 apkSignatureState.keyStorePolicy == SignaturePolicy.V2 || apkSignatureState.keyStorePolicy == SignaturePolicy.V2Only || apkSignatureState.keyStorePolicy == SignaturePolicy.V3
             val v3SigningEnabled = apkSignatureState.keyStorePolicy == SignaturePolicy.V3
+            val alisa = apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
             val certificateInfo = KeystoreHelper.getCertificateInfo(
                 "JKS",
                 key,
                 apkSignatureState.keyStorePassword,
                 apkSignatureState.keyStoreAlisaPassword,
-                apkSignatureState.keyStoreAlisa
+                alisa
             )
             val privateKey = certificateInfo.key
             val certificate = certificateInfo.certificate
@@ -575,23 +578,24 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      * @param path 签名路径
      * @param password 签名密码
      */
-    fun verifyAlisa(path: String, password: String): String {
+    fun verifyAlisa(path: String, password: String): ArrayList<String>? {
         var fileInputStream: FileInputStream? = null
         try {
             val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
             fileInputStream = FileInputStream(path)
             keyStore.load(fileInputStream, password.toCharArray())
             val aliases = keyStore.aliases()
+            val list = ArrayList<String>()
             while (aliases.hasMoreElements()) {
-                // 返回一个列表，可选择？
-                return aliases.nextElement()
+                list.add(aliases.nextElement())
             }
+            return list
         } catch (_: Exception) {
 
         } finally {
             fileInputStream?.close()
         }
-        return ""
+        return null
     }
 
     /**
@@ -603,11 +607,9 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
             fileInputStream = FileInputStream(apkSignatureState.keyStorePath)
             keyStore.load(fileInputStream, apkSignatureState.keyStorePassword.toCharArray())
-            if (keyStore.containsAlias(apkSignatureState.keyStoreAlisa)) {
-                val key = keyStore.getKey(
-                    apkSignatureState.keyStoreAlisa,
-                    apkSignatureState.keyStoreAlisaPassword.toCharArray()
-                )
+            val alisa = apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
+            if (keyStore.containsAlias(alisa)) {
+                val key = keyStore.getKey(alisa, apkSignatureState.keyStoreAlisaPassword.toCharArray())
                 return key != null
             }
         } catch (e: Exception) {
@@ -635,7 +637,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                 aaptFile.setExecutable(true)
             }
             dataBase.initInternal(aaptFile.absolutePath)
-            this@MainViewModel.aapt = dataBase.getAaptPath()
+            this.aapt = dataBase.getAaptPath()
         }
     }
 

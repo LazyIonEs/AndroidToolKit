@@ -16,7 +16,7 @@ sqldelight {
     }
 }
 
-val kitVersion by extra("1.3.1")
+val kitVersion by extra("1.3.2")
 val kitPackageName = "AndroidToolKit"
 val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
