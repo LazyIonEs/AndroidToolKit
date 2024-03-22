@@ -10,6 +10,7 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.icon
+import utils.isMac
 
 fun main() = application {
     val applicationState = remember { ApplicationState() }
@@ -25,12 +26,14 @@ fun main() = application {
 private fun Window(
     state: WindowState
 ) = Window(onCloseRequest = state::close, title = state.title, icon = painterResource(Res.drawable.icon)) {
-    MenuBar {
-        Menu("文件") {
-            Item("打开新的窗口", onClick = state.openNewWindow)
-            Item("关闭窗口", onClick = { state.close() })
-            Separator()
-            Item("全部关闭", onClick = state.exit)
+    if (isMac) {
+        MenuBar {
+            Menu("文件") {
+                Item("打开新的窗口", onClick = state.openNewWindow)
+                Item("关闭窗口", onClick = { state.close() })
+                Separator()
+                Item("全部关闭", onClick = state.exit)
+            }
         }
     }
     App()

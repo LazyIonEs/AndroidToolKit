@@ -20,6 +20,8 @@ import java.util.zip.ZipFile
 
 val isWindows = System.getProperty("os.name").startsWith("Win")
 
+val isMac = System.getProperty("os.name").startsWith("Mac")
+
 val resourcesDir: String = System.getProperty("compose.application.resources.dir") ?: File(File(System.getProperty("user.dir"), "resources"), appInternalResourcesDir).absolutePath
 
 fun getThumbPrint(cert: X509Certificate?, type: String?): String? {
