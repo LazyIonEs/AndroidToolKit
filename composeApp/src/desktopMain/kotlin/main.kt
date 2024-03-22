@@ -17,10 +17,11 @@ import org.jetbrains.compose.resources.painterResource
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.icon
 import utils.isMac
+import utils.isWindows
 
 fun main() = application {
     val applicationState = remember { ApplicationState() }
-    if (applicationState.windows.isNotEmpty()) {
+    if (isWindows && applicationState.windows.isNotEmpty()) {
         ApplicationTray(applicationState)
     }
     for (window in applicationState.windows) {
