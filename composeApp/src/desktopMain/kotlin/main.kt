@@ -1,9 +1,15 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.window.ApplicationScope
 import androidx.compose.ui.window.MenuBar
+import androidx.compose.ui.window.MenuScope
+import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import org.jetbrains.compose.resources.ExperimentalResourceApi
@@ -14,6 +20,9 @@ import utils.isMac
 
 fun main() = application {
     val applicationState = remember { ApplicationState() }
+    if (applicationState.windows.isNotEmpty()) {
+        ApplicationTray(applicationState)
+    }
     for (window in applicationState.windows) {
         key(window) {
             Window(window)
@@ -23,9 +32,23 @@ fun main() = application {
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
+private fun ApplicationScope.ApplicationTray(state: ApplicationState) {
+    Tray(
+        painterResource(Res.drawable.icon),
+        tooltip = "AndroidToolKit",
+        menu = { ApplicationMenu(state) }
+    )
+}
+
+@OptIn(ExperimentalResourceApi::class)
+@Composable
 private fun Window(
     state: WindowState
-) = Window(onCloseRequest = state::close, title = state.title, icon = painterResource(Res.drawable.icon)) {
+) = Window(
+    onCloseRequest = state::close,
+    title = state.title,
+    icon = painterResource(Res.drawable.icon)
+) {
     if (isMac) {
         MenuBar {
             Menu("文件") {
@@ -39,28 +62,34 @@ private fun Window(
     App()
 }
 
+@Composable
+private fun MenuScope.ApplicationMenu(state: ApplicationState) {
+    val icon = rememberVectorPainter(Icons.Rounded.Add)
+    Item(text = "打开新的窗口", onClick = state::openNewWindow, icon = icon)
+}
 
 private class ApplicationState {
 
-    val windows = mutableStateListOf<WindowState>()
+    private val _windows = mutableStateListOf<WindowState>()
+    val windows: List<WindowState> get() = _windows
 
     init {
-        windows += WindowState()
+        _windows.add(WindowState())
     }
 
     fun openNewWindow() {
-        windows += WindowState()
+        _windows.add(WindowState())
     }
 
     fun exit() {
-        windows.clear()
+        _windows.clear()
     }
 
     private fun WindowState() = WindowState(
         title = "AndroidToolKit",
         openNewWindow = ::openNewWindow,
         exit = ::exit,
-        windows::remove
+        _windows::remove
     )
 }
 
