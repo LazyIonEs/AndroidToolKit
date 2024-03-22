@@ -16,7 +16,7 @@ sqldelight {
     }
 }
 
-val kitVersion by extra("1.3.2")
+val kitVersion by extra("1.3.3")
 val kitPackageName = "AndroidToolKit"
 val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
@@ -118,6 +118,7 @@ compose.desktop {
                 menuGroup = packageName
                 perUserInstall = true
                 shortcut = true
+                menu = true
                 upgradeUuid = "2B0C6D0B-BEB7-4E64-807E-BEE0F91C7B04"
                 iconFile.set(project.file("launcher/icon.ico"))
             }
