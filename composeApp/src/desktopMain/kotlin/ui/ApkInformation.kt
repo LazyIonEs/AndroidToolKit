@@ -85,9 +85,9 @@ fun ApkInformation(viewModel: MainViewModel, toastState: ToastUIState, scope: Co
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
-    var isDragging by remember { mutableStateOf(false) }
+    var dragging by remember { mutableStateOf(false) }
     AnimatedVisibility(
-        visible = isDragging,
+        visible = dragging,
         enter = fadeIn() + slideIn(
             tween(
                 durationMillis = 400, easing = LinearOutSlowInEasing
@@ -108,8 +108,8 @@ private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
         }
     }
     Box(
-        modifier = Modifier.padding(6.dp).onExternalDrag(onDragStart = { isDragging = true },
-            onDragExit = { isDragging = false },
+        modifier = Modifier.padding(6.dp).onExternalDrag(onDragStart = { dragging = true },
+            onDragExit = { dragging = false },
             onDrop = { state ->
                 val dragData = state.dragData
                 if (dragData is DragData.FilesList) {
@@ -120,10 +120,10 @@ private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
                         }
                     }
                 }
-                isDragging = false
+                dragging = false
             }), contentAlignment = Alignment.TopCenter
     ) {
-        ApkFloatingButton(viewModel, isDragging)
+        ApkFloatingButton(viewModel, dragging)
     }
 }
 
@@ -146,7 +146,7 @@ fun ApkLoadingBox(viewModel: MainViewModel, scope: CoroutineScope) {
  * 选择文件按钮
  */
 @Composable
-private fun ApkFloatingButton(viewModel: MainViewModel, isDragging: Boolean) {
+private fun ApkFloatingButton(viewModel: MainViewModel, dragging: Boolean) {
     var showFilePickerApk by remember { mutableStateOf(false) }
     Box(
         modifier = Modifier.fillMaxSize()
@@ -167,7 +167,7 @@ private fun ApkFloatingButton(viewModel: MainViewModel, isDragging: Boolean) {
                     }
                 }, icon = { Icon(Icons.Rounded.DriveFolderUpload, "准备选择文件") }, text = {
                     Text(
-                        if (isDragging) {
+                        if (dragging) {
                             "愣着干嘛，还不松手"
                         } else {
                             "点击选择或拖拽上传APK"

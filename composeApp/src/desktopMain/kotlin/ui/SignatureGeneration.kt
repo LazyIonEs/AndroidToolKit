@@ -83,30 +83,30 @@ fun GenerationBox(
     Card(
         modifier = Modifier.fillMaxSize().padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
     ) {
-        val isKeyStorePathError =
+        val keyStorePathError =
             viewModel.keyStoreInfoState.keyStorePath.isNotBlank() && !File(viewModel.keyStoreInfoState.keyStorePath).isDirectory
-        val isKeyStoreNameError =
+        val keyStoreNameError =
             viewModel.keyStoreInfoState.keyStoreName.isNotBlank() && !(viewModel.keyStoreInfoState.keyStoreName.endsWith(
                 ".jks"
             ) || viewModel.keyStoreInfoState.keyStoreName.endsWith(".keystore"))
-        val isKeyStoreConfirmPasswordError =
+        val keyStoreConfirmPasswordError =
             viewModel.keyStoreInfoState.keyStoreConfirmPassword.isNotBlank() && viewModel.keyStoreInfoState.keyStorePassword != viewModel.keyStoreInfoState.keyStoreConfirmPassword
-        val isKeyStoreAlisaConfirmPasswordError =
+        val keyStoreAlisaConfirmPasswordError =
             viewModel.keyStoreInfoState.keyStoreAlisaConfirmPassword.isNotBlank() && viewModel.keyStoreInfoState.keyStoreAlisaPassword != viewModel.keyStoreInfoState.keyStoreAlisaConfirmPassword
         LazyColumn(
             modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 Spacer(Modifier.size(16.dp))
-                KeyStorePath(viewModel, isKeyStorePathError)
+                KeyStorePath(viewModel, keyStorePathError)
             }
             item {
                 Spacer(Modifier.size(4.dp))
-                KeyStoreName(viewModel, isKeyStoreNameError)
+                KeyStoreName(viewModel, keyStoreNameError)
             }
             item {
                 Spacer(Modifier.size(4.dp))
-                KeyStorePassword(viewModel, isKeyStoreConfirmPasswordError)
+                KeyStorePassword(viewModel, keyStoreConfirmPasswordError)
             }
             item {
                 Spacer(Modifier.size(12.dp))
@@ -122,7 +122,7 @@ fun GenerationBox(
             }
             item {
                 Spacer(Modifier.size(4.dp))
-                KeyStoreAlisaPassword(viewModel, isKeyStoreAlisaConfirmPasswordError)
+                KeyStoreAlisaPassword(viewModel, keyStoreAlisaConfirmPasswordError)
             }
             item {
                 Spacer(Modifier.size(4.dp))
@@ -164,10 +164,10 @@ fun GenerationBox(
                 Spacer(Modifier.size(12.dp))
                 CreateSignature(
                     viewModel,
-                    isKeyStorePathError,
-                    isKeyStoreNameError,
-                    isKeyStoreConfirmPasswordError,
-                    isKeyStoreAlisaConfirmPasswordError,
+                    keyStorePathError,
+                    keyStoreNameError,
+                    keyStoreConfirmPasswordError,
+                    keyStoreAlisaConfirmPasswordError,
                     toastState,
                     scope
                 )
@@ -178,7 +178,7 @@ fun GenerationBox(
 }
 
 @Composable
-fun KeyStorePath(viewModel: MainViewModel, isKeyStorePathError: Boolean) {
+fun KeyStorePath(viewModel: MainViewModel, keyStorePathError: Boolean) {
     var showDirPicker by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -192,7 +192,7 @@ fun KeyStorePath(viewModel: MainViewModel, isKeyStorePathError: Boolean) {
             },
             label = { Text("密钥输出路径", style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
-            isError = isKeyStorePathError
+            isError = keyStorePathError
         )
         SmallFloatingActionButton(onClick = {
             if (isWindows) {
@@ -217,7 +217,7 @@ fun KeyStorePath(viewModel: MainViewModel, isKeyStorePathError: Boolean) {
 }
 
 @Composable
-fun KeyStoreName(viewModel: MainViewModel, isKeyStoreNameError: Boolean) {
+fun KeyStoreName(viewModel: MainViewModel, keyStoreNameError: Boolean) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -229,7 +229,7 @@ fun KeyStoreName(viewModel: MainViewModel, isKeyStoreNameError: Boolean) {
                 viewModel.updateSignatureGenerate(KeyStoreEnum.KEY_STORE_NAME, name)
             },
             label = { Text("密钥名称", style = MaterialTheme.typography.labelLarge) },
-            isError = isKeyStoreNameError,
+            isError = keyStoreNameError,
             singleLine = true
         )
     }
@@ -237,7 +237,7 @@ fun KeyStoreName(viewModel: MainViewModel, isKeyStoreNameError: Boolean) {
 
 @Composable
 fun KeyStorePassword(
-    viewModel: MainViewModel, isKeyStoreConfirmPasswordError: Boolean
+    viewModel: MainViewModel, keyStoreConfirmPasswordError: Boolean
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 64.dp),
@@ -261,7 +261,7 @@ fun KeyStorePassword(
                 viewModel.updateSignatureGenerate(KeyStoreEnum.KEY_STORE_CONFIRM_PASSWORD, password)
             },
             label = { Text("确认密码", style = MaterialTheme.typography.labelLarge) },
-            isError = isKeyStoreConfirmPasswordError,
+            isError = keyStoreConfirmPasswordError,
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -289,7 +289,7 @@ fun KeyStoreAlisa(viewModel: MainViewModel) {
 
 @Composable
 fun KeyStoreAlisaPassword(
-    viewModel: MainViewModel, isKeyStoreAlisaConfirmPasswordError: Boolean
+    viewModel: MainViewModel, keyStoreAlisaConfirmPasswordError: Boolean
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 64.dp),
@@ -315,7 +315,7 @@ fun KeyStoreAlisaPassword(
                 )
             },
             label = { Text("确认密码", style = MaterialTheme.typography.labelLarge) },
-            isError = isKeyStoreAlisaConfirmPasswordError,
+            isError = keyStoreAlisaConfirmPasswordError,
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -461,15 +461,15 @@ fun CountryCode(viewModel: MainViewModel) {
 @Composable
 private fun CreateSignature(
     viewModel: MainViewModel,
-    isKeyStorePathError: Boolean,
-    isKeyStoreNameError: Boolean,
-    isKeyStoreConfirmPasswordError: Boolean,
-    isKeyStoreAlisaConfirmPasswordError: Boolean,
+    keyStorePathError: Boolean,
+    keyStoreNameError: Boolean,
+    keyStoreConfirmPasswordError: Boolean,
+    keyStoreAlisaConfirmPasswordError: Boolean,
     toastState: ToastUIState,
     scope: CoroutineScope
 ) {
     ElevatedButton(onClick = {
-        if (isKeyStorePathError || isKeyStoreNameError || isKeyStoreConfirmPasswordError || isKeyStoreAlisaConfirmPasswordError) {
+        if (keyStorePathError || keyStoreNameError || keyStoreConfirmPasswordError || keyStoreAlisaConfirmPasswordError) {
             scope.launch {
                 toastState.show(ToastModel("请检查Error项", ToastModel.Type.Error))
             }

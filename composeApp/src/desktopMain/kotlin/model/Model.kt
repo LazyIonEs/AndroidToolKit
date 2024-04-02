@@ -40,7 +40,7 @@ data class Verifier(
  */
 data class ApkSignature(
     var apkPath: String = "", // apk路径
-    var outPutPath: String = "", // apk输出路径
+    var outputPath: String = "", // apk输出路径
     var keyStorePolicy: SignaturePolicy = SignaturePolicy.V2, // 密钥策略
     var keyStorePath: String = "", // 密钥路径
     var keyStorePassword: String = "", // 密钥密码
@@ -50,7 +50,7 @@ data class ApkSignature(
 ) {
     constructor(apkSignature: ApkSignature) : this(
         apkSignature.apkPath,
-        apkSignature.outPutPath,
+        apkSignature.outputPath,
         apkSignature.keyStorePolicy,
         apkSignature.keyStorePath,
         apkSignature.keyStorePassword,
@@ -65,7 +65,7 @@ data class ApkSignature(
  */
 enum class SignatureEnum {
     APK_PATH,
-    OUT_PUT_PATH,
+    OUTPUT_PATH,
     KEY_STORE_POLICY,
     KEY_STORE_PATH,
     KEY_STORE_PASSWORD,
@@ -157,6 +157,41 @@ enum class KeyStoreEnum {
     CITY,
     PROVINCE,
     COUNTRY_CODE
+}
+
+/**
+ * 垃圾代码生成信息，存储页面信息，viewModel中
+ */
+data class JunkCodeInfo(
+    var outputPath: String = "", // 输出路径
+    var aarName: String = "junk_com_dev_junk_plugin_TT2.0.0.aar", // aar名称
+    var packageName: String = "com.dev.junk", // 包名
+    var suffix: String = "plugin", // 后缀
+    var packageCount: String = "50", // 包数量
+    var activityCountPerPackage: String = "30", // 每个包里 activity 的数量
+    var resPrefix: String = "junk_", // 资源前缀
+) {
+    constructor(junkCodeInfo: JunkCodeInfo) : this(
+        junkCodeInfo.outputPath,
+        junkCodeInfo.aarName,
+        junkCodeInfo.packageName,
+        junkCodeInfo.suffix,
+        junkCodeInfo.packageCount,
+        junkCodeInfo.activityCountPerPackage,
+        junkCodeInfo.resPrefix
+    )
+}
+
+/**
+ * 垃圾代码生成更新索引
+ */
+enum class JunkCodeEnum {
+    OUTPUT_PATH,
+    PACKAGE_NAME,
+    SUFFIX,
+    PACKAGE_COUNT,
+    ACTIVITY_COUNT_PER_PACKAGE,
+    RES_PREFIX
 }
 
 enum class StoreType(val value: String) {

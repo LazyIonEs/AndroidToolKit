@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.DonutLarge
 import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material.icons.rounded.Pin
 import androidx.compose.material.icons.rounded.Settings
@@ -31,6 +32,7 @@ import toast.ToastUI
 import toast.ToastUIState
 import ui.ApkInformation
 import ui.ApkSignature
+import ui.JunkCode
 import ui.SetUp
 import ui.SignatureGeneration
 import ui.SignatureInformation
@@ -93,6 +95,7 @@ fun MainContentScreen(viewModel: MainViewModel) {
                     Page.APK_INFORMATION -> ApkInformation(viewModel, toastState, scope)
                     Page.APK_SIGNATURE -> ApkSignature(viewModel, toastState, scope)
                     Page.SIGNATURE_GENERATION -> SignatureGeneration(viewModel, toastState, scope)
+                    Page.JUNK_CODE -> JunkCode(viewModel, toastState, scope)
                     Page.SET_UP -> SetUp(viewModel)
                 }
             }
@@ -108,5 +111,6 @@ enum class Page(val title: String, val icon: ImageVector) {
     APK_INFORMATION("APK信息", Icons.Rounded.Android),
     APK_SIGNATURE("APK签名", Icons.Rounded.Pin),
     SIGNATURE_GENERATION("签名生成", Icons.Rounded.Key),
+    JUNK_CODE("垃圾代码", Icons.Rounded.DonutLarge),
     SET_UP("设置", Icons.Rounded.Settings)
 }

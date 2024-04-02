@@ -19,6 +19,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.supervisorScope
 import model.ApkInformation
 import model.ApkSignature
+import model.JunkCodeEnum
+import model.JunkCodeInfo
 import model.KeyStoreEnum
 import model.KeyStoreInfo
 import model.SignatureEnum
@@ -26,9 +28,11 @@ import model.SignaturePolicy
 import model.StoreType
 import model.VerifierResult
 import org.apache.commons.codec.digest.DigestUtils
+import utils.AndroidJunkGenerator
 import utils.extractIcon
 import utils.extractValue
 import utils.extractVersion
+import utils.formatFileSize
 import utils.getThumbPrint
 import utils.isWindows
 import utils.resourcesDir
@@ -98,7 +102,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
         private set
 
     // APK签名信息
-    var apkSignatureState by mutableStateOf(ApkSignature(outPutPath = outputPath))
+    var apkSignatureState by mutableStateOf(ApkSignature(outputPath = outputPath))
         private set
 
     // Apk签名UI状态
@@ -117,6 +121,14 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     var apkInformationState by mutableStateOf<UIState>(UIState.WAIT)
         private set
 
+    // 垃圾代码生成信息
+    var junkCodeInfoState by mutableStateOf(JunkCodeInfo(outputPath = outputPath))
+        private set
+
+    // 垃圾代码生成UI状态
+    var junkCodeUIState by mutableStateOf<UIState>(UIState.WAIT)
+        private set
+
     /**
      * 修改ApkSignature
      * @param enum 需要更新的索引
@@ -127,15 +139,15 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
         when (enum) {
             SignatureEnum.APK_PATH -> {
                 apkSignature.apkPath = value as String
-                if (apkSignature.outPutPath.isBlank()) {
+                if (apkSignature.outputPath.isBlank()) {
                     val file = File(value)
                     if (file.exists()) {
-                        apkSignature.outPutPath = file.parentFile.path
+                        apkSignature.outputPath = file.parentFile.path
                     }
                 }
             }
 
-            SignatureEnum.OUT_PUT_PATH -> apkSignature.outPutPath = value as String
+            SignatureEnum.OUTPUT_PATH -> apkSignature.outputPath = value as String
             SignatureEnum.KEY_STORE_POLICY -> apkSignature.keyStorePolicy = value as SignaturePolicy
 
             SignatureEnum.KEY_STORE_PATH -> {
@@ -150,7 +162,9 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             }
 
             SignatureEnum.KEY_STORE_PASSWORD -> apkSignature.keyStorePassword = value as String
-            SignatureEnum.KEY_STORE_ALISA_LIST -> apkSignature.keyStoreAlisaList = value as? ArrayList<String>
+            SignatureEnum.KEY_STORE_ALISA_LIST -> apkSignature.keyStoreAlisaList =
+                value as? ArrayList<String>
+
             SignatureEnum.KEY_STORE_ALISA_INDEX -> apkSignature.keyStoreAlisaIndex = value as Int
             SignatureEnum.KEY_STORE_ALISA_PASSWORD -> apkSignature.keyStoreAlisaPassword =
                 value as String
@@ -192,6 +206,40 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     }
 
     /**
+     * 修改JunkCodeInfo
+     * @param enum 需要更新的索引
+     * @param value 需要更新的值
+     */
+    fun updateJunkCodeInfo(enum: JunkCodeEnum, value: Any) {
+        val junkCodeInfo = JunkCodeInfo(junkCodeInfoState)
+        when (enum) {
+            JunkCodeEnum.OUTPUT_PATH -> junkCodeInfo.outputPath = value as String
+            JunkCodeEnum.PACKAGE_NAME -> {
+                junkCodeInfo.packageName = value as String
+                junkCodeInfo.aarName = "junk_" + junkCodeInfo.packageName.replace(
+                    ".",
+                    "_"
+                ) + "_" + junkCodeInfo.suffix + "_TT2.0.0.aar"
+            }
+
+            JunkCodeEnum.SUFFIX -> {
+                junkCodeInfo.suffix = value as String
+                junkCodeInfo.aarName = "junk_" + junkCodeInfo.packageName.replace(
+                    ".",
+                    "_"
+                ) + "_" + junkCodeInfo.suffix + "_TT2.0.0.aar"
+            }
+
+            JunkCodeEnum.PACKAGE_COUNT -> junkCodeInfo.packageCount = value as String
+            JunkCodeEnum.ACTIVITY_COUNT_PER_PACKAGE -> junkCodeInfo.activityCountPerPackage =
+                value as String
+
+            JunkCodeEnum.RES_PREFIX -> junkCodeInfo.resPrefix = value as String
+        }
+        junkCodeInfoState = junkCodeInfo
+    }
+
+    /**
      * APK签名
      */
     fun apkSigner() = launch(Dispatchers.IO) {
@@ -199,7 +247,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             apkSignatureUIState = UIState.Loading
             val inputApk = File(apkSignatureState.apkPath)
             val outputApk = File(
-                apkSignatureState.outPutPath, "${inputApk.nameWithoutExtension}${signerSuffix}.apk"
+                apkSignatureState.outputPath, "${inputApk.nameWithoutExtension}${signerSuffix}.apk"
             )
             if (outputApk.exists()) {
                 if (flagDelete) {
@@ -214,7 +262,8 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             val v2SigningEnabled =
                 apkSignatureState.keyStorePolicy == SignaturePolicy.V2 || apkSignatureState.keyStorePolicy == SignaturePolicy.V2Only || apkSignatureState.keyStorePolicy == SignaturePolicy.V3
             val v3SigningEnabled = apkSignatureState.keyStorePolicy == SignaturePolicy.V3
-            val alisa = apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
+            val alisa =
+                apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
             val certificateInfo = KeystoreHelper.getCertificateInfo(
                 "JKS",
                 key,
@@ -574,6 +623,37 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     }
 
     /**
+     * 生成垃圾代码 aar
+     */
+    fun generateJunkCode() = launch(Dispatchers.IO) {
+        junkCodeUIState = UIState.Loading
+        try {
+            val dir = junkCodeInfoState.outputPath
+            val output = junkCodeInfoState.outputPath
+            val appPackageName = junkCodeInfoState.packageName + "." + junkCodeInfoState.suffix
+            val packageCount = junkCodeInfoState.packageCount.toInt()
+            val activityCountPerPackage = junkCodeInfoState.activityCountPerPackage.toInt()
+            val resPrefix = junkCodeInfoState.resPrefix
+            val androidJunkGenerator = AndroidJunkGenerator(
+                dir,
+                output,
+                appPackageName,
+                packageCount,
+                activityCountPerPackage,
+                resPrefix
+            )
+            val file = androidJunkGenerator.startGenerate()
+            junkCodeUIState =
+                UIState.Success("构建结束：成功，文件大小：${formatFileSize(file.length(), 2, true)}")
+        } catch (e: Exception) {
+            junkCodeUIState = UIState.Error(e.message ?: "构建失败")
+            e.printStackTrace()
+        }
+        delay(1000)
+        junkCodeUIState = UIState.WAIT
+    }
+
+    /**
      * 验证签名
      * @param path 签名路径
      * @param password 签名密码
@@ -607,9 +687,11 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
             fileInputStream = FileInputStream(apkSignatureState.keyStorePath)
             keyStore.load(fileInputStream, apkSignatureState.keyStorePassword.toCharArray())
-            val alisa = apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
+            val alisa =
+                apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
             if (keyStore.containsAlias(alisa)) {
-                val key = keyStore.getKey(alisa, apkSignatureState.keyStoreAlisaPassword.toCharArray())
+                val key =
+                    keyStore.getKey(alisa, apkSignatureState.keyStoreAlisaPassword.toCharArray())
                 return key != null
             }
         } catch (e: Exception) {
@@ -706,8 +788,9 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     fun updateOutputPath(outputPath: String) {
         dataBase.updateOutputPath(outputPath)
         this.outputPath = dataBase.getOutputPath()
-        apkSignatureState.outPutPath = this.outputPath
+        apkSignatureState.outputPath = this.outputPath
         keyStoreInfoState.keyStorePath = this.outputPath
+        junkCodeInfoState.outputPath = this.outputPath
     }
 
     /**

@@ -99,21 +99,21 @@ fun ApkSignature(viewModel: MainViewModel, toastState: ToastUIState, scope: Coro
 private fun SignatureBox(
     viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
 ) {
-    var isDragging by remember { mutableStateOf(false) }
-    val isApkError =
+    var dragging by remember { mutableStateOf(false) }
+    val apkError =
         viewModel.apkSignatureState.apkPath.isNotBlank() && !File(viewModel.apkSignatureState.apkPath).isFile
-    val isOutputError =
-        viewModel.apkSignatureState.outPutPath.isNotBlank() && !File(viewModel.apkSignatureState.outPutPath).isDirectory
-    val isSignatureError =
+    val outputError =
+        viewModel.apkSignatureState.outputPath.isNotBlank() && !File(viewModel.apkSignatureState.outputPath).isDirectory
+    val signatureError =
         viewModel.apkSignatureState.keyStorePath.isNotBlank() && !File(viewModel.apkSignatureState.keyStorePath).isFile
-    val isSignaturePasswordError =
+    val signaturePasswordError =
         viewModel.apkSignatureState.keyStorePassword.isNotBlank() && viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty()
-    val isSignatureAlisaPasswordError =
+    val signatureAlisaPasswordError =
         !viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty() && viewModel.apkSignatureState.keyStoreAlisaPassword.isNotBlank() && !viewModel.verifyAlisaPassword()
     Box(
         modifier = Modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp).onExternalDrag(
-            onDragStart = { isDragging = true },
-            onDragExit = { isDragging = false },
+            onDragStart = { dragging = true },
+            onDragExit = { dragging = false },
             onDrop = { state ->
                 val dragData = state.dragData
                 if (dragData is DragData.FilesList) {
@@ -133,7 +133,7 @@ private fun SignatureBox(
                         viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, mSignaturePath)
                     }
                 }
-                isDragging = false
+                dragging = false
             })
     ) {
         Card(
@@ -145,11 +145,11 @@ private fun SignatureBox(
             ) {
                 item {
                     Spacer(Modifier.size(16.dp))
-                    SignatureApk(viewModel, isApkError)
+                    SignatureApk(viewModel, apkError)
                 }
                 item {
                     Spacer(Modifier.size(6.dp))
-                    SignatureOutput(viewModel, isOutputError)
+                    SignatureOutput(viewModel, outputError)
                 }
                 item {
                     Spacer(Modifier.size(6.dp))
@@ -157,11 +157,11 @@ private fun SignatureBox(
                 }
                 item {
                     Spacer(Modifier.size(6.dp))
-                    SignaturePath(viewModel, isSignatureError)
+                    SignaturePath(viewModel, signatureError)
                 }
                 item {
                     Spacer(Modifier.size(6.dp))
-                    SignaturePassword(viewModel, isSignaturePasswordError)
+                    SignaturePassword(viewModel, signaturePasswordError)
                 }
                 item {
                     Spacer(Modifier.size(6.dp))
@@ -169,17 +169,17 @@ private fun SignatureBox(
                 }
                 item {
                     Spacer(Modifier.size(6.dp))
-                    SignatureAlisaPassword(viewModel, isSignatureAlisaPasswordError)
+                    SignatureAlisaPassword(viewModel, signatureAlisaPasswordError)
                 }
                 item {
                     Spacer(Modifier.size(12.dp))
                     Signature(
                         viewModel,
-                        isApkError,
-                        isOutputError,
-                        isSignatureError,
-                        isSignaturePasswordError,
-                        isSignatureAlisaPasswordError,
+                        apkError,
+                        outputError,
+                        signatureError,
+                        signaturePasswordError,
+                        signatureAlisaPasswordError,
                         toastState,
                         scope
                     )
@@ -189,14 +189,14 @@ private fun SignatureBox(
         }
     }
     SignatureLoading(viewModel, scope)
-    SignatureUpload(isDragging, scope)
+    SignatureUpload(dragging, scope)
 }
 
 /**
  * APK文件
  */
 @Composable
-private fun SignatureApk(viewModel: MainViewModel, isApkError: Boolean) {
+private fun SignatureApk(viewModel: MainViewModel, apkError: Boolean) {
     var showFilePickerApk by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -210,7 +210,7 @@ private fun SignatureApk(viewModel: MainViewModel, isApkError: Boolean) {
             },
             label = { Text("APK文件", style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
-            isError = isApkError
+            isError = apkError
         )
         SmallFloatingActionButton(onClick = {
             if (isWindows) {
@@ -238,7 +238,7 @@ private fun SignatureApk(viewModel: MainViewModel, isApkError: Boolean) {
  * 签名输出路径
  */
 @Composable
-private fun SignatureOutput(viewModel: MainViewModel, isOutputError: Boolean) {
+private fun SignatureOutput(viewModel: MainViewModel, outputError: Boolean) {
     var showDirPicker by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -246,20 +246,20 @@ private fun SignatureOutput(viewModel: MainViewModel, isOutputError: Boolean) {
     ) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
-            value = viewModel.apkSignatureState.outPutPath,
+            value = viewModel.apkSignatureState.outputPath,
             onValueChange = { path ->
-                viewModel.updateApkSignature(SignatureEnum.OUT_PUT_PATH, path)
+                viewModel.updateApkSignature(SignatureEnum.OUTPUT_PATH, path)
             },
             label = { Text("输出路径", style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
-            isError = isOutputError
+            isError = outputError
         )
         SmallFloatingActionButton(onClick = {
             if (isWindows) {
                 showDirPicker = true
             } else {
                 showFolderSelector { path ->
-                    viewModel.updateApkSignature(SignatureEnum.OUT_PUT_PATH, path)
+                    viewModel.updateApkSignature(SignatureEnum.OUTPUT_PATH, path)
                 }
             }
         }) {
@@ -270,7 +270,7 @@ private fun SignatureOutput(viewModel: MainViewModel, isOutputError: Boolean) {
         DirectoryPicker(showDirPicker) { path ->
             showDirPicker = false
             if (path?.isNotBlank() == true) {
-                viewModel.updateApkSignature(SignatureEnum.OUT_PUT_PATH, path)
+                viewModel.updateApkSignature(SignatureEnum.OUTPUT_PATH, path)
             }
         }
     }
@@ -349,7 +349,7 @@ private fun SignaturePolicy(
  * 签名文件
  */
 @Composable
-private fun SignaturePath(viewModel: MainViewModel, isSignatureError: Boolean) {
+private fun SignaturePath(viewModel: MainViewModel, signatureError: Boolean) {
     var showFilePickerSignature by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -363,7 +363,7 @@ private fun SignaturePath(viewModel: MainViewModel, isSignatureError: Boolean) {
             },
             label = { Text("密钥文件", style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
-            isError = isSignatureError
+            isError = signatureError
         )
         SmallFloatingActionButton(onClick = {
             if (isWindows) {
@@ -396,7 +396,7 @@ private fun SignaturePath(viewModel: MainViewModel, isSignatureError: Boolean) {
  * 签名密码
  */
 @Composable
-private fun SignaturePassword(viewModel: MainViewModel, isSignaturePasswordError: Boolean) {
+private fun SignaturePassword(viewModel: MainViewModel, signaturePasswordError: Boolean) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -416,7 +416,7 @@ private fun SignaturePassword(viewModel: MainViewModel, isSignaturePasswordError
                 }
             },
             label = { Text("密钥密码", style = MaterialTheme.typography.labelLarge) },
-            isError = isSignaturePasswordError,
+            isError = signaturePasswordError,
             singleLine = true,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -475,7 +475,7 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
  */
 @Composable
 private fun SignatureAlisaPassword(
-    viewModel: MainViewModel, isSignatureAlisaPasswordError: Boolean
+    viewModel: MainViewModel, signatureAlisaPasswordError: Boolean
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
@@ -489,7 +489,7 @@ private fun SignatureAlisaPassword(
             },
             label = { Text("密钥别名密码", style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
-            isError = isSignatureAlisaPasswordError,
+            isError = signatureAlisaPasswordError,
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
@@ -502,16 +502,16 @@ private fun SignatureAlisaPassword(
 @Composable
 private fun Signature(
     viewModel: MainViewModel,
-    isApkError: Boolean,
-    isOutputError: Boolean,
-    isSignatureError: Boolean,
-    isSignaturePasswordError: Boolean,
-    isSignatureAlisaPasswordError: Boolean,
+    apkError: Boolean,
+    outputError: Boolean,
+    signatureError: Boolean,
+    signaturePasswordError: Boolean,
+    signatureAlisaPasswordError: Boolean,
     toastState: ToastUIState,
     scope: CoroutineScope
 ) {
     ElevatedButton(onClick = {
-        if (isApkError || isOutputError || isSignatureError || isSignaturePasswordError || isSignatureAlisaPasswordError) {
+        if (apkError || outputError || signatureError || signaturePasswordError || signatureAlisaPasswordError) {
             scope.launch {
                 toastState.show(ToastModel("请检查Error项", ToastModel.Type.Error))
             }
@@ -530,7 +530,7 @@ private fun Signature(
 private fun signatureApk(
     viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
 ) {
-    if (viewModel.apkSignatureState.apkPath.isBlank() || viewModel.apkSignatureState.outPutPath.isBlank() || viewModel.apkSignatureState.keyStorePath.isBlank() || viewModel.apkSignatureState.keyStorePassword.isBlank() || viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty() || viewModel.apkSignatureState.keyStoreAlisaPassword.isBlank()) {
+    if (viewModel.apkSignatureState.apkPath.isBlank() || viewModel.apkSignatureState.outputPath.isBlank() || viewModel.apkSignatureState.keyStorePath.isBlank() || viewModel.apkSignatureState.keyStorePassword.isBlank() || viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty() || viewModel.apkSignatureState.keyStoreAlisaPassword.isBlank()) {
         scope.launch {
             toastState.show(ToastModel("请检查空项", ToastModel.Type.Error))
         }
@@ -560,9 +560,9 @@ private fun SignatureLoading(
 }
 
 @Composable
-private fun SignatureUpload(isDragging: Boolean, scope: CoroutineScope) {
+private fun SignatureUpload(dragging: Boolean, scope: CoroutineScope) {
     AnimatedVisibility(
-        visible = isDragging,
+        visible = dragging,
         enter = fadeIn() + slideIn(
             tween(
                 durationMillis = 400, easing = LinearOutSlowInEasing

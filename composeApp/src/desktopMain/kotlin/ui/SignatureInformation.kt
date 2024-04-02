@@ -127,9 +127,9 @@ private fun SignatureMain(scope: CoroutineScope) {
 private fun SignatureBox(
     viewModel: MainViewModel, signaturePath: MutableState<String>, scope: CoroutineScope
 ) {
-    var isDragging by remember { mutableStateOf(false) }
+    var dragging by remember { mutableStateOf(false) }
     AnimatedVisibility(
-        visible = isDragging,
+        visible = dragging,
         enter = fadeIn() + slideIn(
             tween(
                 durationMillis = 400, easing = LinearOutSlowInEasing
@@ -150,8 +150,8 @@ private fun SignatureBox(
         }
     }
     Box(
-        modifier = Modifier.padding(6.dp).onExternalDrag(onDragStart = { isDragging = true },
-            onDragExit = { isDragging = false },
+        modifier = Modifier.padding(6.dp).onExternalDrag(onDragStart = { dragging = true },
+            onDragExit = { dragging = false },
             onDrop = { state ->
                 val dragData = state.dragData
                 if (dragData is DragData.FilesList) {
@@ -166,10 +166,10 @@ private fun SignatureBox(
                         }
                     }
                 }
-                isDragging = false
+                dragging = false
             }), contentAlignment = Alignment.TopCenter
     ) {
-        SignatureFloatingButton(viewModel, isDragging, signaturePath)
+        SignatureFloatingButton(viewModel, dragging, signaturePath)
     }
 }
 
@@ -249,7 +249,7 @@ private fun SignatureList(
  */
 @Composable
 private fun SignatureFloatingButton(
-    viewModel: MainViewModel, isDragging: Boolean, signaturePath: MutableState<String>
+    viewModel: MainViewModel, dragging: Boolean, signaturePath: MutableState<String>
 ) {
     var showFilePickerApk by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxSize()) {
@@ -273,7 +273,7 @@ private fun SignatureFloatingButton(
                     }
                 }, icon = { Icon(Icons.Rounded.DriveFolderUpload, "准备选择文件") }, text = {
                     Text(
-                        if (isDragging) {
+                        if (dragging) {
                             "愣着干嘛，还不松手"
                         } else {
                             "点击选择或拖拽上传(APK/签名)文件"

@@ -1,455 +1,896 @@
 package utils
 
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Opcodes
 import java.io.File
 import java.io.FileWriter
-import java.io.IOException
-import java.util.Locale
-import java.util.Random
+import java.text.DecimalFormat
+import java.util.jar.JarEntry
+import java.util.jar.JarOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.random.Random
 
-/**
- * @Author      : LazyIonEs
- * @CreateDate  : 2024/3/19 16:21
- * @Description : 垃圾代码生成
- * @Version     : 1.0
- */
-object AndroidJunkGenerator {
 
-    private const val ANDROID_SCHEMA = "http://schemas.android.com/apk/res/android"
+private const val ANDROID_SCHEMA = "http://schemas.android.com/apk/res/android"
 
-    private val KEYWORDS = arrayListOf(/*用于定义访问权限修饰符的关键字*/
-        "private", "protected", "public",/*用于定义类、函数、变量修饰符的关键字*/
-        "abstract", "final", "static", "synchronized",/*用于定义类与类之间关系的关键字*/
-        "extends", "implements",/*用于定义建立实例及引用实例、判断实例的关键字*/
-        "new", "this", "super", "instanceof",/*用于异常处理的关键字*/
-        "try", "catch", "finally", "throw", "throws",/*基本数据类型*/
-        "int", "long", "double", "float", "boolean", "byte", "short", "String",/*用于包的关键字*/
-        "package", "import",/*其他修饰符关键字*/
-        "native", "strictfp", "transient", "volatile", "assert", "do", "while"
-    )
+private val KEYWORDS = arrayOf( /*基本数据类型*/
+    "boolean", "byte", "char", "short", "int", "long", "float", "double", "String",  /*用于定义访问权限修饰符的关键字*/
+    "private", "protected", "public",  /*用于定义类、函数、变量修饰符的关键字*/
+    "abstract", "final", "static", "synchronized",  /*用于定义类与类之间关系的关键字*/
+    "extends", "implements",  /*用于定义类的类型*/
+    "class", "interface",  /*用于定义建立实例及引用实例、判断实例的关键字*/
+    "new", "this", "super", "instanceof",  /*用于异常处理的关键字*/
+    "try", "catch", "finally", "throw", "throws",  /*用于包的关键字*/
+    "package", "import",  /*其他修饰符关键字*/
+    "native", "strictfp", "transient", "volatile", "assert", "null", "goto", "void", "const",
+    "continue", "default", "false", "true", "case", "enum", "for", "else", "do", "if", "while",
+    "return", "break", "switch"
+)
 
-    private val VIEWS = arrayListOf(
-        "FrameLayout",
-        "LinearLayout",
-        "RelativeLayout",
-        "GridLayout",
-        "Chronometer",
-        "Button",
-        "ImageButton",
-        "ImageView",
-        "ProgressBar",
-        "TextView",
-        "ViewFlipper",
-        "ListView",
-        "GridView",
-        "StackView",
-        "AdapterViewFlipper"
-    )
+private val XML_KEYWORDS = arrayOf("null")
 
-    private val XML_KEYWORDS = arrayListOf("null")
+private val CHARACTER = "abcdefghijklmnopqrstuvwxyz".toCharArray()
 
-    // 生成垃圾代码module的名称 - 根据自己项目修改名称即可
-    private const val MODULE_NAME = "junk"
+private val COLORS = "0123456789abcdef".toCharArray()
 
-    private val mainPathName = "$MODULE_NAME/src/main"
+private val VIEWS = arrayOf(
+    "FrameLayout", "LinearLayout", "RelativeLayout", "GridLayout",
+    "Chronometer", "Button", "ImageButton", "ImageView", "ProgressBar", "TextView", "ViewFlipper",
+    "ListView", "GridView", "StackView", "AdapterViewFlipper"
+)
 
-    private val javaPackageName = "$mainPathName/java/"
+class AndroidJunkGenerator(
+    // 工作目录
+    dir: String,
+    // 输出保存的目录
+    private val output: String,
+    // 包名
+    private val appPackageName: String,
+    // 包数量
+    private val packageCount: Int,
+    // 每个包里 activity 的数量
+    private val activityCountPerPackage: Int,
+    // 资源前缀
+    private val resPrefix: String
+) {
+    private val workspace = File(dir, appPackageName.replace(".", ""))
 
-    private var random = Random()
-    private val abc = "abcdefghijklmnopqrstuvwxyz".toCharArray()
-    private val abc123 =
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKMNLOPQRSTUVWZYZ0123456789".toCharArray()
-    private val color = "0123456789abcdef".toCharArray()
-    private val activityList = ArrayList<String>(12048)
-    private val stringList = HashSet<String>(4096)
+    private val classesDir = "classes"
 
-    // 生成垃圾代码的包名- 根据自己项目修改名称
-    var appPackageName = "com.dev.junk.plugin"
+    private val mCheckActivityNames = HashSet<String>(1024)
+    private val mCheckClassName = mutableSetOf<String>()
 
-    // 资源文件前缀名
-    var resPrefix = "junk_"
+    private val mDrawableIds = HashSet<String>(4098)
+    private val mLayoutIds = HashSet<String>(max(packageCount * activityCountPerPackage, 1024))
+    private val mStringIds = HashSet<String>(4098)
+    private val mIds = HashSet<String>(4098)
 
-    // 生成包数量
-    var packageCount = 5
+    private val mActivities = HashSet<String>(max(packageCount * activityCountPerPackage, 1024))
 
-    // 每个包下生成Activity类数量
-    var activityCountPerPackage = 3
+    private val mRClassType = getTypedName(appPackageName, "R")
 
-    // 项目路径
-    var projectDir: String? = null
 
-    fun generator() {
-        activityList.clear()
-        stringList.clear()
-        initFile()
-        //生成类
+    fun startGenerate(): File {
+        // 清理原工作目录中的文件
+        println("正在清理工作空间...")
+
+        workspace.deleteRecursively()
+        println("工作空间已就绪...")
+
+        val start = System.nanoTime()
         generateClasses()
-        println("Activity文件生成完成")
-        //生成资源
+        generateManifest()
+        println("class 文件生成完成...")
+
         generateStringsFile()
-        println("资源文件生成完成")
-        // 生成build文件
-        generateBuildFile()
-        // 生成 keep 资源文件，防止开启混淆优化掉
         generateKeepProguard()
-        println("源码生成完成")
-    }
 
-    private fun initFile() {
-        val fileDir = File(MODULE_NAME)
-        deleteFile(fileDir)
-    }
+        writeRFile()
+        println("资源文件生成完成，开始打包...")
 
-    // 删除文件
-    private fun deleteFile(file: File) {
-        if (file.isFile()) {
-            file.delete()
-        } else {
-            val childFilePath = file.list() ?: return
-            for (path in childFilePath) {
-                val childFile = File(file.getAbsoluteFile().toString() + "/" + path)
-                deleteFile(childFile)
-            }
-            file.delete()
-        }
+        // 正在打包
+        val outPath = assembleAar()
+        println("打包完成：\n\r\t$outPath \n\r\t${fileSize(outPath.length())}")
+
+        val end = System.nanoTime()
+
+        val timeMills = (end - start) / 1_000_000
+        val s = timeMills / 1000
+        val ms = timeMills % 1000
+
+        println("用时：${s}.${ms} 秒")
+
+        workspace.deleteRecursively()
+
+        return outPath
     }
 
     private fun generateClasses() {
         for (i in 0 until packageCount) {
             val packageName = generatePackageName()
-            //生成Activity
+            // 生成Activity
             for (j in 0 until activityCountPerPackage) {
-                val activityPreName = generateName()
-                generateActivity("$appPackageName.$packageName", activityPreName)
+                val packageName1 = "$appPackageName.$packageName"
+                val activityName = generateClassName(packageName1)
+                generateActivity(packageName1, activityName)
             }
         }
 
-        val rootClassCount =
-            random.nextInt(activityCountPerPackage) + (activityCountPerPackage shr 1)
+        val rootClassCount: Int =
+            Random.nextInt(activityCountPerPackage) + (activityCountPerPackage shr 1)
 
         for (j in 0 until rootClassCount) {
-            val activityPreName = generateName()
+            val activityPreName: String = generateClassName(appPackageName)
             generateActivity(appPackageName, activityPreName)
         }
-
-        //所有Activity生成完了
-        generateManifest()
-    }
-
-    private fun generatePackageName(): String {
-        val sb = StringBuilder()
-        val len = random.nextInt(8) + 2
-        for (i in 0 until len) {
-            sb.append(abc[random.nextInt(abc.size)])
-        }
-        // 排除关键字
-        val name = sb.toString()
-        return if (KEYWORDS.contains(name)) {
-            // 重新生成
-            generatePackageName()
-        } else name
-    }
-
-    private fun generateName(): String {
-        val sb = StringBuilder()
-        val len = random.nextInt(8) + 4
-        for (i in 0 until len) {
-            sb.append(abc[random.nextInt(abc.size)])
-        }
-        val name = sb.toString()
-        return if (KEYWORDS.contains(name) || XML_KEYWORDS.contains(name)) {
-            generateName()
-        } else name
     }
 
     private fun generateActivity(packageName: String, activityPreName: String) {
-        val className =
-            abc[random.nextInt(abc.size)].uppercase(Locale.getDefault()) + activityPreName + "Activity"
-        val layoutName = resPrefix + "layout_" + activityPreName
-        val textIds = generateLayout(layoutName) //生成layout
-        val stringsXml = resPrefix + generateName().lowercase(Locale.getDefault()) //生成strings字符串
-        stringList.add(stringsXml)
+        val className = activityPreName + "Activity"
+        mActivities.add("$packageName.$className")
 
-        val otherClassName =
-            abc[random.nextInt(abc.size)].uppercase(Locale.getDefault()) + generateName()
-        val fieldList = generateClass(packageName, otherClassName)
-        val widget: String = VIEWS[random.nextInt(VIEWS.size)]
-        val content = java.lang.StringBuilder(
-            """
-                         package  $packageName;
-                         
-                         import android.app.Activity;
-                         import android.os.Bundle;
-                         import $appPackageName.R;
-                         import java.lang.Exception;
-                         import java.lang.Override;
-                         import java.lang.RuntimeException;
-                         import java.lang.String;
-                         
-                         """.trimIndent()
-        )
-        content.append("import android.widget.").append(widget).append(";\n")
-        content.append("import android.view.View;\n").append("import android.widget.TextView;;\n")
-            .append("import System;\n").append("import android.widget.Toast;\n")
-            .append("import java.util.Date;\n").append("\n").append("public class ")
-            .append(className).append(" extends Activity {\n").append("    @Override\n")
-            .append("    protected void onCreate(Bundle savedInstanceState) {\n")
-            .append("        super.onCreate(savedInstanceState);\n")
-            .append("        setContentView(R.layout.").append(layoutName).append(");\n")
+        // 保存当前类里面的所有方法名，防止重名
 
-        for (textId in textIds) {
-            val name = generateName()
-            content.append("   final  View  ").append(name).append(" = findViewById(R.id.")
-                .append(textId).append(");\n").append("         ").append(name)
-                .append(".setOnClickListener(new View.OnClickListener() {\n")
-                .append("            @Override\n")
-                .append("            public void onClick(View v) {\n").append(name)
-                .append(".setVisibility(View.INVISIBLE);\n").append("            }\n")
-                .append("        });\n")
-        }
+        val methods = hashSetOf<String>()
+        methods.add("onCreate")
 
-        val otherClassNameField = generateName()
-        var methodName = generateName()
-
-        content.append("\n").append(methodName).append("();\n").append(otherClassName).append("   ")
-            .append(otherClassNameField).append(" =     new ").append(otherClassName)
-            .append("();\n")
-
-        for (s in fieldList) {
-            content.append(otherClassNameField).append(".").append(s).append(" =\"")
-                .append(generateBigValue()).append("\";\n")
-        }
-        content.append(" Toast.makeText(").append(className).append(".this,getString(R.string.")
-            .append(stringsXml).append("),Toast.LENGTH_SHORT).show();\n").append("    }")
-
-        val bwe = random.nextInt(20) + 3
-        for (j in 0 until bwe) {
-            val methodNameNext = generateName()
-            if (j != bwe - 1) {
-                content.append("\n").append(" void ").append(methodName).append("() {")
-                    .append("\n         ").append(methodNameNext).append("();\n").append("}")
-            } else {
-                val name = generateName()
-                content.append("\n").append(" void ").append(methodName).append("() {\n")
-                    .append(widget).append(" ").append(name).append("   = new ").append(widget)
-                    .append("(").append(className).append(".this);\n").append(name)
-                    .append(".setVisibility(View.VISIBLE);\n").append("}")
-            }
-            methodName = methodNameNext
-        }
-        content.append("}")
-
-        val javaFile = File(
-            javaPackageName,
-            packageName.replace(".", File.separator) + File.separator + className + ".java"
-        )
-        writeStringToFile(javaFile, content.toString())
-
-        val actPath = "$packageName.$className"
-        activityList.add(actPath)
-    }
-
-    @Throws(IOException::class)
-    private fun generateClass(packageName: String, className: String): List<String> {
-        val fields: MutableSet<String> = java.util.HashSet(16)
-        val content = StringBuilder(
-            """package  $packageName;
-
-import java.lang.Exception;
-import java.lang.RuntimeException;
-import java.lang.String;
-import java.lang.System;
-import java.util.Date;
-
-public class $className  {
-"""
-        )
-        val t = random.nextInt(20)
-        for (i in 0 until t) {
-            val name = generateName()
-            if (fields.add(name)) {
-                content.append("\npublic String ").append(name).append(";")
-            }
-        }
-        content.append("\n      public ").append(className).append("() {\n")
-            .append("        }\n}\n")
-        val drawableFile = File(
-            javaPackageName,
-            packageName.replace(".", File.separator) + File.separator + className + ".java"
-        )
-        writeStringToFile(drawableFile, content.toString())
-        return ArrayList(fields)
-    }
-
-    /**
-     * 生成layout
-     */
-    @Throws(IOException::class)
-    private fun generateLayout(layoutName: String): List<String> {
-        val textIds = ArrayList<String>()
-        val drawableName = resPrefix + generateName().lowercase(Locale.getDefault())
-        generateDrawable(drawableName)
-        val content = StringBuilder(
-            "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<LinearLayout xmlns:android=\"$ANDROID_SCHEMA\"\n    android:layout_width=\"" + random.nextInt(
-                1000
-            ) + "dp\"\n" + "    android:layout_height=\"" + random.nextInt(1000) + "dp\"\n" + "    android:orientation=\"vertical\">\n"
-        )
-        val t = random.nextInt(20)
-        for (i in 0 until t) {
-            val id = generateName()
-            textIds.add(id)
-            val widget = VIEWS[random.nextInt(VIEWS.size)]
-            content.append("   <").append(widget).append("\n").append("        android:id=\"@+id/")
-                .append(id).append("\"\n").append("        android:layout_width=\"")
-                .append(random.nextInt(1000)).append("dp\"\n")
-                .append("        android:layout_height=\"").append(random.nextInt(1000))
-                .append("dp\"\n").append("        android:text=\"").append(generateName())
-                .append("\" \n").append("        android:background=\"@drawable/")
-                .append(drawableName).append("\" \n")
-            if ((widget == "LinearLayout")) {
-                if (random.nextBoolean()) {
-                    content.append("android:orientation=\"horizontal\"")
-                } else {
-                    content.append("android:orientation=\"vertical\"")
+        // 需要排除 activity 自带的方法名
+        fun nextMethod(): String {
+            while (true) {
+                val name = generateMethodName()
+                if (methods.add(name)) {
+                    return name
                 }
+
+                println("nextMethod exclude：$name")
             }
-            content.append("/>\n")
         }
-        content.append("   </LinearLayout>\n")
-        val layoutFile = File("$mainPathName/res/layout/$layoutName.xml")
-        writeStringToFile(layoutFile, content.toString())
-        return textIds
+
+        val layoutName = resPrefix + "layout_" + activityPreName.lowercase()
+        mLayoutIds.add(layoutName)
+
+        val selfType = getTypedName(packageName, className)
+
+        val strRes = resPrefix + generateResName()
+        mStringIds.add(strRes)
+
+        val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
+        cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, selfType, null, "android/app/Activity", null)
+
+        val ccm = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null)
+        ccm.visitVarInsn(Opcodes.ALOAD, 0)
+        ccm.visitMethodInsn(Opcodes.INVOKESPECIAL, "android/app/Activity", "<init>", "()V", false)
+        ccm.visitInsn(Opcodes.RETURN)
+        ccm.visitMaxs(1, 1)
+        ccm.visitEnd()
+
+        // 生成无关类
+        repeat(Random.nextInt(1, 3)) {
+            val name = generateClassName(packageName)
+            val (_, m) = generateOtherClass(packageName, name)
+
+            val that = getTypedName(packageName, name)
+            val fieldName = name.lowercase()
+
+            val descriptor = "L$that"
+
+            cw.visitField(Opcodes.ACC_PRIVATE, fieldName, descriptor, null, null).visitEnd()
+
+            val method = nextMethod()
+            val mv = cw.visitMethod(Opcodes.ACC_PUBLIC, method, "()V", null, null)
+            mv.visitCode()
+
+            // 初始化 & 随便调用一个方法
+            mv.visitVarInsn(Opcodes.ALOAD, 0)
+            mv.visitTypeInsn(Opcodes.NEW, that)
+            mv.visitInsn(Opcodes.DUP)
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, that, "<init>", "()V", false)
+
+            mv.visitFieldInsn(Opcodes.PUTFIELD, selfType, fieldName, descriptor)
+
+            val mSize = m.size
+            val callCnt = if (mSize <= 1) max(0, mSize) else Random.nextInt(1, mSize)
+
+            repeat(callCnt) {
+                mv.visitVarInsn(Opcodes.ALOAD, 0)
+                mv.visitFieldInsn(Opcodes.GETFIELD, selfType, fieldName, descriptor)
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, that, m[it], "()Ljava/lang/String", false)
+                mv.visitInsn(Opcodes.POP)
+            }
+
+            mv.visitInsn(Opcodes.RETURN)
+            mv.visitMaxs(1, 1)
+            mv.visitEnd()
+
+        }
+
+        val otherClassName = generateClassName(packageName)
+        val (otherFields, otherMethods) = generateOtherClass(packageName, otherClassName)
+
+        // 生成onCreate 方法
+        val mv = cw.visitMethod(Opcodes.ACC_PROTECTED, "onCreate", "(Landroid/os/Bundle)V", null, null)
+        mv.visitCode()
+        mv.visitVarInsn(Opcodes.ALOAD, 0)
+        mv.visitVarInsn(Opcodes.ALOAD, 1)
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "android/app/Activity", "onCreate", "(Landroid/os/Bundle)V", false)
+
+        // new 一个对象，并给其字段赋值
+        val otherType = getTypedName(packageName, otherClassName)
+        mv.visitTypeInsn(Opcodes.NEW, otherType)
+        mv.visitInsn(Opcodes.DUP)
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, otherType, "<init>", "()V", false)
+
+        mv.visitVarInsn(Opcodes.ASTORE, 2)
+        mv.visitVarInsn(Opcodes.ALOAD, 2)
+
+        otherFields.forEach { field ->
+            mv.visitVarInsn(Opcodes.ALOAD, 2)
+            mv.visitLdcInsn(generateBigValue())
+            mv.visitFieldInsn(Opcodes.PUTFIELD, otherType, field, "Ljava/lang/String")
+        }
+
+        val callCnt = if (otherMethods.isEmpty()) 0 else Random.nextInt(otherMethods.size)
+        if (callCnt > 0) otherMethods.shuffled()
+
+        val otherOwner = getTypedName(packageName, otherClassName)
+
+        repeat(callCnt) {
+            val m = otherMethods[it]
+            mv.visitVarInsn(Opcodes.ALOAD, 2)
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, otherOwner, m, "()Ljava/lang/String", false)
+            mv.visitInsn(Opcodes.POP)
+        }
+
+        val viewIds = generateLayout(layoutName)
+        mIds.addAll(viewIds)
+
+        // setContentView
+        mv.visitVarInsn(Opcodes.ALOAD, 0)
+        mv.visitFieldInsn(Opcodes.GETSTATIC, "$mRClassType\$layout", layoutName, "I")
+        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, selfType, "setContentView", "(I)V", false)
+
+        // 初始化view
+        val initViews = viewIds.mapIndexed { index, viewId ->
+
+            val listener = "${className}${viewId.substring(0, 1).uppercase()}${viewId.substring(1)}OnClickListener"
+
+            // 使用 a - z  aa-zz的方法命名
+            val size = CHARACTER.size
+            val name = if (index < size) {
+                CHARACTER[index].toString()
+            } else if (index < size * size) {
+                val first = index / (size * size)
+                val second = index % (size * size)
+                "${CHARACTER[first]}${CHARACTER[second]}"
+            } else {
+                nextMethod()
+            }
+
+            // 处理点击事件
+            val cwi = ClassWriter(ClassWriter.COMPUTE_FRAMES)
+            cwi.visit(
+                Opcodes.V1_6,
+                Opcodes.ACC_MODULE,
+                getTypedName(packageName, listener),
+                null,
+                "java/lang/Object",
+                arrayOf("android/view/View\$OnClickListener")
+            )
+
+            cwi.visitField(
+                Opcodes.ACC_MODULE,
+                generateResName(),
+                "Landroid/view/View",
+                null,
+                null
+            )
+                .visitEnd()
+
+            val cc = cwi.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null)
+            cc.visitVarInsn(Opcodes.ALOAD, 0)
+            cc.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
+            cc.visitInsn(Opcodes.RETURN)
+            cc.visitMaxs(1, 1)
+            cc.visitEnd()
+
+            val onClick = cwi.visitMethod(Opcodes.ACC_PUBLIC, "onClick", "(Landroid/view/View)V", null, null)
+            onClick.visitCode()
+
+            onClick.visitIntInsn(Opcodes.ALOAD, 1)
+
+            when (Random.nextInt(3)) {
+                0 -> onClick.visitInsn(Opcodes.ICONST_0)
+                1 -> onClick.visitInsn(Opcodes.ICONST_4)
+                else -> onClick.visitIntInsn(Opcodes.BIPUSH, 8)
+            }
+
+            onClick.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "android/view/View", "setVisibility", "(I)V", true)
+            onClick.visitInsn(Opcodes.RETURN)
+            onClick.visitMaxs(1, 1)
+            onClick.visitEnd()
+
+            cwi.visitEnd()
+
+            val bytes = cwi.toByteArray()
+            writeClassToFile(packageName, listener, bytes)
+
+            return@mapIndexed name
+        }
+
+        initViews.forEachIndexed { index, name ->
+            val viewId = viewIds[index]
+
+            val listener = "${className}${viewId.substring(0, 1).uppercase()}${viewId.substring(1)}OnClickListener"
+            val type = getTypedName(packageName, listener)
+
+            // 一个方法初始化一个view 方便生成
+            val method = cw.visitMethod(Opcodes.ACC_PRIVATE, name, "()V", null, null)
+            method.visitVarInsn(Opcodes.ALOAD, 0)
+//            // R.id.xx
+            method.visitFieldInsn(Opcodes.GETSTATIC, "$mRClassType\$id", viewId, "I")
+
+            method.visitMethodInsn(Opcodes.INVOKEVIRTUAL, selfType, "findViewById", "(I)Landroid/view/View", false)
+            method.visitTypeInsn(Opcodes.NEW, type)
+            method.visitInsn(Opcodes.DUP)
+
+            method.visitMethodInsn(
+                Opcodes.INVOKESPECIAL,
+                type,
+                "<init>",
+                "()V",
+                false
+            )
+//            // invokevirtual android/view/View setOnClickListener (Landroid/view/View$OnClickListener)V
+            method.visitMethodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                "android/view/View",
+                "setOnClickListener",
+                "(Landroid/view/View\$OnClickListener)V",
+                false
+            )
+
+            method.visitInsn(Opcodes.RETURN)
+            method.visitMaxs(1, 1)
+            method.visitEnd()
+        }
+
+        // 生成其他方法
+        val cnt = Random.nextInt(2, 15)
+        val others = (0 until cnt).map {
+            return@map nextMethod()
+        }
+
+        // 创建方法体
+        others.forEachIndexed { index, s ->
+            val method = cw.visitMethod(Opcodes.ACC_PRIVATE, s, "()V", null, null)
+            method.visitVarInsn(Opcodes.ALOAD, 0)
+
+            // 防止死循环
+            val fn = Random.nextInt(index, others.size)
+            if (fn == index) {
+                // 弹Toast
+                method.visitLdcInsn(generateBigValue())
+                method.visitInsn(Opcodes.ICONST_0)
+                method.visitMethodInsn(
+                    Opcodes.INVOKESTATIC,
+                    "android/widget/Toast",
+                    "makeText",
+                    "(Landroid/content/ContextLjava/lang/CharSequenceI)Landroid/widget/Toast",
+                    false
+                )
+
+                method.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "android/widget/Toast", "show", "()V", false)
+                method.visitInsn(Opcodes.RETURN)
+            } else {
+                val get = others[fn]
+                method.visitMethodInsn(Opcodes.INVOKEVIRTUAL, selfType, get, "()V", false)
+            }
+
+            method.visitInsn(Opcodes.RETURN)
+            method.visitMaxs(1, 1)
+            method.visitEnd()
+        }
+
+        val call = initViews + others.subList(0, Random.nextInt(max(1, others.size / 3)) + 1)
+
+        call.shuffled()
+            .forEach { name ->
+                mv.visitVarInsn(Opcodes.ALOAD, 0)
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, selfType, name, "()V", false)
+            }
+
+        mv.visitInsn(Opcodes.RETURN)
+        mv.visitMaxs(1, 1)
+        mv.visitEnd()
+
+        cw.visitEnd()
+
+        val bytes = cw.toByteArray()
+
+        writeClassToFile(packageName, className, bytes)
     }
 
-    @Throws(IOException::class)
+    private fun generateLayout(layoutName: String): List<String> {
+        val drawableName = resPrefix + generateResName()
+        if (mDrawableIds.add(drawableName)) {
+            generateDrawable(drawableName)
+        }
+
+        val ids = mutableSetOf<String>()
+        val rnd = Random.nextInt(2, 18)
+        // 生成布局
+
+        val root = """<?xml version="1.0" encoding="utf-8"?>
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+                
+        """.trimIndent()
+
+        val xml = StringBuilder(root)
+
+        val dimens = arrayOf("match_parent", "wrap_content", "dp")
+
+        fun getDimens(): String {
+            val d = dimens[Random.nextInt(dimens.size)]
+            val prefix = if (d == "dp") Random.nextInt(100).toString() else ""
+            return prefix + d
+        }
+
+        fun linear() =
+            if (Random.nextBoolean()) "android:orientation=\"vertical\"" else "android:orientation=\"horizontal\""
+
+        for (i in 0 until rnd) {
+            val viewId = generateResName()
+            val hasId = ids.add(viewId)
+
+            val widget = VIEWS[Random.nextInt(VIEWS.size)]
+
+            // 宽高
+            val tpl = """
+                <$widget
+                    ${if (hasId) "android:id=\"@+id/$viewId\"" else ""}   
+                    android:layout_width="${getDimens()}"
+                    ${if (widget == "LinearLayout") linear() else ""}
+                    android:layout_height="${getDimens()}" />
+                """.trimIndent()
+
+            xml.append(tpl).append("\n")
+
+        }
+
+        xml.append("</LinearLayout>")
+
+        val file = File(workspace, "res/layout/$layoutName.xml")
+        writeStringToFile(file, xml.toString())
+
+        return ids.toList()
+    }
+
     private fun generateDrawable(drawableName: String) {
         val content = StringBuilder(
             """<vector xmlns:android="$ANDROID_SCHEMA"
-   android:width="${random.nextInt(100)}dp"
- android:height="${random.nextInt(100)}dp"
- android:viewportWidth="${random.nextInt(100)}"
- android:viewportHeight="${random.nextInt(100)}"
->
-     <path
-  android:fillColor="${generateColor()}"
-   android:pathData="M"""
+                    android:width="${Random.nextInt(100)}dp"
+                    android:height="${Random.nextInt(100)}dp"
+                    android:viewportWidth="${Random.nextInt(100)}"
+                    android:viewportHeight="${Random.nextInt(100)}">
+                    <path  android:fillColor="${generateColor()}"   android:pathData="M"""
         )
-        val t = random.nextInt(40)
+        val t: Int = Random.nextInt(10, 40)
         for (i in 0 until t) {
             if (i != t - 1) {
-                content.append(random.nextInt(100)).append(",")
+                content.append(Random.nextInt(100)).append(",")
             } else {
-                content.append(random.nextInt(100))
+                content.append(Random.nextInt(100))
             }
         }
         content.append("z\" />\n").append("</vector>\n").append("\n")
-        val drawableFile = File("$mainPathName/res/drawable/$drawableName.xml")
+        val drawableFile = File(workspace, "res/drawable/$drawableName.xml")
         writeStringToFile(drawableFile, content.toString())
     }
 
-    @Throws(IOException::class)
-    private fun generateManifest() {
-        val manifestFile = File("$mainPathName/AndroidManifest.xml")
-        val sb = StringBuilder()
-        sb.append("<manifest xmlns:android=\"$ANDROID_SCHEMA\"")
-        sb.append(
-            """   
- package="$appPackageName">"""
+    private fun generateOtherClass(packageName: String, className: String): Pair<Set<String>, List<String>> {
+        val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES)
+        val owner = getTypedName(packageName, className)
+
+        val acc = if (className.hashCode() and 1 == 0) Opcodes.ACC_PUBLIC else Opcodes.ACC_MODULE
+
+        cw.visit(Opcodes.V1_6, acc, owner, null, "java/lang/Object", null)
+
+
+        val fields = HashSet<String>(16)
+
+        val cnt = Random.nextInt(2, 16)
+
+        repeat(cnt) {
+            val field = generateFieldName()
+            fields.add(field)
+            cw.visitField(Opcodes.ACC_MODULE, field, "Ljava/lang/String", null, null)
+                .visitEnd()
+        }
+
+        val descriptor = arrayOf(
+            "()V",
+            "()Ljava/lang/String",
+            "()I"
         )
-        sb.append("\n <application>")
-        for (s in activityList) {
-            sb.append("<activity android:name=\"").append(s).append("\"/>\n")
+
+        // 生成随机方法
+        val methods = HashSet<String>(16)
+
+        // 静态方法 0-3
+        val sMethodCnt = Random.nextInt(3)
+        repeat(sMethodCnt) {
+            val name = generateMethodName()
+            if (!methods.add(name)) {
+                return@repeat
+            }
+
+            val index = Random.nextInt(descriptor.size)
+            val des = descriptor[index]
+
+            val method = cw.visitMethod(
+                Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC,
+                name,
+                des,
+                null, null
+            )
+
+            method.visitCode()
+            when (index) {
+                0 -> {
+                    // 调用log日志
+                    method.visitLdcInsn(className)
+                    method.visitLdcInsn(name)
+                    method.visitMethodInsn(
+                        Opcodes.INVOKESTATIC,
+                        "android/util/Log",
+                        "d",
+                        "(Ljava/lang/StringLjava/lang/String)I",
+                        false
+                    )
+                    method.visitInsn(Opcodes.POP)
+                    method.visitInsn(Opcodes.RETURN)
+                }
+
+                1 -> {
+                    // 返回一个随机字符串
+                    method.visitLdcInsn(generateBigValue())
+                    method.visitInsn(Opcodes.ARETURN)
+                }
+
+                2 -> {
+                    // 返回一个 hash
+                    method.visitLdcInsn(generateBigValue())
+                    method.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "hashCode", "()I", false)
+                    method.visitInsn(Opcodes.IRETURN)
+                }
+
+                else -> {
+                    method.visitInsn(Opcodes.RETURN)
+                }
+            }
+
+            method.visitMaxs(1, 1)
+            method.visitEnd()
         }
-        sb.append("\n </application>")
-        sb.append("\n </manifest>")
-        writeStringToFile(manifestFile, sb.toString())
-    }
 
-    //    生成strings.xml
-    @Throws(IOException::class)
-    private fun generateStringsFile() {
-        val sb = StringBuilder()
-        sb.append("<resources>\n")
-        for (s in stringList) {
-            sb.append("<string name=\"").append(s).append("\">").append(generateBigValue())
-                .append("</string>\n")
+        val listFields = fields.toList()
+        listFields.shuffled()
+
+        val size = listFields.size
+
+        val getMethods = arrayListOf<String>()
+
+        // 普通方法 0-5
+        val methodCnt = Random.nextInt(0, min(size, 5))
+        repeat(methodCnt) {
+            val field = listFields[it]
+            val name = "get" + field.substring(0, 1).uppercase() + field.substring(1)
+
+            getMethods.add(name)
+
+            val mv = cw.visitMethod(
+                Opcodes.ACC_PUBLIC,
+                name,
+                "()Ljava/lang/String",
+                null, null
+            )
+
+            mv.visitCode()
+            mv.visitVarInsn(Opcodes.ALOAD, 0)
+            mv.visitFieldInsn(Opcodes.GETFIELD, owner, field, "Ljava/lang/String")
+
+            mv.visitInsn(Opcodes.ARETURN)
+            mv.visitMaxs(1, 1)
+            mv.visitEnd()
         }
-        sb.append("</resources>")
-        val stringFile = File("$mainPathName/res/values/strings.xml")
-        writeStringToFile(stringFile, sb.toString())
+
+
+        cw.visitEnd()
+
+        val bytes = cw.toByteArray()
+
+        writeClassToFile(packageName, className, bytes)
+
+        return (fields to getMethods)
     }
 
-    @Throws(IOException::class)
-    private fun generateBuildFile() {
-        val content = """apply plugin: 'com.android.library'
+    private fun generatePackageName(): String {
+        val len = Random.nextInt(3, 10)
 
-android {
-    compileSdkVersion 30
-    
-    defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
-    }
-}
+        val chars = CharArray(len)
 
-dependencies {
-    compileOnly 'androidx.appcompat:appcompat:1.3.1'
-}"""
-        val buildFile = File("$MODULE_NAME/build.gradle")
-        writeStringToFile(buildFile, content)
-    }
-
-    @Throws(IOException::class)
-    private fun generateKeepProguard() {
-        // 生成混淆保持文件
-        val proguard = """
-                # 垃圾代码保护
-                -keep class $appPackageName.**{*;}
-                """.trimIndent()
-        val proFile = File(MODULE_NAME, "consumer-rules.pro")
-        writeStringToFile(proFile, proguard)
-        val prefix = resPrefix
-        if (prefix.isEmpty()) {
-            return
+        for (i in 0 until len) {
+            chars[i] = CHARACTER[Random.nextInt(CHARACTER.size)]
         }
-        val keep = "@layout/$prefix*,@drawable/$prefix*,@string/$prefix*"
-        val content = """<?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools"
-tools:keep="$keep"
-    tools:shrinkMode="strict"/>"""
-        val file = File(mainPathName + "/res/raw/" + prefix + "keep.xml")
-        writeStringToFile(file, content)
+
+        val name = chars.concatToString()
+        // 排除关键字
+        if (KEYWORDS.contains(name) || XML_KEYWORDS.contains(name)) {
+            println("generatePackageName exclude：$name")
+            return generatePackageName()
+        }
+
+        return name
+    }
+
+    private fun generateClassName(packageName: String): String {
+        val len = Random.nextInt(4, 12)
+        val chars = CharArray(len)
+        for (i in 0 until len) {
+            chars[i] = CHARACTER[Random.nextInt(CHARACTER.size)]
+        }
+
+        chars[0] = chars[0].uppercaseChar()
+
+        val name = chars.concatToString()
+        // 排除关键字和已经存在的名字
+        if (KEYWORDS.contains(name)
+            || XML_KEYWORDS.contains(name)
+            || !mCheckActivityNames.add(name)
+            || !mCheckClassName.add("$packageName.$name")
+        ) {
+            println("generateClassName exclude：$packageName.$name")
+            return generateClassName(packageName)
+        }
+
+        return name
+    }
+
+    private fun generateResName(): String {
+        return generatePackageName()
+    }
+
+    private fun generateFieldName(): String {
+        return generatePackageName()
+    }
+
+    private fun generateMethodName(): String {
+        return generatePackageName()
     }
 
     private fun generateColor(): String {
-        val sb = StringBuilder()
+        val sb = java.lang.StringBuilder()
         sb.append("#")
         for (i in 0..5) {
-            sb.append(color[random.nextInt(color.size)])
+            sb.append(COLORS[Random.nextInt(COLORS.size)])
         }
         return sb.toString()
     }
 
     private fun generateBigValue(): String {
-        val sb = StringBuilder()
-        for (i in 0 until random.nextInt(1000)) {
-            sb.append(abc123[random.nextInt(abc123.size)])
+        val abc1 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKMNLOPQRSTUVWZYZ0123456789".toCharArray()
+        val sb = java.lang.StringBuilder()
+        for (i in 0 until Random.nextInt(10, 100)) {
+            sb.append(abc1[Random.nextInt(abc1.size)])
         }
         return sb.toString()
     }
 
-    @Throws(IOException::class)
-    private fun writeStringToFile(file: File, data: String) {
-        if (!file.getParentFile().exists()) {
-            file.getParentFile().mkdirs()
+    private fun getTypedName(packageName: String?, className: String): String {
+        val fullName = if (packageName.isNullOrEmpty()) className else "$packageName/$className"
+        return fullName.replace(".", "/")
+    }
+
+
+    private fun generateManifest() {
+        val manifestFile = File(workspace, "AndroidManifest.xml")
+
+        val xml =
+            """<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="$appPackageName"> 
+        <application>
+        
+        ${
+                mActivities.joinToString("\n\n") { activity ->
+                    "<activity android:name=\"$activity\" />"
+                }
+            }
+        
+       </application>
+    </manifest>
+        """.trimIndent()
+
+        writeStringToFile(manifestFile, xml)
+
+    }
+
+    private fun generateStringsFile() {
+        val res = File(workspace, "res/values/strings.xml")
+
+        val xml = """<?xml version="1.0" encoding="utf-8"?>
+            <resources>
+                ${
+            mStringIds.joinToString("\n") {
+                "<string name=\"$it\">${generateBigValue()}</string>"
+            }
         }
-        try {
-            FileWriter(file).use { writer -> writer.write(data) }
-        } catch (e: Exception) {
-            e.printStackTrace()
+            </resources>
+        """.trimIndent()
+
+        writeStringToFile(res, xml)
+    }
+
+    private fun generateKeepProguard() {
+
+        // 生成混淆保持文件
+        val proguard = "-keep class ${appPackageName}.**{*}"
+        writeStringToFile(File(workspace, "consumer-rules.pro"), proguard)
+
+        val prefix: String = resPrefix
+
+        if (prefix.isEmpty()) {
+            return
+        }
+
+        val keep = "@layout/$prefix*,@drawable/$prefix*,@string/$prefix*"
+
+        val content = """<?xml version="1.0" encoding="utf-8"?>
+        <resources xmlns:tools="http://schemas.android.com/tools"
+        tools:keep="$keep"
+        tools:shrinkMode="strict"/>""".trimIndent()
+        val rnd = generateMethodName()
+        writeStringToFile(File(workspace, "res/raw/" + prefix + rnd + "_keep.xml"), content)
+    }
+
+    private fun writeRFile() {
+        val strings = mStringIds.joinToString("\n") { "int string $it 0x0" }
+        val layouts = mLayoutIds.joinToString("\n") { "int layout $it 0x0" }
+        val drawables = mLayoutIds.joinToString("\n") { "int drawable $it 0x0" }
+        val ids = mIds.joinToString("\n") { "int id $it 0x0" }
+
+        val txt = strings + "\n" + layouts + "\n" + drawables + "\n" + ids
+        writeStringToFile(File(workspace, "R.txt"), txt)
+    }
+
+    private fun assembleAar(): File {
+        // 将 class 打包成jar
+        val classJar = File(workspace, "classes.jar")
+        val dir = File(workspace, classesDir)
+
+        classJar.outputStream().use { fos ->
+            val jos = JarOutputStream(fos)
+
+            dir.listFiles()?.forEach { file ->
+                addFileToJar(file, "", jos)
+            }
+
+            jos.finish()
+        }
+
+        // 删除 class 目录
+        // dir.deleteRecursively()
+
+        // 打包aar
+        val out = File(output, "junk_" + appPackageName.replace(".", "_") + "_TT2.0.0.aar")
+        val parent = out.parentFile
+        if (!parent.exists()) {
+            parent.mkdirs()
+        }
+
+        out.outputStream().use { fos ->
+            val zos = ZipOutputStream(fos)
+            workspace.listFiles { _, name -> name != classesDir }
+                ?.forEach { file -> addFileToZip(file, "", zos) }
+
+            zos.finish()
+        }
+
+        return out
+    }
+
+    private fun addFileToJar(file: File, node: String, jos: JarOutputStream) {
+        if (file.isDirectory) {
+            file.listFiles()?.forEach { f ->
+                addFileToJar(f, node + file.name + "/", jos)
+            }
+        } else {
+            val entry = JarEntry(node + file.name)
+            copyEntry(entry, file, jos)
+        }
+    }
+
+    private fun addFileToZip(file: File, node: String, zos: ZipOutputStream) {
+        if (file.isDirectory) {
+            file.listFiles()?.forEach { f ->
+                addFileToZip(f, node + file.name + "/", zos)
+            }
+        } else {
+            val entry = ZipEntry(node + file.name)
+            copyEntry(entry, file, zos)
+        }
+    }
+
+    private fun copyEntry(entry: ZipEntry, file: File, zos: ZipOutputStream) {
+        zos.putNextEntry(entry)
+
+        file.inputStream().use { fos ->
+            val bytes = ByteArray(10240)
+            var len: Int
+            while (true) {
+                len = fos.read(bytes)
+                if (len == -1) break
+                zos.write(bytes, 0, len)
+            }
+
+            zos.closeEntry()
+        }
+    }
+
+    private fun writeStringToFile(file: File, content: String): Boolean {
+        if (!file.parentFile.exists()) {
+            file.parentFile.mkdirs()
+        }
+
+        return FileWriter(file).runCatching {
+            use { write(content) }
+        }.isSuccess
+    }
+
+
+    private fun writeClassToFile(packageName: String, className: String, bytes: ByteArray) {
+        val dir = File(workspace, classesDir)
+        val parent = File(dir, packageName.replace(".", "/"))
+        val file = File(parent, "$className.class")
+
+        if (!parent.exists()) {
+            parent.mkdirs()
+        }
+
+        if (file.exists()) {
+            file.createNewFile()
+        }
+
+        file.writeBytes(bytes)
+    }
+
+
+    private fun fileSize(size: Long): String {
+        val gb = 1024 * 1024 * 1024 //定义GB的计算常量
+
+        val mb = 1024 * 1024 //定义MB的计算常量
+
+        val kb = 1024 //定义KB的计算常量
+
+        // 格式化小数
+        // 格式化小数
+        val df = DecimalFormat("0.00")
+
+        return if (size / gb >= 1) {
+            //如果当前Byte的值大于等于1GB
+            df.format(size / gb.toFloat()) + "GB"
+        } else if (size / mb >= 1) {
+            //如果当前Byte的值大于等于1MB
+            df.format(size / mb.toFloat()) + "MB"
+        } else if (size / kb >= 1) {
+            //如果当前Byte的值大于等于1KB
+            df.format(size / kb.toFloat()) + "KB"
+        } else {
+            size.toString() + "B"
         }
     }
 }

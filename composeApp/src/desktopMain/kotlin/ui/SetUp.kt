@@ -56,24 +56,24 @@ fun SetUp(viewModel: MainViewModel) {
     val keytoolFile = File(viewModel.keytool)
     val isAaptError =
         viewModel.aapt.isNotBlank() && !aaptFile.isFile && (!aaptFile.canExecute() || aaptFile.isDirectory)
-    val isKeytoolError =
+    val keytoolError =
         viewModel.keytool.isNotBlank() && !keytoolFile.isFile && (!keytoolFile.canExecute() || keytoolFile.isDirectory)
-    val isSignerSuffixError = viewModel.signerSuffix.isBlank()
-    val isOutPutError = viewModel.outputPath.isNotBlank() && !File(viewModel.outputPath).isDirectory
+    val signerSuffixError = viewModel.signerSuffix.isBlank()
+    val outPutError = viewModel.outputPath.isNotBlank() && !File(viewModel.outputPath).isDirectory
     Box(modifier = Modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp)) {
         LazyColumn {
             item { ApkInformation(viewModel, isAaptError) }
             item {
                 Spacer(Modifier.size(16.dp))
-                ApkSignature(viewModel, isSignerSuffixError)
+                ApkSignature(viewModel, signerSuffixError)
             }
             item {
                 Spacer(Modifier.size(16.dp))
-                KeyStore(viewModel, isKeytoolError)
+                KeyStore(viewModel, keytoolError)
             }
             item {
                 Spacer(Modifier.size(16.dp))
-                Conventional(viewModel, isOutPutError)
+                Conventional(viewModel, outPutError)
             }
             item {
                 Spacer(Modifier.size(16.dp))
@@ -157,7 +157,7 @@ private fun ApkInformation(
 
 @Composable
 private fun ApkSignature(
-    viewModel: MainViewModel, isSignerSuffixError: Boolean
+    viewModel: MainViewModel, signerSuffixError: Boolean
 ) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
@@ -176,7 +176,7 @@ private fun ApkSignature(
                     viewModel.updateSignerSuffix(signerSuffix)
                 },
                 label = { Text("签名后缀", style = MaterialTheme.typography.labelLarge) },
-                isError = isSignerSuffixError,
+                isError = signerSuffixError,
                 singleLine = true
             )
             Text(
@@ -223,7 +223,7 @@ private fun ApkSignature(
 }
 
 @Composable
-fun KeyStore(viewModel: MainViewModel, isKeytoolError: Boolean) {
+fun KeyStore(viewModel: MainViewModel, keytoolError: Boolean) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -251,7 +251,7 @@ fun KeyStore(viewModel: MainViewModel, isKeytoolError: Boolean) {
                         )
                     },
                     singleLine = true,
-                    isError = isKeytoolError
+                    isError = keytoolError
                 )
                 SmallFloatingActionButton(onClick = {
                     if (isWindows) {
@@ -319,7 +319,7 @@ fun KeyStore(viewModel: MainViewModel, isKeytoolError: Boolean) {
 
 @Composable
 private fun Conventional(
-    viewModel: MainViewModel, isOutPutError: Boolean
+    viewModel: MainViewModel, outPutError: Boolean
 ) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
@@ -344,7 +344,7 @@ private fun Conventional(
                     },
                     label = { Text("默认输出路径", style = MaterialTheme.typography.labelLarge) },
                     singleLine = true,
-                    isError = isOutPutError
+                    isError = outPutError
                 )
                 SmallFloatingActionButton(onClick = {
                     if (isWindows) {

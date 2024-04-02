@@ -16,7 +16,7 @@ sqldelight {
     }
 }
 
-val kitVersion by extra("1.3.3")
+val kitVersion by extra("1.4.0")
 val kitPackageName = "AndroidToolKit"
 val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
@@ -70,6 +70,7 @@ kotlin {
             implementation(libs.android.tools.sdk.common)
             implementation(libs.sqlDelight.driver)
             implementation(libs.commons.codec)
+            implementation(libs.asm)
         }
     }
 }
