@@ -175,7 +175,7 @@ class AndroidJunkGenerator(
             val that = getTypedName(packageName, name)
             val fieldName = name.lowercase()
 
-            val descriptor = "L$that"
+            val descriptor = "L$that;"
 
             cw.visitField(Opcodes.ACC_PRIVATE, fieldName, descriptor, null, null).visitEnd()
 
@@ -197,7 +197,7 @@ class AndroidJunkGenerator(
             repeat(callCnt) {
                 mv.visitVarInsn(Opcodes.ALOAD, 0)
                 mv.visitFieldInsn(Opcodes.GETFIELD, selfType, fieldName, descriptor)
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, that, m[it], "()Ljava/lang/String", false)
+                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, that, m[it], "()Ljava/lang/String;", false)
                 mv.visitInsn(Opcodes.POP)
             }
 
@@ -211,11 +211,11 @@ class AndroidJunkGenerator(
         val (otherFields, otherMethods) = generateOtherClass(packageName, otherClassName)
 
         // 生成onCreate 方法
-        val mv = cw.visitMethod(Opcodes.ACC_PROTECTED, "onCreate", "(Landroid/os/Bundle)V", null, null)
+        val mv = cw.visitMethod(Opcodes.ACC_PROTECTED, "onCreate", "(Landroid/os/Bundle;)V", null, null)
         mv.visitCode()
         mv.visitVarInsn(Opcodes.ALOAD, 0)
         mv.visitVarInsn(Opcodes.ALOAD, 1)
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "android/app/Activity", "onCreate", "(Landroid/os/Bundle)V", false)
+        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "android/app/Activity", "onCreate", "(Landroid/os/Bundle;)V", false)
 
         // new 一个对象，并给其字段赋值
         val otherType = getTypedName(packageName, otherClassName)
@@ -229,7 +229,7 @@ class AndroidJunkGenerator(
         otherFields.forEach { field ->
             mv.visitVarInsn(Opcodes.ALOAD, 2)
             mv.visitLdcInsn(generateBigValue())
-            mv.visitFieldInsn(Opcodes.PUTFIELD, otherType, field, "Ljava/lang/String")
+            mv.visitFieldInsn(Opcodes.PUTFIELD, otherType, field, "Ljava/lang/String;")
         }
 
         val callCnt = if (otherMethods.isEmpty()) 0 else Random.nextInt(otherMethods.size)
@@ -240,7 +240,7 @@ class AndroidJunkGenerator(
         repeat(callCnt) {
             val m = otherMethods[it]
             mv.visitVarInsn(Opcodes.ALOAD, 2)
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, otherOwner, m, "()Ljava/lang/String", false)
+            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, otherOwner, m, "()Ljava/lang/String;", false)
             mv.visitInsn(Opcodes.POP)
         }
 
@@ -283,7 +283,7 @@ class AndroidJunkGenerator(
             cwi.visitField(
                 Opcodes.ACC_MODULE,
                 generateResName(),
-                "Landroid/view/View",
+                "Landroid/view/View;",
                 null,
                 null
             )
@@ -296,7 +296,7 @@ class AndroidJunkGenerator(
             cc.visitMaxs(1, 1)
             cc.visitEnd()
 
-            val onClick = cwi.visitMethod(Opcodes.ACC_PUBLIC, "onClick", "(Landroid/view/View)V", null, null)
+            val onClick = cwi.visitMethod(Opcodes.ACC_PUBLIC, "onClick", "(Landroid/view/View;)V", null, null)
             onClick.visitCode()
 
             onClick.visitIntInsn(Opcodes.ALOAD, 1)
@@ -332,7 +332,7 @@ class AndroidJunkGenerator(
 //            // R.id.xx
             method.visitFieldInsn(Opcodes.GETSTATIC, "$mRClassType\$id", viewId, "I")
 
-            method.visitMethodInsn(Opcodes.INVOKEVIRTUAL, selfType, "findViewById", "(I)Landroid/view/View", false)
+            method.visitMethodInsn(Opcodes.INVOKEVIRTUAL, selfType, "findViewById", "(I)Landroid/view/View;", false)
             method.visitTypeInsn(Opcodes.NEW, type)
             method.visitInsn(Opcodes.DUP)
 
@@ -343,12 +343,12 @@ class AndroidJunkGenerator(
                 "()V",
                 false
             )
-//            // invokevirtual android/view/View setOnClickListener (Landroid/view/View$OnClickListener)V
+//            // invokevirtual android/view/View setOnClickListener (Landroid/view/View$OnClickListener;)V
             method.visitMethodInsn(
                 Opcodes.INVOKEVIRTUAL,
                 "android/view/View",
                 "setOnClickListener",
-                "(Landroid/view/View\$OnClickListener)V",
+                "(Landroid/view/View\$OnClickListener;)V",
                 false
             )
 
@@ -378,7 +378,7 @@ class AndroidJunkGenerator(
                     Opcodes.INVOKESTATIC,
                     "android/widget/Toast",
                     "makeText",
-                    "(Landroid/content/ContextLjava/lang/CharSequenceI)Landroid/widget/Toast",
+                    "(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;",
                     false
                 )
 
@@ -509,13 +509,13 @@ class AndroidJunkGenerator(
         repeat(cnt) {
             val field = generateFieldName()
             fields.add(field)
-            cw.visitField(Opcodes.ACC_MODULE, field, "Ljava/lang/String", null, null)
+            cw.visitField(Opcodes.ACC_MODULE, field, "Ljava/lang/String;", null, null)
                 .visitEnd()
         }
 
         val descriptor = arrayOf(
             "()V",
-            "()Ljava/lang/String",
+            "()Ljava/lang/String;",
             "()I"
         )
 
@@ -550,7 +550,7 @@ class AndroidJunkGenerator(
                         Opcodes.INVOKESTATIC,
                         "android/util/Log",
                         "d",
-                        "(Ljava/lang/StringLjava/lang/String)I",
+                        "(Ljava/lang/String;Ljava/lang/String;)I",
                         false
                     )
                     method.visitInsn(Opcodes.POP)
@@ -597,13 +597,13 @@ class AndroidJunkGenerator(
             val mv = cw.visitMethod(
                 Opcodes.ACC_PUBLIC,
                 name,
-                "()Ljava/lang/String",
+                "()Ljava/lang/String;",
                 null, null
             )
 
             mv.visitCode()
             mv.visitVarInsn(Opcodes.ALOAD, 0)
-            mv.visitFieldInsn(Opcodes.GETFIELD, owner, field, "Ljava/lang/String")
+            mv.visitFieldInsn(Opcodes.GETFIELD, owner, field, "Ljava/lang/String;")
 
             mv.visitInsn(Opcodes.ARETURN)
             mv.visitMaxs(1, 1)
@@ -738,7 +738,7 @@ class AndroidJunkGenerator(
     private fun generateKeepProguard() {
 
         // 生成混淆保持文件
-        val proguard = "-keep class ${appPackageName}.**{*}"
+        val proguard = "-keep class ${appPackageName}.**{*;}"
         writeStringToFile(File(workspace, "consumer-rules.pro"), proguard)
 
         val prefix: String = resPrefix
