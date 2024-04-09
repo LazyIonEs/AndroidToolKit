@@ -11,9 +11,7 @@ import java.io.File
  * @param onFileSelected 选择回调
  */
 fun showFileSelector(
-    isApk: Boolean = true,
-    isAll: Boolean = false,
-    onFileSelected: (String) -> Unit
+    isApk: Boolean = true, isAll: Boolean = false, onFileSelected: (String) -> Unit
 ) {
     val fileDialog = FileDialog(ComposeWindow())
     fileDialog.isMultipleMode = false
@@ -22,7 +20,9 @@ fun showFileSelector(
         sourceFile.isFile && if (isAll) {
             sourceFile.name.endsWith(".apk") || sourceFile.name.endsWith(".keystore") || sourceFile.name.endsWith(".jks")
         } else {
-            if (isApk) sourceFile.name.endsWith(".apk") else (sourceFile.name.endsWith(".keystore") || sourceFile.name.endsWith(".jks"))
+            if (isApk) sourceFile.name.endsWith(".apk") else (sourceFile.name.endsWith(".keystore") || sourceFile.name.endsWith(
+                ".jks"
+            ))
         }
     }
     fileDialog.isVisible = true

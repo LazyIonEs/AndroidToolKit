@@ -1,33 +1,13 @@
 package ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material.icons.rounded.Restore
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.ElevatedFilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -98,8 +78,7 @@ private fun ApkInformation(
             )
             var showFilePickerApk by remember { mutableStateOf(false) }
             Row(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
@@ -169,8 +148,7 @@ private fun ApkSignature(
                 style = MaterialTheme.typography.titleMedium
             )
             OutlinedTextField(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(start = 24.dp, end = 72.dp, top = 20.dp, bottom = 6.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 72.dp, top = 20.dp, bottom = 6.dp),
                 value = viewModel.signerSuffix,
                 onValueChange = { signerSuffix ->
                     viewModel.updateSignerSuffix(signerSuffix)
@@ -198,8 +176,7 @@ private fun ApkSignature(
                         )
                     }
                 }
-                Switch(checked = viewModel.flagDelete,
-                    onCheckedChange = { viewModel.updateFlagDelete(it) })
+                Switch(checked = viewModel.flagDelete, onCheckedChange = { viewModel.updateFlagDelete(it) })
             }
             Row(
                 modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 6.dp),
@@ -209,14 +186,13 @@ private fun ApkSignature(
                     Text("启用文件对齐", style = MaterialTheme.typography.bodyLarge)
                     if (!viewModel.isAlignFileSize) {
                         Text(
-                            "注意：当未启用文件对齐，签名之后对APK做出了进一步更改，签名便会失效",
+                            "注意：目标 R+（版本 30 及更高版本）要求已安装 APK 内的文件未压缩存储并在 4 字节边界上对齐",
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.labelSmall
                         )
                     }
                 }
-                Switch(checked = viewModel.isAlignFileSize,
-                    onCheckedChange = { viewModel.updateIsAlignFileSize(it) })
+                Switch(checked = viewModel.isAlignFileSize, onCheckedChange = { viewModel.updateIsAlignFileSize(it) })
             }
         }
     }
@@ -235,8 +211,7 @@ fun KeyStore(viewModel: MainViewModel, keytoolError: Boolean) {
             )
             var showFilePickerApk by remember { mutableStateOf(false) }
             Row(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
@@ -332,8 +307,7 @@ private fun Conventional(
             )
             var showDirPicker by remember { mutableStateOf(false) }
             Row(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 6.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 OutlinedTextField(
@@ -369,15 +343,12 @@ private fun Conventional(
             Spacer(Modifier.size(12.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "外观",
-                    modifier = Modifier.padding(start = 24.dp),
-                    style = MaterialTheme.typography.bodyLarge
+                    "外观", modifier = Modifier.padding(start = 24.dp), style = MaterialTheme.typography.bodyLarge
                 )
                 Row(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)) {
                     val modeList = listOf(Exterior.AutoMode, Exterior.LightMode, Exterior.DarkMode)
                     modeList.forEach { exterior ->
-                        ElevatedFilterChip(modifier = Modifier.weight(1f)
-                            .padding(horizontal = 8.dp),
+                        ElevatedFilterChip(modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
                             selected = viewModel.darkMode == exterior.mode,
                             onClick = { viewModel.updateDarkMode(exterior.mode) },
                             label = {

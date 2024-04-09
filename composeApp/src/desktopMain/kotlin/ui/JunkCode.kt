@@ -1,27 +1,11 @@
 package ui
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FolderOpen
-import androidx.compose.material3.Card
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -118,8 +102,7 @@ fun JunkCodeBox(viewModel: MainViewModel, toastState: ToastUIState, scope: Corou
 fun OutputPath(viewModel: MainViewModel, outputPathError: Boolean) {
     var showDirPicker by remember { mutableStateOf(false) }
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
@@ -285,10 +268,7 @@ fun ResPrefix(viewModel: MainViewModel) {
 
 @Composable
 fun Generate(
-    viewModel: MainViewModel,
-    outputPathError: Boolean,
-    toastState: ToastUIState,
-    scope: CoroutineScope
+    viewModel: MainViewModel, outputPathError: Boolean, toastState: ToastUIState, scope: CoroutineScope
 ) {
     ElevatedButton(onClick = {
         if (outputPathError) {
@@ -306,9 +286,7 @@ fun Generate(
         viewModel.generateJunkCode()
     }) {
         Text(
-            "开始生成",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 48.dp)
+            "开始生成", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 48.dp)
         )
     }
 }

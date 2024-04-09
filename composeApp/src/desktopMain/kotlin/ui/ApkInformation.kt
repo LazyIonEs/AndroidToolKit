@@ -1,43 +1,18 @@
 package ui
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DriveFolderUpload
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.DragData
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.onExternalDrag
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
@@ -108,9 +83,8 @@ private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
         }
     }
     Box(
-        modifier = Modifier.padding(6.dp).onExternalDrag(onDragStart = { dragging = true },
-            onDragExit = { dragging = false },
-            onDrop = { state ->
+        modifier = Modifier.padding(6.dp)
+            .onExternalDrag(onDragStart = { dragging = true }, onDragExit = { dragging = false }, onDrop = { state ->
                 val dragData = state.dragData
                 if (dragData is DragData.FilesList) {
                     dragData.readFiles().first().let {
@@ -152,29 +126,25 @@ private fun ApkFloatingButton(viewModel: MainViewModel, dragging: Boolean) {
         modifier = Modifier.fillMaxSize()
     ) {
         Box(
-            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 8.dp)
+            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 12.dp)
         ) {
-            AnimatedVisibility(
-                visible = viewModel.apkInformationState != UIState.Loading
-            ) {
-                ExtendedFloatingActionButton(onClick = {
-                    if (isWindows) {
-                        showFilePickerApk = true
-                    } else {
-                        showFileSelector { path ->
-                            viewModel.apkInformation(path)
-                        }
+            ExtendedFloatingActionButton(onClick = {
+                if (isWindows) {
+                    showFilePickerApk = true
+                } else {
+                    showFileSelector { path ->
+                        viewModel.apkInformation(path)
                     }
-                }, icon = { Icon(Icons.Rounded.DriveFolderUpload, "准备选择文件") }, text = {
-                    Text(
-                        if (dragging) {
-                            "愣着干嘛，还不松手"
-                        } else {
-                            "点击选择或拖拽上传APK"
-                        }
-                    )
-                })
-            }
+                }
+            }, icon = { Icon(Icons.Rounded.DriveFolderUpload, "准备选择文件") }, text = {
+                Text(
+                    if (dragging) {
+                        "愣着干嘛，还不松手"
+                    } else {
+                        "点击选择或拖拽上传APK"
+                    }
+                )
+            }, expanded = viewModel.apkInformationState == UIState.WAIT)
         }
     }
     if (isWindows) {
@@ -245,8 +215,7 @@ private fun ApkInformationBox(
                         Image(
                             bitmap = imageBitmap,
                             contentDescription = "Apk Icon",
-                            modifier = Modifier.padding(top = 6.dp, end = 18.dp).align(Alignment.TopEnd)
-                                .size(128.dp)
+                            modifier = Modifier.padding(top = 6.dp, end = 18.dp).align(Alignment.TopEnd).size(128.dp)
                         )
                     }
                 }
@@ -289,9 +258,7 @@ fun PermissionsList(permissions: ArrayList<String>?) {
                 modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp)
             ) {
                 Text(
-                    "应用权限列表：",
-                    modifier = Modifier.weight(1f),
-                    style = MaterialTheme.typography.titleMedium
+                    "应用权限列表：", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium
                 )
                 Column(
                     modifier = Modifier.weight(4f)

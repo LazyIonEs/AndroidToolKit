@@ -13,21 +13,70 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.random.Random
 
+/**
+ * @Author      : Shihwan
+ * @CreateDate  : 2024/4/2 19:46
+ * @Description : 垃圾代码生成
+ * @Version     : 1.0
+ */
 
 private const val ANDROID_SCHEMA = "http://schemas.android.com/apk/res/android"
 
 private val KEYWORDS = arrayOf( /*基本数据类型*/
-    "boolean", "byte", "char", "short", "int", "long", "float", "double", "String",  /*用于定义访问权限修饰符的关键字*/
-    "private", "protected", "public",  /*用于定义类、函数、变量修饰符的关键字*/
-    "abstract", "final", "static", "synchronized",  /*用于定义类与类之间关系的关键字*/
-    "extends", "implements",  /*用于定义类的类型*/
-    "class", "interface",  /*用于定义建立实例及引用实例、判断实例的关键字*/
-    "new", "this", "super", "instanceof",  /*用于异常处理的关键字*/
-    "try", "catch", "finally", "throw", "throws",  /*用于包的关键字*/
-    "package", "import",  /*其他修饰符关键字*/
-    "native", "strictfp", "transient", "volatile", "assert", "null", "goto", "void", "const",
-    "continue", "default", "false", "true", "case", "enum", "for", "else", "do", "if", "while",
-    "return", "break", "switch"
+    "boolean",
+    "byte",
+    "char",
+    "short",
+    "int",
+    "long",
+    "float",
+    "double",
+    "String",  /*用于定义访问权限修饰符的关键字*/
+    "private",
+    "protected",
+    "public",  /*用于定义类、函数、变量修饰符的关键字*/
+    "abstract",
+    "final",
+    "static",
+    "synchronized",  /*用于定义类与类之间关系的关键字*/
+    "extends",
+    "implements",  /*用于定义类的类型*/
+    "class",
+    "interface",  /*用于定义建立实例及引用实例、判断实例的关键字*/
+    "new",
+    "this",
+    "super",
+    "instanceof",  /*用于异常处理的关键字*/
+    "try",
+    "catch",
+    "finally",
+    "throw",
+    "throws",  /*用于包的关键字*/
+    "package",
+    "import",  /*其他修饰符关键字*/
+    "native",
+    "strictfp",
+    "transient",
+    "volatile",
+    "assert",
+    "null",
+    "goto",
+    "void",
+    "const",
+    "continue",
+    "default",
+    "false",
+    "true",
+    "case",
+    "enum",
+    "for",
+    "else",
+    "do",
+    "if",
+    "while",
+    "return",
+    "break",
+    "switch"
 )
 
 private val XML_KEYWORDS = arrayOf("null")
@@ -37,9 +86,21 @@ private val CHARACTER = "abcdefghijklmnopqrstuvwxyz".toCharArray()
 private val COLORS = "0123456789abcdef".toCharArray()
 
 private val VIEWS = arrayOf(
-    "FrameLayout", "LinearLayout", "RelativeLayout", "GridLayout",
-    "Chronometer", "Button", "ImageButton", "ImageView", "ProgressBar", "TextView", "ViewFlipper",
-    "ListView", "GridView", "StackView", "AdapterViewFlipper"
+    "FrameLayout",
+    "LinearLayout",
+    "RelativeLayout",
+    "GridLayout",
+    "Chronometer",
+    "Button",
+    "ImageButton",
+    "ImageView",
+    "ProgressBar",
+    "TextView",
+    "ViewFlipper",
+    "ListView",
+    "GridView",
+    "StackView",
+    "AdapterViewFlipper"
 )
 
 class AndroidJunkGenerator(
@@ -119,8 +180,7 @@ class AndroidJunkGenerator(
             }
         }
 
-        val rootClassCount: Int =
-            Random.nextInt(activityCountPerPackage) + (activityCountPerPackage shr 1)
+        val rootClassCount: Int = Random.nextInt(activityCountPerPackage) + (activityCountPerPackage shr 1)
 
         for (j in 0 until rootClassCount) {
             val activityPreName: String = generateClassName(appPackageName)
@@ -281,13 +341,8 @@ class AndroidJunkGenerator(
             )
 
             cwi.visitField(
-                Opcodes.ACC_MODULE,
-                generateResName(),
-                "Landroid/view/View;",
-                null,
-                null
-            )
-                .visitEnd()
+                Opcodes.ACC_MODULE, generateResName(), "Landroid/view/View;", null, null
+            ).visitEnd()
 
             val cc = cwi.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null)
             cc.visitVarInsn(Opcodes.ALOAD, 0)
@@ -337,11 +392,7 @@ class AndroidJunkGenerator(
             method.visitInsn(Opcodes.DUP)
 
             method.visitMethodInsn(
-                Opcodes.INVOKESPECIAL,
-                type,
-                "<init>",
-                "()V",
-                false
+                Opcodes.INVOKESPECIAL, type, "<init>", "()V", false
             )
 //            // invokevirtual android/view/View setOnClickListener (Landroid/view/View$OnClickListener;)V
             method.visitMethodInsn(
@@ -396,8 +447,7 @@ class AndroidJunkGenerator(
 
         val call = initViews + others.subList(0, Random.nextInt(max(1, others.size / 3)) + 1)
 
-        call.shuffled()
-            .forEach { name ->
+        call.shuffled().forEach { name ->
                 mv.visitVarInsn(Opcodes.ALOAD, 0)
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, selfType, name, "()V", false)
             }
@@ -509,14 +559,11 @@ class AndroidJunkGenerator(
         repeat(cnt) {
             val field = generateFieldName()
             fields.add(field)
-            cw.visitField(Opcodes.ACC_MODULE, field, "Ljava/lang/String;", null, null)
-                .visitEnd()
+            cw.visitField(Opcodes.ACC_MODULE, field, "Ljava/lang/String;", null, null).visitEnd()
         }
 
         val descriptor = arrayOf(
-            "()V",
-            "()Ljava/lang/String;",
-            "()I"
+            "()V", "()Ljava/lang/String;", "()I"
         )
 
         // 生成随机方法
@@ -534,10 +581,7 @@ class AndroidJunkGenerator(
             val des = descriptor[index]
 
             val method = cw.visitMethod(
-                Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC,
-                name,
-                des,
-                null, null
+                Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, name, des, null, null
             )
 
             method.visitCode()
@@ -547,11 +591,7 @@ class AndroidJunkGenerator(
                     method.visitLdcInsn(className)
                     method.visitLdcInsn(name)
                     method.visitMethodInsn(
-                        Opcodes.INVOKESTATIC,
-                        "android/util/Log",
-                        "d",
-                        "(Ljava/lang/String;Ljava/lang/String;)I",
-                        false
+                        Opcodes.INVOKESTATIC, "android/util/Log", "d", "(Ljava/lang/String;Ljava/lang/String;)I", false
                     )
                     method.visitInsn(Opcodes.POP)
                     method.visitInsn(Opcodes.RETURN)
@@ -595,10 +635,7 @@ class AndroidJunkGenerator(
             getMethods.add(name)
 
             val mv = cw.visitMethod(
-                Opcodes.ACC_PUBLIC,
-                name,
-                "()Ljava/lang/String;",
-                null, null
+                Opcodes.ACC_PUBLIC, name, "()Ljava/lang/String;", null, null
             )
 
             mv.visitCode()
@@ -650,10 +687,9 @@ class AndroidJunkGenerator(
 
         val name = chars.concatToString()
         // 排除关键字和已经存在的名字
-        if (KEYWORDS.contains(name)
-            || XML_KEYWORDS.contains(name)
-            || !mCheckActivityNames.add(name)
-            || !mCheckClassName.add("$packageName.$name")
+        if (KEYWORDS.contains(name) || XML_KEYWORDS.contains(name) || !mCheckActivityNames.add(name) || !mCheckClassName.add(
+                "$packageName.$name"
+            )
         ) {
             println("generateClassName exclude：$packageName.$name")
             return generateClassName(packageName)
@@ -794,8 +830,7 @@ class AndroidJunkGenerator(
 
         out.outputStream().use { fos ->
             val zos = ZipOutputStream(fos)
-            workspace.listFiles { _, name -> name != classesDir }
-                ?.forEach { file -> addFileToZip(file, "", zos) }
+            workspace.listFiles { _, name -> name != classesDir }?.forEach { file -> addFileToZip(file, "", zos) }
 
             zos.finish()
         }

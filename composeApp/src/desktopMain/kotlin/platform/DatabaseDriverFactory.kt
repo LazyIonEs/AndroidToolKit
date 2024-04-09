@@ -22,7 +22,7 @@ actual fun createDriver(): SqlDriver {
         }
     }
     // 移动至getDatabaseFile()
-    dbFile.parentFile.also {  if (!it.exists()) it.mkdirs() }
+    dbFile.parentFile.also { if (!it.exists()) it.mkdirs() }
     return JdbcSqliteDriver(
         url = "jdbc:sqlite:${dbFile.absolutePath}",
         properties = Properties(),

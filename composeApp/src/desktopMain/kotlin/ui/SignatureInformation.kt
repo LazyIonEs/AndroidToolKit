@@ -1,25 +1,11 @@
 package ui
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideOut
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -29,36 +15,10 @@ import androidx.compose.material.icons.automirrored.rounded.Subject
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SentimentDissatisfied
 import androidx.compose.material.icons.outlined.SentimentVeryDissatisfied
-import androidx.compose.material.icons.rounded.DriveFolderUpload
-import androidx.compose.material.icons.rounded.Password
-import androidx.compose.material.icons.rounded.Public
-import androidx.compose.material.icons.rounded.QueryBuilder
-import androidx.compose.material.icons.rounded.Restore
-import androidx.compose.material.icons.rounded.SentimentSatisfied
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.DragData
-import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.onExternalDrag
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.*
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -68,7 +28,6 @@ import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import file.showFileSelector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import model.SignatureEnum
 import model.Verifier
 import model.VerifierResult
 import toast.ToastModel
@@ -149,25 +108,23 @@ private fun SignatureBox(
             LottieAnimation(scope, "files/upload.json")
         }
     }
-    Box(
-        modifier = Modifier.padding(6.dp).onExternalDrag(onDragStart = { dragging = true },
-            onDragExit = { dragging = false },
-            onDrop = { state ->
-                val dragData = state.dragData
-                if (dragData is DragData.FilesList) {
-                    dragData.readFiles().first().let {
-                        if (it.endsWith(".apk")) {
-                            val path = File(URI.create(it)).path
-                            viewModel.apkVerifier(path)
-                        } else if (it.endsWith(".jks") || it.endsWith(".keystore")) {
-                            val path = File(URI.create(it)).path
-                            signaturePath.value = path
-                        } else {
-                        }
+    Box(modifier = Modifier.padding(6.dp)
+        .onExternalDrag(onDragStart = { dragging = true }, onDragExit = { dragging = false }, onDrop = { state ->
+            val dragData = state.dragData
+            if (dragData is DragData.FilesList) {
+                dragData.readFiles().first().let {
+                    if (it.endsWith(".apk")) {
+                        val path = File(URI.create(it)).path
+                        viewModel.apkVerifier(path)
+                    } else if (it.endsWith(".jks") || it.endsWith(".keystore")) {
+                        val path = File(URI.create(it)).path
+                        signaturePath.value = path
+                    } else {
                     }
                 }
-                dragging = false
-            }), contentAlignment = Alignment.TopCenter
+            }
+            dragging = false
+        }), contentAlignment = Alignment.TopCenter
     ) {
         SignatureFloatingButton(viewModel, dragging, signaturePath)
     }
@@ -219,16 +176,14 @@ private fun SignatureList(
                             if (uiState.result.isApk) {
                                 Text(
                                     "Valid APK signature V${verifier.version} found",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
-                                        .fillMaxWidth(),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp).fillMaxWidth(),
                                     textAlign = TextAlign.Center,
                                     style = MaterialTheme.typography.titleMedium
                                 )
                             } else {
                                 Text(
                                     "Valid KeyStore Signature V${verifier.version} found",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
-                                        .fillMaxWidth(),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp).fillMaxWidth(),
                                     textAlign = TextAlign.Center,
                                     style = MaterialTheme.typography.titleMedium
                                 )
@@ -239,6 +194,7 @@ private fun SignatureList(
                         SignatureListBottom(verifier, scope, toastState)
                     }
                 }
+                item { Spacer(Modifier.size(24.dp)) }
             }
         }
     }
@@ -253,9 +209,18 @@ private fun SignatureFloatingButton(
 ) {
     var showFilePickerApk by remember { mutableStateOf(false) }
     Box(Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 8.dp)
+        Row(
+            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 12.dp)
         ) {
+            AnimatedVisibility(
+                visible = viewModel.verifierState is UIState.Success, modifier = Modifier.padding(end = 12.dp)
+            ) {
+                ExtendedFloatingActionButton(onClick = {
+                    viewModel.changeSeparatorSign()
+                }, icon = { Icon(Icons.Rounded.Sync, "切换间隔符号") }, text = {
+                    Text("切换间隔符号")
+                })
+            }
             AnimatedVisibility(
                 visible = viewModel.verifierState != UIState.Loading
             ) {
@@ -279,7 +244,7 @@ private fun SignatureFloatingButton(
                             "点击选择或拖拽上传(APK/签名)文件"
                         }
                     )
-                })
+                }, expanded = viewModel.verifierState !is UIState.Success)
             }
         }
     }
@@ -306,10 +271,7 @@ private fun SignatureFloatingButton(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SignatureDialog(
-    viewModel: MainViewModel,
-    signaturePath: MutableState<String>,
-    toastState: ToastUIState,
-    scope: CoroutineScope
+    viewModel: MainViewModel, signaturePath: MutableState<String>, toastState: ToastUIState, scope: CoroutineScope
 ) {
     if (signaturePath.value.isNotBlank()) {
         val password = remember { mutableStateOf("") }
@@ -322,8 +284,7 @@ private fun SignatureDialog(
         }, text = {
             var expanded by remember { mutableStateOf(false) }
             Column {
-                OutlinedTextField(
-                    modifier = Modifier.padding(vertical = 4.dp),
+                OutlinedTextField(modifier = Modifier.padding(vertical = 4.dp),
                     value = password.value,
                     onValueChange = { value ->
                         password.value = value
@@ -340,13 +301,10 @@ private fun SignatureDialog(
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                 )
-                ExposedDropdownMenuBox(
-                    modifier = Modifier.padding(vertical = 6.dp),
+                ExposedDropdownMenuBox(modifier = Modifier.padding(vertical = 6.dp),
                     expanded = expanded,
-                    onExpandedChange = { expanded = it }
-                ) {
-                    OutlinedTextField(
-                        modifier = Modifier.menuAnchor(),
+                    onExpandedChange = { expanded = it }) {
+                    OutlinedTextField(modifier = Modifier.menuAnchor(),
                         value = alisa,
                         readOnly = true,
                         onValueChange = { },
@@ -419,8 +377,7 @@ private fun SignatureListTop(
                 }
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Rounded.Subject,
@@ -440,8 +397,7 @@ private fun SignatureListTop(
                 }
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.QueryBuilder,
@@ -461,8 +417,7 @@ private fun SignatureListTop(
                 }
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Restore,
@@ -500,8 +455,7 @@ private fun SignatureListCenter(
                 }
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Public,
@@ -521,8 +475,7 @@ private fun SignatureListCenter(
                 }
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.LibraryBooks,
@@ -542,8 +495,7 @@ private fun SignatureListCenter(
                 }
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Lock,
@@ -580,8 +532,7 @@ private fun SignatureListBottom(
                 }
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.SentimentSatisfied,
@@ -601,8 +552,7 @@ private fun SignatureListBottom(
                 }
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.SentimentDissatisfied,
@@ -622,8 +572,7 @@ private fun SignatureListBottom(
                 }
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.SentimentVeryDissatisfied,

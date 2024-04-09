@@ -3,12 +3,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.window.ApplicationScope
-import androidx.compose.ui.window.MenuBar
-import androidx.compose.ui.window.MenuScope
-import androidx.compose.ui.window.Tray
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
+import androidx.compose.ui.window.*
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.painterResource
 import org.tool.kit.composeapp.generated.resources.Res
@@ -31,11 +26,7 @@ fun main() = application {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun ApplicationScope.ApplicationTray(state: ApplicationState) {
-    Tray(
-        painterResource(Res.drawable.icon),
-        tooltip = "AndroidToolKit",
-        menu = { ApplicationMenu(state) }
-    )
+    Tray(icon = painterResource(Res.drawable.icon), tooltip = "AndroidToolKit", menu = { ApplicationMenu(state) })
 }
 
 @OptIn(ExperimentalResourceApi::class)
@@ -43,9 +34,7 @@ private fun ApplicationScope.ApplicationTray(state: ApplicationState) {
 private fun Window(
     state: WindowState
 ) = Window(
-    onCloseRequest = state::close,
-    title = state.title,
-    icon = painterResource(Res.drawable.icon)
+    onCloseRequest = state::close, title = state.title, icon = painterResource(Res.drawable.icon)
 ) {
     if (isMac) {
         MenuBar {
@@ -83,10 +72,7 @@ private class ApplicationState {
     }
 
     private fun WindowState() = WindowState(
-        title = "AndroidToolKit",
-        openNewWindow = ::openNewWindow,
-        exit = ::exit,
-        _windows::remove
+        title = "AndroidToolKit", openNewWindow = ::openNewWindow, exit = ::exit, _windows::remove
     )
 }
 

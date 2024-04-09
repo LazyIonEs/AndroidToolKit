@@ -63,8 +63,25 @@ import kotlin.math.roundToInt
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun Title(title: String, modifier: Modifier = Modifier, fontSize: TextUnit = 16.sp, color: Color = MaterialTheme.colorScheme.primary, fontWeight: FontWeight = FontWeight.Bold, maxLine: Int = 1, textAlign: TextAlign = TextAlign.Start) {
-    Text(text = title, modifier = modifier.basicMarquee(), fontWeight = fontWeight, fontSize = fontSize, color = color, maxLines = maxLine, overflow = TextOverflow.Ellipsis, textAlign = textAlign)
+fun Title(
+    title: String,
+    modifier: Modifier = Modifier,
+    fontSize: TextUnit = 16.sp,
+    color: Color = MaterialTheme.colorScheme.primary,
+    fontWeight: FontWeight = FontWeight.Bold,
+    maxLine: Int = 1,
+    textAlign: TextAlign = TextAlign.Start
+) {
+    Text(
+        text = title,
+        modifier = modifier.basicMarquee(),
+        fontWeight = fontWeight,
+        fontSize = fontSize,
+        color = color,
+        maxLines = maxLine,
+        overflow = TextOverflow.Ellipsis,
+        textAlign = textAlign
+    )
 }
 
 interface ToastData {
@@ -92,7 +109,8 @@ private data class ColorData(
     val icon: ImageVector? = null,
 )
 
-@Composable fun Toast(
+@Composable
+fun Toast(
     toastData: ToastData,
 ) {
 
@@ -157,7 +175,8 @@ private data class ColorData(
     }
 }
 
-@Composable private fun Toast(
+@Composable
+private fun Toast(
     message: String,
     icon: ImageVector?,
     backgroundColor: Color,
@@ -171,7 +190,8 @@ private data class ColorData(
     val roundedValue = 12.dp
     CardDefaults.shape
     Surface(
-        modifier = Modifier.padding(16.dp).widthIn(max = 520.dp).fillMaxWidth().toastGesturesDetector(onPause, onResume, onDismissed),
+        modifier = Modifier.padding(16.dp).widthIn(max = 520.dp).fillMaxWidth()
+            .toastGesturesDetector(onPause, onResume, onDismissed),
         color = backgroundColor,
         shape = RoundedCornerShape(roundedValue),
         tonalElevation = 2.dp,

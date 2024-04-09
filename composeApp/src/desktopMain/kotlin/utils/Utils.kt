@@ -22,7 +22,9 @@ val isWindows = System.getProperty("os.name").startsWith("Win")
 
 val isMac = System.getProperty("os.name").startsWith("Mac")
 
-val resourcesDir: String = System.getProperty("compose.application.resources.dir") ?: File(File(System.getProperty("user.dir"), "resources"), appInternalResourcesDir).absolutePath
+val resourcesDir: String = System.getProperty("compose.application.resources.dir") ?: File(
+    File(System.getProperty("user.dir"), "resources"), appInternalResourcesDir
+).absolutePath
 
 fun getThumbPrint(cert: X509Certificate?, type: String?): String? {
     val md = MessageDigest.getInstance(type) // lgtm [java/weak-cryptographic-algorithm]
@@ -34,22 +36,7 @@ fun getThumbPrint(cert: X509Certificate?, type: String?): String? {
 
 private fun hexify(bytes: ByteArray): String {
     val hexDigits = charArrayOf(
-        '0',
-        '1',
-        '2',
-        '3',
-        '4',
-        '5',
-        '6',
-        '7',
-        '8',
-        '9',
-        'A',
-        'B',
-        'C',
-        'D',
-        'E',
-        'F'
+        '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
     )
     val buf = StringBuilder(bytes.size * 3)
     for (aByte in bytes) {
@@ -57,7 +44,7 @@ private fun hexify(bytes: ByteArray): String {
         buf.append(hexDigits[aByte.toInt() and 0x0f])
         buf.append(' ')
     }
-    return buf.toString()
+    return buf.toString().trim()
 }
 
 fun extractValue(line: String, attribute: String): String {
@@ -124,11 +111,7 @@ private val appInternalResourcesDir: String
     }
 
 private enum class FileSizeType(val id: Int, val unit: String) {
-    SIZE_TYPE_B(1, "B"),
-    SIZE_TYPE_KB(2, "KB"),
-    SIZE_TYPE_MB(3, "M"),
-    SIZE_TYPE_GB(4, "GB"),
-    SIZE_TYPE_TB(5, "TB")
+    SIZE_TYPE_B(1, "B"), SIZE_TYPE_KB(2, "KB"), SIZE_TYPE_MB(3, "M"), SIZE_TYPE_GB(4, "GB"), SIZE_TYPE_TB(5, "TB")
 }
 
 /**
@@ -136,7 +119,8 @@ private enum class FileSizeType(val id: Int, val unit: String) {
  */
 fun formatFileSize(size: Long, scale: Int, withUnit: Boolean = false): String {
     val divisor = 1024L //ROUND_DOWN 1023 -> 1023B ; ROUND_HALF_UP  1023 -> 1KB
-    val kiloByte: BigDecimal = formatSizeByTypeWithDivisor(BigDecimal.valueOf(size), scale, FileSizeType.SIZE_TYPE_B, divisor)
+    val kiloByte: BigDecimal =
+        formatSizeByTypeWithDivisor(BigDecimal.valueOf(size), scale, FileSizeType.SIZE_TYPE_B, divisor)
     if (kiloByte.toDouble() < 1) {
         return "${kiloByte.toPlainString()}${if (withUnit) FileSizeType.SIZE_TYPE_B.unit else ""}"
     } //KB
@@ -155,5 +139,10 @@ fun formatFileSize(size: Long, scale: Int, withUnit: Boolean = false): String {
     return "${teraBytes.toPlainString()}${if (withUnit) FileSizeType.SIZE_TYPE_TB.unit else ""}"
 }
 
-private fun formatSizeByTypeWithDivisor(size: BigDecimal, scale: Int, sizeType: FileSizeType, divisor: Long): BigDecimal =
-    size.divide(BigDecimal.valueOf(divisor), scale, if (sizeType == FileSizeType.SIZE_TYPE_B) RoundingMode.DOWN else RoundingMode.HALF_UP)
+private fun formatSizeByTypeWithDivisor(
+    size: BigDecimal, scale: Int, sizeType: FileSizeType, divisor: Long
+): BigDecimal = size.divide(
+    BigDecimal.valueOf(divisor),
+    scale,
+    if (sizeType == FileSizeType.SIZE_TYPE_B) RoundingMode.DOWN else RoundingMode.HALF_UP
+)

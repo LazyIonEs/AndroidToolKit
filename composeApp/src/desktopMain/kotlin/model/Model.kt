@@ -30,9 +30,9 @@ data class Verifier(
     val publicKeyType: String,
     val modulus: String,
     val signatureType: String,
-    val md5: String,
-    val sha1: String,
-    val sha256: String
+    var md5: String,
+    var sha1: String,
+    var sha256: String
 )
 
 /**
@@ -64,23 +64,17 @@ data class ApkSignature(
  * Apk签名更新索引
  */
 enum class SignatureEnum {
-    APK_PATH,
-    OUTPUT_PATH,
-    KEY_STORE_POLICY,
-    KEY_STORE_PATH,
-    KEY_STORE_PASSWORD,
-    KEY_STORE_ALISA_LIST,
-    KEY_STORE_ALISA_INDEX,
-    KEY_STORE_ALISA_PASSWORD,
+    APK_PATH, OUTPUT_PATH, KEY_STORE_POLICY, KEY_STORE_PATH, KEY_STORE_PASSWORD, KEY_STORE_ALISA_LIST, KEY_STORE_ALISA_INDEX, KEY_STORE_ALISA_PASSWORD,
 }
 
 /**
  * APK签名策略
  */
 enum class SignaturePolicy(val title: String, val value: String) {
-    V1("V1", "APK Signature Scheme V1"),
-    V2("V2", "APK Signature Scheme V2，包含V1"),
-    V2Only("V2 Only", "APK Signature Scheme V2，不包含V1"),
+    V1("V1", "APK Signature Scheme V1"), V2("V2", "APK Signature Scheme V2，包含V1"), V2Only(
+        "V2 Only",
+        "APK Signature Scheme V2，不包含V1"
+    ),
     V3("V3", "APK Signature Scheme V3，包含V1和V2")
 }
 
@@ -143,20 +137,7 @@ data class KeyStoreInfo(
  * 签名生成更新索引
  */
 enum class KeyStoreEnum {
-    KEY_STORE_PATH,
-    KEY_STORE_NAME,
-    KEY_STORE_PASSWORD,
-    KEY_STORE_CONFIRM_PASSWORD,
-    KEY_STORE_ALISA,
-    KEY_STORE_ALISA_PASSWORD,
-    KEY_STORE_ALISA_CONFIRM_PASSWORD,
-    VALIDITY_PERIOD,
-    AUTHOR_NAME,
-    ORGANIZATIONAL_UNIT,
-    ORGANIZATIONAL,
-    CITY,
-    PROVINCE,
-    COUNTRY_CODE
+    KEY_STORE_PATH, KEY_STORE_NAME, KEY_STORE_PASSWORD, KEY_STORE_CONFIRM_PASSWORD, KEY_STORE_ALISA, KEY_STORE_ALISA_PASSWORD, KEY_STORE_ALISA_CONFIRM_PASSWORD, VALIDITY_PERIOD, AUTHOR_NAME, ORGANIZATIONAL_UNIT, ORGANIZATIONAL, CITY, PROVINCE, COUNTRY_CODE
 }
 
 /**
@@ -186,17 +167,11 @@ data class JunkCodeInfo(
  * 垃圾代码生成更新索引
  */
 enum class JunkCodeEnum {
-    OUTPUT_PATH,
-    PACKAGE_NAME,
-    SUFFIX,
-    PACKAGE_COUNT,
-    ACTIVITY_COUNT_PER_PACKAGE,
-    RES_PREFIX
+    OUTPUT_PATH, PACKAGE_NAME, SUFFIX, PACKAGE_COUNT, ACTIVITY_COUNT_PER_PACKAGE, RES_PREFIX
 }
 
 enum class StoreType(val value: String) {
-    JKS("JKS"),
-    PKCS12("PKCS12")
+    JKS("JKS"), PKCS12("PKCS12")
 }
 
 /**

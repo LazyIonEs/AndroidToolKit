@@ -1,25 +1,9 @@
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Android
-import androidx.compose.material.icons.rounded.Description
-import androidx.compose.material.icons.rounded.DonutLarge
-import androidx.compose.material.icons.rounded.Key
-import androidx.compose.material.icons.rounded.Pin
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -30,12 +14,7 @@ import androidx.compose.ui.unit.dp
 import theme.AppTheme
 import toast.ToastUI
 import toast.ToastUIState
-import ui.ApkInformation
-import ui.ApkSignature
-import ui.JunkCode
-import ui.SetUp
-import ui.SignatureGeneration
-import ui.SignatureInformation
+import ui.*
 import vm.MainViewModel
 
 @Composable
@@ -62,12 +41,10 @@ fun MainContentScreen(viewModel: MainViewModel) {
     val toastState = remember { ToastUIState() }
     val scope = rememberCoroutineScope()
     Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.TopCenter
+        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter
     ) {
         Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically
         ) {
             val pages = Page.entries.toTypedArray()
             // 导航栏

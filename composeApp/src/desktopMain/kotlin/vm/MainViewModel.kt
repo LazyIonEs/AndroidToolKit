@@ -8,39 +8,11 @@ import com.android.apksig.ApkSigner
 import com.android.apksig.ApkVerifier
 import com.android.ide.common.signing.KeystoreHelper
 import database.DataBase
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.supervisorScope
-import model.ApkInformation
-import model.ApkSignature
-import model.JunkCodeEnum
-import model.JunkCodeInfo
-import model.KeyStoreEnum
-import model.KeyStoreInfo
-import model.SignatureEnum
-import model.SignaturePolicy
-import model.StoreType
-import model.VerifierResult
+import kotlinx.coroutines.*
+import model.*
 import org.apache.commons.codec.digest.DigestUtils
-import utils.AndroidJunkGenerator
-import utils.extractIcon
-import utils.extractValue
-import utils.extractVersion
-import utils.formatFileSize
-import utils.getThumbPrint
-import utils.isWindows
-import utils.resourcesDir
-import java.io.BufferedReader
-import java.io.File
-import java.io.FileInputStream
-import java.io.InputStream
-import java.io.InputStreamReader
+import utils.*
+import java.io.*
 import java.security.KeyStore
 import java.security.cert.X509Certificate
 import java.security.interfaces.RSAPublicKey
@@ -162,12 +134,10 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             }
 
             SignatureEnum.KEY_STORE_PASSWORD -> apkSignature.keyStorePassword = value as String
-            SignatureEnum.KEY_STORE_ALISA_LIST -> apkSignature.keyStoreAlisaList =
-                value as? ArrayList<String>
+            SignatureEnum.KEY_STORE_ALISA_LIST -> apkSignature.keyStoreAlisaList = value as? ArrayList<String>
 
             SignatureEnum.KEY_STORE_ALISA_INDEX -> apkSignature.keyStoreAlisaIndex = value as Int
-            SignatureEnum.KEY_STORE_ALISA_PASSWORD -> apkSignature.keyStoreAlisaPassword =
-                value as String
+            SignatureEnum.KEY_STORE_ALISA_PASSWORD -> apkSignature.keyStoreAlisaPassword = value as String
         }
         apkSignatureState = apkSignature
     }
@@ -183,15 +153,12 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             KeyStoreEnum.KEY_STORE_PATH -> keyStoreInfo.keyStorePath = value as String
             KeyStoreEnum.KEY_STORE_NAME -> keyStoreInfo.keyStoreName = value as String
             KeyStoreEnum.KEY_STORE_PASSWORD -> keyStoreInfo.keyStorePassword = value as String
-            KeyStoreEnum.KEY_STORE_CONFIRM_PASSWORD -> keyStoreInfo.keyStoreConfirmPassword =
-                value as String
+            KeyStoreEnum.KEY_STORE_CONFIRM_PASSWORD -> keyStoreInfo.keyStoreConfirmPassword = value as String
 
             KeyStoreEnum.KEY_STORE_ALISA -> keyStoreInfo.keyStoreAlisa = value as String
-            KeyStoreEnum.KEY_STORE_ALISA_PASSWORD -> keyStoreInfo.keyStoreAlisaPassword =
-                value as String
+            KeyStoreEnum.KEY_STORE_ALISA_PASSWORD -> keyStoreInfo.keyStoreAlisaPassword = value as String
 
-            KeyStoreEnum.KEY_STORE_ALISA_CONFIRM_PASSWORD -> keyStoreInfo.keyStoreAlisaConfirmPassword =
-                value as String
+            KeyStoreEnum.KEY_STORE_ALISA_CONFIRM_PASSWORD -> keyStoreInfo.keyStoreAlisaConfirmPassword = value as String
 
             KeyStoreEnum.VALIDITY_PERIOD -> keyStoreInfo.validityPeriod = value as String
             KeyStoreEnum.AUTHOR_NAME -> keyStoreInfo.authorName = value as String
@@ -217,22 +184,19 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             JunkCodeEnum.PACKAGE_NAME -> {
                 junkCodeInfo.packageName = value as String
                 junkCodeInfo.aarName = "junk_" + junkCodeInfo.packageName.replace(
-                    ".",
-                    "_"
+                    ".", "_"
                 ) + "_" + junkCodeInfo.suffix + "_TT2.0.0.aar"
             }
 
             JunkCodeEnum.SUFFIX -> {
                 junkCodeInfo.suffix = value as String
                 junkCodeInfo.aarName = "junk_" + junkCodeInfo.packageName.replace(
-                    ".",
-                    "_"
+                    ".", "_"
                 ) + "_" + junkCodeInfo.suffix + "_TT2.0.0.aar"
             }
 
             JunkCodeEnum.PACKAGE_COUNT -> junkCodeInfo.packageCount = value as String
-            JunkCodeEnum.ACTIVITY_COUNT_PER_PACKAGE -> junkCodeInfo.activityCountPerPackage =
-                value as String
+            JunkCodeEnum.ACTIVITY_COUNT_PER_PACKAGE -> junkCodeInfo.activityCountPerPackage = value as String
 
             JunkCodeEnum.RES_PREFIX -> junkCodeInfo.resPrefix = value as String
         }
@@ -262,23 +226,17 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             val v2SigningEnabled =
                 apkSignatureState.keyStorePolicy == SignaturePolicy.V2 || apkSignatureState.keyStorePolicy == SignaturePolicy.V2Only || apkSignatureState.keyStorePolicy == SignaturePolicy.V3
             val v3SigningEnabled = apkSignatureState.keyStorePolicy == SignaturePolicy.V3
-            val alisa =
-                apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
+            val alisa = apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
             val certificateInfo = KeystoreHelper.getCertificateInfo(
-                "JKS",
-                key,
-                apkSignatureState.keyStorePassword,
-                apkSignatureState.keyStoreAlisaPassword,
-                alisa
+                "JKS", key, apkSignatureState.keyStorePassword, apkSignatureState.keyStoreAlisaPassword, alisa
             )
             val privateKey = certificateInfo.key
             val certificate = certificateInfo.certificate
-            val signerConfig =
-                ApkSigner.SignerConfig.Builder("CERT", privateKey, listOf(certificate)).build()
+            val signerConfig = ApkSigner.SignerConfig.Builder("CERT", privateKey, listOf(certificate)).build()
             val signerBuild = ApkSigner.Builder(listOf(signerConfig))
-            val apkSigner = signerBuild.setInputApk(inputApk).setOutputApk(outputApk)
-                .setAlignFileSize(isAlignFileSize).setV1SigningEnabled(v1SigningEnabled)
-                .setV2SigningEnabled(v2SigningEnabled).setV3SigningEnabled(v3SigningEnabled).build()
+            val apkSigner = signerBuild.setInputApk(inputApk).setOutputApk(outputApk).setAlignFileSize(isAlignFileSize)
+                .setV1SigningEnabled(v1SigningEnabled).setV2SigningEnabled(v2SigningEnabled)
+                .setV3SigningEnabled(v3SigningEnabled).setAlignmentPreserved(!isAlignFileSize).build()
             apkSigner.sign()
             apkSignatureUIState = UIState.Success("签名成功")
         } catch (e: Exception) {
@@ -321,17 +279,14 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                             line?.let {
                                 if (it.startsWith("application:")) {
                                     apkInformation.label = extractValue(it, "label")
-                                    apkInformation.icon =
-                                        extractIcon(input, extractValue(it, "icon"))
+                                    apkInformation.icon = extractIcon(input, extractValue(it, "icon"))
                                 } else if (it.startsWith("package:")) {
                                     apkInformation.packageName = extractValue(it, "name")
                                     apkInformation.versionCode = extractValue(it, "versionCode")
                                     apkInformation.versionName = extractValue(it, "versionName")
-                                    apkInformation.compileSdkVersion =
-                                        extractValue(it, "compileSdkVersion")
+                                    apkInformation.compileSdkVersion = extractValue(it, "compileSdkVersion")
                                 } else if (it.startsWith("targetSdkVersion:")) {
-                                    apkInformation.targetSdkVersion =
-                                        extractVersion(it, "targetSdkVersion")
+                                    apkInformation.targetSdkVersion = extractVersion(it, "targetSdkVersion")
                                 } else if (it.startsWith("sdkVersion:")) {
                                     apkInformation.minSdkVersion = extractVersion(it, "sdkVersion")
                                 } else if (it.startsWith("uses-permission:")) {
@@ -341,8 +296,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                                     apkInformation.usesPermissionList?.add(extractValue(it, "name"))
                                 } else if (it.startsWith("native-code:")) {
                                     apkInformation.nativeCode =
-                                        (it.split("native-code:").getOrNull(1) ?: "").trim()
-                                            .replace("'", "")
+                                        (it.split("native-code:").getOrNull(1) ?: "").trim().replace("'", "")
                                 } else {
 
                                 }
@@ -393,8 +347,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                 "-keypass",
                 keyStoreInfoState.keyStoreAlisaPassword,
                 "-validity",
-                keyStoreInfoState.validityPeriod.toIntOrNull()?.let { (it * 365).toString() }
-                    ?: "36500",
+                keyStoreInfoState.validityPeriod.toIntOrNull()?.let { (it * 365).toString() } ?: "36500",
                 "-dname",
                 "CN=${keyStoreInfoState.authorName},OU=${keyStoreInfoState.organizationalUnit},O=${keyStoreInfoState.organizational},L=${keyStoreInfoState.city},S=${keyStoreInfoState.province}, C=${keyStoreInfoState.countryCode}",
                 "-deststoretype",
@@ -428,7 +381,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
         var fileInputStream: FileInputStream? = null
         val inputFile = File(input)
         try {
-            val list = ArrayList<model.Verifier>()
+            val list = ArrayList<Verifier>()
             val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
             fileInputStream = FileInputStream(inputFile)
             keyStore.load(fileInputStream, password.toCharArray())
@@ -444,7 +397,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                 val md5 = getThumbPrint(cert, "MD5") ?: ""
                 val sha1 = getThumbPrint(cert, "SHA-1") ?: ""
                 val sha256 = getThumbPrint(cert, "SHA-256") ?: ""
-                val apkVerifier = model.Verifier(
+                val apkVerifier = Verifier(
                     cert.version,
                     subject,
                     validFrom,
@@ -458,11 +411,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                 )
                 list.add(apkVerifier)
                 val apkVerifierResult = VerifierResult(
-                    isSuccess = true,
-                    isApk = false,
-                    path = input,
-                    name = inputFile.name,
-                    data = list
+                    isSuccess = true, isApk = false, path = input, name = inputFile.name, data = list
                 )
                 verifierState = UIState.Success(apkVerifierResult)
             } else {
@@ -486,7 +435,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      */
     fun apkVerifier(input: String) = launch(Dispatchers.IO) {
         verifierState = UIState.Loading
-        val list = ArrayList<model.Verifier>()
+        val list = ArrayList<Verifier>()
         val inputFile = File(input)
         val path = inputFile.path
         val name = inputFile.name
@@ -496,10 +445,9 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             var error = ""
             val isSuccess = result.isVerified
 
-            result.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                .forEach {
-                    error += it.toString() + "\n"
-                }
+            result.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }.forEach {
+                error += it.toString() + "\n"
+            }
 
             if (result.v1SchemeSigners.isNotEmpty()) {
                 for (signer in result.v1SchemeSigners) {
@@ -514,24 +462,14 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                         val md5 = getThumbPrint(cert, "MD5") ?: ""
                         val sha1 = getThumbPrint(cert, "SHA-1") ?: ""
                         val sha256 = getThumbPrint(cert, "SHA-256") ?: ""
-                        val apkVerifier = model.Verifier(
-                            1,
-                            subject,
-                            validFrom,
-                            validUntil,
-                            publicKeyType,
-                            modulus,
-                            signatureType,
-                            md5,
-                            sha1,
-                            sha256
+                        val apkVerifier = Verifier(
+                            1, subject, validFrom, validUntil, publicKeyType, modulus, signatureType, md5, sha1, sha256
                         )
                         list.add(apkVerifier)
                     }
-                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                        .forEach {
-                            error += it.toString() + "\n"
-                        }
+                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }.forEach {
+                        error += it.toString() + "\n"
+                    }
                 }
             }
 
@@ -548,24 +486,14 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                         val md5 = getThumbPrint(cert, "MD5") ?: ""
                         val sha1 = getThumbPrint(cert, "SHA-1") ?: ""
                         val sha256 = getThumbPrint(cert, "SHA-256") ?: ""
-                        val apkVerifier = model.Verifier(
-                            2,
-                            subject,
-                            validFrom,
-                            validUntil,
-                            publicKeyType,
-                            modulus,
-                            signatureType,
-                            md5,
-                            sha1,
-                            sha256
+                        val apkVerifier = Verifier(
+                            2, subject, validFrom, validUntil, publicKeyType, modulus, signatureType, md5, sha1, sha256
                         )
                         list.add(apkVerifier)
                     }
-                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                        .forEach {
-                            error += it.toString() + "\n"
-                        }
+                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }.forEach {
+                        error += it.toString() + "\n"
+                    }
                 }
             }
 
@@ -582,24 +510,14 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                         val md5 = getThumbPrint(cert, "MD5") ?: ""
                         val sha1 = getThumbPrint(cert, "SHA-1") ?: ""
                         val sha256 = getThumbPrint(cert, "SHA-256") ?: ""
-                        val apkVerifier = model.Verifier(
-                            3,
-                            subject,
-                            validFrom,
-                            validUntil,
-                            publicKeyType,
-                            modulus,
-                            signatureType,
-                            md5,
-                            sha1,
-                            sha256
+                        val apkVerifier = Verifier(
+                            3, subject, validFrom, validUntil, publicKeyType, modulus, signatureType, md5, sha1, sha256
                         )
                         list.add(apkVerifier)
                     }
-                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                        .forEach {
-                            error += it.toString() + "\n"
-                        }
+                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }.forEach {
+                        error += it.toString() + "\n"
+                    }
                 }
             }
 
@@ -623,28 +541,42 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     }
 
     /**
+     * 更改间隔符号
+     */
+    fun changeSeparatorSign() {
+        if (verifierState is UIState.Success) {
+            val result = (verifierState as? UIState.Success)?.result as? VerifierResult ?: return
+            result.data.forEach {
+                val contains = it.md5.contains(':')
+                val oldChar = if (contains) ':' else ' '
+                val newChar = if (contains) ' ' else ':'
+                it.md5 = it.md5.replace(oldChar, newChar)
+                it.sha1 = it.sha1.replace(oldChar, newChar)
+                it.sha256 = it.sha256.replace(oldChar, newChar)
+            }
+            verifierState = UIState.WAIT
+            verifierState = UIState.Success(result)
+        }
+    }
+
+    /**
      * 生成垃圾代码 aar
      */
     fun generateJunkCode() = launch(Dispatchers.IO) {
         junkCodeUIState = UIState.Loading
         try {
-            val dir = junkCodeInfoState.outputPath
+            val dir = resourcesDir
+            println(resourcesDir)
             val output = junkCodeInfoState.outputPath
             val appPackageName = junkCodeInfoState.packageName + "." + junkCodeInfoState.suffix
             val packageCount = junkCodeInfoState.packageCount.toInt()
             val activityCountPerPackage = junkCodeInfoState.activityCountPerPackage.toInt()
             val resPrefix = junkCodeInfoState.resPrefix
             val androidJunkGenerator = AndroidJunkGenerator(
-                dir,
-                output,
-                appPackageName,
-                packageCount,
-                activityCountPerPackage,
-                resPrefix
+                dir, output, appPackageName, packageCount, activityCountPerPackage, resPrefix
             )
             val file = androidJunkGenerator.startGenerate()
-            junkCodeUIState =
-                UIState.Success("构建结束：成功，文件大小：${formatFileSize(file.length(), 2, true)}")
+            junkCodeUIState = UIState.Success("构建结束：成功，文件大小：${formatFileSize(file.length(), 2, true)}")
         } catch (e: Exception) {
             junkCodeUIState = UIState.Error(e.message ?: "构建失败")
             e.printStackTrace()
@@ -687,11 +619,9 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
             fileInputStream = FileInputStream(apkSignatureState.keyStorePath)
             keyStore.load(fileInputStream, apkSignatureState.keyStorePassword.toCharArray())
-            val alisa =
-                apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
+            val alisa = apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
             if (keyStore.containsAlias(alisa)) {
-                val key =
-                    keyStore.getKey(alisa, apkSignatureState.keyStoreAlisaPassword.toCharArray())
+                val key = keyStore.getKey(alisa, apkSignatureState.keyStoreAlisaPassword.toCharArray())
                 return key != null
             }
         } catch (e: Exception) {

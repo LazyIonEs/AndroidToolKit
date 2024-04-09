@@ -1,29 +1,13 @@
 package ui
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FolderOpen
-import androidx.compose.material3.Card
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -181,8 +165,7 @@ fun GenerationBox(
 fun KeyStorePath(viewModel: MainViewModel, keyStorePathError: Boolean) {
     var showDirPicker by remember { mutableStateOf(false) }
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
@@ -219,8 +202,7 @@ fun KeyStorePath(viewModel: MainViewModel, keyStorePathError: Boolean) {
 @Composable
 fun KeyStoreName(viewModel: MainViewModel, keyStoreNameError: Boolean) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
@@ -272,8 +254,7 @@ fun KeyStorePassword(
 @Composable
 fun KeyStoreAlisa(viewModel: MainViewModel) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
@@ -326,8 +307,7 @@ fun KeyStoreAlisaPassword(
 @Composable
 fun ValidityPeriod(viewModel: MainViewModel) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         val pattern = remember { Regex("^\\d+\$") }
         OutlinedTextField(
@@ -348,8 +328,7 @@ fun ValidityPeriod(viewModel: MainViewModel) {
 @Composable
 fun AuthorName(viewModel: MainViewModel) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
@@ -366,8 +345,7 @@ fun AuthorName(viewModel: MainViewModel) {
 @Composable
 fun OrganizationalUnit(viewModel: MainViewModel) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
@@ -386,8 +364,7 @@ fun OrganizationalUnit(viewModel: MainViewModel) {
 @Composable
 fun Organizational(viewModel: MainViewModel) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
@@ -404,8 +381,7 @@ fun Organizational(viewModel: MainViewModel) {
 @Composable
 fun City(viewModel: MainViewModel) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
@@ -422,8 +398,7 @@ fun City(viewModel: MainViewModel) {
 @Composable
 fun Province(viewModel: MainViewModel) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
@@ -440,8 +415,7 @@ fun Province(viewModel: MainViewModel) {
 @Composable
 fun CountryCode(viewModel: MainViewModel) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 56.dp, bottom = 3.dp).weight(1f),
@@ -478,9 +452,7 @@ private fun CreateSignature(
         createSignature(viewModel, toastState, scope)
     }) {
         Text(
-            "创建签名",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 48.dp)
+            "创建签名", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 48.dp)
         )
     }
 }
