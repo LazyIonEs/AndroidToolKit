@@ -93,14 +93,6 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     var apkInformationState by mutableStateOf<UIState>(UIState.WAIT)
         private set
 
-    // 垃圾代码生成信息
-    var junkCodeInfoState by mutableStateOf(JunkCodeInfo(outputPath = outputPath))
-        private set
-
-    // 垃圾代码生成UI状态
-    var junkCodeUIState by mutableStateOf<UIState>(UIState.WAIT)
-        private set
-
     /**
      * 修改ApkSignature
      * @param enum 需要更新的索引
@@ -170,37 +162,6 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             KeyStoreEnum.COUNTRY_CODE -> keyStoreInfo.countryCode = value as String
         }
         keyStoreInfoState = keyStoreInfo
-    }
-
-    /**
-     * 修改JunkCodeInfo
-     * @param enum 需要更新的索引
-     * @param value 需要更新的值
-     */
-    fun updateJunkCodeInfo(enum: JunkCodeEnum, value: Any) {
-        val junkCodeInfo = JunkCodeInfo(junkCodeInfoState)
-        when (enum) {
-            JunkCodeEnum.OUTPUT_PATH -> junkCodeInfo.outputPath = value as String
-            JunkCodeEnum.PACKAGE_NAME -> {
-                junkCodeInfo.packageName = value as String
-                junkCodeInfo.aarName = "junk_" + junkCodeInfo.packageName.replace(
-                    ".", "_"
-                ) + "_" + junkCodeInfo.suffix + "_TT2.0.0.aar"
-            }
-
-            JunkCodeEnum.SUFFIX -> {
-                junkCodeInfo.suffix = value as String
-                junkCodeInfo.aarName = "junk_" + junkCodeInfo.packageName.replace(
-                    ".", "_"
-                ) + "_" + junkCodeInfo.suffix + "_TT2.0.0.aar"
-            }
-
-            JunkCodeEnum.PACKAGE_COUNT -> junkCodeInfo.packageCount = value as String
-            JunkCodeEnum.ACTIVITY_COUNT_PER_PACKAGE -> junkCodeInfo.activityCountPerPackage = value as String
-
-            JunkCodeEnum.RES_PREFIX -> junkCodeInfo.resPrefix = value as String
-        }
-        junkCodeInfoState = junkCodeInfo
     }
 
     /**
@@ -560,32 +521,6 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     }
 
     /**
-     * 生成垃圾代码 aar
-     */
-    fun generateJunkCode() = launch(Dispatchers.IO) {
-        junkCodeUIState = UIState.Loading
-        try {
-            val dir = resourcesDir
-            println(resourcesDir)
-            val output = junkCodeInfoState.outputPath
-            val appPackageName = junkCodeInfoState.packageName + "." + junkCodeInfoState.suffix
-            val packageCount = junkCodeInfoState.packageCount.toInt()
-            val activityCountPerPackage = junkCodeInfoState.activityCountPerPackage.toInt()
-            val resPrefix = junkCodeInfoState.resPrefix
-            val androidJunkGenerator = AndroidJunkGenerator(
-                dir, output, appPackageName, packageCount, activityCountPerPackage, resPrefix
-            )
-            val file = androidJunkGenerator.startGenerate()
-            junkCodeUIState = UIState.Success("构建结束：成功，文件大小：${formatFileSize(file.length(), 2, true)}")
-        } catch (e: Exception) {
-            junkCodeUIState = UIState.Error(e.message ?: "构建失败")
-            e.printStackTrace()
-        }
-        delay(1000)
-        junkCodeUIState = UIState.WAIT
-    }
-
-    /**
      * 验证签名
      * @param path 签名路径
      * @param password 签名密码
@@ -720,7 +655,6 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
         this.outputPath = dataBase.getOutputPath()
         apkSignatureState.outputPath = this.outputPath
         keyStoreInfoState.keyStorePath = this.outputPath
-        junkCodeInfoState.outputPath = this.outputPath
     }
 
     /**
