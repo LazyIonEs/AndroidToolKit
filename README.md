@@ -4,10 +4,9 @@
 
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/LazyIonEs/AndroidToolKit/build-release.yml)
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/LazyIonEs/AndroidToolKit/total)
-![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/LazyIonEs/AndroidToolKit/latest/total)
 ![GitHub Release](https://img.shields.io/github/v/release/LazyIonEs/AndroidToolKit)
 ![GitHub License](https://img.shields.io/github/license/LazyIonEs/AndroidToolKit)
-
+<!-- ![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/LazyIonEs/AndroidToolKit/latest/total) -->
 适用于安卓开发的桌面工具，支持 Windows 和 Mac  :tada:
 
 ### 主要功能
