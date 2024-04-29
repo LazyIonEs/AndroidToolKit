@@ -1,14 +1,25 @@
 package utils
 
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asComposeImageBitmap
+import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import file.FileSelectorType
+import model.Verifier
+import org.jetbrains.skia.Bitmap
+import org.jetbrains.skia.FilterMipmap
+import org.jetbrains.skia.FilterMode
 import org.jetbrains.skia.Image
+import org.jetbrains.skia.MipmapMode
+import org.jetbrains.skiko.toBufferedImage
+import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.security.MessageDigest
 import java.security.cert.X509Certificate
+import java.security.interfaces.RSAPublicKey
 import java.util.zip.ZipFile
 
 /**
@@ -22,9 +33,89 @@ val isWindows = System.getProperty("os.name").startsWith("Win")
 
 val isMac = System.getProperty("os.name").startsWith("Mac")
 
+val String.isApk: Boolean
+    get() = this.endsWith(".apk")
+
+val String.isKey: Boolean
+    get() = this.endsWith(".jks") || this.endsWith(".keystore")
+
+val String.isImage: Boolean
+    get() = this.endsWith(".png") || this.endsWith(".jpg") || this.endsWith(".jpeg")
+
+private val simplingMode = FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR)
+
+/**
+ * 图片缩放
+ * @param scale 缩放倍数
+ */
+fun Image.scale(scale: Double): BufferedImage? {
+    val scaledWidth = (this.width * scale).toInt()
+    val scaledHeight = (this.height * scale).toInt()
+    val bitmap = Bitmap()
+    bitmap.allocN32Pixels(scaledWidth, scaledHeight)
+    return if (this.scalePixels(bitmap.peekPixels() ?: return null, simplingMode, false)) {
+        bitmap.asComposeImageBitmap().asSkiaBitmap().toBufferedImage()
+    } else {
+        null
+    }
+}
+
+fun <T> Array<out T>.toFileExtensions(): List<String> {
+    val list = mutableListOf<String>()
+    for (type in this) {
+        when (type) {
+            FileSelectorType.APK -> list.add("apk")
+            FileSelectorType.KEY -> {
+                list.add("key")
+                list.add("keystore")
+            }
+
+            FileSelectorType.EXECUTE -> list.add("exe")
+            FileSelectorType.IMAGE -> {
+                list.add("png")
+                list.add("jpg")
+                list.add("jpeg")
+            }
+        }
+    }
+    return list
+}
+
+fun <T> Array<out T>.checkFile(path: String?): Boolean {
+    if (path.isNullOrBlank()) return false
+    val file = File(path)
+    for (type in this) {
+        val isConform = when (type) {
+            FileSelectorType.APK -> file.name.isApk
+            FileSelectorType.KEY -> file.name.isKey
+            FileSelectorType.EXECUTE -> file.canExecute()
+            FileSelectorType.IMAGE -> file.name.isImage
+            else -> false
+        }
+        if (isConform) return true
+    }
+    return false
+}
+
 val resourcesDir: String = System.getProperty("compose.application.resources.dir") ?: File(
     File(System.getProperty("user.dir"), "resources"), appInternalResourcesDir
 ).absolutePath
+
+fun X509Certificate.getVerifier(version: Int): Verifier {
+    val subject = this.subjectX500Principal.name
+    val validFrom = this.notBefore.toString()
+    val validUntil = this.notAfter.toString()
+    val publicKeyType = (this.publicKey as? RSAPublicKey)?.algorithm ?: ""
+    val modulus = (this.publicKey as? RSAPublicKey)?.modulus?.toString(10) ?: ""
+    val signatureType = this.sigAlgName
+    val md5 = getThumbPrint(this, "MD5") ?: ""
+    val sha1 = getThumbPrint(this, "SHA-1") ?: ""
+    val sha256 = getThumbPrint(this, "SHA-256") ?: ""
+    val apkVerifier = Verifier(
+        version, subject, validFrom, validUntil, publicKeyType, modulus, signatureType, md5, sha1, sha256
+    )
+    return apkVerifier
+}
 
 fun getThumbPrint(cert: X509Certificate?, type: String?): String? {
     val md = MessageDigest.getInstance(type) // lgtm [java/weak-cryptographic-algorithm]
@@ -44,7 +135,7 @@ private fun hexify(bytes: ByteArray): String {
         buf.append(hexDigits[aByte.toInt() and 0x0f])
         buf.append(' ')
     }
-    return buf.toString().trim()
+    return buf.toString().trim().replace(' ', ':')
 }
 
 fun extractValue(line: String, attribute: String): String {
@@ -66,7 +157,7 @@ fun extractIcon(apkPath: String, iconPath: String): ImageBitmap? {
             return null
         } else {
             ZipFile(apkPath).use { zipFile ->
-                val bytes = zipFile.getZipFileData(iconPath)
+                val bytes = zipFile.getZipFileData(iconPath) ?: return null
                 return Image.makeFromEncoded(bytes).toComposeImageBitmap()
             }
         }

@@ -1,21 +1,30 @@
 package ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material.icons.rounded.FolderOpen
-import androidx.compose.material.icons.rounded.Restore
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.ElevatedFilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
-import com.darkrockstudios.libraries.mpfilepicker.FilePicker
-import file.showExecuteSelector
-import file.showFolderSelector
+import file.FileSelectorType
 import model.Exterior
 import model.StoreType
 import org.tool.kit.BuildConfig
@@ -33,23 +42,22 @@ import java.io.File
 @Composable
 fun SetUp(viewModel: MainViewModel) {
     val aaptFile = File(viewModel.aapt)
-    val keytoolFile = File(viewModel.keytool)
-    val isAaptError =
-        viewModel.aapt.isNotBlank() && !aaptFile.isFile && (!aaptFile.canExecute() || aaptFile.isDirectory)
-    val keytoolError =
-        viewModel.keytool.isNotBlank() && !keytoolFile.isFile && (!keytoolFile.canExecute() || keytoolFile.isDirectory)
+//    val keytoolFile = File(viewModel.keytool)
+    val aaptError = viewModel.aapt.isNotBlank() && !aaptFile.isFile && (!aaptFile.canExecute() || aaptFile.isDirectory)
+//    val keytoolError =
+//        viewModel.keytool.isNotBlank() && !keytoolFile.isFile && (!keytoolFile.canExecute() || keytoolFile.isDirectory)
     val signerSuffixError = viewModel.signerSuffix.isBlank()
     val outPutError = viewModel.outputPath.isNotBlank() && !File(viewModel.outputPath).isDirectory
     Box(modifier = Modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp)) {
         LazyColumn {
-            item { ApkInformation(viewModel, isAaptError) }
+            item { ApkInformation(viewModel, aaptError) }
             item {
                 Spacer(Modifier.size(16.dp))
                 ApkSignature(viewModel, signerSuffixError)
             }
             item {
                 Spacer(Modifier.size(16.dp))
-                KeyStore(viewModel, keytoolError)
+                KeyStore(viewModel)
             }
             item {
                 Spacer(Modifier.size(16.dp))
@@ -63,9 +71,12 @@ fun SetUp(viewModel: MainViewModel) {
     }
 }
 
+/**
+ * APK信息设置页
+ */
 @Composable
 private fun ApkInformation(
-    viewModel: MainViewModel, isAaptError: Boolean
+    viewModel: MainViewModel, aaptError: Boolean
 ) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
@@ -76,37 +87,12 @@ private fun ApkInformation(
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium
             )
-            var showFilePickerApk by remember { mutableStateOf(false) }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
-                    value = viewModel.aapt,
-                    onValueChange = { path ->
-                        viewModel.updateAaptPath(path)
-                    },
-                    label = { Text("AAPT可执行文件", style = MaterialTheme.typography.labelLarge) },
-                    singleLine = true,
-                    isError = isAaptError
-                )
-                SmallFloatingActionButton(onClick = {
-                    if (isWindows) {
-                        showFilePickerApk = true
-                    } else {
-                        showExecuteSelector { path ->
-                            viewModel.updateAaptPath(path)
-                        }
-                    }
-                }) {
-                    Icon(Icons.Rounded.FolderOpen, "选择文件")
-                }
-                Spacer(Modifier.size(4.dp))
-                SmallFloatingActionButton(onClick = { viewModel.useInternalAaptPath() }) {
-                    Icon(Icons.Rounded.Restore, "重置")
-                }
-            }
+            FileInputByReset(value = viewModel.aapt,
+                label = "AAPT可执行文件",
+                isError = aaptError,
+                FileSelectorType.EXECUTE,
+                onValueChange = { path -> viewModel.updateAaptPath(path) },
+                onResetClick = { viewModel.useInternalAaptPath() })
             if (isWindows) {
                 Text(
                     "AAPT可执行文件： 一般位于/Android Studio SDK 安装目录/sdk/build-tools/版本号/aapt",
@@ -120,20 +106,13 @@ private fun ApkInformation(
                     style = MaterialTheme.typography.labelSmall
                 )
             }
-            if (isWindows) {
-                FilePicker(
-                    show = showFilePickerApk, fileExtensions = listOf("exe")
-                ) { platformFile ->
-                    showFilePickerApk = false
-                    if (platformFile?.path?.isNotBlank() == true && File(platformFile.path).canExecute()) {
-                        viewModel.updateAaptPath(platformFile.path)
-                    }
-                }
-            }
         }
     }
 }
 
+/**
+ * APK签名设置页
+ */
 @Composable
 private fun ApkSignature(
     viewModel: MainViewModel, signerSuffixError: Boolean
@@ -147,16 +126,12 @@ private fun ApkSignature(
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium
             )
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 72.dp, top = 20.dp, bottom = 6.dp),
-                value = viewModel.signerSuffix,
-                onValueChange = { signerSuffix ->
-                    viewModel.updateSignerSuffix(signerSuffix)
-                },
-                label = { Text("签名后缀", style = MaterialTheme.typography.labelLarge) },
+            Spacer(Modifier.size(20.dp))
+            StringInput(value = viewModel.signerSuffix,
+                label = "签名后缀",
                 isError = signerSuffixError,
-                singleLine = true
-            )
+                onValueChange = { suffix -> viewModel.updateSignerSuffix(suffix) })
+            Spacer(Modifier.size(3.dp))
             Text(
                 "签名后缀： Apk签名后输出名称（比如：输入Apk名称为apk_unsign.apk，则输入Apk名称为apk_unsign${viewModel.signerSuffix}.apk）",
                 modifier = Modifier.padding(horizontal = 24.dp),
@@ -198,8 +173,11 @@ private fun ApkSignature(
     }
 }
 
+/**
+ * 签名生成设置页
+ */
 @Composable
-fun KeyStore(viewModel: MainViewModel, keytoolError: Boolean) {
+private fun KeyStore(viewModel: MainViewModel) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -209,56 +187,47 @@ fun KeyStore(viewModel: MainViewModel, keytoolError: Boolean) {
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium
             )
-            var showFilePickerApk by remember { mutableStateOf(false) }
+            Spacer(Modifier.size(6.dp))
+//            FileInput(
+//                value = viewModel.keytool, label = "Keytool可执行文件", isError = keytoolError, FileSelectorType.EXECUTE
+//            ) { path ->
+//                viewModel.updateKeytoolPath(path)
+//            }
+//            Spacer(Modifier.size(6.dp))
+//            if (isWindows) {
+//                Text(
+//                    "Keytool可执行文件： 一般位于/JDK 安装目录/bin/keytool",
+//                    modifier = Modifier.padding(horizontal = 24.dp),
+//                    style = MaterialTheme.typography.labelSmall
+//                )
+//            } else {
+//                Text(
+//                    "Keytool可执行文件： 一般位于/JDK 安装目录/Contents/Home/bin/keytool",
+//                    modifier = Modifier.padding(horizontal = 24.dp),
+//                    style = MaterialTheme.typography.labelSmall
+//                )
+//            }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
-                    value = viewModel.keytool,
-                    onValueChange = { path ->
-                        viewModel.updateKeytoolPath(path)
-                    },
-                    label = {
-                        Text(
-                            "Keytool可执行文件", style = MaterialTheme.typography.labelLarge
-                        )
-                    },
-                    singleLine = true,
-                    isError = keytoolError
-                )
-                SmallFloatingActionButton(onClick = {
-                    if (isWindows) {
-                        showFilePickerApk = true
-                    } else {
-                        showExecuteSelector { path ->
-                            viewModel.updateKeytoolPath(path)
-                        }
-                    }
-                }) {
-                    Icon(Icons.Rounded.FolderOpen, "选择文件")
-                }
-            }
-            if (isWindows) {
-                Text(
-                    "Keytool可执行文件： 一般位于/JDK 安装目录/bin/keytool",
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    style = MaterialTheme.typography.labelSmall
-                )
-            } else {
-                Text(
-                    "Keytool可执行文件： 一般位于/JDK 安装目录/Contents/Home/bin/keytool",
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 6.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("目标密钥类型", style = MaterialTheme.typography.bodyLarge)
+                }
+                Text(StoreType.JKS.value, style = MaterialTheme.typography.titleSmall)
+                Switch(
+                    checked = viewModel.destStoreType == StoreType.PKCS12.value,
+                    onCheckedChange = { viewModel.updateDestStoreType(if (it) StoreType.PKCS12 else StoreType.JKS) },
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+                Text(StoreType.PKCS12.value, style = MaterialTheme.typography.titleSmall)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("目标密钥大小", style = MaterialTheme.typography.bodyLarge)
                 }
                 Text(StoreType.JKS.value, style = MaterialTheme.typography.titleSmall)
                 Switch(
@@ -278,16 +247,6 @@ fun KeyStore(viewModel: MainViewModel, keytoolError: Boolean) {
                 style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier.padding(start = 24.dp, end = 16.dp)
             )
-            if (isWindows) {
-                FilePicker(
-                    show = showFilePickerApk, fileExtensions = listOf("exe")
-                ) { platformFile ->
-                    showFilePickerApk = false
-                    if (platformFile?.path?.isNotBlank() == true && File(platformFile.path).canExecute()) {
-                        viewModel.updateKeytoolPath(platformFile.path)
-                    }
-                }
-            }
         }
     }
 }
@@ -305,50 +264,23 @@ private fun Conventional(
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium
             )
-            var showDirPicker by remember { mutableStateOf(false) }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                OutlinedTextField(
-                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
-                    value = viewModel.outputPath,
-                    onValueChange = { path ->
-                        viewModel.updateOutputPath(path)
-                    },
-                    label = { Text("默认输出路径", style = MaterialTheme.typography.labelLarge) },
-                    singleLine = true,
-                    isError = outPutError
-                )
-                SmallFloatingActionButton(onClick = {
-                    if (isWindows) {
-                        showDirPicker = true
-                    } else {
-                        showFolderSelector { path ->
-                            viewModel.updateOutputPath(path)
-                        }
-                    }
-                }) {
-                    Icon(Icons.Rounded.FolderOpen, "选择文件夹")
-                }
-            }
-            if (isWindows) {
-                DirectoryPicker(showDirPicker) { path ->
-                    showDirPicker = false
-                    if (path?.isNotBlank() == true) {
-                        viewModel.updateOutputPath(path)
-                    }
-                }
-            }
             Spacer(Modifier.size(12.dp))
+            FolderInput(value = viewModel.outputPath,
+                label = "默认输出路径",
+                isError = outPutError,
+                onValueChange = { path -> viewModel.updateOutputPath(path) })
+            Spacer(Modifier.size(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     "外观", modifier = Modifier.padding(start = 24.dp), style = MaterialTheme.typography.bodyLarge
                 )
-                Row(modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)
+                ) {
                     val modeList = listOf(Exterior.AutoMode, Exterior.LightMode, Exterior.DarkMode)
                     modeList.forEach { exterior ->
-                        ElevatedFilterChip(modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                        ElevatedFilterChip(
+                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
                             selected = viewModel.darkMode == exterior.mode,
                             onClick = { viewModel.updateDarkMode(exterior.mode) },
                             label = {

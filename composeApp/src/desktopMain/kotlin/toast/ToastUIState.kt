@@ -1,35 +1,18 @@
 package toast
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.*
 import androidx.compose.animation.core.updateTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.MotionDurationScale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.AccessibilityManager
 import androidx.compose.ui.platform.LocalAccessibilityManager
-import kotlinx.coroutines.CancellableContinuation
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.supervisorScope
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.coroutines.CoroutineContext
@@ -45,38 +28,43 @@ class ToastUIState {
 
     suspend fun show(
         toastModel: ToastModel
-    ): Unit = mutex.withLock {
-        try {
-            currentData?.dismiss()
-            return suspendCancellableCoroutine { cont ->
-                currentData = ToastDataImpl(
-                    toastModel.message,
-                    null,
-                    cont,
-                    toastModel.type
-                )
+    ) {
+        currentData?.dismiss()
+        mutex.withLock {
+            try {
+                suspendCancellableCoroutine { cont ->
+                    currentData = ToastDataImpl(
+                        toastModel.message,
+                        null,
+                        cont,
+                        toastModel.type
+                    )
+                }
+            } finally {
+                currentData = null
             }
-        } finally {
-            currentData = null
         }
     }
 
     suspend fun show(
         toastModel: ToastModel,
         timeout: Long
-    ): Unit = mutex.withLock {
-        try {
-            return suspendCancellableCoroutine { cont ->
-                currentData = ToastDataImpl(
-                    toastModel.message,
-                    null,
-                    cont,
-                    toastModel.type,
-                    timeout
-                )
+    ) {
+        currentData?.dismiss()
+        mutex.withLock {
+            try {
+                return suspendCancellableCoroutine { cont ->
+                    currentData = ToastDataImpl(
+                        toastModel.message,
+                        null,
+                        cont,
+                        toastModel.type,
+                        timeout
+                    )
+                }
+            } finally {
+                currentData = null
             }
-        } finally {
-            currentData = null
         }
     }
 

@@ -1,11 +1,21 @@
 package ui
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,17 +25,41 @@ import androidx.compose.material.icons.automirrored.rounded.Subject
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SentimentDissatisfied
 import androidx.compose.material.icons.outlined.SentimentVeryDissatisfied
-import androidx.compose.material.icons.rounded.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.material.icons.rounded.Password
+import androidx.compose.material.icons.rounded.Public
+import androidx.compose.material.icons.rounded.QueryBuilder
+import androidx.compose.material.icons.rounded.Restore
+import androidx.compose.material.icons.rounded.SentimentSatisfied
+import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.DragData
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.onExternalDrag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.darkrockstudios.libraries.mpfilepicker.FilePicker
-import file.showFileSelector
+import file.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import model.Verifier
@@ -34,7 +68,8 @@ import toast.ToastModel
 import toast.ToastUIState
 import utils.LottieAnimation
 import utils.copy
-import utils.isWindows
+import utils.isApk
+import utils.isKey
 import vm.MainViewModel
 import vm.UIState
 import java.io.File
@@ -62,7 +97,7 @@ fun SignatureInformation(
     }
     SignatureList(viewModel, toastState, scope)
     SignatureBox(viewModel, signaturePath, scope)
-    SignatureLoading(viewModel, scope)
+    LoadingAnimate(viewModel.verifierState == UIState.Loading, scope)
     SignatureDialog(viewModel, signaturePath, toastState, scope)
 }
 
@@ -87,65 +122,64 @@ private fun SignatureBox(
     viewModel: MainViewModel, signaturePath: MutableState<String>, scope: CoroutineScope
 ) {
     var dragging by remember { mutableStateOf(false) }
-    AnimatedVisibility(
-        visible = dragging,
-        enter = fadeIn() + slideIn(
-            tween(
-                durationMillis = 400, easing = LinearOutSlowInEasing
-            )
-        ) { fullSize -> IntOffset(fullSize.width, fullSize.height) },
-        exit = slideOut(
-            tween(
-                durationMillis = 400, easing = FastOutLinearInEasing
-            )
-        ) { fullSize -> IntOffset(fullSize.width, fullSize.height) } + fadeOut(),
+    UploadAnimate(dragging, scope)
+    Box(
+        modifier = Modifier.fillMaxSize().padding(6.dp)
+            .onExternalDrag(onDragStart = { dragging = true }, onDragExit = { dragging = false }, onDrop = { state ->
+                val dragData = state.dragData
+                if (dragData is DragData.FilesList) {
+                    dragData.readFiles().first().let {
+                        if (it.isApk) {
+                            val path = File(URI.create(it)).path
+                            viewModel.apkVerifier(path)
+                        } else if (it.isKey) {
+                            val path = File(URI.create(it)).path
+                            signaturePath.value = path
+                        } else {
+
+                        }
+                    }
+                }
+                dragging = false
+            }), contentAlignment = Alignment.TopCenter
     ) {
-        Card(
-            modifier = Modifier.fillMaxSize(), colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.background,
-            )
-        ) {
-            LottieAnimation(scope, "files/upload.json")
-        }
-    }
-    Box(modifier = Modifier.padding(6.dp)
-        .onExternalDrag(onDragStart = { dragging = true }, onDragExit = { dragging = false }, onDrop = { state ->
-            val dragData = state.dragData
-            if (dragData is DragData.FilesList) {
-                dragData.readFiles().first().let {
-                    if (it.endsWith(".apk")) {
-                        val path = File(URI.create(it)).path
-                        viewModel.apkVerifier(path)
-                    } else if (it.endsWith(".jks") || it.endsWith(".keystore")) {
-                        val path = File(URI.create(it)).path
-                        signaturePath.value = path
+        Row(modifier = Modifier.align(Alignment.BottomEnd)) {
+            AnimatedVisibility(
+                visible = viewModel.verifierState is UIState.Success, modifier = Modifier.padding(end = 12.dp)
+            ) {
+                var rotateValue by remember { mutableStateOf(0f) }
+                val rotate: Float by animateFloatAsState(
+                    targetValue = rotateValue,
+                    animationSpec = tween(durationMillis = 400, easing = LinearEasing)
+                )
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        rotateValue -= 360
+                        viewModel.changeSeparatorSign()
+                    },
+                    icon = { Icon(Icons.Rounded.Sync, "切换间隔符号", modifier = Modifier.rotate(rotate)) },
+                    text = { Text("切换间隔字符") })
+            }
+            AnimatedVisibility(
+                visible = viewModel.verifierState != UIState.Loading
+            ) {
+                FileButton(
+                    value = if (dragging) {
+                        "愣着干嘛，还不松手"
                     } else {
+                        "点击选择或拖拽上传(APK/签名)文件"
+                    },
+                    expanded = viewModel.verifierState !is UIState.Success,
+                    FileSelectorType.KEY,
+                    FileSelectorType.APK
+                ) { path ->
+                    if (path.isApk) {
+                        viewModel.apkVerifier(path)
+                    } else if (path.isKey) {
+                        signaturePath.value = path
                     }
                 }
             }
-            dragging = false
-        }), contentAlignment = Alignment.TopCenter
-    ) {
-        SignatureFloatingButton(viewModel, dragging, signaturePath)
-    }
-}
-
-/**
- * Loading动画
- */
-@Composable
-private fun SignatureLoading(
-    viewModel: MainViewModel, scope: CoroutineScope
-) {
-    AnimatedVisibility(
-        visible = viewModel.verifierState == UIState.Loading,
-        enter = fadeIn() + expandHorizontally(),
-        exit = scaleOut() + fadeOut(),
-    ) {
-        Box(
-            modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
-        ) {
-            LottieAnimation(scope, "files/lottie_loading.json")
         }
     }
 }
@@ -201,71 +235,6 @@ private fun SignatureList(
 }
 
 /**
- * 选择文件按钮
- */
-@Composable
-private fun SignatureFloatingButton(
-    viewModel: MainViewModel, dragging: Boolean, signaturePath: MutableState<String>
-) {
-    var showFilePickerApk by remember { mutableStateOf(false) }
-    Box(Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 12.dp)
-        ) {
-            AnimatedVisibility(
-                visible = viewModel.verifierState is UIState.Success, modifier = Modifier.padding(end = 12.dp)
-            ) {
-                ExtendedFloatingActionButton(onClick = {
-                    viewModel.changeSeparatorSign()
-                }, icon = { Icon(Icons.Rounded.Sync, "切换间隔符号") }, text = {
-                    Text("切换间隔符号")
-                })
-            }
-            AnimatedVisibility(
-                visible = viewModel.verifierState != UIState.Loading
-            ) {
-                ExtendedFloatingActionButton(onClick = {
-                    if (isWindows) {
-                        showFilePickerApk = true
-                    } else {
-                        showFileSelector(isAll = true) { path ->
-                            if (path.endsWith(".apk")) {
-                                viewModel.apkVerifier(path)
-                            } else if (path.endsWith(".jks") || path.endsWith(".keystore")) {
-                                signaturePath.value = path
-                            }
-                        }
-                    }
-                }, icon = { Icon(Icons.Rounded.DriveFolderUpload, "准备选择文件") }, text = {
-                    Text(
-                        if (dragging) {
-                            "愣着干嘛，还不松手"
-                        } else {
-                            "点击选择或拖拽上传(APK/签名)文件"
-                        }
-                    )
-                }, expanded = viewModel.verifierState !is UIState.Success)
-            }
-        }
-    }
-    if (isWindows) {
-        FilePicker(
-            show = showFilePickerApk, fileExtensions = listOf("apk")
-        ) { platformFile ->
-            showFilePickerApk = false
-            if (platformFile?.path?.isNotBlank() == true && platformFile.path.endsWith(".apk")) {
-                viewModel.apkVerifier(platformFile.path)
-            } else if (platformFile?.path?.isNotBlank() == true && (platformFile.path.endsWith(".jks") || platformFile.path.endsWith(
-                    ".keystore"
-                ))
-            ) {
-                signaturePath.value = platformFile.path
-            }
-        }
-    }
-}
-
-/**
  * 签名验证弹窗
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -280,11 +249,12 @@ private fun SignatureDialog(
         AlertDialog(icon = {
             Icon(Icons.Rounded.Password, contentDescription = "Password")
         }, title = {
-            Text(text = "请输入签名密码")
+            Text(text = "请输入密钥密码")
         }, text = {
             var expanded by remember { mutableStateOf(false) }
             Column {
-                OutlinedTextField(modifier = Modifier.padding(vertical = 4.dp),
+                OutlinedTextField(
+                    modifier = Modifier.padding(vertical = 4.dp),
                     value = password.value,
                     onValueChange = { value ->
                         password.value = value
@@ -295,7 +265,7 @@ private fun SignatureDialog(
                             ""
                         }
                     },
-                    label = { Text("签名密码", style = MaterialTheme.typography.labelLarge) },
+                    label = { Text("密钥密码", style = MaterialTheme.typography.labelLarge) },
                     isError = alisa.isBlank(),
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
@@ -304,7 +274,8 @@ private fun SignatureDialog(
                 ExposedDropdownMenuBox(modifier = Modifier.padding(vertical = 6.dp),
                     expanded = expanded,
                     onExpandedChange = { expanded = it }) {
-                    OutlinedTextField(modifier = Modifier.menuAnchor(),
+                    OutlinedTextField(
+                        modifier = Modifier.menuAnchor(),
                         value = alisa,
                         readOnly = true,
                         onValueChange = { },
@@ -341,7 +312,7 @@ private fun SignatureDialog(
                     signaturePath.value = ""
                 } else {
                     scope.launch {
-                        toastState.show(ToastModel("签名密码错误", ToastModel.Type.Error))
+                        toastState.show(ToastModel("密钥密码错误", ToastModel.Type.Error))
                     }
                 }
             }) {

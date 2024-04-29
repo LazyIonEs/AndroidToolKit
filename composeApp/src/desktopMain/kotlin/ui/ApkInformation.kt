@@ -1,22 +1,19 @@
 package ui
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.DriveFolderUpload
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.darkrockstudios.libraries.mpfilepicker.FilePicker
-import file.showFileSelector
+import file.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import model.ApkInformation
@@ -25,7 +22,7 @@ import toast.ToastUIState
 import utils.LottieAnimation
 import utils.copy
 import utils.formatFileSize
-import utils.isWindows
+import utils.isApk
 import vm.MainViewModel
 import vm.UIState
 import java.io.File
@@ -53,7 +50,7 @@ fun ApkInformation(viewModel: MainViewModel, toastState: ToastUIState, scope: Co
         }
     }
     ApkInformationBox(viewModel, toastState, scope)
-    ApkLoadingBox(viewModel, scope)
+    LoadingAnimate(viewModel.apkInformationState == UIState.Loading, scope)
     ApkDraggingBox(viewModel, scope)
 }
 
@@ -61,34 +58,14 @@ fun ApkInformation(viewModel: MainViewModel, toastState: ToastUIState, scope: Co
 @Composable
 private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
     var dragging by remember { mutableStateOf(false) }
-    AnimatedVisibility(
-        visible = dragging,
-        enter = fadeIn() + slideIn(
-            tween(
-                durationMillis = 400, easing = LinearOutSlowInEasing
-            )
-        ) { fullSize -> IntOffset(fullSize.width, fullSize.height) },
-        exit = slideOut(
-            tween(
-                durationMillis = 400, easing = FastOutLinearInEasing
-            )
-        ) { fullSize -> IntOffset(fullSize.width, fullSize.height) } + fadeOut(),
-    ) {
-        Card(
-            modifier = Modifier.fillMaxSize(), colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.background,
-            )
-        ) {
-            LottieAnimation(scope, "files/upload.json")
-        }
-    }
+    UploadAnimate(dragging, scope)
     Box(
-        modifier = Modifier.padding(6.dp)
+        modifier = Modifier.fillMaxSize().padding(6.dp)
             .onExternalDrag(onDragStart = { dragging = true }, onDragExit = { dragging = false }, onDrop = { state ->
                 val dragData = state.dragData
                 if (dragData is DragData.FilesList) {
                     dragData.readFiles().first().let {
-                        if (it.endsWith(".apk")) {
+                        if (it.isApk) {
                             val path = File(URI.create(it)).path
                             viewModel.apkInformation(path)
                         }
@@ -97,63 +74,18 @@ private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
                 dragging = false
             }), contentAlignment = Alignment.TopCenter
     ) {
-        ApkFloatingButton(viewModel, dragging)
-    }
-}
-
-@Composable
-fun ApkLoadingBox(viewModel: MainViewModel, scope: CoroutineScope) {
-    AnimatedVisibility(
-        visible = viewModel.apkInformationState == UIState.Loading,
-        enter = fadeIn() + expandHorizontally(),
-        exit = scaleOut() + fadeOut(),
-    ) {
         Box(
-            modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
+            modifier = Modifier.align(Alignment.BottomEnd)
         ) {
-            LottieAnimation(scope, "files/lottie_loading.json")
-        }
-    }
-}
-
-/**
- * 选择文件按钮
- */
-@Composable
-private fun ApkFloatingButton(viewModel: MainViewModel, dragging: Boolean) {
-    var showFilePickerApk by remember { mutableStateOf(false) }
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        Box(
-            modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 12.dp)
-        ) {
-            ExtendedFloatingActionButton(onClick = {
-                if (isWindows) {
-                    showFilePickerApk = true
+            FileButton(
+                value = if (dragging) {
+                    "愣着干嘛，还不松手"
                 } else {
-                    showFileSelector { path ->
-                        viewModel.apkInformation(path)
-                    }
-                }
-            }, icon = { Icon(Icons.Rounded.DriveFolderUpload, "准备选择文件") }, text = {
-                Text(
-                    if (dragging) {
-                        "愣着干嘛，还不松手"
-                    } else {
-                        "点击选择或拖拽上传APK"
-                    }
-                )
-            }, expanded = viewModel.apkInformationState == UIState.WAIT)
-        }
-    }
-    if (isWindows) {
-        FilePicker(
-            show = showFilePickerApk, fileExtensions = listOf("apk")
-        ) { platformFile ->
-            showFilePickerApk = false
-            if (platformFile?.path?.isNotBlank() == true && platformFile.path.endsWith(".apk")) {
-                viewModel.apkInformation(platformFile.path)
+                    "点击选择或拖拽上传APK"
+                }, expanded = viewModel.apkInformationState == UIState.WAIT,
+                FileSelectorType.APK
+            ) { path ->
+                viewModel.apkInformation(path)
             }
         }
     }
@@ -225,7 +157,7 @@ private fun ApkInformationBox(
 }
 
 @Composable
-fun AppInfoItem(title: String, value: String, toastState: ToastUIState, scope: CoroutineScope) {
+private fun AppInfoItem(title: String, value: String, toastState: ToastUIState, scope: CoroutineScope) {
     Card(modifier = Modifier.padding(horizontal = 12.dp).height(36.dp), onClick = {
         scope.launch {
             copy(value, toastState)
@@ -249,7 +181,7 @@ fun AppInfoItem(title: String, value: String, toastState: ToastUIState, scope: C
 }
 
 @Composable
-fun PermissionsList(permissions: ArrayList<String>?) {
+private fun PermissionsList(permissions: ArrayList<String>?) {
     permissions?.let {
         Column(
             modifier = Modifier.padding(horizontal = 12.dp),
