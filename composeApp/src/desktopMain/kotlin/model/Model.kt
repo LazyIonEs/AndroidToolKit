@@ -174,6 +174,10 @@ enum class StoreType(val value: String) {
     JKS("JKS"), PKCS12("PKCS12")
 }
 
+enum class StoreSize(val value: Int) {
+    SIZE_1024(1024), SIZE_2048(2048)
+}
+
 /**
  * 外观
  */

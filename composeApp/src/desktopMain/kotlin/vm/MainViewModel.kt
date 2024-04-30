@@ -25,6 +25,7 @@ import model.KeyStoreEnum
 import model.KeyStoreInfo
 import model.SignatureEnum
 import model.SignaturePolicy
+import model.StoreSize
 import model.StoreType
 import model.Verifier
 import model.VerifierResult
@@ -88,6 +89,10 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
     // 目标密钥类型
     var destStoreType by mutableStateOf(dataBase.getDestStoreType())
+        private set
+
+    // 目标密钥大小
+    var destStoreSize by mutableStateOf(dataBase.getDestStoreSize())
         private set
 
     // 主页选中下标
@@ -355,17 +360,16 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     fun createSignature() = launch(Dispatchers.IO) {
         try {
             keyStoreInfoUIState = UIState.Loading
-            val isJKSType = destStoreType == StoreType.JKS.value
             val outputFile = File(keyStoreInfoState.keyStorePath, keyStoreInfoState.keyStoreName)
             val result = KeystoreHelper.createNewStore(
-                if (isJKSType) "JKS" else "PKCS12",
+                destStoreType,
                 outputFile,
                 keyStoreInfoState.keyStorePassword,
                 keyStoreInfoState.keyStoreAlisaPassword,
                 keyStoreInfoState.keyStoreAlisa,
                 "CN=${keyStoreInfoState.authorName},OU=${keyStoreInfoState.organizationalUnit},O=${keyStoreInfoState.organizational},L=${keyStoreInfoState.city},S=${keyStoreInfoState.province}, C=${keyStoreInfoState.countryCode}",
                 keyStoreInfoState.validityPeriod.toInt(),
-                1024
+                destStoreSize.toInt()
             )
             keyStoreInfoUIState = if (result) {
                 UIState.Success("签名制作完成")
@@ -732,6 +736,15 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     fun updateDestStoreType(type: StoreType) {
         dataBase.updateDestStoreType(type.value)
         destStoreType = dataBase.getDestStoreType()
+    }
+
+    /**
+     * 更新目标密钥大小
+     * @param type 1024 or 2048
+     */
+    fun updateDestStoreSize(type: StoreSize) {
+        dataBase.updateDestStoreSize(type.value.toLong())
+        destStoreSize = dataBase.getDestStoreSize()
     }
 }
 

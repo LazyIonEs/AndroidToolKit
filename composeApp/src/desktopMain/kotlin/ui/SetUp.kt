@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import file.FileSelectorType
 import model.Exterior
+import model.StoreSize
 import model.StoreType
 import org.tool.kit.BuildConfig
 import utils.isWindows
@@ -188,6 +189,7 @@ private fun KeyStore(viewModel: MainViewModel) {
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.size(6.dp))
+            // 注释的代码会在后面版本中删除
 //            FileInput(
 //                value = viewModel.keytool, label = "Keytool可执行文件", isError = keytoolError, FileSelectorType.EXECUTE
 //            ) { path ->
@@ -211,42 +213,78 @@ private fun KeyStore(viewModel: MainViewModel) {
                 modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column(modifier = Modifier.weight(2.5f)) {
                     Text("目标密钥类型", style = MaterialTheme.typography.bodyLarge)
+                    if (viewModel.destStoreType == StoreType.JKS.value) {
+                        Text(
+                            text = "注意：JKS 密钥库使用专用格式。建议使用行业标准格式 PKCS12。",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
                 }
-                Text(StoreType.JKS.value, style = MaterialTheme.typography.titleSmall)
-                Switch(
-                    checked = viewModel.destStoreType == StoreType.PKCS12.value,
-                    onCheckedChange = { viewModel.updateDestStoreType(if (it) StoreType.PKCS12 else StoreType.JKS) },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                Text(StoreType.PKCS12.value, style = MaterialTheme.typography.titleSmall)
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        StoreType.JKS.value,
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center
+                    )
+                    Switch(
+                        checked = viewModel.destStoreType == StoreType.PKCS12.value,
+                        onCheckedChange = { viewModel.updateDestStoreType(if (it) StoreType.PKCS12 else StoreType.JKS) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        StoreType.PKCS12.value,
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column(modifier = Modifier.weight(2.5f)) {
                     Text("目标密钥大小", style = MaterialTheme.typography.bodyLarge)
+                    if (viewModel.destStoreSize.toInt() == StoreSize.SIZE_1024.value) {
+                        Text(
+                            text = "注意：生成的证书 使用的 1024 位 RSA 密钥 被视为存在安全风险。此密钥大小将在未来的更新中被禁用。",
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                    }
                 }
-                Text(StoreType.JKS.value, style = MaterialTheme.typography.titleSmall)
-                Switch(
-                    checked = viewModel.destStoreType == StoreType.PKCS12.value,
-                    onCheckedChange = { viewModel.updateDestStoreType(if (it) StoreType.PKCS12 else StoreType.JKS) },
-                    modifier = Modifier.padding(horizontal = 12.dp)
-                )
-                Text(StoreType.PKCS12.value, style = MaterialTheme.typography.titleSmall)
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        StoreSize.SIZE_1024.value.toString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center
+                    )
+                    Switch(
+                        checked = viewModel.destStoreSize.toInt() == StoreSize.SIZE_2048.value,
+                        onCheckedChange = { viewModel.updateDestStoreSize(if (it) StoreSize.SIZE_2048 else StoreSize.SIZE_1024) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        StoreSize.SIZE_2048.value.toString(),
+                        style = MaterialTheme.typography.titleSmall,
+                        modifier = Modifier.weight(1f),
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
-            Text(
-                text = if (viewModel.destStoreType == StoreType.JKS.value) {
-                    "注意：JKS 密钥库使用专用格式。使用的 1024 位 RSA 密钥 被视为存在安全风险。此密钥大小将在未来的更新中被禁用。建议使用行业标准格式 PKCS12。"
-                } else {
-                    "注意：PKCS12 密钥库使用专用格式。该类型不支持其他存储和密钥口令，会忽略用户指定的别名密码（-keypass）。别名密码将与密钥密码保持一致。"
-                },
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(start = 24.dp, end = 16.dp)
-            )
         }
     }
 }
@@ -279,8 +317,7 @@ private fun Conventional(
                 ) {
                     val modeList = listOf(Exterior.AutoMode, Exterior.LightMode, Exterior.DarkMode)
                     modeList.forEach { exterior ->
-                        ElevatedFilterChip(
-                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                        ElevatedFilterChip(modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
                             selected = viewModel.darkMode == exterior.mode,
                             onClick = { viewModel.updateDarkMode(exterior.mode) },
                             label = {

@@ -51,6 +51,10 @@ internal class DataBase {
         return dbQuery.getDestStoreType().executeAsOneOrNull() ?: "JKS"
     }
 
+    internal fun getDestStoreSize(): Long {
+        return dbQuery.getDestStoreSize().executeAsOneOrNull() ?: 1024
+    }
+
     internal fun updateAaptPath(aaptPath: String) {
         dbQuery.updateAaptPath(aaptPath)
     }
@@ -81,5 +85,9 @@ internal class DataBase {
 
     internal fun updateDestStoreType(destStoreType: String) {
         dbQuery.updateDestStoreType(destStoreType)
+    }
+
+    internal fun updateDestStoreSize(destStoreSize: Long) {
+        dbQuery.updateDestStoreSize(destStoreSize)
     }
 }
