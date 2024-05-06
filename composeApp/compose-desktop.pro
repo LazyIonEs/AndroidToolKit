@@ -6,7 +6,7 @@
 -keep class kotlinx.coroutines.internal.MainDispatcherFactory { *; }
 -keep class kotlinx.coroutines.swing.SwingDispatcherFactory { *; }
 
--keep class com.lazyiones.tools.** { *; }
+-keep class org.tool.kit.** { *; }
 
 -dontwarn kotlinx.coroutines.debug.*
 
