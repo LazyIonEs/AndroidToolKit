@@ -104,7 +104,7 @@ fun MainContentScreen(viewModel: MainViewModel) {
                     Page.APK_INFORMATION -> ApkInformation(viewModel, toastState, scope)
                     Page.APK_SIGNATURE -> ApkSignature(viewModel, toastState, scope)
                     Page.SIGNATURE_GENERATION -> SignatureGeneration(viewModel, toastState, scope)
-                    Page.JUNK_CODE -> JunkCode(viewModel, toastState, scope)
+//                    Page.JUNK_CODE -> JunkCode(viewModel, toastState, scope)
 //                    Page.ICON_GENERATION -> IconGeneration(viewModel)
                     Page.SET_UP -> SetUp(viewModel)
                 }
@@ -122,7 +122,7 @@ enum class Page (val title: StringResource, val icon: ImageVector) {
     APK_INFORMATION(Res.string.APK信息, Icons.Rounded.Android),
     APK_SIGNATURE(Res.string.APK签名, Icons.Rounded.Pin),
     SIGNATURE_GENERATION(Res.string.签名生成, Icons.Rounded.Key),
-    JUNK_CODE(Res.string.垃圾代码, Icons.Rounded.DonutLarge),
+//    JUNK_CODE(Res.string.垃圾代码, Icons.Rounded.DonutLarge),
 //    ICON_GENERATION(Res.string.图标生成, Icons.Rounded.PhotoSizeSelectActual),
     SET_UP(Res.string.设置, Icons.Rounded.Settings)
 }

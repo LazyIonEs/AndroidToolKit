@@ -36,6 +36,7 @@ import utils.extractIcon
 import utils.extractValue
 import utils.extractVersion
 import utils.formatFileSize
+import utils.getDownloadDirectory
 import utils.getVerifier
 import utils.isWindows
 import utils.resourcesDir
@@ -627,10 +628,25 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      */
     fun initInternal() {
         val resourcesDir = File(resourcesDir)
-        val aaptFile = if (isWindows) {
+        val oldAaptFile = if (isWindows) {
             resourcesDir.resolve("aapt.exe")
         } else {
             resourcesDir.resolve("aapt")
+        }
+        val aaptFile = if (isWindows) {
+            resourcesDir.resolve("aapt2.exe")
+        } else {
+            resourcesDir.resolve("aapt2")
+        }
+        // 当使用旧版AAPT时
+        if (this.aapt == oldAaptFile.absolutePath && !oldAaptFile.exists()) {
+            if (aaptFile.exists()) {
+                // 赋予可执行权限
+                if (!aaptFile.canExecute()) {
+                    aaptFile.setExecutable(true)
+                }
+                updateAaptPath(aaptFile.absolutePath)
+            }
         }
         if (aaptFile.exists()) {
             // 赋予可执行权限
@@ -639,6 +655,12 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             }
             dataBase.initInternal(aaptFile.absolutePath)
             this.aapt = dataBase.getAaptPath()
+        }
+        if (outputPath.isBlank()) {
+            val file = File(getDownloadDirectory())
+            if (file.exists()) {
+                updateOutputPath(file.absolutePath)
+            }
         }
     }
 
@@ -709,6 +731,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
         this.outputPath = dataBase.getOutputPath()
         apkSignatureState.outputPath = this.outputPath
         keyStoreInfoState.keyStorePath = this.outputPath
+        junkCodeInfoState.outputPath = this.outputPath
     }
 
     /**

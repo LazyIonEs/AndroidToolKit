@@ -237,3 +237,18 @@ private fun formatSizeByTypeWithDivisor(
     scale,
     if (sizeType == FileSizeType.SIZE_TYPE_B) RoundingMode.DOWN else RoundingMode.HALF_UP
 )
+
+/**
+ * 获取下载目录
+ */
+fun getDownloadDirectory(): String {
+    val osName = System.getProperty("os.name")
+    return when {
+        osName.contains("Windows") -> System.getProperty("user.home") + "\\Downloads"
+        osName.contains("Mac") -> System.getProperty("user.home") + "/Downloads"
+        else -> {
+            // Linux or other platforms
+            System.getProperty("user.home") + "/Downloads"
+        }
+    }
+}
