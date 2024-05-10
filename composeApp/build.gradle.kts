@@ -1,3 +1,4 @@
+import org.gradle.jvm.tasks.Jar
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -75,8 +76,14 @@ kotlin {
     }
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_17.majorVersion
+tasks {
+    withType<KotlinCompile> {
+        kotlinOptions.jvmTarget = JavaVersion.VERSION_17.majorVersion
+    }
+
+    withType<Jar> {
+        exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.EC")
+    }
 }
 
 compose.desktop {
@@ -128,6 +135,7 @@ compose.desktop {
         buildTypes.release.proguard {
             obfuscate.set(true)
             configurationFiles.from(project.file("compose-desktop.pro"))
+            isEnabled = false
         }
     }
 }
