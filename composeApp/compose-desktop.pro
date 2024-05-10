@@ -120,3 +120,5 @@
 -ignorewarnings
 
 -keep class org.ocpsoft.prettytime.i18n**
+
+-keepattributes Signature,LineNumberTable
