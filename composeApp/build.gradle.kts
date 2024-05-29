@@ -63,6 +63,7 @@ kotlin {
             implementation(libs.slf4j.simple)
         }
         desktopMain.dependencies {
+            implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
             implementation(compose.desktop.currentOs)
             implementation(libs.android.apksig)
             implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:0.7.9")
@@ -75,7 +76,6 @@ kotlin {
                 exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
                 exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
             }
-            implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
         }
     }
 }
