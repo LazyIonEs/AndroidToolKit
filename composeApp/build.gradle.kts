@@ -1,4 +1,3 @@
-import org.gradle.jvm.tasks.Jar
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -68,22 +67,21 @@ kotlin {
             implementation(libs.android.apksig)
             implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:0.7.9")
             implementation(libs.mpfilepicker)
-            implementation(libs.android.tools.sdk.common)
             implementation(libs.sqlDelight.driver)
             implementation(libs.commons.codec)
             implementation(libs.asm)
+            implementation("com.android.tools:sdk-common:31.4.1") {
+                exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
+                exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
+                exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
+            }
+            implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
         }
     }
 }
 
-tasks {
-    withType<KotlinCompile> {
-        kotlinOptions.jvmTarget = JavaVersion.VERSION_17.majorVersion
-    }
-
-    withType<Jar> {
-        exclude("META-INF/*.RSA", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.EC")
-    }
+tasks.withType<KotlinCompile> {
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_17.majorVersion
 }
 
 compose.desktop {
@@ -134,8 +132,9 @@ compose.desktop {
         }
         buildTypes.release.proguard {
             obfuscate.set(true)
+            optimize.set(true)
+            joinOutputJars.set(true)
             configurationFiles.from(project.file("compose-desktop.pro"))
-            isEnabled = false
         }
     }
 }
