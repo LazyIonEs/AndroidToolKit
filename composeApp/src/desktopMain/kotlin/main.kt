@@ -3,8 +3,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.window.*
-import org.jetbrains.compose.resources.ExperimentalResourceApi
+import androidx.compose.ui.window.ApplicationScope
+import androidx.compose.ui.window.MenuBar
+import androidx.compose.ui.window.MenuScope
+import androidx.compose.ui.window.Tray
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.application
 import org.jetbrains.compose.resources.painterResource
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.icon
@@ -23,13 +27,11 @@ fun main() = application {
     }
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun ApplicationScope.ApplicationTray(state: ApplicationState) {
     Tray(icon = painterResource(Res.drawable.icon), tooltip = "AndroidToolKit", menu = { ApplicationMenu(state) })
 }
 
-@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun Window(
     state: WindowState
