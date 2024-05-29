@@ -26,6 +26,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import org.tool.kit.composeapp.generated.resources.APK信息
+import org.tool.kit.composeapp.generated.resources.APK签名
+import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.签名信息
+import org.tool.kit.composeapp.generated.resources.签名生成
+import org.tool.kit.composeapp.generated.resources.设置
 import theme.AppTheme
 import toast.ToastUI
 import toast.ToastUIState
@@ -75,8 +83,8 @@ fun MainContentScreen(viewModel: MainViewModel) {
                 ) {
                     pages.forEachIndexed { _, page ->
                         NavigationRailItem(
-                            label = { Text(page.title) },
-                            icon = { Icon(page.icon, contentDescription = page.title) },
+                            label = { Text(stringResource(page.title)) },
+                            icon = { Icon(page.icon, contentDescription = stringResource(page.title)) },
                             selected = viewModel.uiPageIndex == page,
                             onClick = { viewModel.updateUiState(page) },
                             alwaysShowLabel = false,
@@ -103,12 +111,12 @@ fun MainContentScreen(viewModel: MainViewModel) {
     }
 }
 
-enum class Page(val title: String, val icon: ImageVector) {
-    SIGNATURE_INFORMATION("签名信息", Icons.Rounded.Description),
-    APK_INFORMATION("APK信息", Icons.Rounded.Android),
-    APK_SIGNATURE("APK签名", Icons.Rounded.Pin),
-    SIGNATURE_GENERATION("签名生成", Icons.Rounded.Key),
-//    JUNK_CODE("垃圾代码", Icons.Rounded.DonutLarge),
-//    ICON_GENERATION("图标生成", Icons.Rounded.PhotoSizeSelectActual),
-    SET_UP("设置", Icons.Rounded.Settings)
+enum class Page(val title: StringResource, val icon: ImageVector) {
+    SIGNATURE_INFORMATION(Res.string.签名信息, Icons.Rounded.Description),
+    APK_INFORMATION(Res.string.APK信息, Icons.Rounded.Android),
+    APK_SIGNATURE(Res.string.APK签名, Icons.Rounded.Pin),
+    SIGNATURE_GENERATION(Res.string.签名生成, Icons.Rounded.Key),
+    //    JUNK_CODE("垃圾代码", Icons.Rounded.DonutLarge),
+    //    ICON_GENERATION("图标生成", Icons.Rounded.PhotoSizeSelectActual),
+    SET_UP(Res.string.设置, Icons.Rounded.Settings)
 }
