@@ -7,9 +7,9 @@ env:
   TAG_VERSION: 1.4.3
 
 jobs:
-  create-win-x64-package:
-    runs-on: windows-latest
-    name: Create Windows x64 Package
+  create-linux-package:
+    runs-on: ubuntu-latest
+    name: Package Release Distribution For Linux
     steps:
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -19,7 +19,34 @@ jobs:
           architecture: x64
       - name: Fetch Sources
         uses: actions/checkout@v4
-      - name: Desktop App Package
+      - name: Package Release
+        run: ./gradlew packageReleaseDistributionForCurrentOS
+      - name: Prep build artifacts for release
+        run: |
+          set -e
+          mv  /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ env.TAG_VERSION }}.deb  /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ env.TAG_VERSION }}-linux.deb
+      - name: Draft Release
+        uses: ncipollo/release-action@v1
+        with:
+          draft: true
+          allowUpdates: true
+          tag: "v${{ env.TAG_VERSION }}"
+          artifacts: "composeApp/output/main-release/deb/*"
+          token: ${{ secrets.GH_TOKEN }}
+
+  create-win-x64-package:
+    runs-on: windows-latest
+    name: Package Release Distribution For Windows x64
+    steps:
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 17
+          architecture: x64
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+      - name: Package Release
         run: ./gradlew packageReleaseDistributionForCurrentOS
       - name: Prep build artifacts for release
         run: |
@@ -36,7 +63,7 @@ jobs:
 
   create-mac-x64-package:
     runs-on: macos-13
-    name: Create Mac x64 Package
+    name: Package Release Distribution For Mac x64
     steps:
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -46,7 +73,7 @@ jobs:
           architecture: x64
       - name: Fetch Sources
         uses: actions/checkout@v4
-      - name: Desktop App Package
+      - name: Package Release
         run: ./gradlew packageReleaseDistributionForCurrentOS
       - name: Prep build artifacts for release
         run: |
@@ -63,7 +90,7 @@ jobs:
 
   create-mac-arm64-package:
     runs-on: macos-14
-    name: Create Mac arm64 Package
+    name: Package Release Distribution For Mac arm64
     steps:
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -73,7 +100,7 @@ jobs:
           architecture: aarch64
       - name: Fetch Sources
         uses: actions/checkout@v4
-      - name: Desktop App Package
+      - name: Package Release
         run: ./gradlew packageReleaseDistributionForCurrentOS
       - name: Prep build artifacts for release
         run: |
