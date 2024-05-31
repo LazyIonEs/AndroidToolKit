@@ -97,9 +97,14 @@ fun <T> Array<out T>.checkFile(path: String?): Boolean {
     return false
 }
 
-val resourcesDir: String = System.getProperty("compose.application.resources.dir") ?: File(
-    File(System.getProperty("user.dir"), "resources"), appInternalResourcesDir
-).absolutePath
+val resourcesDir: String = System.getProperty("compose.application.resources.dir")
+    ?: File(System.getProperty("user.dir"), "resources").absolutePath
+
+val resourcesDirWithOs: String = System.getProperty("compose.application.resources.dir")
+    ?: File(File(System.getProperty("user.dir"), "resources"), appInternalResourcesDir).absolutePath
+
+val resourcesDirWithCommon: String = System.getProperty("compose.application.resources.dir")
+    ?: File(File(System.getProperty("user.dir"), "resources"), "common").absolutePath
 
 fun X509Certificate.getVerifier(version: Int): Verifier {
     val subject = this.subjectX500Principal.name

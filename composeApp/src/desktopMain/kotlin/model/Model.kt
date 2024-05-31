@@ -184,3 +184,8 @@ enum class StoreSize(val value: Int) {
 enum class Exterior(val title: String, val mode: Long) {
     AutoMode("跟随系统", 0), LightMode("浅色模式", 1), DarkMode("暗色模式", 2)
 }
+
+/**
+ * 未签名APK
+ */
+data class UnsignedApk(val title: String, val path: String)

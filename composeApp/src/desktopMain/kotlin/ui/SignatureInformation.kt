@@ -25,6 +25,7 @@ import androidx.compose.material.icons.automirrored.rounded.Subject
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SentimentDissatisfied
 import androidx.compose.material.icons.outlined.SentimentVeryDissatisfied
+import androidx.compose.material.icons.rounded.ContentCopy
 import androidx.compose.material.icons.rounded.Password
 import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.QueryBuilder
@@ -96,7 +97,7 @@ fun SignatureInformation(
         SignatureMain(scope)
     }
     SignatureList(viewModel, toastState, scope)
-    SignatureBox(viewModel, signaturePath, scope)
+    SignatureBox(viewModel, signaturePath, scope, toastState)
     LoadingAnimate(viewModel.verifierState == UIState.Loading, scope)
     SignatureDialog(viewModel, signaturePath, toastState, scope)
 }
@@ -119,7 +120,7 @@ private fun SignatureMain(scope: CoroutineScope) {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun SignatureBox(
-    viewModel: MainViewModel, signaturePath: MutableState<String>, scope: CoroutineScope
+    viewModel: MainViewModel, signaturePath: MutableState<String>, scope: CoroutineScope, toastState: ToastUIState
 ) {
     var dragging by remember { mutableStateOf(false) }
     UploadAnimate(dragging, scope)
@@ -159,6 +160,31 @@ private fun SignatureBox(
                     },
                     icon = { Icon(Icons.Rounded.Sync, "切换间隔符号", modifier = Modifier.rotate(rotate)) },
                     text = { Text("切换间隔字符") })
+            }
+            AnimatedVisibility(
+                visible = viewModel.verifierState is UIState.Success, modifier = Modifier.padding(end = 12.dp)
+            ) {
+                ExtendedFloatingActionButton(
+                    onClick = {
+                        ((viewModel.verifierState as UIState.Success).result as? VerifierResult)?.let { result ->
+                            if (result.isSuccess) {
+                                result.data.getOrNull(0)?.let { verifier ->
+                                    val stringBuilder = StringBuilder()
+                                    stringBuilder.append("MD5: ${verifier.md5}")
+                                    stringBuilder.append(System.lineSeparator())
+                                    stringBuilder.append("SHA1: ${verifier.sha1}")
+                                    stringBuilder.append(System.lineSeparator())
+                                    stringBuilder.append("SHA-256: ${verifier.sha256}")
+                                    scope.launch {
+                                        copy(stringBuilder.toString(), toastState)
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    expanded = false,
+                    icon = { Icon(Icons.Rounded.ContentCopy, "一键复制") },
+                    text = { Text("复制") })
             }
             AnimatedVisibility(
                 visible = viewModel.verifierState != UIState.Loading
@@ -290,7 +316,7 @@ private fun SignatureDialog(
                     ) {
                         options?.forEach { selectionOption ->
                             DropdownMenuItem(
-                                text = { Text(selectionOption) },
+                                text = { Text(text = selectionOption, style = MaterialTheme.typography.labelLarge) },
                                 onClick = {
                                     alisa = selectionOption
                                     expanded = false

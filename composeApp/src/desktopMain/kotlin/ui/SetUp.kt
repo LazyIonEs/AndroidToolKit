@@ -24,12 +24,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import file.FileSelectorType
 import model.Exterior
 import model.StoreSize
 import model.StoreType
 import org.tool.kit.BuildConfig
-import utils.isWindows
 import vm.MainViewModel
 import java.awt.Desktop
 import java.io.File
@@ -42,16 +40,14 @@ import java.io.File
  */
 @Composable
 fun SetUp(viewModel: MainViewModel) {
-    val aaptFile = File(viewModel.aapt)
-//    val keytoolFile = File(viewModel.keytool)
-    val aaptError = viewModel.aapt.isNotBlank() && !aaptFile.isFile && (!aaptFile.canExecute() || aaptFile.isDirectory)
-//    val keytoolError =
-//        viewModel.keytool.isNotBlank() && !keytoolFile.isFile && (!keytoolFile.canExecute() || keytoolFile.isDirectory)
     val signerSuffixError = viewModel.signerSuffix.isBlank()
     val outPutError = viewModel.outputPath.isNotBlank() && !File(viewModel.outputPath).isDirectory
     Box(modifier = Modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp)) {
         LazyColumn {
-            item { ApkInformation(viewModel, aaptError) }
+            item {
+                Spacer(Modifier.size(16.dp))
+                Conventional(viewModel, outPutError)
+            }
             item {
                 Spacer(Modifier.size(16.dp))
                 ApkSignature(viewModel, signerSuffixError)
@@ -62,50 +58,7 @@ fun SetUp(viewModel: MainViewModel) {
             }
             item {
                 Spacer(Modifier.size(16.dp))
-                Conventional(viewModel, outPutError)
-            }
-            item {
-                Spacer(Modifier.size(16.dp))
                 About()
-            }
-        }
-    }
-}
-
-/**
- * APK信息设置页
- */
-@Composable
-private fun ApkInformation(
-    viewModel: MainViewModel, aaptError: Boolean
-) {
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
-            Spacer(Modifier.size(4.dp))
-            Text(
-                "APK信息",
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.titleMedium
-            )
-            FileInputByReset(value = viewModel.aapt,
-                label = "AAPT可执行文件",
-                isError = aaptError,
-                FileSelectorType.EXECUTE,
-                onValueChange = { path -> viewModel.updateAaptPath(path) },
-                onResetClick = { viewModel.useInternalAaptPath() })
-            if (isWindows) {
-                Text(
-                    "AAPT可执行文件： 一般位于/Android Studio SDK 安装目录/sdk/build-tools/版本号/aapt",
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    style = MaterialTheme.typography.labelSmall
-                )
-            } else {
-                Text(
-                    "AAPT可执行文件： 一般位于/Users/用户名/Library/Android/sdk/build-tools/版本号/aapt",
-                    modifier = Modifier.padding(horizontal = 24.dp),
-                    style = MaterialTheme.typography.labelSmall
-                )
             }
         }
     }

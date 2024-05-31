@@ -38,8 +38,10 @@ import utils.extractVersion
 import utils.formatFileSize
 import utils.getDownloadDirectory
 import utils.getVerifier
+import utils.isMac
 import utils.isWindows
 import utils.resourcesDir
+import utils.resourcesDirWithOs
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -64,10 +66,6 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     var darkMode by mutableStateOf(dataBase.getDarkMode())
         private set
 
-    // aapt路径
-    var aapt by mutableStateOf(dataBase.getAaptPath())
-        private set
-
     // 删除标识
     var flagDelete by mutableStateOf(dataBase.getFlagDelete())
         private set
@@ -83,10 +81,6 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
     // 文件对齐标识
     var isAlignFileSize by mutableStateOf(dataBase.getIsAlignFileSize())
         private set
-
-//    // keytool路径
-//    var keytool by mutableStateOf(dataBase.getKeytoolPath())
-//        private set
 
     // 目标密钥类型
     var destStoreType by mutableStateOf(dataBase.getDestStoreType())
@@ -288,6 +282,16 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      */
     fun apkInformation(input: String) = launch(Dispatchers.IO) {
         runBlocking {
+            val aapt = File(resourcesDirWithOs, if (isWindows) {
+                "aapt2.exe"
+            } else if (isMac) {
+                "aapt2"
+            } else {
+                "aapt2"
+            })
+            if (!aapt.canExecute()) {
+                aapt.setExecutable(true)
+            }
             var process: Process? = null
             var inputStream: InputStream? = null
             var bufferedReader: BufferedReader? = null
@@ -298,11 +302,8 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                 supervisorScope {
                     launch {
                         apkInformationState = UIState.Loading
-                        if (aapt.isBlank()) {
-                            throw Exception("请先在设置页设置aapt路径")
-                        }
                         val builder = ProcessBuilder()
-                        process = builder.command(aapt, "dump", "badging", input).start()
+                        process = builder.command(aapt.absolutePath, "dump", "badging", input).start()
                         inputStream = process!!.inputStream
                         bufferedReader = BufferedReader(InputStreamReader(inputStream!!, "utf-8"))
                         var line: String?
@@ -524,7 +525,6 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
         junkCodeUIState = UIState.Loading
         try {
             val dir = resourcesDir
-            println(resourcesDir)
             val output = junkCodeInfoState.outputPath
             val appPackageName = junkCodeInfoState.packageName + "." + junkCodeInfoState.suffix
             val packageCount = junkCodeInfoState.packageCount.toInt()
@@ -627,72 +627,12 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      * 如果为空，填充内置路径
      */
     fun initInternal() {
-        val resourcesDir = File(resourcesDir)
-        val oldAaptFile = if (isWindows) {
-            resourcesDir.resolve("aapt.exe")
-        } else {
-            resourcesDir.resolve("aapt")
-        }
-        val aaptFile = if (isWindows) {
-            resourcesDir.resolve("aapt2.exe")
-        } else {
-            resourcesDir.resolve("aapt2")
-        }
-        // 当使用旧版AAPT时
-        if (this.aapt == oldAaptFile.absolutePath && !oldAaptFile.exists()) {
-            if (aaptFile.exists()) {
-                // 赋予可执行权限
-                if (!aaptFile.canExecute()) {
-                    aaptFile.setExecutable(true)
-                }
-                updateAaptPath(aaptFile.absolutePath)
-            }
-        }
-        if (aaptFile.exists()) {
-            // 赋予可执行权限
-            if (!aaptFile.canExecute()) {
-                aaptFile.setExecutable(true)
-            }
-            dataBase.initInternal(aaptFile.absolutePath)
-            this.aapt = dataBase.getAaptPath()
-        }
         if (outputPath.isBlank()) {
             val file = File(getDownloadDirectory())
             if (file.exists()) {
                 updateOutputPath(file.absolutePath)
             }
         }
-    }
-
-    /**
-     * 使用内置aapt
-     */
-    fun useInternalAaptPath() {
-        val resourcesDir = File(resourcesDir)
-        val aaptFile = if (isWindows) {
-            resourcesDir.resolve("aapt.exe")
-        } else {
-            resourcesDir.resolve("aapt")
-        }
-        if (aaptFile.exists()) {
-            // 赋予可执行权限
-            if (!aaptFile.canExecute()) {
-                aaptFile.setExecutable(true)
-            }
-            dataBase.updateAaptPath(aaptFile.absolutePath)
-        } else {
-            dataBase.updateAaptPath("")
-        }
-        this.aapt = dataBase.getAaptPath()
-    }
-
-    /**
-     * 更新aapt路径
-     * @param aaptPath 路径
-     */
-    fun updateAaptPath(aaptPath: String) {
-        dataBase.updateAaptPath(aaptPath)
-        aapt = dataBase.getAaptPath()
     }
 
     /**
@@ -742,15 +682,6 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
         dataBase.updateIsAlignFileSize(isAlignFileSize)
         this.isAlignFileSize = dataBase.getIsAlignFileSize()
     }
-
-//    /**
-//     * 更新keytool路径
-//     * @param keytoolPath 路径
-//     */
-//    fun updateKeytoolPath(keytoolPath: String) {
-//        dataBase.updateKeytoolPath(keytoolPath)
-//        keytool = dataBase.getKeytoolPath()
-//    }
 
     /**
      * 更新目标密钥类型

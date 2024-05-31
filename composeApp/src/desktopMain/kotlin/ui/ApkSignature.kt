@@ -1,15 +1,42 @@
 package ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedFilterChip
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon
-import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.DragData
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.onExternalDrag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import constant.ConfigConstant
 import file.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -97,14 +124,7 @@ private fun SignatureCard(viewModel: MainViewModel, toastState: ToastUIState, sc
         ) {
             item {
                 Spacer(Modifier.size(16.dp))
-                FileInput(
-                    value = viewModel.apkSignatureState.apkPath,
-                    label = "APK文件",
-                    isError = apkError,
-                    FileSelectorType.APK
-                ) { path ->
-                    viewModel.updateApkSignature(SignatureEnum.APK_PATH, path)
-                }
+                SignatureApkPath(viewModel, apkError)
             }
             item {
                 Spacer(Modifier.size(6.dp))
@@ -122,13 +142,15 @@ private fun SignatureCard(viewModel: MainViewModel, toastState: ToastUIState, sc
             }
             item {
                 Spacer(Modifier.size(6.dp))
-                FileInput(
-                    value = viewModel.apkSignatureState.keyStorePath,
-                    label = "密钥文件",
-                    isError = signatureError,
-                    FileSelectorType.KEY
-                ) { path ->
-                    viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, path)
+                Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
+                    FileInput(
+                        value = viewModel.apkSignatureState.keyStorePath,
+                        label = "密钥文件",
+                        isError = signatureError,
+                        FileSelectorType.KEY
+                    ) { path ->
+                        viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, path)
+                    }
                 }
             }
             item {
@@ -176,6 +198,47 @@ private fun SignatureCard(viewModel: MainViewModel, toastState: ToastUIState, sc
                     scope
                 )
                 Spacer(Modifier.size(24.dp))
+            }
+        }
+    }
+}
+
+/**
+ * 签名路径
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
+    var expanded by remember { mutableStateOf(false) }
+    val options = ConfigConstant.unsignedApkList
+    ExposedDropdownMenuBox(
+        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
+    ) {
+        FileInput(
+            value = viewModel.apkSignatureState.apkPath,
+            label = "APK文件",
+            isError = apkError,
+            modifier = Modifier.padding(end = 8.dp, bottom = 3.dp).menuAnchor(),
+            trailingIcon = { TrailingIcon(expanded = expanded) },
+            FileSelectorType.APK
+        ) { path ->
+            viewModel.updateApkSignature(SignatureEnum.APK_PATH, path)
+        }
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            options.forEach { selectionOption ->
+                DropdownMenuItem(
+                    text = { Text(text = selectionOption.title, style = MaterialTheme.typography.labelLarge) },
+                    onClick = {
+                        viewModel.updateApkSignature(SignatureEnum.APK_PATH, selectionOption.path)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
             }
         }
     }
@@ -266,7 +329,7 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
         onExpandedChange = { expanded = it }
     ) {
         OutlinedTextField(
-            modifier = Modifier.menuAnchor().fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().menuAnchor(),
             value = selectedOptionText,
             readOnly = true,
             onValueChange = { },
@@ -281,7 +344,7 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
         ) {
             options?.forEach { selectionOption ->
                 DropdownMenuItem(
-                    text = { Text(selectionOption) },
+                    text = { Text(text = selectionOption, style = MaterialTheme.typography.labelLarge) },
                     onClick = {
                         val index = options.indexOf(selectionOption)
                         if (index != viewModel.apkSignatureState.keyStoreAlisaIndex) {

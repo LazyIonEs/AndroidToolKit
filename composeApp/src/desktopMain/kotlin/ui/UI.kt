@@ -52,7 +52,7 @@ import toast.ToastModel
 import toast.ToastUIState
 import utils.LottieAnimation
 import utils.checkFile
-import utils.isWindows
+import utils.isMac
 import utils.toFileExtensions
 import vm.UIState
 
@@ -81,18 +81,18 @@ fun FileButton(
     ExtendedFloatingActionButton(
         modifier = Modifier.padding(end = 16.dp, bottom = 12.dp),
         onClick = {
-            if (isWindows) {
-                showFilePicker = true
-            } else {
+            if (isMac) {
                 showFileSelector(*fileSelectorType) { path ->
                     onFileSelector(path)
                 }
+            } else {
+                showFilePicker = true
             }
         }, icon = { Icon(Icons.Rounded.DriveFolderUpload, value) }, text = {
             Text(value)
         }, expanded = expanded
     )
-    if (isWindows) {
+    if (!isMac) {
         FilePicker(
             show = showFilePicker, fileExtensions = fileSelectorType.toFileExtensions()
         ) { platformFile ->
@@ -120,31 +120,61 @@ fun FileInput(
     vararg fileSelectorType: FileSelectorType,
     onValueChange: (String) -> Unit
 ) {
+    FileInput(
+        value = value,
+        label = label,
+        isError = isError,
+        modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp),
+        trailingIcon = null,
+        fileSelectorType = fileSelectorType,
+        onValueChange = onValueChange
+    )
+}
+
+/**
+ * 文件输入框
+ * @param value 输入框的值
+ * @param label 输入框的标签
+ * @param isError 是否错误
+ * @param fileSelectorType 文件选择类型
+ * @param onValueChange 输入值改变回调
+ */
+@Composable
+fun FileInput(
+    value: String,
+    label: String,
+    isError: Boolean,
+    modifier: Modifier = Modifier,
+    trailingIcon: @Composable (() -> Unit)? = null,
+    vararg fileSelectorType: FileSelectorType,
+    onValueChange: (String) -> Unit,
+) {
     var showFilePicker by remember { mutableStateOf(false) }
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         CurrentTextField(
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+            modifier = modifier.weight(1f),
             value = value,
             label = label,
             isError = isError,
-            onValueChange = onValueChange
+            trailingIcon = trailingIcon,
+            onValueChange = onValueChange,
         )
         SmallFloatingActionButton(onClick = {
-            if (isWindows) {
-                showFilePicker = true
-            } else {
+            if (isMac) {
                 showFileSelector(*fileSelectorType) { path ->
                     onValueChange(path)
                 }
+            } else {
+                showFilePicker = true
             }
         }) {
             Icon(Icons.Rounded.FolderOpen, "选择文件")
         }
     }
-    if (isWindows) {
+    if (!isMac) {
         FilePicker(show = showFilePicker, fileExtensions = fileSelectorType.toFileExtensions()) { platformFile ->
             showFilePicker = false
             if (platformFile?.path?.isNotBlank() == true && fileSelectorType.checkFile(platformFile.path)) {
@@ -185,12 +215,12 @@ fun FileInputByReset(
             isError = isError
         )
         SmallFloatingActionButton(onClick = {
-            if (isWindows) {
-                showFilePicker = true
-            } else {
+            if (isMac) {
                 showFileSelector(*fileSelectorType) { path ->
                     onValueChange(path)
                 }
+            } else {
+                showFilePicker = true
             }
         }) {
             Icon(Icons.Rounded.FolderOpen, "选择文件")
@@ -200,7 +230,7 @@ fun FileInputByReset(
             Icon(Icons.Rounded.Restore, "重置")
         }
     }
-    if (isWindows) {
+    if (!isMac) {
         FilePicker(show = showFilePicker, fileExtensions = fileSelectorType.toFileExtensions()) { platformFile ->
             showFilePicker = false
             if (platformFile?.path?.isNotBlank() == true && fileSelectorType.checkFile(platformFile.path)) {
@@ -231,18 +261,18 @@ fun FolderInput(value: String, label: String, isError: Boolean, onValueChange: (
             onValueChange = onValueChange
         )
         SmallFloatingActionButton(onClick = {
-            if (isWindows) {
-                showDirPicker = true
-            } else {
+            if (isMac) {
                 showFolderSelector { path ->
                     onValueChange(path)
                 }
+            } else {
+                showDirPicker = true
             }
         }) {
             Icon(Icons.Rounded.FolderOpen, "选择文件夹")
         }
     }
-    if (isWindows) {
+    if (!isMac) {
         DirectoryPicker(showDirPicker) { path ->
             showDirPicker = false
             if (path?.isNotBlank() == true) {
@@ -260,7 +290,13 @@ fun FolderInput(value: String, label: String, isError: Boolean, onValueChange: (
  * @param onValueChange 输入值改变回调
  */
 @Composable
-fun StringInput(value: String, label: String, isError: Boolean, realOnly: Boolean = false, onValueChange: (String) -> Unit) {
+fun StringInput(
+    value: String,
+    label: String,
+    isError: Boolean,
+    realOnly: Boolean = false,
+    onValueChange: (String) -> Unit
+) {
     CurrentTextField(
         modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 72.dp, bottom = 3.dp),
         value = value,
@@ -396,6 +432,7 @@ private fun CurrentTextField(
     label: String,
     isError: Boolean,
     realOnly: Boolean = false,
+    trailingIcon: @Composable (() -> Unit)? = null,
     onValueChange: (String) -> Unit
 ) {
     OutlinedTextField(
@@ -405,6 +442,7 @@ private fun CurrentTextField(
         label = { Text(label, style = MaterialTheme.typography.labelLarge) },
         singleLine = true,
         isError = isError,
-        readOnly = realOnly
+        readOnly = realOnly,
+        trailingIcon = trailingIcon
     )
 }
