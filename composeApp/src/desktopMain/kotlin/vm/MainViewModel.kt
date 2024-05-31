@@ -295,10 +295,12 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             process = builder.command(aapt.absolutePath, "dump", "badging", input).start()
             inputStream = process!!.inputStream
 
-            process.errorStream.use { stream ->
-                BufferedReader(InputStreamReader(stream, "utf-8")).use { reader ->
-                    reader.readLines().forEach {
-                        println("errorStream =================> $it")
+            launch(Dispatchers.IO) {
+                process.errorStream.use { stream ->
+                    BufferedReader(InputStreamReader(stream, "utf-8")).use { reader ->
+                        reader.readLines().forEach {
+                            println("errorStream =================> $it")
+                        }
                     }
                 }
             }
