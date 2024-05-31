@@ -1,6 +1,7 @@
 -ignorewarnings
 -verbose
 
+-keep class org.lwjgl.** { *; }
 -keep class org.bouncycastle.** { *; }
 -keep class com.android.apksig.** { *; }
 -keep class org.sqlite.** { *; }

@@ -8,15 +8,10 @@ import com.android.apksig.ApkSigner
 import com.android.apksig.ApkVerifier
 import com.android.ide.common.signing.KeystoreHelper
 import database.DataBase
-import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.supervisorScope
 import model.ApkInformation
 import model.ApkSignature
 import model.JunkCodeEnum
@@ -281,7 +276,10 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      * @param input 输入APK路径
      */
     fun apkInformation(input: String) = launch(Dispatchers.IO) {
-        runBlocking {
+        var process: Process? = null
+        var inputStream: InputStream? = null
+        var bufferedReader: BufferedReader? = null
+        try {
             val aapt = File(resourcesDirWithOs, if (isWindows) {
                 "aapt2.exe"
             } else if (isMac) {
@@ -292,67 +290,64 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             if (!aapt.canExecute()) {
                 aapt.setExecutable(true)
             }
-            var process: Process? = null
-            var inputStream: InputStream? = null
-            var bufferedReader: BufferedReader? = null
-            CoroutineScope(SupervisorJob() + CoroutineExceptionHandler { _, e ->
-                apkInformationState = UIState.Error(e.message ?: "APK解析失败")
-                e.printStackTrace()
-            }).async {
-                supervisorScope {
-                    launch {
-                        apkInformationState = UIState.Loading
-                        val builder = ProcessBuilder()
-                        process = builder.command(aapt.absolutePath, "dump", "badging", input).start()
-                        inputStream = process!!.inputStream
-                        bufferedReader = BufferedReader(InputStreamReader(inputStream!!, "utf-8"))
-                        var line: String?
-                        val apkInformation = ApkInformation()
-                        val apkFile = File(input)
-                        apkInformation.size = apkFile.length()
-                        apkInformation.md5 = DigestUtils.md5Hex(FileInputStream(apkFile))
-                        while (bufferedReader!!.readLine().also { line = it } != null) {
-                            line?.let {
-                                if (it.startsWith("application:")) {
-                                    apkInformation.label = extractValue(it, "label")
-                                    apkInformation.icon = extractIcon(input, extractValue(it, "icon"))
-                                } else if (it.startsWith("package:")) {
-                                    apkInformation.packageName = extractValue(it, "name")
-                                    apkInformation.versionCode = extractValue(it, "versionCode")
-                                    apkInformation.versionName = extractValue(it, "versionName")
-                                    apkInformation.compileSdkVersion = extractValue(it, "compileSdkVersion")
-                                } else if (it.startsWith("targetSdkVersion:")) {
-                                    apkInformation.targetSdkVersion = extractVersion(it, "targetSdkVersion")
-                                } else if (it.startsWith("sdkVersion:")) {
-                                    apkInformation.minSdkVersion = extractVersion(it, "sdkVersion")
-                                } else if (it.startsWith("uses-permission:")) {
-                                    if (apkInformation.usesPermissionList == null) {
-                                        apkInformation.usesPermissionList = ArrayList()
-                                    }
-                                    apkInformation.usesPermissionList?.add(extractValue(it, "name"))
-                                } else if (it.startsWith("native-code:")) {
-                                    apkInformation.nativeCode =
-                                        (it.split("native-code:").getOrNull(1) ?: "").trim().replace("'", "")
-                                } else {
+            apkInformationState = UIState.Loading
+            val builder = ProcessBuilder()
+            process = builder.command(aapt.absolutePath, "dump", "badging", input).start()
+            inputStream = process!!.inputStream
 
-                                }
-                            }
+            process.errorStream.use { stream ->
+                BufferedReader(InputStreamReader(stream, "utf-8")).use { reader ->
+                    reader.readLines().forEach {
+                        println("errorStream =================> $it")
+                    }
+                }
+            }
+
+            bufferedReader = BufferedReader(InputStreamReader(inputStream!!, "utf-8"))
+            var line: String?
+            val apkInformation = ApkInformation()
+            val apkFile = File(input)
+            apkInformation.size = apkFile.length()
+            apkInformation.md5 = DigestUtils.md5Hex(FileInputStream(apkFile))
+            while (bufferedReader.readLine().also { line = it } != null) {
+                line?.let {
+                    if (it.startsWith("application:")) {
+                        apkInformation.label = extractValue(it, "label")
+                        apkInformation.icon = extractIcon(input, extractValue(it, "icon"))
+                    } else if (it.startsWith("package:")) {
+                        apkInformation.packageName = extractValue(it, "name")
+                        apkInformation.versionCode = extractValue(it, "versionCode")
+                        apkInformation.versionName = extractValue(it, "versionName")
+                        apkInformation.compileSdkVersion = extractValue(it, "compileSdkVersion")
+                    } else if (it.startsWith("targetSdkVersion:")) {
+                        apkInformation.targetSdkVersion = extractVersion(it, "targetSdkVersion")
+                    } else if (it.startsWith("sdkVersion:")) {
+                        apkInformation.minSdkVersion = extractVersion(it, "sdkVersion")
+                    } else if (it.startsWith("uses-permission:")) {
+                        if (apkInformation.usesPermissionList == null) {
+                            apkInformation.usesPermissionList = ArrayList()
                         }
-                        apkInformationState = UIState.Success(apkInformation)
+                        apkInformation.usesPermissionList?.add(extractValue(it, "name"))
+                    } else if (it.startsWith("native-code:")) {
+                        apkInformation.nativeCode =
+                            (it.split("native-code:").getOrNull(1) ?: "").trim().replace("'", "")
+                    } else {
+
                     }
                 }
-                kotlin.runCatching {
-                    process?.destroy()
-                    inputStream?.close()
-                    bufferedReader?.close()
-                }
-                launch {
-                    if (apkInformationState is UIState.Error) {
-                        delay(1000)
-                        apkInformationState = UIState.WAIT
-                    }
-                }
-            }.await()
+            }
+            apkInformationState = UIState.Success(apkInformation)
+        } catch (e: Exception) {
+            apkInformationState = UIState.Error(e.message ?: "APK解析失败")
+            e.printStackTrace()
+        } finally {
+            process?.destroy()
+            inputStream?.close()
+            bufferedReader?.close()
+        }
+        if (apkInformationState is UIState.Error) {
+            delay(1000)
+            apkInformationState = UIState.WAIT
         }
     }
 

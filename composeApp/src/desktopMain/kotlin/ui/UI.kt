@@ -12,16 +12,13 @@ import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DriveFolderUpload
 import androidx.compose.material.icons.rounded.FolderOpen
-import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -172,62 +169,6 @@ fun FileInput(
             }
         }) {
             Icon(Icons.Rounded.FolderOpen, "选择文件")
-        }
-    }
-    if (!isMac) {
-        FilePicker(show = showFilePicker, fileExtensions = fileSelectorType.toFileExtensions()) { platformFile ->
-            showFilePicker = false
-            if (platformFile?.path?.isNotBlank() == true && fileSelectorType.checkFile(platformFile.path)) {
-                onValueChange(platformFile.path)
-            }
-        }
-    }
-}
-
-/**
- * 文件输入框
- * @param value 输入框的值
- * @param label 输入框的标签
- * @param isError 是否错误
- * @param fileSelectorType 文件选择类型
- * @param onValueChange 输入值改变回调
- */
-@Composable
-fun FileInputByReset(
-    value: String,
-    label: String,
-    isError: Boolean,
-    vararg fileSelectorType: FileSelectorType,
-    onValueChange: (String) -> Unit,
-    onResetClick: () -> Unit
-) {
-    var showFilePicker by remember { mutableStateOf(false) }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        OutlinedTextField(
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
-            value = value,
-            onValueChange = onValueChange,
-            label = { Text(label, style = MaterialTheme.typography.labelLarge) },
-            singleLine = true,
-            isError = isError
-        )
-        SmallFloatingActionButton(onClick = {
-            if (isMac) {
-                showFileSelector(*fileSelectorType) { path ->
-                    onValueChange(path)
-                }
-            } else {
-                showFilePicker = true
-            }
-        }) {
-            Icon(Icons.Rounded.FolderOpen, "选择文件")
-        }
-        Spacer(Modifier.size(4.dp))
-        SmallFloatingActionButton(onClick = onResetClick) {
-            Icon(Icons.Rounded.Restore, "重置")
         }
     }
     if (!isMac) {
