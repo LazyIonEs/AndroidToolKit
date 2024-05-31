@@ -45,7 +45,6 @@ fun SetUp(viewModel: MainViewModel) {
     Box(modifier = Modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp)) {
         LazyColumn {
             item {
-                Spacer(Modifier.size(16.dp))
                 Conventional(viewModel, outPutError)
             }
             item {
