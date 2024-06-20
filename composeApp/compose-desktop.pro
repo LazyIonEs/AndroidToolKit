@@ -6,4 +6,8 @@
 -keep class com.android.apksig.** { *; }
 -keep class org.sqlite.** { *; }
 -keep class org.slf4j.** { *; }
+-keep class com.sun.jna.** { *; }
+-keep class java.nio.** { *; }
+-keep class java.util.concurrent.** { *; }
+-keep class uniffi.toolkit.** { *; }
 -keepattributes Signature,LineNumberTable,RuntimeVisibleAnnotations,AnnotationDefault,*Annotation*,InnerClasses

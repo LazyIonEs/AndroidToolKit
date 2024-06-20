@@ -1,0 +1,13 @@
+namespace toolkit {
+    [Throws=ToolKitRustError]
+    void resize(string input_path, string output_path, float dst_scale);
+    [Throws=ToolKitRustError]
+    void quantize(string input_path, string output_path);
+    [Throws=ToolKitRustError]
+    void mozjpeg(string input_path, string output_path);
+};
+
+[Error]
+enum ToolKitRustError {
+    "Error"
+};

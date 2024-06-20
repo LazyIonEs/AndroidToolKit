@@ -1,7 +1,7 @@
 [versions]
 compose = "1.6.5"
 compose-compiler = "1.5.8"
-compose-plugin = "1.6.10"
+compose-plugin = "1.6.11"
 junit = "4.13.2"
 kotlin = "1.9.21"
 apksig = "8.4.0"
@@ -12,6 +12,8 @@ slf4j = "2.0.12"
 buildconfig = "5.3.5"
 commons-codec = "1.16.1"
 asm = "9.7"
+jna = "5.13.0"
+logging = "7.0.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -34,10 +36,11 @@ slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec" }
 asm = { module = "org.ow2.asm:asm", version.ref = "asm" }
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
+logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "logging" }
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 sqlDelight = { id = "app.cash.sqldelight", version.ref = "sqlDelight" }
 githubBuildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "buildconfig" }
-
