@@ -5,14 +5,17 @@ import androidx.compose.ui.graphics.toComposeImageBitmap
 import file.FileSelectorType
 import model.Verifier
 import org.jetbrains.skia.Image
+import java.awt.Desktop
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.IOException
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.security.MessageDigest
 import java.security.cert.X509Certificate
 import java.security.interfaces.RSAPublicKey
 import java.util.zip.ZipFile
+
 
 /**
  * @Author      : LazyIonEs
@@ -22,6 +25,8 @@ import java.util.zip.ZipFile
  */
 
 val isWindows = System.getProperty("os.name").startsWith("Win")
+
+val isLinux = System.getProperty("os.name").startsWith("Linux")
 
 val isMac = System.getProperty("os.name").startsWith("Mac")
 
@@ -189,15 +194,19 @@ private val appInternalResourcesDir: String
         }
     }
 
-private enum class FileSizeType(val id: Int, val unit: String) {
-    SIZE_TYPE_B(1, "B"), SIZE_TYPE_KB(2, "KB"), SIZE_TYPE_MB(3, "M"), SIZE_TYPE_GB(4, "GB"), SIZE_TYPE_TB(5, "TB")
+private enum class FileSizeType(val unit: String) {
+    SIZE_TYPE_B("B"), SIZE_TYPE_KB("KB"), SIZE_TYPE_MB("M"), SIZE_TYPE_GB("GB"), SIZE_TYPE_TB("TB")
 }
 
 /**
  * @param scale 精确到小数点以后几位 (Accurate to a few decimal places)
  */
 fun formatFileSize(size: Long, scale: Int, withUnit: Boolean = false): String {
-    val divisor = 1024L //ROUND_DOWN 1023 -> 1023B ; ROUND_HALF_UP  1023 -> 1KB
+    val divisor = if (isMac) { //ROUND_DOWN 1023 -> 1023B ; ROUND_HALF_UP  1023 -> 1KB
+        1000L
+    } else {
+        1024L
+    }
     val kiloByte: BigDecimal =
         formatSizeByTypeWithDivisor(BigDecimal.valueOf(size), scale, FileSizeType.SIZE_TYPE_B, divisor)
     if (kiloByte.toDouble() < 1) {
@@ -238,5 +247,39 @@ fun getDownloadDirectory(): String {
             // Linux or other platforms
             System.getProperty("user.home") + "/Downloads"
         }
+    }
+}
+
+fun browseFileDirectory(file: File) {
+    if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
+        Desktop.getDesktop().browseFileDirectory(file)
+    } else {
+        if (isWindows) {
+            Runtime.getRuntime().exec("explorer /select, ${file.absolutePath}")
+        } else if (isMac) {
+            Runtime.getRuntime().exec("open -R ${file.absolutePath}")
+        } else if (isLinux) {
+            if (runCommand("xdg-open ${file.absolutePath}")) return
+            if (runCommand("gnome-open ${file.absolutePath}")) return
+            if (runCommand("xdg-open ${file.absolutePath}")) return
+        }
+    }
+}
+
+private fun runCommand(command: String): Boolean {
+    try {
+        val p = Runtime.getRuntime().exec(command) ?: return false
+        try {
+            val value = p.exitValue()
+            return if (value == 0) {
+                false
+            } else {
+                false
+            }
+        } catch (e: IllegalThreadStateException) {
+            return true
+        }
+    } catch (e: IOException) {
+        return false
     }
 }

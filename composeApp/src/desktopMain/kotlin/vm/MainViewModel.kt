@@ -34,6 +34,7 @@ import uniffi.toolkit.quantize
 import uniffi.toolkit.resize
 import uniffi.toolkit.resizePng
 import utils.AndroidJunkGenerator
+import utils.browseFileDirectory
 import utils.extractIcon
 import utils.extractValue
 import utils.extractVersion
@@ -48,7 +49,6 @@ import utils.isWindows
 import utils.resourcesDir
 import utils.resourcesDirWithOs
 import utils.update
-import java.awt.Desktop
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -242,7 +242,7 @@ class MainViewModel : ViewModel() {
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
                 action = {
-                    Desktop.getDesktop().browseFileDirectory(outputApk)
+                    browseFileDirectory(outputApk)
                 }
             )
             updateSnackbarVisuals(snackbarVisualsData)
@@ -365,7 +365,7 @@ class MainViewModel : ViewModel() {
                     withDismissAction = true,
                     duration = SnackbarDuration.Short,
                     action = {
-                        Desktop.getDesktop().browseFileDirectory(outputFile)
+                        browseFileDirectory(outputFile)
                     }
                 )
                 updateSnackbarVisuals(snackbarVisualsData)
@@ -514,7 +514,7 @@ class MainViewModel : ViewModel() {
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
                 action = {
-                    Desktop.getDesktop().browseFileDirectory(file)
+                    browseFileDirectory(file)
                 }
             )
             updateSnackbarVisuals(snackbarVisualsData)
@@ -607,7 +607,7 @@ class MainViewModel : ViewModel() {
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
                 action = {
-                    Desktop.getDesktop().browseFileDirectory(outputDir)
+                    browseFileDirectory(outputDir)
                 }
             )
             updateSnackbarVisuals(snackbarVisualsData)
