@@ -1,9 +1,6 @@
 package ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
@@ -31,7 +28,6 @@ import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.QueryBuilder
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.SentimentSatisfied
-import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
@@ -42,19 +38,23 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults.rememberPlainTooltipPositionProvider
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.DragData
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.onExternalDrag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -62,11 +62,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import file.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import model.Verifier
 import model.VerifierResult
-import toast.ToastModel
-import toast.ToastUIState
 import utils.LottieAnimation
 import utils.copy
 import utils.isApk
@@ -84,29 +81,24 @@ import java.net.URI
  */
 @Composable
 fun SignatureInformation(
-    viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
+    viewModel: MainViewModel
 ) {
+    val scope = rememberCoroutineScope()
     val signaturePath = remember { mutableStateOf("") }
-    val uiState = viewModel.verifierState
-    if (uiState == UIState.WAIT || uiState is UIState.Error) {
-        if (uiState is UIState.Error) {
-            scope.launch {
-                toastState.show(ToastModel(uiState.msg, ToastModel.Type.Error))
-            }
-        }
-        SignatureMain(scope)
+    if (viewModel.verifierState == UIState.WAIT) {
+        SignatureLottie(scope)
     }
-    SignatureList(viewModel, toastState, scope)
-    SignatureBox(viewModel, signaturePath, scope, toastState)
+    SignatureList(viewModel)
+    SignatureBox(viewModel, signaturePath, scope)
     LoadingAnimate(viewModel.verifierState == UIState.Loading, scope)
-    SignatureDialog(viewModel, signaturePath, toastState, scope)
+    SignatureDialog(viewModel, signaturePath)
 }
 
 /**
  * 主页动画
  */
 @Composable
-private fun SignatureMain(scope: CoroutineScope) {
+private fun SignatureLottie(scope: CoroutineScope) {
     Box(
         modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
     ) {
@@ -117,15 +109,15 @@ private fun SignatureMain(scope: CoroutineScope) {
 /**
  * 签名主页，包含拖拽文件逻辑
  */
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun SignatureBox(
-    viewModel: MainViewModel, signaturePath: MutableState<String>, scope: CoroutineScope, toastState: ToastUIState
+    viewModel: MainViewModel, signaturePath: MutableState<String>, scope: CoroutineScope
 ) {
     var dragging by remember { mutableStateOf(false) }
     UploadAnimate(dragging, scope)
     Box(
-        modifier = Modifier.fillMaxSize().padding(6.dp)
+        modifier = Modifier.fillMaxSize()
             .onExternalDrag(onDragStart = { dragging = true }, onDragExit = { dragging = false }, onDrop = { state ->
                 val dragData = state.dragData
                 if (dragData is DragData.FilesList) {
@@ -144,50 +136,10 @@ private fun SignatureBox(
                 dragging = false
             }), contentAlignment = Alignment.TopCenter
     ) {
-        Row(modifier = Modifier.align(Alignment.BottomEnd)) {
+        Column(modifier = Modifier.align(Alignment.BottomEnd)) {
             AnimatedVisibility(
-                visible = viewModel.verifierState is UIState.Success, modifier = Modifier.padding(end = 12.dp)
-            ) {
-                var rotateValue by remember { mutableStateOf(0f) }
-                val rotate: Float by animateFloatAsState(
-                    targetValue = rotateValue,
-                    animationSpec = tween(durationMillis = 400, easing = LinearEasing)
-                )
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        rotateValue -= 360
-                        viewModel.changeSeparatorSign()
-                    },
-                    icon = { Icon(Icons.Rounded.Sync, "切换间隔符号", modifier = Modifier.rotate(rotate)) },
-                    text = { Text("切换间隔字符") })
-            }
-            AnimatedVisibility(
-                visible = viewModel.verifierState is UIState.Success, modifier = Modifier.padding(end = 12.dp)
-            ) {
-                ExtendedFloatingActionButton(
-                    onClick = {
-                        ((viewModel.verifierState as UIState.Success).result as? VerifierResult)?.let { result ->
-                            if (result.isSuccess) {
-                                result.data.getOrNull(0)?.let { verifier ->
-                                    val stringBuilder = StringBuilder()
-                                    stringBuilder.append("MD5: ${verifier.md5}")
-                                    stringBuilder.append(System.lineSeparator())
-                                    stringBuilder.append("SHA1: ${verifier.sha1}")
-                                    stringBuilder.append(System.lineSeparator())
-                                    stringBuilder.append("SHA-256: ${verifier.sha256}")
-                                    scope.launch {
-                                        copy(stringBuilder.toString(), toastState)
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    expanded = false,
-                    icon = { Icon(Icons.Rounded.ContentCopy, "一键复制") },
-                    text = { Text("复制") })
-            }
-            AnimatedVisibility(
-                visible = viewModel.verifierState != UIState.Loading
+                visible = viewModel.verifierState != UIState.Loading,
+                modifier = Modifier.align(Alignment.End)
             ) {
                 FileButton(
                     value = if (dragging) {
@@ -206,6 +158,39 @@ private fun SignatureBox(
                     }
                 }
             }
+            AnimatedVisibility(
+                visible = viewModel.verifierState is UIState.Success,
+                modifier = Modifier.align(Alignment.End).padding(bottom = 16.dp, end = 16.dp)
+            ) {
+                TooltipBox(
+                    positionProvider = rememberPlainTooltipPositionProvider(), tooltip = {
+                        PlainTooltip {
+                            Text(
+                                "复制MD5、SHA1和SHA-256", style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }, state = rememberTooltipState()
+                ) {
+                    ExtendedFloatingActionButton(onClick = {
+                        ((viewModel.verifierState as UIState.Success).result as? VerifierResult)?.let { result ->
+                            if (result.isSuccess) {
+                                result.data.getOrNull(0)?.let { verifier ->
+                                    val stringBuilder = StringBuilder()
+                                    stringBuilder.append("MD5: ${verifier.md5}")
+                                    stringBuilder.append(System.lineSeparator())
+                                    stringBuilder.append("SHA1: ${verifier.sha1}")
+                                    stringBuilder.append(System.lineSeparator())
+                                    stringBuilder.append("SHA-256: ${verifier.sha256}")
+                                    copy(stringBuilder.toString(), viewModel)
+                                }
+                            }
+                        }
+                    },
+                        expanded = true,
+                        icon = { Icon(Icons.Rounded.ContentCopy, "一键复制") },
+                        text = { Text("一键复制") })
+                }
+            }
         }
     }
 }
@@ -215,7 +200,7 @@ private fun SignatureBox(
  */
 @Composable
 private fun SignatureList(
-    viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
+    viewModel: MainViewModel
 ) {
     val uiState = viewModel.verifierState
     AnimatedVisibility(
@@ -249,9 +234,9 @@ private fun SignatureList(
                                 )
                             }
                         }
-                        SignatureListTop(verifier, scope, toastState)
-                        SignatureListCenter(verifier, scope, toastState)
-                        SignatureListBottom(verifier, scope, toastState)
+                        SignatureListTop(verifier, viewModel)
+                        SignatureListCenter(verifier, viewModel)
+                        SignatureListBottom(verifier, viewModel)
                     }
                 }
                 item { Spacer(Modifier.size(24.dp)) }
@@ -266,7 +251,7 @@ private fun SignatureList(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SignatureDialog(
-    viewModel: MainViewModel, signaturePath: MutableState<String>, toastState: ToastUIState, scope: CoroutineScope
+    viewModel: MainViewModel, signaturePath: MutableState<String>
 ) {
     if (signaturePath.value.isNotBlank()) {
         val password = remember { mutableStateOf("") }
@@ -337,9 +322,7 @@ private fun SignatureDialog(
                     )
                     signaturePath.value = ""
                 } else {
-                    scope.launch {
-                        toastState.show(ToastModel("密钥密码错误", ToastModel.Type.Error))
-                    }
+                    viewModel.updateSnackbarVisuals("密钥密码错误")
                 }
             }) {
                 Text("确认")
@@ -359,7 +342,7 @@ private fun SignatureDialog(
  */
 @Composable
 private fun SignatureListTop(
-    verifier: Verifier, scope: CoroutineScope, toastState: ToastUIState
+    verifier: Verifier, viewModel: MainViewModel
 ) {
     Card(
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
@@ -369,9 +352,7 @@ private fun SignatureListTop(
             modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp)
         ) {
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(verifier.subject, toastState)
-                }
+                copy(verifier.subject, viewModel)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
@@ -389,9 +370,7 @@ private fun SignatureListTop(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(verifier.validFrom, toastState)
-                }
+                copy(verifier.validFrom, viewModel)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
@@ -409,9 +388,7 @@ private fun SignatureListTop(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(verifier.validUntil, toastState)
-                }
+                copy(verifier.validUntil, viewModel)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
@@ -437,7 +414,7 @@ private fun SignatureListTop(
  */
 @Composable
 private fun SignatureListCenter(
-    verifier: Verifier, scope: CoroutineScope, toastState: ToastUIState
+    verifier: Verifier, viewModel: MainViewModel
 ) {
     Card(
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
@@ -447,9 +424,7 @@ private fun SignatureListCenter(
             modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp)
         ) {
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(verifier.publicKeyType, toastState)
-                }
+                copy(verifier.publicKeyType, viewModel)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
@@ -467,9 +442,7 @@ private fun SignatureListCenter(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(verifier.modulus, toastState)
-                }
+                copy(verifier.modulus, viewModel)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
@@ -487,9 +460,7 @@ private fun SignatureListCenter(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(verifier.signatureType, toastState)
-                }
+                copy(verifier.signatureType, viewModel)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
@@ -514,7 +485,7 @@ private fun SignatureListCenter(
  */
 @Composable
 private fun SignatureListBottom(
-    verifier: Verifier, scope: CoroutineScope, toastState: ToastUIState
+    verifier: Verifier, viewModel: MainViewModel
 ) {
     Card(
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
@@ -524,9 +495,7 @@ private fun SignatureListBottom(
             modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp)
         ) {
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(verifier.md5, toastState)
-                }
+                copy(verifier.md5, viewModel)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
@@ -544,9 +513,7 @@ private fun SignatureListBottom(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(verifier.sha1, toastState)
-                }
+                copy(verifier.sha1, viewModel)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
@@ -564,9 +531,7 @@ private fun SignatureListBottom(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                scope.launch {
-                    copy(verifier.sha256, toastState)
-                }
+                copy(verifier.sha256, viewModel)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically

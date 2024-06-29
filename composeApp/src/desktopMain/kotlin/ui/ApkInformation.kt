@@ -5,20 +5,32 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.DragData
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.onExternalDrag
 import androidx.compose.ui.unit.dp
 import file.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import model.ApkInformation
-import toast.ToastModel
-import toast.ToastUIState
 import utils.LottieAnimation
 import utils.copy
 import utils.formatFileSize
@@ -35,23 +47,26 @@ import java.net.URI
  * @Version     : 1.0
  */
 @Composable
-fun ApkInformation(viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
-    val uiState = viewModel.apkInformationState
-    if (uiState == UIState.WAIT || uiState is UIState.Error) {
-        if (uiState is UIState.Error) {
-            scope.launch {
-                toastState.show(ToastModel(uiState.msg, ToastModel.Type.Error))
-            }
-        }
-        Box(
-            modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
-        ) {
-            LottieAnimation(scope, "files/lottie_main_1.json")
-        }
+fun ApkInformation(viewModel: MainViewModel) {
+    val scope = rememberCoroutineScope()
+    if (viewModel.apkInformationState == UIState.WAIT) {
+        ApkInformationLottie(scope)
     }
-    ApkInformationBox(viewModel, toastState, scope)
+    ApkInformationBox(viewModel)
     LoadingAnimate(viewModel.apkInformationState == UIState.Loading, scope)
     ApkDraggingBox(viewModel, scope)
+}
+
+/**
+ * 主页动画
+ */
+@Composable
+private fun ApkInformationLottie(scope: CoroutineScope) {
+    Box(
+        modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
+    ) {
+        LottieAnimation(scope, "files/lottie_main_1.json")
+    }
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -60,7 +75,7 @@ private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
     var dragging by remember { mutableStateOf(false) }
     UploadAnimate(dragging, scope)
     Box(
-        modifier = Modifier.fillMaxSize().padding(6.dp)
+        modifier = Modifier.fillMaxSize()
             .onExternalDrag(onDragStart = { dragging = true }, onDragExit = { dragging = false }, onDrop = { state ->
                 val dragData = state.dragData
                 if (dragData is DragData.FilesList) {
@@ -72,7 +87,7 @@ private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
                     }
                 }
                 dragging = false
-            }), contentAlignment = Alignment.TopCenter
+            })
     ) {
         Box(
             modifier = Modifier.align(Alignment.BottomEnd)
@@ -82,8 +97,7 @@ private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
                     "愣着干嘛，还不松手"
                 } else {
                     "点击选择或拖拽上传APK"
-                }, expanded = viewModel.apkInformationState == UIState.WAIT,
-                FileSelectorType.APK
+                }, expanded = viewModel.apkInformationState == UIState.WAIT, FileSelectorType.APK
             ) { path ->
                 viewModel.apkInformation(path)
             }
@@ -93,7 +107,7 @@ private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
 
 @Composable
 private fun ApkInformationBox(
-    viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
+    viewModel: MainViewModel
 ) {
     val uiState = viewModel.apkInformationState
     AnimatedVisibility(
@@ -110,34 +124,34 @@ private fun ApkInformationBox(
                     val apkInformation = uiState.result as ApkInformation
                     LazyColumn {
                         item {
-                            AppInfoItem("应用名称：", apkInformation.label, toastState, scope)
+                            AppInfoItem("应用名称：", apkInformation.label, viewModel)
                         }
                         item {
-                            AppInfoItem("版本：", apkInformation.versionName, toastState, scope)
+                            AppInfoItem("版本：", apkInformation.versionName, viewModel)
                         }
                         item {
-                            AppInfoItem("版本号：", apkInformation.versionCode, toastState, scope)
+                            AppInfoItem("版本号：", apkInformation.versionCode, viewModel)
                         }
                         item {
-                            AppInfoItem("包名：", apkInformation.packageName, toastState, scope)
+                            AppInfoItem("包名：", apkInformation.packageName, viewModel)
                         }
                         item {
-                            AppInfoItem("编译SDK版本：", apkInformation.compileSdkVersion, toastState, scope)
+                            AppInfoItem("编译SDK版本：", apkInformation.compileSdkVersion, viewModel)
                         }
                         item {
-                            AppInfoItem("最小SDK版本：", apkInformation.minSdkVersion, toastState, scope)
+                            AppInfoItem("最小SDK版本：", apkInformation.minSdkVersion, viewModel)
                         }
                         item {
-                            AppInfoItem("目标SDK版本：", apkInformation.targetSdkVersion, toastState, scope)
+                            AppInfoItem("目标SDK版本：", apkInformation.targetSdkVersion, viewModel)
                         }
                         item {
-                            AppInfoItem("ABIs：", apkInformation.nativeCode, toastState, scope)
+                            AppInfoItem("ABIs：", apkInformation.nativeCode, viewModel)
                         }
                         item {
-                            AppInfoItem("文件MD5：", apkInformation.md5, toastState, scope)
+                            AppInfoItem("文件MD5：", apkInformation.md5, viewModel)
                         }
                         item {
-                            AppInfoItem("大小：", formatFileSize(apkInformation.size, 2, true), toastState, scope)
+                            AppInfoItem("大小：", formatFileSize(apkInformation.size, 2, true), viewModel)
                         }
                         item {
                             PermissionsList(apkInformation.usesPermissionList)
@@ -157,11 +171,9 @@ private fun ApkInformationBox(
 }
 
 @Composable
-private fun AppInfoItem(title: String, value: String, toastState: ToastUIState, scope: CoroutineScope) {
+private fun AppInfoItem(title: String, value: String, viewModel: MainViewModel) {
     Card(modifier = Modifier.padding(horizontal = 12.dp).height(36.dp), onClick = {
-        scope.launch {
-            copy(value, toastState)
-        }
+        copy(value, viewModel)
     }) {
         Row(
             modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp)

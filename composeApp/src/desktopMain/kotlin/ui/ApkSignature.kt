@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.DragData
@@ -39,11 +40,7 @@ import androidx.compose.ui.unit.dp
 import constant.ConfigConstant
 import file.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import model.SignatureEnum
 import model.SignaturePolicy
-import toast.ToastModel
-import toast.ToastUIState
 import utils.isApk
 import utils.isKey
 import vm.MainViewModel
@@ -58,11 +55,11 @@ import java.net.URI
  * @Version     : 1.0
  */
 @Composable
-fun ApkSignature(viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
-    SignatureCard(viewModel, toastState, scope)
+fun ApkSignature(viewModel: MainViewModel) {
+    val scope = rememberCoroutineScope()
+    SignatureCard(viewModel)
     SignatureBox(viewModel, scope)
     LoadingAnimate(viewModel.apkSignatureUIState == UIState.Loading, scope)
-    toast(viewModel.apkSignatureUIState, toastState, scope)
 }
 
 /**
@@ -91,10 +88,12 @@ private fun SignatureBox(
                         }
                     }
                     if (mApkPath.isNotBlank()) {
-                        viewModel.updateApkSignature(SignatureEnum.APK_PATH, mApkPath)
+                        viewModel.updateApkSignature(viewModel.apkSignatureState.copy(apkPath = mApkPath))
                     }
                     if (mSignaturePath.isNotBlank()) {
-                        viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, mSignaturePath)
+                        val apkSignature = viewModel.apkSignatureState.copy()
+                        apkSignature.keyStorePath = mSignaturePath
+                        viewModel.updateApkSignature(apkSignature)
                     }
                 }
                 dragging = false
@@ -104,7 +103,7 @@ private fun SignatureBox(
 }
 
 @Composable
-private fun SignatureCard(viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
+private fun SignatureCard(viewModel: MainViewModel) {
     val apkError =
         viewModel.apkSignatureState.apkPath.isNotBlank() && !File(viewModel.apkSignatureState.apkPath).isFile
     val outputError =
@@ -132,13 +131,13 @@ private fun SignatureCard(viewModel: MainViewModel, toastState: ToastUIState, sc
                     value = viewModel.apkSignatureState.outputPath,
                     label = "输出路径",
                     isError = outputError
-                ) { path ->
-                    viewModel.updateApkSignature(SignatureEnum.OUTPUT_PATH, path)
+                ) { outputPath ->
+                    viewModel.updateApkSignature(viewModel.apkSignatureState.copy(outputPath = outputPath))
                 }
             }
             item {
                 Spacer(Modifier.size(6.dp))
-                SignaturePolicy(viewModel, toastState, scope)
+                SignaturePolicy(viewModel)
             }
             item {
                 Spacer(Modifier.size(6.dp))
@@ -148,8 +147,10 @@ private fun SignatureCard(viewModel: MainViewModel, toastState: ToastUIState, sc
                         label = "密钥文件",
                         isError = signatureError,
                         FileSelectorType.KEY
-                    ) { path ->
-                        viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PATH, path)
+                    ) { keyStorePath ->
+                        val apkSignature = viewModel.apkSignatureState.copy()
+                        apkSignature.keyStorePath = keyStorePath
+                        viewModel.updateApkSignature(apkSignature)
                     }
                 }
             }
@@ -160,12 +161,14 @@ private fun SignatureCard(viewModel: MainViewModel, toastState: ToastUIState, sc
                     label = "密钥密码",
                     isError = signaturePasswordError
                 ) { password ->
-                    viewModel.updateApkSignature(SignatureEnum.KEY_STORE_PASSWORD, password)
+                    viewModel.updateApkSignature(viewModel.apkSignatureState.copy(keyStorePassword = password))
                     if (viewModel.apkSignatureState.keyStorePath.isNotBlank() && File(viewModel.apkSignatureState.keyStorePath).isFile) {
                         viewModel.updateApkSignature(
-                            SignatureEnum.KEY_STORE_ALISA_LIST, viewModel.verifyAlisa(
-                                viewModel.apkSignatureState.keyStorePath,
-                                viewModel.apkSignatureState.keyStorePassword
+                            viewModel.apkSignatureState.copy(
+                                keyStoreAlisaList = viewModel.verifyAlisa(
+                                    viewModel.apkSignatureState.keyStorePath,
+                                    viewModel.apkSignatureState.keyStorePassword
+                                )
                             )
                         )
                     }
@@ -182,7 +185,7 @@ private fun SignatureCard(viewModel: MainViewModel, toastState: ToastUIState, sc
                     label = "密钥别名密码",
                     isError = signatureAlisaPasswordError
                 ) { password ->
-                    viewModel.updateApkSignature(SignatureEnum.KEY_STORE_ALISA_PASSWORD, password)
+                    viewModel.updateApkSignature(viewModel.apkSignatureState.copy(keyStoreAlisaPassword = password))
                 }
             }
             item {
@@ -193,9 +196,7 @@ private fun SignatureCard(viewModel: MainViewModel, toastState: ToastUIState, sc
                     outputError,
                     signatureError,
                     signaturePasswordError,
-                    signatureAlisaPasswordError,
-                    toastState,
-                    scope
+                    signatureAlisaPasswordError
                 )
                 Spacer(Modifier.size(24.dp))
             }
@@ -224,7 +225,7 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
             trailingIcon = { TrailingIcon(expanded = expanded) },
             FileSelectorType.APK
         ) { path ->
-            viewModel.updateApkSignature(SignatureEnum.APK_PATH, path)
+            viewModel.updateApkSignature(viewModel.apkSignatureState.copy(apkPath = path))
         }
         ExposedDropdownMenu(
             expanded = expanded,
@@ -234,7 +235,7 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
                 DropdownMenuItem(
                     text = { Text(text = selectionOption.title, style = MaterialTheme.typography.labelLarge) },
                     onClick = {
-                        viewModel.updateApkSignature(SignatureEnum.APK_PATH, selectionOption.path)
+                        viewModel.updateApkSignature(viewModel.apkSignatureState.copy(apkPath = selectionOption.path))
                         expanded = false
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -249,7 +250,7 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
  */
 @Composable
 private fun SignaturePolicy(
-    viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
+    viewModel: MainViewModel
 ) {
     val policyList =
         listOf(SignaturePolicy.V1, SignaturePolicy.V2, SignaturePolicy.V2Only, SignaturePolicy.V3)
@@ -276,20 +277,9 @@ private fun SignaturePolicy(
                     selected = viewModel.apkSignatureState.keyStorePolicy == signaturePolicy,
                     onClick = {
                         if (signaturePolicy == SignaturePolicy.V2Only) {
-                            scope.launch {
-                                toastState.show(
-                                    ToastModel(
-                                        "使用 V2 Only 签名的APK包仅支持Android 7及更高版本的系统安装和使用，请注意",
-                                        ToastModel.Type.Warning
-                                    ), 8000L
-                                )
-                            }
-                        } else {
-                            toastState.currentData?.dismiss()
+                            viewModel.updateSnackbarVisuals("使用 V2 Only 签名的APK包仅支持Android 7及更高版本的系统安装和使用，请注意")
                         }
-                        viewModel.updateApkSignature(
-                            SignatureEnum.KEY_STORE_POLICY, signaturePolicy
-                        )
+                        viewModel.updateApkSignature(viewModel.apkSignatureState.copy(keyStorePolicy = signaturePolicy))
                     },
                     label = {
                         Text(
@@ -348,9 +338,9 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
                     onClick = {
                         val index = options.indexOf(selectionOption)
                         if (index != viewModel.apkSignatureState.keyStoreAlisaIndex) {
-                            viewModel.updateApkSignature(SignatureEnum.KEY_STORE_ALISA_PASSWORD, "")
+                            viewModel.updateApkSignature(viewModel.apkSignatureState.copy(keyStoreAlisaPassword = ""))
                         }
-                        viewModel.updateApkSignature(SignatureEnum.KEY_STORE_ALISA_INDEX, index)
+                        viewModel.updateApkSignature(viewModel.apkSignatureState.copy(keyStoreAlisaIndex = index))
                         expanded = false
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -370,18 +360,14 @@ private fun Signature(
     outputError: Boolean,
     signatureError: Boolean,
     signaturePasswordError: Boolean,
-    signatureAlisaPasswordError: Boolean,
-    toastState: ToastUIState,
-    scope: CoroutineScope
+    signatureAlisaPasswordError: Boolean
 ) {
     Button(onClick = {
         if (apkError || outputError || signatureError || signaturePasswordError || signatureAlisaPasswordError) {
-            scope.launch {
-                toastState.show(ToastModel("请检查Error项", ToastModel.Type.Error))
-            }
+            viewModel.updateSnackbarVisuals("请检查Error项")
             return@Button
         }
-        signatureApk(viewModel, toastState, scope)
+        signatureApk(viewModel)
     }) {
         Text(
             "开始签名",
@@ -392,12 +378,10 @@ private fun Signature(
 }
 
 private fun signatureApk(
-    viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
+    viewModel: MainViewModel
 ) {
     if (viewModel.apkSignatureState.apkPath.isBlank() || viewModel.apkSignatureState.outputPath.isBlank() || viewModel.apkSignatureState.keyStorePath.isBlank() || viewModel.apkSignatureState.keyStorePassword.isBlank() || viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty() || viewModel.apkSignatureState.keyStoreAlisaPassword.isBlank()) {
-        scope.launch {
-            toastState.show(ToastModel("请检查空项", ToastModel.Type.Error))
-        }
+        viewModel.updateSnackbarVisuals("请检查空项")
         return
     }
     viewModel.apkSigner()

@@ -1,21 +1,26 @@
 package ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Divider
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import model.KeyStoreEnum
-import toast.ToastModel
-import toast.ToastUIState
 import utils.isKey
 import vm.MainViewModel
 import vm.UIState
@@ -29,11 +34,11 @@ import java.io.File
  */
 @Composable
 fun SignatureGeneration(
-    viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
+    viewModel: MainViewModel
 ) {
-    GenerationBox(viewModel, toastState, scope)
+    val scope = rememberCoroutineScope()
+    GenerationBox(viewModel)
     LoadingAnimate(viewModel.keyStoreInfoUIState == UIState.Loading, scope)
-    toast(viewModel.keyStoreInfoUIState, toastState, scope)
 }
 
 /**
@@ -41,7 +46,7 @@ fun SignatureGeneration(
  */
 @Composable
 private fun GenerationBox(
-    viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
+    viewModel: MainViewModel
 ) {
     Card(
         modifier = Modifier.fillMaxSize().padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
@@ -64,17 +69,15 @@ private fun GenerationBox(
                     label = "密钥输出路径",
                     isError = keyStorePathError
                 ) { path ->
-                    viewModel.updateSignatureGenerate(KeyStoreEnum.KEY_STORE_PATH, path)
+                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePath = path))
                 }
             }
             item {
                 Spacer(Modifier.size(4.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.keyStoreName,
-                    label = "密钥名称",
-                    isError = keyStoreNameError
+                    value = viewModel.keyStoreInfoState.keyStoreName, label = "密钥名称", isError = keyStoreNameError
                 ) { name ->
-                    viewModel.updateSignatureGenerate(KeyStoreEnum.KEY_STORE_NAME, name)
+                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreName = name))
                 }
             }
             item {
@@ -92,11 +95,9 @@ private fun GenerationBox(
                 }
                 Spacer(Modifier.size(12.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.keyStoreAlisa,
-                    label = "密钥别名",
-                    isError = false
+                    value = viewModel.keyStoreInfoState.keyStoreAlisa, label = "密钥别名", isError = false
                 ) { name ->
-                    viewModel.updateSignatureGenerate(KeyStoreEnum.KEY_STORE_ALISA, name)
+                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreAlisa = name))
                 }
             }
             item {
@@ -110,7 +111,7 @@ private fun GenerationBox(
                     label = "密码有效期（单位：年）",
                     isError = viewModel.keyStoreInfoState.validityPeriod.isBlank()
                 ) { validityPeriod ->
-                    viewModel.updateSignatureGenerate(KeyStoreEnum.VALIDITY_PERIOD, validityPeriod)
+                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(validityPeriod = validityPeriod))
                 }
             }
             item {
@@ -124,61 +125,49 @@ private fun GenerationBox(
                 }
                 Spacer(Modifier.size(12.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.authorName,
-                    label = "作者名称",
-                    isError = false
+                    value = viewModel.keyStoreInfoState.authorName, label = "作者名称", isError = false
                 ) { authorName ->
-                    viewModel.updateSignatureGenerate(KeyStoreEnum.AUTHOR_NAME, authorName)
+                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(authorName = authorName))
                 }
             }
             item {
                 Spacer(Modifier.size(2.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.organizationalUnit,
-                    label = "组织单位",
-                    isError = false
-                ) { authorName ->
-                    viewModel.updateSignatureGenerate(KeyStoreEnum.ORGANIZATIONAL_UNIT, authorName)
+                    value = viewModel.keyStoreInfoState.organizationalUnit, label = "组织单位", isError = false
+                ) { organizationalUnit ->
+                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(organizationalUnit = organizationalUnit))
                 }
             }
             item {
                 Spacer(Modifier.size(2.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.organizational,
-                    label = "组织",
-                    isError = false
-                ) { authorName ->
-                    viewModel.updateSignatureGenerate(KeyStoreEnum.ORGANIZATIONAL, authorName)
+                    value = viewModel.keyStoreInfoState.organizational, label = "组织", isError = false
+                ) { organizational ->
+                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(organizational = organizational))
                 }
             }
             item {
                 Spacer(Modifier.size(2.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.city,
-                    label = "城市",
-                    isError = false
-                ) { authorName ->
-                    viewModel.updateSignatureGenerate(KeyStoreEnum.CITY, authorName)
+                    value = viewModel.keyStoreInfoState.city, label = "城市", isError = false
+                ) { city ->
+                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(city = city))
                 }
             }
             item {
                 Spacer(Modifier.size(2.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.province,
-                    label = "省份",
-                    isError = false
-                ) { authorName ->
-                    viewModel.updateSignatureGenerate(KeyStoreEnum.PROVINCE, authorName)
+                    value = viewModel.keyStoreInfoState.province, label = "省份", isError = false
+                ) { province ->
+                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(province = province))
                 }
             }
             item {
                 Spacer(Modifier.size(2.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.countryCode,
-                    label = "国家编码",
-                    isError = false
-                ) { authorName ->
-                    viewModel.updateSignatureGenerate(KeyStoreEnum.COUNTRY_CODE, authorName)
+                    value = viewModel.keyStoreInfoState.countryCode, label = "国家编码", isError = false
+                ) { countryCode ->
+                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(countryCode = countryCode))
                 }
             }
             item {
@@ -188,9 +177,7 @@ private fun GenerationBox(
                     keyStorePathError,
                     keyStoreNameError,
                     keyStoreConfirmPasswordError,
-                    keyStoreAlisaConfirmPasswordError,
-                    toastState,
-                    scope
+                    keyStoreAlisaConfirmPasswordError
                 )
                 Spacer(Modifier.size(24.dp))
             }
@@ -212,8 +199,8 @@ private fun KeyStorePassword(
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
             value = viewModel.keyStoreInfoState.keyStorePassword,
-            onValueChange = { password ->
-                viewModel.updateSignatureGenerate(KeyStoreEnum.KEY_STORE_PASSWORD, password)
+            onValueChange = { keyStorePassword ->
+                viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePassword = keyStorePassword))
             },
             label = { Text("密钥密码", style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
@@ -223,8 +210,8 @@ private fun KeyStorePassword(
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
             value = viewModel.keyStoreInfoState.keyStoreConfirmPassword,
-            onValueChange = { password ->
-                viewModel.updateSignatureGenerate(KeyStoreEnum.KEY_STORE_CONFIRM_PASSWORD, password)
+            onValueChange = { keyStoreConfirmPassword ->
+                viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreConfirmPassword = keyStoreConfirmPassword))
             },
             label = { Text("确认密码", style = MaterialTheme.typography.labelLarge) },
             isError = keyStoreConfirmPasswordError,
@@ -249,8 +236,8 @@ private fun KeyStoreAlisaPassword(
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
             value = viewModel.keyStoreInfoState.keyStoreAlisaPassword,
-            onValueChange = { password ->
-                viewModel.updateSignatureGenerate(KeyStoreEnum.KEY_STORE_ALISA_PASSWORD, password)
+            onValueChange = { keyStoreAlisaPassword ->
+                viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreAlisaPassword = keyStoreAlisaPassword))
             },
             label = { Text("别名密码", style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
@@ -260,10 +247,8 @@ private fun KeyStoreAlisaPassword(
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
             value = viewModel.keyStoreInfoState.keyStoreAlisaConfirmPassword,
-            onValueChange = { password ->
-                viewModel.updateSignatureGenerate(
-                    KeyStoreEnum.KEY_STORE_ALISA_CONFIRM_PASSWORD, password
-                )
+            onValueChange = { keyStoreAlisaConfirmPassword ->
+                viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreAlisaConfirmPassword = keyStoreAlisaConfirmPassword))
             },
             label = { Text("确认密码", style = MaterialTheme.typography.labelLarge) },
             isError = keyStoreAlisaConfirmPasswordError,
@@ -283,18 +268,14 @@ private fun CreateSignature(
     keyStorePathError: Boolean,
     keyStoreNameError: Boolean,
     keyStoreConfirmPasswordError: Boolean,
-    keyStoreAlisaConfirmPasswordError: Boolean,
-    toastState: ToastUIState,
-    scope: CoroutineScope
+    keyStoreAlisaConfirmPasswordError: Boolean
 ) {
     Button(onClick = {
         if (keyStorePathError || keyStoreNameError || keyStoreConfirmPasswordError || keyStoreAlisaConfirmPasswordError) {
-            scope.launch {
-                toastState.show(ToastModel("请检查Error项", ToastModel.Type.Error))
-            }
+            viewModel.updateSnackbarVisuals("请检查Error项")
             return@Button
         }
-        createSignature(viewModel, toastState, scope)
+        createSignature(viewModel)
     }) {
         Text(
             "创建签名", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 48.dp)
@@ -305,11 +286,9 @@ private fun CreateSignature(
 /**
  * 创建签名
  */
-private fun createSignature(viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
+private fun createSignature(viewModel: MainViewModel) {
     if (viewModel.keyStoreInfoState.keyStorePath.isBlank() || viewModel.keyStoreInfoState.keyStoreName.isBlank() || viewModel.keyStoreInfoState.keyStorePassword.isBlank() || viewModel.keyStoreInfoState.keyStoreConfirmPassword.isBlank() || viewModel.keyStoreInfoState.keyStoreAlisa.isBlank() || viewModel.keyStoreInfoState.keyStoreAlisaPassword.isBlank() || viewModel.keyStoreInfoState.keyStoreAlisaConfirmPassword.isBlank() || viewModel.keyStoreInfoState.validityPeriod.isBlank() || viewModel.keyStoreInfoState.authorName.isBlank() || viewModel.keyStoreInfoState.organizationalUnit.isBlank() || viewModel.keyStoreInfoState.organizational.isBlank() || viewModel.keyStoreInfoState.city.isBlank() || viewModel.keyStoreInfoState.province.isBlank() || viewModel.keyStoreInfoState.countryCode.isBlank()) {
-        scope.launch {
-            toastState.show(ToastModel("请检查空项", ToastModel.Type.Error))
-        }
+        viewModel.updateSnackbarVisuals("请检查空项")
         return
     }
     viewModel.createSignature()
