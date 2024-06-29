@@ -1,18 +1,10 @@
 package utils
 
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asComposeImageBitmap
-import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import file.FileSelectorType
 import model.Verifier
-import org.jetbrains.skia.Bitmap
-import org.jetbrains.skia.FilterMipmap
-import org.jetbrains.skia.FilterMode
 import org.jetbrains.skia.Image
-import org.jetbrains.skia.MipmapMode
-import org.jetbrains.skiko.toBufferedImage
-import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.math.BigDecimal
@@ -42,23 +34,14 @@ val String.isKey: Boolean
 val String.isImage: Boolean
     get() = this.endsWith(".png") || this.endsWith(".jpg") || this.endsWith(".jpeg")
 
-private val simplingMode = FilterMipmap(FilterMode.LINEAR, MipmapMode.LINEAR)
+val String.isPng: Boolean
+    get() = this.endsWith(".png")
 
-/**
- * 图片缩放
- * @param scale 缩放倍数
- */
-fun Image.scale(scale: Double): BufferedImage? {
-    val scaledWidth = (this.width * scale).toInt()
-    val scaledHeight = (this.height * scale).toInt()
-    val bitmap = Bitmap()
-    bitmap.allocN32Pixels(scaledWidth, scaledHeight)
-    return if (this.scalePixels(bitmap.peekPixels() ?: return null, simplingMode, false)) {
-        bitmap.asComposeImageBitmap().asSkiaBitmap().toBufferedImage()
-    } else {
-        null
-    }
-}
+val String.isJPG: Boolean
+    get() = this.endsWith(".jpg")
+
+val String.isJPEG: Boolean
+    get() = this.endsWith(".jpeg")
 
 fun <T> Array<out T>.toFileExtensions(): List<String> {
     val list = mutableListOf<String>()

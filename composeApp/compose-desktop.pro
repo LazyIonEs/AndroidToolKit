@@ -10,4 +10,6 @@
 -keep class java.nio.** { *; }
 -keep class java.util.concurrent.** { *; }
 -keep class uniffi.toolkit.** { *; }
+-keep class kotlinx.coroutines.internal.MainDispatcherFactory { *; }
+-keep class kotlinx.coroutines.swing.SwingDispatcherFactory { *; }
 -keepattributes Signature,LineNumberTable,RuntimeVisibleAnnotations,AnnotationDefault,*Annotation*,InnerClasses

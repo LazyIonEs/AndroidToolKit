@@ -44,14 +44,10 @@ import file.FileSelectorType
 import file.showFileSelector
 import file.showFolderSelector
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import toast.ToastModel
-import toast.ToastUIState
 import utils.LottieAnimation
 import utils.checkFile
 import utils.isMac
 import utils.toFileExtensions
-import vm.UIState
 
 /**
  * @Author      : LazyIonEs
@@ -76,7 +72,7 @@ fun FileButton(
 ) {
     var showFilePicker by remember { mutableStateOf(false) }
     ExtendedFloatingActionButton(
-        modifier = Modifier.padding(end = 16.dp, bottom = 12.dp),
+        modifier = Modifier.padding(end = 16.dp, bottom = 16.dp),
         onClick = {
             if (isMac) {
                 showFileSelector(*fileSelectorType) { path ->
@@ -340,25 +336,6 @@ fun LoadingAnimate(visible: Boolean, scope: CoroutineScope) {
             modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
         ) {
             LottieAnimation(scope, "files/lottie_loading.json")
-        }
-    }
-}
-
-/**
- * 提示
- * @param uiState UI状态
- * @param toastState 吐司
- * @param scope 协程作用域
- */
-fun toast(uiState: UIState, toastState: ToastUIState, scope: CoroutineScope) {
-    when (uiState) {
-        UIState.WAIT, UIState.Loading -> Unit
-        is UIState.Success -> scope.launch {
-            toastState.show(ToastModel(uiState.result as String, ToastModel.Type.Success))
-        }
-
-        is UIState.Error -> scope.launch {
-            toastState.show(ToastModel(uiState.msg, ToastModel.Type.Error))
         }
     }
 }

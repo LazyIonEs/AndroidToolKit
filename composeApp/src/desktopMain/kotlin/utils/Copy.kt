@@ -1,10 +1,8 @@
 package utils
 
-import toast.ToastModel
-import toast.ToastUIState
+import vm.MainViewModel
 import java.awt.Toolkit
 import java.awt.datatransfer.Clipboard
-
 import java.awt.datatransfer.StringSelection
 
 /**
@@ -14,15 +12,15 @@ import java.awt.datatransfer.StringSelection
  * @Version     : 1.0
  */
 
-suspend fun copy(value: String, toastUIState: ToastUIState) {
+fun copy(value: String, viewModel: MainViewModel) {
     copy(value)
-    toastUIState.show(ToastModel("已复制到剪切板", ToastModel.Type.Success))
+    viewModel.updateSnackbarVisuals("已复制到剪切板")
 }
 
 /**
  * 复制到剪切板
  */
-fun copy(value: String) {
+private fun copy(value: String) {
     val stringSelection = StringSelection(value)
     val clipboard: Clipboard = Toolkit.getDefaultToolkit().systemClipboard
     clipboard.setContents(stringSelection, null)

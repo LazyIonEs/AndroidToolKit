@@ -1,31 +1,38 @@
 package vm
 
 import Page
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.android.apksig.ApkSigner
 import com.android.apksig.ApkVerifier
 import com.android.ide.common.signing.KeystoreHelper
+import constant.ConfigConstant
 import database.DataBase
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import model.ApkInformation
 import model.ApkSignature
-import model.JunkCodeEnum
+import model.IconFactoryInfo
 import model.JunkCodeInfo
-import model.KeyStoreEnum
 import model.KeyStoreInfo
-import model.SignatureEnum
 import model.SignaturePolicy
+import model.SnackbarVisualsData
 import model.StoreSize
 import model.StoreType
 import model.Verifier
 import model.VerifierResult
 import org.apache.commons.codec.digest.DigestUtils
-import org.jetbrains.skia.Image
+import uniffi.toolkit.ToolKitRustException
+import uniffi.toolkit.mozjpeg
+import uniffi.toolkit.quantize
+import uniffi.toolkit.resize
+import uniffi.toolkit.resizePng
 import utils.AndroidJunkGenerator
 import utils.extractIcon
 import utils.extractValue
@@ -33,10 +40,15 @@ import utils.extractVersion
 import utils.formatFileSize
 import utils.getDownloadDirectory
 import utils.getVerifier
+import utils.isJPEG
+import utils.isJPG
 import utils.isMac
+import utils.isPng
 import utils.isWindows
 import utils.resourcesDir
 import utils.resourcesDirWithOs
+import utils.update
+import java.awt.Desktop
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -45,194 +57,156 @@ import java.io.InputStreamReader
 import java.security.KeyStore
 import java.security.cert.X509Certificate
 
-
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/1/31 14:45
  * @Description : MainViewModel
  * @Version     : 1.0
  */
-class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
+class MainViewModel : ViewModel() {
 
     // 数据库
     private val dataBase = DataBase()
 
     // 暗色模式
-    var darkMode by mutableStateOf(dataBase.getDarkMode())
-        private set
+    private val _darkMode = mutableStateOf(dataBase.getDarkMode())
+    val darkMode by _darkMode
 
     // 删除标识
-    var flagDelete by mutableStateOf(dataBase.getFlagDelete())
-        private set
+    private val _flagDelete = mutableStateOf(dataBase.getFlagDelete())
+    val flagDelete by _flagDelete
 
     // 签名后缀
-    var signerSuffix by mutableStateOf(dataBase.getSignerSuffix())
-        private set
+    private val _signerSuffix = mutableStateOf(dataBase.getSignerSuffix())
+    val signerSuffix by _signerSuffix
 
     // 默认输出路径
-    var outputPath by mutableStateOf(dataBase.getOutputPath())
-        private set
+    private val _outputPath = mutableStateOf(dataBase.getOutputPath())
+    val outputPath by _outputPath
 
     // 文件对齐标识
-    var isAlignFileSize by mutableStateOf(dataBase.getIsAlignFileSize())
-        private set
+    private val _isAlignFileSize = mutableStateOf(dataBase.getIsAlignFileSize())
+    val isAlignFileSize by _isAlignFileSize
 
     // 目标密钥类型
-    var destStoreType by mutableStateOf(dataBase.getDestStoreType())
-        private set
+    private val _destStoreType = mutableStateOf(dataBase.getDestStoreType())
+    val destStoreType by _destStoreType
 
     // 目标密钥大小
-    var destStoreSize by mutableStateOf(dataBase.getDestStoreSize())
-        private set
+    private val _destStoreSize = mutableStateOf(dataBase.getDestStoreSize())
+    val destStoreSize by _destStoreSize
 
     // 主页选中下标
-    var uiPageIndex by mutableStateOf(Page.SIGNATURE_INFORMATION)
-        private set
+    private val _uiPageIndex = mutableStateOf(Page.SIGNATURE_INFORMATION)
+    val uiPageIndex by _uiPageIndex
 
     fun updateUiState(page: Page) {
-        uiPageIndex = page
+        _uiPageIndex.update { page }
     }
 
     // 签名信息UI状态
-    var verifierState by mutableStateOf<UIState>(UIState.WAIT)
-        private set
+    private val _verifierState = mutableStateOf<UIState>(UIState.WAIT)
+    val verifierState by _verifierState
 
     // APK签名信息
-    var apkSignatureState by mutableStateOf(ApkSignature(outputPath = outputPath))
-        private set
+    private val _apkSignatureState = mutableStateOf(ApkSignature(outputPath = outputPath))
+    val apkSignatureState by _apkSignatureState
 
     // Apk签名UI状态
-    var apkSignatureUIState by mutableStateOf<UIState>(UIState.WAIT)
-        private set
+    private val _apkSignatureUIState = mutableStateOf<UIState>(UIState.WAIT)
+    val apkSignatureUIState by _apkSignatureUIState
 
     // 签名生成信息
-    var keyStoreInfoState by mutableStateOf(KeyStoreInfo(keyStorePath = outputPath))
-        private set
+    private val _keyStoreInfoState = mutableStateOf(KeyStoreInfo(keyStorePath = outputPath))
+    val keyStoreInfoState by _keyStoreInfoState
 
     // 签名生成UI状态
-    var keyStoreInfoUIState by mutableStateOf<UIState>(UIState.WAIT)
-        private set
+    private val _keyStoreInfoUIState = mutableStateOf<UIState>(UIState.WAIT)
+    val keyStoreInfoUIState by _keyStoreInfoUIState
 
     // Apk信息UI状态
-    var apkInformationState by mutableStateOf<UIState>(UIState.WAIT)
-        private set
+    private val _apkInformationState = mutableStateOf<UIState>(UIState.WAIT)
+    val apkInformationState by _apkInformationState
 
     // 垃圾代码生成信息
-    var junkCodeInfoState by mutableStateOf(JunkCodeInfo(outputPath = outputPath))
-        private set
+    private val _junkCodeInfoState = mutableStateOf(JunkCodeInfo(outputPath = outputPath))
+    val junkCodeInfoState by _junkCodeInfoState
 
     // 垃圾代码生成UI状态
-    var junkCodeUIState by mutableStateOf<UIState>(UIState.WAIT)
-        private set
+    private val _junkCodeUIState = mutableStateOf<UIState>(UIState.WAIT)
+    val junkCodeUIState by _junkCodeUIState
+
+    // 图标工厂信息
+    private val _iconFactoryInfoState = mutableStateOf(IconFactoryInfo(outputPath = outputPath))
+    val iconFactoryInfoState by _iconFactoryInfoState
+
+    // 图标工厂UI状态
+    private val _iconFactoryUIState = mutableStateOf<UIState>(UIState.WAIT)
+    val iconFactoryUIState by _iconFactoryUIState
+
+    private val _snackbarVisuals = MutableStateFlow(SnackbarVisualsData())
+    val snackbarVisuals = _snackbarVisuals.asStateFlow()
+
+    /**
+     * 显示快捷信息栏
+     * @param value SnackbarVisualsData
+     * @see model.SnackbarVisualsData
+     */
+    private fun updateSnackbarVisuals(value: SnackbarVisualsData) {
+        _snackbarVisuals.update { value }
+    }
+
+    /**
+     * 显示快捷信息栏
+     */
+    fun updateSnackbarVisuals(value: String) {
+        _snackbarVisuals.update { currentState ->
+            currentState.copy(message = value).reset()
+        }
+    }
 
     /**
      * 修改ApkSignature
-     * @param enum 需要更新的索引
-     * @param value 需要更新的值
+     * @param apkSignature ApkSignature
+     * @see model.ApkSignature
      */
-    fun updateApkSignature(enum: SignatureEnum, value: Any?) {
-        val apkSignature = ApkSignature(apkSignatureState)
-        when (enum) {
-            SignatureEnum.APK_PATH -> {
-                apkSignature.apkPath = value as String
-                if (apkSignature.outputPath.isBlank()) {
-                    val file = File(value)
-                    if (file.exists()) {
-                        apkSignature.outputPath = file.parentFile.path
-                    }
-                }
-            }
-
-            SignatureEnum.OUTPUT_PATH -> apkSignature.outputPath = value as String
-            SignatureEnum.KEY_STORE_POLICY -> apkSignature.keyStorePolicy = value as SignaturePolicy
-
-            SignatureEnum.KEY_STORE_PATH -> {
-                // 更换签名路径后清空签名信息
-                if (apkSignature.keyStorePath != value) {
-                    apkSignature.keyStorePassword = ""
-                    apkSignature.keyStoreAlisaList = null
-                    apkSignature.keyStoreAlisaIndex = 0
-                    apkSignature.keyStoreAlisaPassword = ""
-                }
-                apkSignature.keyStorePath = value as String
-            }
-
-            SignatureEnum.KEY_STORE_PASSWORD -> apkSignature.keyStorePassword = value as String
-            SignatureEnum.KEY_STORE_ALISA_LIST -> apkSignature.keyStoreAlisaList = value as? ArrayList<String>
-
-            SignatureEnum.KEY_STORE_ALISA_INDEX -> apkSignature.keyStoreAlisaIndex = value as Int
-            SignatureEnum.KEY_STORE_ALISA_PASSWORD -> apkSignature.keyStoreAlisaPassword = value as String
-        }
-        apkSignatureState = apkSignature
+    fun updateApkSignature(apkSignature: ApkSignature) {
+        _apkSignatureState.update { apkSignature }
     }
 
     /**
      * 修改SignatureGenerate
-     * @param enum 需要更新的索引
-     * @param value 需要更新的值
+     * @param keyStoreInfo KeyStoreInfo
+     * @see model.KeyStoreInfo
      */
-    fun updateSignatureGenerate(enum: KeyStoreEnum, value: Any) {
-        val keyStoreInfo = KeyStoreInfo(keyStoreInfoState)
-        when (enum) {
-            KeyStoreEnum.KEY_STORE_PATH -> keyStoreInfo.keyStorePath = value as String
-            KeyStoreEnum.KEY_STORE_NAME -> keyStoreInfo.keyStoreName = value as String
-            KeyStoreEnum.KEY_STORE_PASSWORD -> keyStoreInfo.keyStorePassword = value as String
-            KeyStoreEnum.KEY_STORE_CONFIRM_PASSWORD -> keyStoreInfo.keyStoreConfirmPassword = value as String
-
-            KeyStoreEnum.KEY_STORE_ALISA -> keyStoreInfo.keyStoreAlisa = value as String
-            KeyStoreEnum.KEY_STORE_ALISA_PASSWORD -> keyStoreInfo.keyStoreAlisaPassword = value as String
-
-            KeyStoreEnum.KEY_STORE_ALISA_CONFIRM_PASSWORD -> keyStoreInfo.keyStoreAlisaConfirmPassword = value as String
-
-            KeyStoreEnum.VALIDITY_PERIOD -> keyStoreInfo.validityPeriod = value as String
-            KeyStoreEnum.AUTHOR_NAME -> keyStoreInfo.authorName = value as String
-            KeyStoreEnum.ORGANIZATIONAL_UNIT -> keyStoreInfo.organizationalUnit = value as String
-
-            KeyStoreEnum.ORGANIZATIONAL -> keyStoreInfo.organizational = value as String
-            KeyStoreEnum.CITY -> keyStoreInfo.city = value as String
-            KeyStoreEnum.PROVINCE -> keyStoreInfo.province = value as String
-            KeyStoreEnum.COUNTRY_CODE -> keyStoreInfo.countryCode = value as String
-        }
-        keyStoreInfoState = keyStoreInfo
+    fun updateSignatureGenerate(keyStoreInfo: KeyStoreInfo) {
+        _keyStoreInfoState.update { keyStoreInfo }
     }
 
     /**
      * 修改JunkCodeInfo
-     * @param enum 需要更新的索引
-     * @param value 需要更新的值
+     * @param junkCodeInfo JunkCodeInfo
+     * @see model.JunkCodeInfo
      */
-    fun updateJunkCodeInfo(enum: JunkCodeEnum, value: Any) {
-        val junkCodeInfo = JunkCodeInfo(junkCodeInfoState)
-        when (enum) {
-            JunkCodeEnum.OUTPUT_PATH -> junkCodeInfo.outputPath = value as String
-            JunkCodeEnum.PACKAGE_NAME -> {
-                junkCodeInfo.packageName = value as String
-                junkCodeInfo.aarName = "junk_" + junkCodeInfo.packageName.replace(
-                    ".", "_"
-                ) + "_" + junkCodeInfo.suffix + "_TT2.0.0.aar"
-            }
+    fun updateJunkCodeInfo(junkCodeInfo: JunkCodeInfo) {
+        _junkCodeInfoState.update { junkCodeInfo }
+    }
 
-            JunkCodeEnum.SUFFIX -> {
-                junkCodeInfo.suffix = value as String
-                junkCodeInfo.aarName = "junk_" + junkCodeInfo.packageName.replace(
-                    ".", "_"
-                ) + "_" + junkCodeInfo.suffix + "_TT2.0.0.aar"
-            }
-
-            JunkCodeEnum.PACKAGE_COUNT -> junkCodeInfo.packageCount = value as String
-            JunkCodeEnum.ACTIVITY_COUNT_PER_PACKAGE -> junkCodeInfo.activityCountPerPackage = value as String
-
-            JunkCodeEnum.RES_PREFIX -> junkCodeInfo.resPrefix = value as String
-        }
-        junkCodeInfoState = junkCodeInfo
+    /**
+     * 修改IconFactoryInfo
+     * @param iconFactoryInfo IconFactoryInfo
+     * @see model.IconFactoryInfo
+     */
+    fun updateIconFactoryInfo(iconFactoryInfo: IconFactoryInfo) {
+        _iconFactoryInfoState.update { iconFactoryInfo }
     }
 
     /**
      * APK签名
      */
-    fun apkSigner() = launch(Dispatchers.IO) {
+    fun apkSigner() = viewModelScope.launch(Dispatchers.IO) {
         try {
-            apkSignatureUIState = UIState.Loading
+            _apkSignatureUIState.update { UIState.Loading }
             val inputApk = File(apkSignatureState.apkPath)
             val outputApk = File(
                 apkSignatureState.outputPath, "${inputApk.nameWithoutExtension}${signerSuffix}.apk"
@@ -262,44 +236,56 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                 .setV1SigningEnabled(v1SigningEnabled).setV2SigningEnabled(v2SigningEnabled)
                 .setV3SigningEnabled(v3SigningEnabled).setAlignmentPreserved(!isAlignFileSize).build()
             apkSigner.sign()
-            apkSignatureUIState = UIState.Success("签名成功")
+            val snackbarVisualsData = SnackbarVisualsData(
+                message = "APK签名成功，点击跳转至已签名文件",
+                actionLabel = "跳转",
+                withDismissAction = true,
+                duration = SnackbarDuration.Short,
+                action = {
+                    Desktop.getDesktop().browseFileDirectory(outputApk)
+                }
+            )
+            updateSnackbarVisuals(snackbarVisualsData)
         } catch (e: Exception) {
             e.printStackTrace()
-            apkSignatureUIState = UIState.Error(e.message ?: "签名失败，请联系开发者排查问题")
+            updateSnackbarVisuals(e.message ?: "签名失败，请联系开发者排查问题")
         }
-        delay(500)
-        apkSignatureUIState = UIState.WAIT
+        _apkSignatureUIState.update { UIState.WAIT }
     }
 
     /**
      * APK信息
      * @param input 输入APK路径
      */
-    fun apkInformation(input: String) = launch(Dispatchers.IO) {
+    fun apkInformation(input: String) = viewModelScope.launch(Dispatchers.IO) {
         var process: Process? = null
         var inputStream: InputStream? = null
         var bufferedReader: BufferedReader? = null
         try {
-            val aapt = File(resourcesDirWithOs, if (isWindows) {
-                "aapt2.exe"
-            } else if (isMac) {
-                "aapt2"
-            } else {
-                "aapt2"
-            })
+            val aapt = File(
+                resourcesDirWithOs, if (isWindows) {
+                    "aapt2.exe"
+                } else if (isMac) {
+                    "aapt2"
+                } else {
+                    "aapt2"
+                }
+            )
             if (!aapt.canExecute()) {
                 aapt.setExecutable(true)
             }
-            apkInformationState = UIState.Loading
+            _apkInformationState.update { UIState.Loading }
             val builder = ProcessBuilder()
             process = builder.command(aapt.absolutePath, "dump", "badging", input).start()
             inputStream = process!!.inputStream
 
-            launch(Dispatchers.IO) {
+            var errors = ""
+
+            viewModelScope.launch(Dispatchers.IO) {
                 process.errorStream.use { stream ->
                     BufferedReader(InputStreamReader(stream, "utf-8")).use { reader ->
                         reader.readLines().forEach {
-                            println("errorStream =================> $it")
+                            errors += it
                         }
                     }
                 }
@@ -338,27 +324,29 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                     }
                 }
             }
-            apkInformationState = UIState.Success(apkInformation)
+            if (apkInformation.isBlank()) {
+                updateSnackbarVisuals(errors)
+                _apkInformationState.update { UIState.WAIT }
+            } else {
+                _apkInformationState.update { UIState.Success(apkInformation) }
+            }
         } catch (e: Exception) {
-            apkInformationState = UIState.Error(e.message ?: "APK解析失败")
             e.printStackTrace()
+            updateSnackbarVisuals(e.message ?: "APK解析失败")
+            _apkInformationState.update { UIState.WAIT }
         } finally {
             process?.destroy()
             inputStream?.close()
             bufferedReader?.close()
-        }
-        if (apkInformationState is UIState.Error) {
-            delay(1000)
-            apkInformationState = UIState.WAIT
         }
     }
 
     /**
      * 生成签名
      */
-    fun createSignature() = launch(Dispatchers.IO) {
+    fun createSignature() = viewModelScope.launch(Dispatchers.IO) {
         try {
-            keyStoreInfoUIState = UIState.Loading
+            _keyStoreInfoUIState.update { UIState.Loading }
             val outputFile = File(keyStoreInfoState.keyStorePath, keyStoreInfoState.keyStoreName)
             val result = KeystoreHelper.createNewStore(
                 destStoreType,
@@ -370,17 +358,25 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                 keyStoreInfoState.validityPeriod.toInt(),
                 destStoreSize.toInt()
             )
-            keyStoreInfoUIState = if (result) {
-                UIState.Success("签名制作完成")
+            if (result) {
+                val snackbarVisualsData = SnackbarVisualsData(
+                    message = "创建签名成功，点击跳转至签名文件",
+                    actionLabel = "跳转",
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Short,
+                    action = {
+                        Desktop.getDesktop().browseFileDirectory(outputFile)
+                    }
+                )
+                updateSnackbarVisuals(snackbarVisualsData)
             } else {
-                UIState.Success("签名制作失败，请检查输入项是否合法。")
+                updateSnackbarVisuals("签名制作失败，请检查输入项是否合法。")
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            keyStoreInfoUIState = UIState.Error(e.message ?: "签名制作失败，请检查输入项是否合法。")
+            updateSnackbarVisuals(e.message ?: "签名制作失败，请检查输入项是否合法。")
         }
-        delay(500)
-        keyStoreInfoUIState = UIState.WAIT
+        _keyStoreInfoUIState.update { UIState.WAIT }
     }
 
     /**
@@ -389,8 +385,8 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      * @param password 签名密码
      * @param alisa 签名别名
      */
-    fun signerVerifier(input: String, password: String, alisa: String) = launch(Dispatchers.IO) {
-        verifierState = UIState.Loading
+    fun signerVerifier(input: String, password: String, alisa: String) = viewModelScope.launch(Dispatchers.IO) {
+        _verifierState.update { UIState.Loading }
         var fileInputStream: FileInputStream? = null
         val inputFile = File(input)
         try {
@@ -405,19 +401,16 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
                 val apkVerifierResult = VerifierResult(
                     isSuccess = true, isApk = false, path = input, name = inputFile.name, data = list
                 )
-                verifierState = UIState.Success(apkVerifierResult)
+                _verifierState.update { UIState.Success(apkVerifierResult) }
             } else {
                 throw Exception("Key Certificate Type Is Not X509Certificate")
             }
         } catch (e: Exception) {
-            verifierState = UIState.Error(e.message ?: "签名验证失败")
             e.printStackTrace()
+            updateSnackbarVisuals(e.message ?: "签名验证失败")
+            _verifierState.update { UIState.WAIT }
         } finally {
             fileInputStream?.close()
-        }
-        if (verifierState is UIState.Error) {
-            delay(1000)
-            verifierState = UIState.WAIT
         }
     }
 
@@ -425,8 +418,8 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      * APK签名信息
      * @param input 输入APK的路径
      */
-    fun apkVerifier(input: String) = launch(Dispatchers.IO) {
-        verifierState = UIState.Loading
+    fun apkVerifier(input: String) = viewModelScope.launch(Dispatchers.IO) {
+        _verifierState.update { UIState.Loading }
         val list = ArrayList<Verifier>()
         val inputFile = File(input)
         val path = inputFile.path
@@ -479,47 +472,26 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
 
             if (isSuccess || list.isNotEmpty()) {
                 val apkVerifierResult = VerifierResult(isSuccess, true, path, name, list)
-                verifierState = UIState.Success(apkVerifierResult)
+                _verifierState.update { UIState.Success(apkVerifierResult) }
             } else {
                 if (error.isBlank()) {
                     error = "APK签名验证失败"
                 }
-                verifierState = UIState.Error(error)
+                updateSnackbarVisuals(error)
+                _verifierState.update { UIState.WAIT }
             }
         } catch (e: Exception) {
-            verifierState = UIState.Error(e.message ?: "APK签名验证失败")
             e.printStackTrace()
-        }
-        if (verifierState is UIState.Error) {
-            delay(1000)
-            verifierState = UIState.WAIT
-        }
-    }
-
-    /**
-     * 更改间隔符号
-     */
-    fun changeSeparatorSign() {
-        if (verifierState is UIState.Success) {
-            val result = (verifierState as? UIState.Success)?.result as? VerifierResult ?: return
-            result.data.forEach {
-                val contains = it.md5.contains(':')
-                val oldChar = if (contains) ':' else ' '
-                val newChar = if (contains) ' ' else ':'
-                it.md5 = it.md5.replace(oldChar, newChar)
-                it.sha1 = it.sha1.replace(oldChar, newChar)
-                it.sha256 = it.sha256.replace(oldChar, newChar)
-            }
-            verifierState = UIState.WAIT
-            verifierState = UIState.Success(result)
+            updateSnackbarVisuals(e.message ?: "APK签名验证失败")
+            _verifierState.update { UIState.WAIT }
         }
     }
 
     /**
      * 生成垃圾代码 aar
      */
-    fun generateJunkCode() = launch(Dispatchers.IO) {
-        junkCodeUIState = UIState.Loading
+    fun generateJunkCode() = viewModelScope.launch(Dispatchers.IO) {
+        _junkCodeUIState.update { UIState.Loading }
         try {
             val dir = resourcesDir
             val output = junkCodeInfoState.outputPath
@@ -527,49 +499,121 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
             val packageCount = junkCodeInfoState.packageCount.toInt()
             val activityCountPerPackage = junkCodeInfoState.activityCountPerPackage.toInt()
             val resPrefix = junkCodeInfoState.resPrefix
-            val androidJunkGenerator = AndroidJunkGenerator(
-                dir, output, appPackageName, packageCount, activityCountPerPackage, resPrefix
-            )
+            val androidJunkGenerator =
+                AndroidJunkGenerator(dir, output, appPackageName, packageCount, activityCountPerPackage, resPrefix)
             val file = androidJunkGenerator.startGenerate()
-            junkCodeUIState = UIState.Success("构建结束：成功，文件大小：${formatFileSize(file.length(), 2, true)}")
+            val snackbarVisualsData = SnackbarVisualsData(
+                message = "构建结束：成功，文件大小：${
+                    formatFileSize(
+                        file.length(),
+                        2,
+                        true
+                    )
+                }, 点击跳转至构建文件",
+                actionLabel = "跳转",
+                withDismissAction = true,
+                duration = SnackbarDuration.Short,
+                action = {
+                    Desktop.getDesktop().browseFileDirectory(file)
+                }
+            )
+            updateSnackbarVisuals(snackbarVisualsData)
         } catch (e: Exception) {
-            junkCodeUIState = UIState.Error(e.message ?: "构建失败")
             e.printStackTrace()
+            updateSnackbarVisuals(e.message ?: "构建失败")
         }
-        delay(1000)
-        junkCodeUIState = UIState.WAIT
+        _junkCodeUIState.update { UIState.WAIT }
     }
 
     /**
      * 图标生成
      * @param path 图标路径
      */
-    fun iconGeneration(path: String) {
-        val densities = listOf("xxxhdpi", "xxhdpi", "xhdpi", "hdpi", "mdpi")
-        val scales = listOf(1.0, 0.75, 0.5, 0.375, 0.25)
+    fun iconGeneration(path: String) = viewModelScope.launch(Dispatchers.IO) {
+        _iconFactoryUIState.update { UIState.Loading }
+        val densities = ConfigConstant.ICON_FILE_LIST
+        val sizes = ConfigConstant.ICON_SIZE_LIST
         val inputFile = File(path)
-        val outputDir = File(outputPath, "app")
+        val outputDir = File(iconFactoryInfoState.outputPath, iconFactoryInfoState.fileDir)
 
-        // 读取原始图片
-        val image = Image.makeFromEncoded(inputFile.readBytes())
+        updateIconFactoryInfo(iconFactoryInfoState.copy(result = null))
 
-//        for ((index, density) in densities.withIndex()) {
-//            val scale = scales[index]
-//            val scaledWidth = (image.width * scale).toInt()
-//            val scaledHeight = (image.height * scale).toInt()
-//            val outputFile = File(outputDir, "mipmap-${density}/${inputFile.name}")
-//            outputFile.parentFile.mkdirs()
-//            val options = Options()
-//                .with("method", "fit")
-//                .with("width", scaledWidth)
-//                .with("height", scaledHeight)
-//            Tinify.fromFile(path)
-//                .resize(options)
-//                .toFile(outputFile.path)
-//            image.scale(scale)?.let { bufferedImage ->
-//                ImageIO.write(bufferedImage, "png", outputFile)
-//            }
-//        }
+        val suffix = if (path.isPng) {
+            ".png"
+        } else if (path.isJPG) {
+            ".jpg"
+        } else if (path.isJPEG) {
+            ".jpeg"
+        } else {
+            return@launch
+        }
+        var isSuccess = true
+        var error = ""
+        for ((index, density) in densities.withIndex()) {
+            val size = sizes[index]
+            val outputFile =
+                File(outputDir, "${iconFactoryInfoState.iconDir}-${density}/${iconFactoryInfoState.iconName}${suffix}")
+            val outputSizeFile = File(
+                outputDir,
+                "${iconFactoryInfoState.iconDir}-${density}/${iconFactoryInfoState.iconName}_resize${suffix}"
+            )
+            outputFile.parentFile.mkdirs()
+            outputFile.delete()
+            outputSizeFile.delete()
+            try {
+                if (path.isPng) {
+                    resizePng(
+                        inputPath = inputFile.absolutePath,
+                        outputPath = outputSizeFile.absolutePath,
+                        dstWidth = size,
+                        dstHeight = size,
+                        typIdx = 3.toUByte()
+                    )
+                    quantize(inputPath = outputSizeFile.absolutePath, outputPath = outputFile.absolutePath)
+                } else if (path.isJPG || path.isJPEG) {
+                    resize(
+                        inputPath = inputFile.absolutePath,
+                        outputPath = outputSizeFile.absolutePath,
+                        dstWidth = size,
+                        dstHeight = size
+                    )
+                    mozjpeg(inputPath = outputSizeFile.absolutePath, outputPath = outputFile.absolutePath)
+                }
+                val infoState = iconFactoryInfoState.copy()
+                infoState.result?.apply {
+                    add(outputFile)
+                } ?: let {
+                    infoState.result = mutableListOf(outputFile)
+                }
+                updateIconFactoryInfo(infoState)
+            } catch (e: ToolKitRustException) {
+                e.printStackTrace()
+                isSuccess = false
+                error = e.message ?: "图标制作失败"
+                break
+            } catch (e: Exception) {
+                e.printStackTrace()
+                isSuccess = false
+                error = e.message ?: "图标制作失败"
+                break
+            }
+            outputSizeFile.delete()
+        }
+        _iconFactoryUIState.update { UIState.WAIT }
+        if (isSuccess) {
+            val snackbarVisualsData = SnackbarVisualsData(
+                message = "图标生成完成。点击跳转至输出目录",
+                actionLabel = "跳转",
+                withDismissAction = true,
+                duration = SnackbarDuration.Short,
+                action = {
+                    Desktop.getDesktop().browseFileDirectory(outputDir)
+                }
+            )
+            updateSnackbarVisuals(snackbarVisualsData)
+        } else {
+            updateSnackbarVisuals(error)
+        }
     }
 
     /**
@@ -638,7 +682,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      */
     fun updateFlagDelete(flagDelete: Boolean) {
         dataBase.updateFlagDelete(flagDelete)
-        this.flagDelete = dataBase.getFlagDelete()
+        _flagDelete.update { dataBase.getFlagDelete() }
     }
 
     /**
@@ -647,7 +691,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      */
     fun updateSignerSuffix(signerSuffix: String) {
         dataBase.updateSignerSuffix(signerSuffix)
-        this.signerSuffix = dataBase.getSignerSuffix()
+        _signerSuffix.update { dataBase.getSignerSuffix() }
     }
 
     /**
@@ -655,8 +699,9 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      * @param darkMode 0：自动 1：浅色 2：暗色
      */
     fun updateDarkMode(darkMode: Long) {
+        updateSnackbarVisuals("")
         dataBase.updateDarkMode(darkMode)
-        this.darkMode = dataBase.getDarkMode()
+        _darkMode.update { dataBase.getDarkMode() }
     }
 
     /**
@@ -665,10 +710,11 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      */
     fun updateOutputPath(outputPath: String) {
         dataBase.updateOutputPath(outputPath)
-        this.outputPath = dataBase.getOutputPath()
+        _outputPath.update { dataBase.getOutputPath() }
         apkSignatureState.outputPath = this.outputPath
         keyStoreInfoState.keyStorePath = this.outputPath
         junkCodeInfoState.outputPath = this.outputPath
+        iconFactoryInfoState.outputPath = this.outputPath
     }
 
     /**
@@ -677,7 +723,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      */
     fun updateIsAlignFileSize(isAlignFileSize: Boolean) {
         dataBase.updateIsAlignFileSize(isAlignFileSize)
-        this.isAlignFileSize = dataBase.getIsAlignFileSize()
+        _isAlignFileSize.update { dataBase.getIsAlignFileSize() }
     }
 
     /**
@@ -686,7 +732,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      */
     fun updateDestStoreType(type: StoreType) {
         dataBase.updateDestStoreType(type.value)
-        destStoreType = dataBase.getDestStoreType()
+        _destStoreType.update { dataBase.getDestStoreType() }
     }
 
     /**
@@ -695,7 +741,7 @@ class MainViewModel : CoroutineScope by CoroutineScope(Dispatchers.Default) {
      */
     fun updateDestStoreSize(type: StoreSize) {
         dataBase.updateDestStoreSize(type.value.toLong())
-        destStoreSize = dataBase.getDestStoreSize()
+        _destStoreSize.update { dataBase.getDestStoreSize() }
     }
 }
 
@@ -703,5 +749,4 @@ sealed interface UIState {
     data object WAIT : UIState
     data object Loading : UIState
     data class Success(val result: Any) : UIState
-    data class Error(val msg: String) : UIState
 }

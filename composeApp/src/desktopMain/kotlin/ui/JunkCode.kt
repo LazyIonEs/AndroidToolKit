@@ -7,20 +7,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
-import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import model.JunkCodeEnum
-import toast.ToastModel
-import toast.ToastUIState
 import vm.MainViewModel
 import vm.UIState
 import java.io.File
@@ -33,15 +29,15 @@ import java.io.File
  */
 @Composable
 fun JunkCode(
-    viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope
+    viewModel: MainViewModel
 ) {
-    JunkCodeBox(viewModel, toastState, scope)
+    val scope = rememberCoroutineScope()
+    JunkCodeBox(viewModel)
     LoadingAnimate(viewModel.junkCodeUIState == UIState.Loading, scope)
-    toast(viewModel.junkCodeUIState, toastState, scope)
 }
 
 @Composable
-fun JunkCodeBox(viewModel: MainViewModel, toastState: ToastUIState, scope: CoroutineScope) {
+fun JunkCodeBox(viewModel: MainViewModel) {
     Card(
         modifier = Modifier.fillMaxSize().padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
     ) {
@@ -52,24 +48,20 @@ fun JunkCodeBox(viewModel: MainViewModel, toastState: ToastUIState, scope: Corou
         ) {
             item {
                 Spacer(Modifier.size(16.dp))
-                FolderInput(
-                    value = viewModel.junkCodeInfoState.outputPath,
+                FolderInput(value = viewModel.junkCodeInfoState.outputPath,
                     label = "AAR输出路径",
                     isError = outputPathError,
                     onValueChange = { path ->
-                        viewModel.updateJunkCodeInfo(JunkCodeEnum.OUTPUT_PATH, path)
-                    }
-                )
+                        viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = path))
+                    })
             }
             item {
                 Spacer(Modifier.size(8.dp))
-                StringInput(
-                    value = viewModel.junkCodeInfoState.aarName,
+                StringInput(value = viewModel.junkCodeInfoState.aarName,
                     label = "AAR 名称",
                     isError = false,
                     realOnly = true,
-                    onValueChange = { }
-                )
+                    onValueChange = { })
             }
             item {
                 Spacer(Modifier.size(8.dp))
@@ -77,41 +69,35 @@ fun JunkCodeBox(viewModel: MainViewModel, toastState: ToastUIState, scope: Corou
             }
             item {
                 Spacer(Modifier.size(8.dp))
-                IntInput(
-                    value = viewModel.junkCodeInfoState.packageCount,
+                IntInput(value = viewModel.junkCodeInfoState.packageCount,
                     label = "包的数量",
                     isError = viewModel.junkCodeInfoState.packageCount.isBlank(),
                     onValueChange = { packageCount ->
-                        viewModel.updateJunkCodeInfo(JunkCodeEnum.PACKAGE_COUNT, packageCount)
-                    }
-                )
+                        viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(packageCount = packageCount))
+                    })
             }
             item {
                 Spacer(Modifier.size(8.dp))
-                IntInput(
-                    value = viewModel.junkCodeInfoState.activityCountPerPackage,
+                IntInput(value = viewModel.junkCodeInfoState.activityCountPerPackage,
                     label = "每个包里 activity 的数量",
                     isError = viewModel.junkCodeInfoState.activityCountPerPackage.isBlank(),
                     onValueChange = { activityCountPerPackage ->
-                        viewModel.updateJunkCodeInfo(JunkCodeEnum.ACTIVITY_COUNT_PER_PACKAGE, activityCountPerPackage)
-                    }
-                )
+                        viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(activityCountPerPackage = activityCountPerPackage))
+                    })
             }
             item {
                 Spacer(Modifier.size(8.dp))
-                StringInput(
-                    value = viewModel.junkCodeInfoState.resPrefix,
+                StringInput(value = viewModel.junkCodeInfoState.resPrefix,
                     label = "资源前缀",
                     isError = viewModel.junkCodeInfoState.resPrefix.isBlank(),
                     onValueChange = { resPrefix ->
-                        viewModel.updateJunkCodeInfo(JunkCodeEnum.RES_PREFIX, resPrefix)
-                    }
-                )
+                        viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(resPrefix = resPrefix))
+                    })
             }
             item {
                 Spacer(Modifier.size(12.dp))
                 Generate(
-                    viewModel, outputPathError, toastState, scope
+                    viewModel, outputPathError
                 )
                 Spacer(Modifier.size(24.dp))
             }
@@ -129,7 +115,9 @@ fun PackageName(viewModel: MainViewModel) {
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(3f),
             value = viewModel.junkCodeInfoState.packageName,
             onValueChange = { packageName ->
-                viewModel.updateJunkCodeInfo(JunkCodeEnum.PACKAGE_NAME, packageName)
+                val junkCodeInfo = viewModel.junkCodeInfoState.copy()
+                junkCodeInfo.packageName = packageName
+                viewModel.updateJunkCodeInfo(junkCodeInfo)
             },
             label = { Text("包名", style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
@@ -144,7 +132,9 @@ fun PackageName(viewModel: MainViewModel) {
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(2f),
             value = viewModel.junkCodeInfoState.suffix,
             onValueChange = { suffix ->
-                viewModel.updateJunkCodeInfo(JunkCodeEnum.SUFFIX, suffix)
+                val junkCodeInfo = viewModel.junkCodeInfoState.copy()
+                junkCodeInfo.suffix = suffix
+                viewModel.updateJunkCodeInfo(junkCodeInfo)
             },
             label = { Text("后缀", style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
@@ -155,20 +145,16 @@ fun PackageName(viewModel: MainViewModel) {
 
 @Composable
 fun Generate(
-    viewModel: MainViewModel, outputPathError: Boolean, toastState: ToastUIState, scope: CoroutineScope
+    viewModel: MainViewModel, outputPathError: Boolean
 ) {
-    ElevatedButton(onClick = {
+    Button(onClick = {
         if (outputPathError) {
-            scope.launch {
-                toastState.show(ToastModel("请检查Error项", ToastModel.Type.Error))
-            }
-            return@ElevatedButton
+            viewModel.updateSnackbarVisuals("请检查Error项")
+            return@Button
         }
         if (viewModel.junkCodeInfoState.outputPath.isBlank() || viewModel.junkCodeInfoState.packageName.isBlank() || viewModel.junkCodeInfoState.suffix.isBlank() || viewModel.junkCodeInfoState.packageCount.isBlank() || viewModel.junkCodeInfoState.activityCountPerPackage.isEmpty() || viewModel.junkCodeInfoState.resPrefix.isBlank()) {
-            scope.launch {
-                toastState.show(ToastModel("请检查空项", ToastModel.Type.Error))
-            }
-            return@ElevatedButton
+            viewModel.updateSnackbarVisuals("请检查空项")
+            return@Button
         }
         viewModel.generateJunkCode()
     }) {

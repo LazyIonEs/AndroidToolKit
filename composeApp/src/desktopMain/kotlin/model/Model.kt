@@ -1,6 +1,9 @@
 package model
 
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.ui.graphics.ImageBitmap
+import java.io.File
 
 /**
  * @Author      : LazyIonEs
@@ -42,29 +45,23 @@ data class ApkSignature(
     var apkPath: String = "", // apk路径
     var outputPath: String = "", // apk输出路径
     var keyStorePolicy: SignaturePolicy = SignaturePolicy.V2, // 密钥策略
-    var keyStorePath: String = "", // 密钥路径
+    private var _keyStorePath: String = "", // 密钥
     var keyStorePassword: String = "", // 密钥密码
     var keyStoreAlisaList: ArrayList<String>? = null,  // 别名列表
     var keyStoreAlisaIndex: Int = 0, // 别名选中下标
     var keyStoreAlisaPassword: String = "" // 别名密码
 ) {
-    constructor(apkSignature: ApkSignature) : this(
-        apkSignature.apkPath,
-        apkSignature.outputPath,
-        apkSignature.keyStorePolicy,
-        apkSignature.keyStorePath,
-        apkSignature.keyStorePassword,
-        apkSignature.keyStoreAlisaList,
-        apkSignature.keyStoreAlisaIndex,
-        apkSignature.keyStoreAlisaPassword
-    )
-}
-
-/**
- * Apk签名更新索引
- */
-enum class SignatureEnum {
-    APK_PATH, OUTPUT_PATH, KEY_STORE_POLICY, KEY_STORE_PATH, KEY_STORE_PASSWORD, KEY_STORE_ALISA_LIST, KEY_STORE_ALISA_INDEX, KEY_STORE_ALISA_PASSWORD,
+    var keyStorePath: String
+        get() = _keyStorePath
+        set(value) {
+            if (_keyStorePath != value) {
+                this.keyStorePassword = ""
+                this.keyStoreAlisaList = null
+                this.keyStoreAlisaIndex = 0
+                this.keyStoreAlisaPassword = ""
+            }
+            _keyStorePath = value
+        }
 }
 
 /**
@@ -94,7 +91,11 @@ data class ApkInformation(
     var targetSdkVersion: String = "", // 目标版本
     var usesPermissionList: ArrayList<String>? = null, // 权限列表
     var nativeCode: String = "" // 架构
-)
+) {
+    fun isBlank(): Boolean {
+        return label.isBlank() && packageName.isBlank() && versionCode.isBlank() && versionName.isBlank()
+    }
+}
 
 /**
  * 签名信息，存储页面信息，viewModel中
@@ -114,31 +115,7 @@ data class KeyStoreInfo(
     var city: String = "", // 城市
     var province: String = "", // 省份
     var countryCode: String = "" // 国家编码
-) {
-    constructor(keyStore: KeyStoreInfo) : this(
-        keyStore.keyStorePath,
-        keyStore.keyStoreName,
-        keyStore.keyStorePassword,
-        keyStore.keyStoreConfirmPassword,
-        keyStore.keyStoreAlisa,
-        keyStore.keyStoreAlisaPassword,
-        keyStore.keyStoreAlisaConfirmPassword,
-        keyStore.validityPeriod,
-        keyStore.authorName,
-        keyStore.organizationalUnit,
-        keyStore.organizational,
-        keyStore.city,
-        keyStore.province,
-        keyStore.countryCode
-    )
-}
-
-/**
- * 签名生成更新索引
- */
-enum class KeyStoreEnum {
-    KEY_STORE_PATH, KEY_STORE_NAME, KEY_STORE_PASSWORD, KEY_STORE_CONFIRM_PASSWORD, KEY_STORE_ALISA, KEY_STORE_ALISA_PASSWORD, KEY_STORE_ALISA_CONFIRM_PASSWORD, VALIDITY_PERIOD, AUTHOR_NAME, ORGANIZATIONAL_UNIT, ORGANIZATIONAL, CITY, PROVINCE, COUNTRY_CODE
-}
+)
 
 /**
  * 垃圾代码生成信息，存储页面信息，viewModel中
@@ -146,28 +123,25 @@ enum class KeyStoreEnum {
 data class JunkCodeInfo(
     var outputPath: String = "", // 输出路径
     var aarName: String = "junk_com_dev_junk_plugin_TT2.0.0.aar", // aar名称
-    var packageName: String = "com.dev.junk", // 包名
-    var suffix: String = "plugin", // 后缀
+    private var _packageName: String = "com.dev.junk", // 包名
+    private var _suffix: String = "plugin", // 后缀
     var packageCount: String = "50", // 包数量
     var activityCountPerPackage: String = "30", // 每个包里 activity 的数量
     var resPrefix: String = "junk_", // 资源前缀
 ) {
-    constructor(junkCodeInfo: JunkCodeInfo) : this(
-        junkCodeInfo.outputPath,
-        junkCodeInfo.aarName,
-        junkCodeInfo.packageName,
-        junkCodeInfo.suffix,
-        junkCodeInfo.packageCount,
-        junkCodeInfo.activityCountPerPackage,
-        junkCodeInfo.resPrefix
-    )
-}
+    var packageName: String
+        get() = _packageName
+        set(value) {
+            _packageName = value
+            aarName = "junk_" + packageName.replace(".", "_") + "_" + this.suffix + "_TT2.0.0.aar"
+        }
 
-/**
- * 垃圾代码生成更新索引
- */
-enum class JunkCodeEnum {
-    OUTPUT_PATH, PACKAGE_NAME, SUFFIX, PACKAGE_COUNT, ACTIVITY_COUNT_PER_PACKAGE, RES_PREFIX
+    var suffix: String
+        get() = _suffix
+        set(value) {
+            _suffix = value
+            aarName = "junk_" + packageName.replace(".", "_") + "_" + this.suffix + "_TT2.0.0.aar"
+        }
 }
 
 enum class StoreType(val value: String) {
@@ -189,3 +163,63 @@ enum class Exterior(val title: String, val mode: Long) {
  * 未签名APK
  */
 data class UnsignedApk(val title: String, val path: String)
+
+/**
+ * 图标工厂信息，存储页面信息，viewModel中
+ */
+data class IconFactoryInfo(
+    var icon: File? = null, // 图标文件
+    var outputPath: String = "", // 输出路径
+    var fileDir: String = "res", // 顶级目录
+    var iconDir: String = "mipmap", // Android目录
+    var iconName: String = "ic_launcher", // icon名称
+    var result: MutableList<File>? = null // 生成的结果
+)
+
+/**
+ * Snackbar信息
+ * @param action 需要执行的操作
+ */
+data class SnackbarVisualsData(
+    override var message: String = "",
+    override var actionLabel: String? = null,
+    override var withDismissAction: Boolean = false,
+    override var duration: SnackbarDuration = SnackbarDuration.Short,
+    var timestamp: Long = System.currentTimeMillis(),
+    var action: (() -> Unit)? = null
+) : SnackbarVisuals {
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as SnackbarVisualsData
+
+        if (message != other.message) return false
+        if (actionLabel != other.actionLabel) return false
+        if (withDismissAction != other.withDismissAction) return false
+        if (duration != other.duration) return false
+        if (timestamp != other.timestamp) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = message.hashCode()
+        result = 31 * result + actionLabel.hashCode()
+        result = 31 * result + withDismissAction.hashCode()
+        result = 31 * result + duration.hashCode()
+        result = 31 * result + timestamp.hashCode()
+        result = 31 * result + action.hashCode()
+        return result
+    }
+
+    fun reset(): SnackbarVisualsData {
+        actionLabel = null
+        withDismissAction = false
+        duration = SnackbarDuration.Short
+        action = null
+        timestamp = System.currentTimeMillis()
+        return this
+    }
+}

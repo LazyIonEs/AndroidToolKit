@@ -11,36 +11,56 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Android
 import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.DonutLarge
+import androidx.compose.material.icons.rounded.Factory
 import androidx.compose.material.icons.rounded.Key
 import androidx.compose.material.icons.rounded.Pin
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntRect
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.PopupPositionProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.composeapp.generated.resources.APK信息
 import org.tool.kit.composeapp.generated.resources.APK签名
 import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.图标工厂
 import org.tool.kit.composeapp.generated.resources.垃圾代码
 import org.tool.kit.composeapp.generated.resources.签名信息
 import org.tool.kit.composeapp.generated.resources.签名生成
 import org.tool.kit.composeapp.generated.resources.设置
 import theme.AppTheme
-import toast.ToastUI
-import toast.ToastUIState
 import ui.ApkInformation
 import ui.ApkSignature
+import ui.IconFactory
 import ui.JunkCode
 import ui.SetUp
 import ui.SignatureGeneration
@@ -49,7 +69,7 @@ import vm.MainViewModel
 
 @Composable
 fun App() {
-    val viewModel = remember { MainViewModel() }
+    val viewModel = viewModel { MainViewModel() }
     val useDarkTheme = when (viewModel.darkMode) {
         1L -> false
         2L -> true
@@ -66,60 +86,112 @@ fun App() {
 /**
  * 主要模块
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContentScreen(viewModel: MainViewModel) {
-    val toastState = remember { ToastUIState() }
     val scope = rememberCoroutineScope()
-    Box(
-        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter
-    ) {
-        Row(
-            modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically
+    val snackbarHostState = remember { SnackbarHostState() }
+    Scaffold(snackbarHost = {
+        SnackbarHost(hostState = snackbarHostState)
+    }) { innerPadding ->
+        Box(
+            modifier = Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.TopCenter
         ) {
-            val pages = Page.entries.toTypedArray()
-            // 导航栏
-            NavigationRail(Modifier.fillMaxHeight().padding(start = 8.dp, end = 8.dp)) {
-                Column(
-                    modifier = Modifier.fillMaxHeight(),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    pages.forEachIndexed { _, page ->
-                        NavigationRailItem(
-                            label = { Text(stringResource(page.title)) },
-                            icon = { Icon(page.icon, contentDescription = stringResource(page.title)) },
-                            selected = viewModel.uiPageIndex == page,
-                            onClick = { viewModel.updateUiState(page) },
-                            alwaysShowLabel = false,
-                        )
+            Row(
+                modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically
+            ) {
+                val pages = Page.entries.toTypedArray()
+                // 导航栏
+                NavigationRail(Modifier.fillMaxHeight()) {
+                    Column(
+                        modifier = Modifier.fillMaxHeight(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        pages.forEachIndexed { _, page ->
+                            TooltipBox(
+                                positionProvider = rememberRichTooltipPositionProvider(), tooltip = {
+                                    PlainTooltip {
+                                        Text(
+                                            stringResource(page.title), style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                }, state = rememberTooltipState(), enableUserInput = viewModel.uiPageIndex != page
+                            ) {
+                                NavigationRailItem(
+                                    label = { Text(stringResource(page.title)) },
+                                    icon = { Icon(page.icon, contentDescription = stringResource(page.title)) },
+                                    selected = viewModel.uiPageIndex == page,
+                                    onClick = { viewModel.updateUiState(page) },
+                                    alwaysShowLabel = false,
+                                )
+                            }
+                        }
                     }
                 }
-            }
-            // 主界面
-            val content: @Composable (Page) -> Unit = { page ->
-                when (page) {
-                    Page.SIGNATURE_INFORMATION -> SignatureInformation(viewModel, toastState, scope)
-                    Page.APK_INFORMATION -> ApkInformation(viewModel, toastState, scope)
-                    Page.APK_SIGNATURE -> ApkSignature(viewModel, toastState, scope)
-                    Page.SIGNATURE_GENERATION -> SignatureGeneration(viewModel, toastState, scope)
-                    Page.JUNK_CODE -> JunkCode(viewModel, toastState, scope)
-//                    Page.ICON_GENERATION -> IconGeneration(viewModel)
-                    Page.SET_UP -> SetUp(viewModel)
+                // 主界面
+                val content: @Composable (Page) -> Unit = { page ->
+                    when (page) {
+                        Page.SIGNATURE_INFORMATION -> SignatureInformation(viewModel)
+                        Page.APK_INFORMATION -> ApkInformation(viewModel)
+                        Page.APK_SIGNATURE -> ApkSignature(viewModel)
+                        Page.SIGNATURE_GENERATION -> SignatureGeneration(viewModel)
+                        Page.JUNK_CODE -> JunkCode(viewModel)
+                        Page.ICON_FACTORY -> IconFactory(viewModel)
+                        Page.SET_UP -> SetUp(viewModel)
+                    }
                 }
+                // 淡入淡出切换页面
+                Crossfade(targetState = viewModel.uiPageIndex, modifier = Modifier.fillMaxSize(), content = content)
             }
-            // 淡入淡出切换页面
-            Crossfade(targetState = viewModel.uiPageIndex, modifier = Modifier.fillMaxSize(), content = content)
         }
-        ToastUI(toastState)
+    }
+    val snackbarVisuals by viewModel.snackbarVisuals.collectAsState()
+    snackbarVisuals.apply {
+        if (message.isBlank()) return@apply
+        scope.launch(Dispatchers.Main) {
+            val snackbarResult = snackbarHostState.showSnackbar(this@apply)
+            when (snackbarResult) {
+                SnackbarResult.ActionPerformed -> action?.invoke()
+                SnackbarResult.Dismissed -> Unit
+            }
+        }
     }
 }
 
 enum class Page(val title: StringResource, val icon: ImageVector) {
-    SIGNATURE_INFORMATION(Res.string.签名信息, Icons.Rounded.Description),
-    APK_INFORMATION(Res.string.APK信息, Icons.Rounded.Android),
-    APK_SIGNATURE(Res.string.APK签名, Icons.Rounded.Pin),
-    SIGNATURE_GENERATION(Res.string.签名生成, Icons.Rounded.Key),
-    JUNK_CODE(Res.string.垃圾代码, Icons.Rounded.DonutLarge),
-    //    ICON_GENERATION("图标生成", Icons.Rounded.PhotoSizeSelectActual),
+    SIGNATURE_INFORMATION(Res.string.签名信息, Icons.Rounded.Description), APK_INFORMATION(
+        Res.string.APK信息, Icons.Rounded.Android
+    ),
+    APK_SIGNATURE(Res.string.APK签名, Icons.Rounded.Pin), SIGNATURE_GENERATION(
+        Res.string.签名生成, Icons.Rounded.Key
+    ),
+    JUNK_CODE(Res.string.垃圾代码, Icons.Rounded.DonutLarge), ICON_FACTORY(
+        Res.string.图标工厂, Icons.Rounded.Factory
+    ),
     SET_UP(Res.string.设置, Icons.Rounded.Settings)
+}
+
+@Composable
+private fun rememberRichTooltipPositionProvider(): PopupPositionProvider {
+    val tooltipAnchorSpacing = with(LocalDensity.current) { 4.dp.roundToPx() }
+    return remember(tooltipAnchorSpacing) {
+        object : PopupPositionProvider {
+            override fun calculatePosition(
+                anchorBounds: IntRect, windowSize: IntSize, layoutDirection: LayoutDirection, popupContentSize: IntSize
+            ): IntOffset {
+                var x = anchorBounds.right
+                // Try to shift it to the left of the anchor
+                // if the tooltip would collide with the right side of the screen
+                if (x + popupContentSize.width > windowSize.width) {
+                    x = anchorBounds.left - popupContentSize.width
+                    // Center if it'll also collide with the left side of the screen
+                    if (x < 0) x = anchorBounds.left + (anchorBounds.width - popupContentSize.width) / 2
+                }
+                x -= tooltipAnchorSpacing
+                val y = anchorBounds.top + (anchorBounds.height - popupContentSize.height) / 2
+                return IntOffset(x, y)
+            }
+        }
+    }
 }
