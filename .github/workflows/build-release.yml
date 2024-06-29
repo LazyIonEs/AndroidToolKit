@@ -4,7 +4,7 @@ on:
   [ workflow_dispatch ]
 
 env:
-  TAG_VERSION: 1.4.3
+  TAG_VERSION: 1.4.4
 
 jobs:
   create-linux-package:
