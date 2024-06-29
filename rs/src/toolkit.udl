@@ -1,6 +1,8 @@
 namespace toolkit {
     [Throws=ToolKitRustError]
-    void resize(string input_path, string output_path, float dst_scale);
+    void resize(string input_path, string output_path, u32 dst_width, u32 dst_height);
+    [Throws=ToolKitRustError]
+    void resize_png(string input_path, string output_path, u32 dst_width, u32 dst_height, u8 typ_idx);
     [Throws=ToolKitRustError]
     void quantize(string input_path, string output_path);
     [Throws=ToolKitRustError]

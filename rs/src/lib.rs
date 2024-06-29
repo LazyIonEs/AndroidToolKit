@@ -4,11 +4,19 @@ use std::vec::Vec;
 
 use fast_image_resize::{IntoImageView, PixelType, Resizer};
 use fast_image_resize::images::Image;
-use image::ColorType;
+use image::{ColorType, DynamicImage, ExtendedColorType, GenericImageView, ImageEncoder};
+use image::codecs::png::PngEncoder;
 use image::io::Reader as ImageReader;
 use mozjpeg::Marker;
+use resize::{Pixel, Type};
+use rgb::FromSlice;
 
-pub fn resize(input_path: String, output_path: String, dst_scale: f32) -> Result<(), ToolKitRustError> {
+use srgb::linear_to_srgb;
+
+mod srgb;
+include!("./lut.inc");
+
+pub fn resize(input_path: String, output_path: String, dst_width: u32, dst_height: u32) -> Result<(), ToolKitRustError> {
     let src_image_open = ImageReader::open(input_path);
 
     if src_image_open.is_err() {
@@ -25,8 +33,16 @@ pub fn resize(input_path: String, output_path: String, dst_scale: f32) -> Result
 
     let src_image = src_image_decode.unwrap();
 
-    let dst_width = ((src_image.width() as f32) * dst_scale).round() as u32;
-    let dst_height = ((src_image.height() as f32) * dst_scale).round() as u32;
+    let (src_width, src_height) = src_image.dimensions();
+
+    if src_width == dst_width && src_height == dst_height {
+        let save_result = src_image.save(output_path);
+        if save_result.is_err() {
+            let err = format!("Failed to save: {}", save_result.unwrap_err());
+            return Err(ToolKitRustError::Error(err));
+        }
+        return Ok(());
+    }
 
     let mut dst_image = Image::new(
         dst_width,
@@ -66,6 +82,162 @@ pub fn resize(input_path: String, output_path: String, dst_scale: f32) -> Result
     Ok(())
 }
 
+// If `with_space_conversion` is true, this function returns 2 functions that
+// convert from sRGB to linear RGB and vice versa. If `with_space_conversion` is
+// false, the 2 functions returned do nothing.
+fn srgb_converter_funcs(with_space_conversion: bool) -> (fn(u8) -> f32, fn(f32) -> u8) {
+    if with_space_conversion {
+        (
+            |v| SRGB_TO_LINEAR_LUT[v as usize],
+            |v| (linear_to_srgb(v) * 255.0).clamp(0.0, 255.0) as u8,
+        )
+    } else {
+        (
+            |v| (v as f32) / 255.0,
+            |v| (v * 255.0).clamp(0.0, 255.0) as u8,
+        )
+    }
+}
+
+// If `with_alpha_premultiplication` is true, this function returns a function
+// that premultiply the alpha channel with the given channel value and another
+// function that reverses that process. If `with_alpha_premultiplication` is
+// false, the functions just return the channel value.
+fn alpha_multiplier_funcs(
+    with_alpha_premultiplication: bool,
+) -> (fn(f32, f32) -> f32, fn(f32, f32) -> f32) {
+    if with_alpha_premultiplication {
+        (|v, a| v * a, |v, a| v / a)
+    } else {
+        (|v, _a| v, |v, _a| v)
+    }
+}
+
+pub fn resize_png(input_path: String, output_path: String, dst_width: u32, dst_height: u32, typ_idx: u8) -> Result<(), ToolKitRustError> {
+
+    let src_image_open = image::open(input_path);
+
+    if src_image_open.is_err() {
+        let err = format!("Unable to open image: {}", src_image_open.err().unwrap());
+        return Err(ToolKitRustError::Error(err));
+    }
+
+    let image = src_image_open.unwrap();
+
+    let img = if is_rgba8(image.color()) {
+        image
+    } else {
+        DynamicImage::from(image.to_rgba8())
+    };
+
+    let typ = match typ_idx {
+        0 => Type::Triangle,
+        1 => Type::Catrom,
+        2 => Type::Mitchell,
+        3 => Type::Lanczos3,
+        _ => panic!("Nope"),
+    };
+
+    let (width, height) = img.dimensions();
+    let num_input_pixels = (width * height) as usize;
+    let num_output_pixels = (dst_width * dst_height) as usize;
+
+    let input_image = img.into_bytes();
+    let mut output_image = vec![0u8; num_output_pixels * 4];
+    let len = input_image.len();
+
+    // Otherwise, we convert to f32 images to keep the
+    // conversions as lossless and high-fidelity as possible.
+    let (to_linear, to_srgb) = srgb_converter_funcs(true);
+    let (premultiplier, demultiplier) = alpha_multiplier_funcs(true);
+
+    let mut preprocessed_input_image: Vec<f32> = Vec::with_capacity(len);
+    preprocessed_input_image.resize(len, 0.0f32);
+    for i in 0..num_input_pixels {
+        for j in 0..3 {
+            preprocessed_input_image[4 * i + j] = premultiplier(
+                to_linear(input_image[4 * i + j]),
+                (input_image[4 * i + 3] as f32) / 255.0,
+            );
+        }
+        preprocessed_input_image[4 * i + 3] = (input_image[4 * i + 3] as f32) / 255.0;
+    }
+
+    let mut unprocessed_output_image = vec![0.0f32; num_output_pixels * 4];
+
+    let resizer_result = resize::new(
+        width as usize,
+        height as usize,
+        dst_width as usize,
+        dst_height as usize,
+        Pixel::RGBAF32,
+        typ,
+    );
+
+    if resizer_result.is_err() {
+        let err = format!("Fail to create a new resizer instance: {}", resizer_result.unwrap_err());
+        return Err(ToolKitRustError::Error(err));
+    }
+
+    let mut resizer = resizer_result.unwrap();
+
+    let resize_result = resizer.resize(
+        preprocessed_input_image.as_rgba(),
+        unprocessed_output_image.as_rgba_mut(),
+    );
+
+    if resize_result.is_err() {
+        let err = format!("Fail to resize src image data into dst.: {}", resize_result.unwrap_err());
+        return Err(ToolKitRustError::Error(err));
+    }
+
+    resize_result.unwrap();
+
+    for i in 0..num_output_pixels {
+        for j in 0..3 {
+            output_image[4 * i + j] = to_srgb(demultiplier(
+                unprocessed_output_image[4 * i + j],
+                unprocessed_output_image[4 * i + 3],
+            ));
+        }
+        output_image[4 * i + 3] = (unprocessed_output_image[4 * i + 3] * 255.0)
+            .round()
+            .clamp(0.0, 255.0) as u8;
+    }
+
+    let output_file = File::create(output_path);
+    if output_file.is_err() {
+        let err = format!("Failed to create file: {}", output_file.unwrap_err());
+        return Err(ToolKitRustError::Error(err));
+    }
+
+    let jpeg = PngEncoder::new(output_file.unwrap());
+    let write_result = jpeg.write_image(&*output_image, dst_width, dst_height, ExtendedColorType::Rgba8);
+
+    if write_result.is_err() {
+        let err = format!("Failed to write file: {}", write_result.unwrap_err());
+        return Err(ToolKitRustError::Error(err));
+    }
+
+    Ok(())
+}
+
+fn is_rgba8(color: ColorType) -> bool {
+    match color {
+        ColorType::L8 => false,
+        ColorType::La8 => false,
+        ColorType::Rgb8 => false,
+        ColorType::Rgba8 => true,
+        ColorType::L16 => false,
+        ColorType::La16 => false,
+        ColorType::Rgb16 => false,
+        ColorType::Rgba16 => false,
+        ColorType::Rgb32F => false,
+        ColorType::Rgba32F => false,
+        _ => false
+    }
+}
+
 pub fn quantize(input_path: String, output_path: String) -> Result<(), ToolKitRustError> {
     // 解码图片
     let img = lodepng::decode32_file(input_path).unwrap();
@@ -74,7 +246,7 @@ pub fn quantize(input_path: String, output_path: String) -> Result<(), ToolKitRu
     // 准备量化图片
     let mut attributes = imagequant::Attributes::new();
     attributes.set_speed(1).unwrap();
-    attributes.set_quality(75, 80).unwrap();
+    attributes.set_quality(85, 100).unwrap();
     let created_image = attributes.new_image(&*img.buffer, width, height, 0.0);
     if created_image.is_err() {
         let err = format!("Unable to create image: {}", created_image.err().unwrap());
@@ -111,7 +283,6 @@ pub fn quantize(input_path: String, output_path: String) -> Result<(), ToolKitRu
     // 使用oxipng再次进行无损压缩
     let mut options = oxipng::Options::from_preset(6);
     options.optimize_alpha = true;
-    options.interlace = Some(oxipng::Interlacing::None);
     let oxipng_vec = oxipng::optimize_from_memory(&png_vec.unwrap(), &options);
     if oxipng_vec.is_err() {
         let err = format!("Failed to optimize from memory: {}", oxipng_vec.unwrap_err());
@@ -165,7 +336,7 @@ pub fn mozjpeg(input_path: String, output_path: String) -> Result<(), ToolKitRus
 
     let mut compress = mozjpeg::Compress::new(color_space);
     compress.set_size(width, height);
-    compress.set_quality(75.0);
+    compress.set_quality(85.0);
     let comp = compress.start_compress(Vec::new());
     if comp.is_err() {
         let err = format!("Failed to start compress: {}", comp.err().unwrap());
