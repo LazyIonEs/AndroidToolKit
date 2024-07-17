@@ -6,6 +6,8 @@ namespace toolkit {
     [Throws=ToolKitRustError]
     void quantize(string input_path, string output_path, u8 minimum, u8 target, i32 speed, u8 preset);
     [Throws=ToolKitRustError]
+    void oxipng(string input_path, string output_path, u8 preset);
+    [Throws=ToolKitRustError]
     void moz_jpeg(string input_path, string output_path, float quality);
 };
 

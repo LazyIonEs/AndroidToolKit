@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::Write;
+use std::path::PathBuf;
 use std::vec::Vec;
 
 use fast_image_resize::{IntoImageView, PixelType, Resizer};
@@ -282,6 +283,7 @@ pub fn quantize(input_path: String, output_path: String, minimum: u8, target: u8
     // 使用oxipng再次进行无损压缩
     let mut options = oxipng::Options::from_preset(preset);
     options.optimize_alpha = true;
+    options.force = true;
     let oxipng_vec = oxipng::optimize_from_memory(&png_vec.unwrap(), &options);
     if oxipng_vec.is_err() {
         let err = format!("Failed to optimize from memory: {}", oxipng_vec.unwrap_err());
@@ -299,6 +301,23 @@ pub fn quantize(input_path: String, output_path: String, minimum: u8, target: u8
         let err = format!("Failed to write file: {}", write_result.unwrap_err());
         return Err(ToolKitRustError::Error(err));
     }
+    Ok(())
+}
+
+pub fn oxipng(input_path: String, output_path: String, preset: u8) -> Result<(), ToolKitRustError> {
+    let input = oxipng::InFile::from(PathBuf::from(input_path));
+    let output = oxipng::OutFile::from_path(PathBuf::from(output_path));
+
+    // 使用oxipng再次进行无损压缩
+    let mut options = oxipng::Options::from_preset(preset);
+    options.optimize_alpha = true;
+    options.force = true;
+    let oxipng_result = oxipng::optimize(&input, &output, &options);
+    if oxipng_result.is_err() {
+        let err = format!("Failed to optimize: {}", oxipng_result.unwrap_err());
+        return Err(ToolKitRustError::Error(err));
+    }
+
     Ok(())
 }
 

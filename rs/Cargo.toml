@@ -13,10 +13,10 @@ image = "0.25.1"
 imagequant = "4.3.1"
 thiserror = "1.0.62"
 lodepng = "3.10.2"
-fast_image_resize = { version = "4.0.0", features = ["image"] }
+fast_image_resize = { version = "4.1.0", features = ["image"] }
 mozjpeg = "0.10.9"
-oxipng = { version = "9.1.1", features = ["parallel", "zopfli", "filetime"], default-features = false }
-rgb = { version = "0.8.44", default-features = false }
+oxipng = { version = "9.1.2", features = ["parallel", "zopfli", "filetime"], default-features = false }
+rgb = { version = "0.8.45", default-features = false }
 resize = "0.8.4"
 
 [build-dependencies]
