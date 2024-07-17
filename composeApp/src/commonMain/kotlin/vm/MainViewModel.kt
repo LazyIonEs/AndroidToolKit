@@ -28,11 +28,11 @@ import model.StoreType
 import model.Verifier
 import model.VerifierResult
 import org.apache.commons.codec.digest.DigestUtils
-import uniffi.toolkit.ToolKitRustException
-import uniffi.toolkit.mozjpeg
-import uniffi.toolkit.quantize
-import uniffi.toolkit.resize
-import uniffi.toolkit.resizePng
+import platform.RustException
+import platform.mozJpeg
+import platform.quantize
+import platform.resizeFir
+import platform.resizePng
 import utils.AndroidJunkGenerator
 import utils.browseFileDirectory
 import utils.extractIcon
@@ -236,15 +236,13 @@ class MainViewModel : ViewModel() {
                 .setV1SigningEnabled(v1SigningEnabled).setV2SigningEnabled(v2SigningEnabled)
                 .setV3SigningEnabled(v3SigningEnabled).setAlignmentPreserved(!isAlignFileSize).build()
             apkSigner.sign()
-            val snackbarVisualsData = SnackbarVisualsData(
-                message = "APK签名成功，点击跳转至已签名文件",
+            val snackbarVisualsData = SnackbarVisualsData(message = "APK签名成功，点击跳转至已签名文件",
                 actionLabel = "跳转",
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
                 action = {
                     browseFileDirectory(outputApk)
-                }
-            )
+                })
             updateSnackbarVisuals(snackbarVisualsData)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -359,15 +357,13 @@ class MainViewModel : ViewModel() {
                 destStoreSize.toInt()
             )
             if (result) {
-                val snackbarVisualsData = SnackbarVisualsData(
-                    message = "创建签名成功，点击跳转至签名文件",
+                val snackbarVisualsData = SnackbarVisualsData(message = "创建签名成功，点击跳转至签名文件",
                     actionLabel = "跳转",
                     withDismissAction = true,
                     duration = SnackbarDuration.Short,
                     action = {
                         browseFileDirectory(outputFile)
-                    }
-                )
+                    })
                 updateSnackbarVisuals(snackbarVisualsData)
             } else {
                 updateSnackbarVisuals("签名制作失败，请检查输入项是否合法。")
@@ -502,21 +498,17 @@ class MainViewModel : ViewModel() {
             val androidJunkGenerator =
                 AndroidJunkGenerator(dir, output, appPackageName, packageCount, activityCountPerPackage, resPrefix)
             val file = androidJunkGenerator.startGenerate()
-            val snackbarVisualsData = SnackbarVisualsData(
-                message = "构建结束：成功，文件大小：${
-                    formatFileSize(
-                        file.length(),
-                        2,
-                        true
-                    )
-                }, 点击跳转至构建文件",
+            val snackbarVisualsData = SnackbarVisualsData(message = "构建结束：成功，文件大小：${
+                formatFileSize(
+                    file.length(), 2, true
+                )
+            }, 点击跳转至构建文件",
                 actionLabel = "跳转",
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
                 action = {
                     browseFileDirectory(file)
-                }
-            )
+                })
             updateSnackbarVisuals(snackbarVisualsData)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -554,8 +546,7 @@ class MainViewModel : ViewModel() {
             val outputFile =
                 File(outputDir, "${iconFactoryInfoState.iconDir}-${density}/${iconFactoryInfoState.iconName}${suffix}")
             val outputSizeFile = File(
-                outputDir,
-                "${iconFactoryInfoState.iconDir}-${density}/${iconFactoryInfoState.iconName}_resize${suffix}"
+                outputDir, "${iconFactoryInfoState.iconDir}-${density}/${iconFactoryInfoState.iconName}_resize${suffix}"
             )
             outputFile.parentFile.mkdirs()
             outputFile.delete()
@@ -565,19 +556,23 @@ class MainViewModel : ViewModel() {
                     resizePng(
                         inputPath = inputFile.absolutePath,
                         outputPath = outputSizeFile.absolutePath,
-                        dstWidth = size,
-                        dstHeight = size,
-                        typIdx = 3.toUByte()
+                        width = size,
+                        height = size
                     )
-                    quantize(inputPath = outputSizeFile.absolutePath, outputPath = outputFile.absolutePath)
+                    quantize(
+                        inputPath = outputSizeFile.absolutePath,
+                        outputPath = outputFile.absolutePath,
+                    )
                 } else if (path.isJPG || path.isJPEG) {
-                    resize(
+                    resizeFir(
                         inputPath = inputFile.absolutePath,
                         outputPath = outputSizeFile.absolutePath,
-                        dstWidth = size,
-                        dstHeight = size
+                        width = size,
+                        height = size
                     )
-                    mozjpeg(inputPath = outputSizeFile.absolutePath, outputPath = outputFile.absolutePath)
+                    mozJpeg(
+                        inputPath = outputSizeFile.absolutePath, outputPath = outputFile.absolutePath
+                    )
                 }
                 val infoState = iconFactoryInfoState.copy()
                 infoState.result?.apply {
@@ -586,8 +581,7 @@ class MainViewModel : ViewModel() {
                     infoState.result = mutableListOf(outputFile)
                 }
                 updateIconFactoryInfo(infoState)
-            } catch (e: ToolKitRustException) {
-                e.printStackTrace()
+            } catch (e: RustException) {
                 isSuccess = false
                 error = e.message ?: "图标制作失败"
                 break
@@ -601,15 +595,13 @@ class MainViewModel : ViewModel() {
         }
         _iconFactoryUIState.update { UIState.WAIT }
         if (isSuccess) {
-            val snackbarVisualsData = SnackbarVisualsData(
-                message = "图标生成完成。点击跳转至输出目录",
+            val snackbarVisualsData = SnackbarVisualsData(message = "图标生成完成。点击跳转至输出目录",
                 actionLabel = "跳转",
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
                 action = {
                     browseFileDirectory(outputDir)
-                }
-            )
+                })
             updateSnackbarVisuals(snackbarVisualsData)
         } else {
             updateSnackbarVisuals(error)

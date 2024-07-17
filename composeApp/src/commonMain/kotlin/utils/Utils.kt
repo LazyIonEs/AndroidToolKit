@@ -16,13 +16,27 @@ import java.security.cert.X509Certificate
 import java.security.interfaces.RSAPublicKey
 import java.util.zip.ZipFile
 
-
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/3/1 09:02
  * @Description : 工具类
  * @Version     : 1.0
  */
+
+/**
+ * 获取下载目录
+ */
+fun getDownloadDirectory(): String {
+    val osName = System.getProperty("os.name")
+    return when {
+        osName.contains("Windows") -> System.getProperty("user.home") + "\\Downloads"
+        osName.contains("Mac") -> System.getProperty("user.home") + "/Downloads"
+        else -> {
+            // Linux or other platforms
+            System.getProperty("user.home") + "/Downloads"
+        }
+    }
+}
 
 val isWindows = System.getProperty("os.name").startsWith("Win")
 
@@ -234,21 +248,6 @@ private fun formatSizeByTypeWithDivisor(
     scale,
     if (sizeType == FileSizeType.SIZE_TYPE_B) RoundingMode.DOWN else RoundingMode.HALF_UP
 )
-
-/**
- * 获取下载目录
- */
-fun getDownloadDirectory(): String {
-    val osName = System.getProperty("os.name")
-    return when {
-        osName.contains("Windows") -> System.getProperty("user.home") + "\\Downloads"
-        osName.contains("Mac") -> System.getProperty("user.home") + "/Downloads"
-        else -> {
-            // Linux or other platforms
-            System.getProperty("user.home") + "/Downloads"
-        }
-    }
-}
 
 fun browseFileDirectory(file: File) {
     if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {

@@ -66,6 +66,7 @@ kotlin {
         desktopMain.kotlin.srcDir(rustGeneratedSource)
 
         commonMain.dependencies {
+            implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material)
@@ -78,17 +79,9 @@ kotlin {
             implementation(libs.sqlDelight.runtime)
             implementation(libs.slf4j.api)
             implementation(libs.slf4j.simple)
-        }
-        desktopMain.dependencies {
-            implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-            implementation(compose.desktop.currentOs)
             implementation(libs.android.apksig)
-            implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:0.7.9")
-            implementation(libs.mpfilepicker)
-            implementation(libs.sqlDelight.driver)
             implementation(libs.commons.codec)
             implementation(libs.asm)
-            implementation(libs.jna)
             implementation(libs.lifecycle.viewmodel.compose)
             runtimeOnly(libs.kotlinx.coroutines.swing)
             implementation("com.android.tools:sdk-common:31.4.1") {
@@ -96,6 +89,13 @@ kotlin {
                 exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
                 exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
             }
+        }
+        desktopMain.dependencies {
+            implementation(compose.desktop.currentOs)
+            implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:0.7.9")
+            implementation(libs.mpfilepicker)
+            implementation(libs.sqlDelight.driver)
+            implementation(libs.jna)
         }
     }
 }
@@ -133,7 +133,7 @@ compose.desktop {
             vendor = kitVendor
             licenseFile.set(kitLicenseFile)
 
-            modules("jdk.unsupported", "java.sql")
+            modules("java.compiler", "java.instrument", "java.naming", "java.sql", "jdk.management", "jdk.unsupported")
 
             outputBaseDir.set(project.layout.projectDirectory.dir("output"))
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))

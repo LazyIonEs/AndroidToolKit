@@ -16,6 +16,7 @@ jna = "5.13.0"
 logging = "7.0.0"
 lifecycle = "2.8.0"
 coroutines = "1.8.1"
+datastore = "1.1.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
