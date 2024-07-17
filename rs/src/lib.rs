@@ -16,7 +16,7 @@ use srgb::linear_to_srgb;
 mod srgb;
 include!("./lut.inc");
 
-pub fn resize(input_path: String, output_path: String, dst_width: u32, dst_height: u32) -> Result<(), ToolKitRustError> {
+pub fn resize_fir(input_path: String, output_path: String, dst_width: u32, dst_height: u32) -> Result<(), ToolKitRustError> {
     let src_image_open = ImageReader::open(input_path);
 
     if src_image_open.is_err() {
@@ -114,7 +114,6 @@ fn alpha_multiplier_funcs(
 }
 
 pub fn resize_png(input_path: String, output_path: String, dst_width: u32, dst_height: u32, typ_idx: u8) -> Result<(), ToolKitRustError> {
-
     let src_image_open = image::open(input_path);
 
     if src_image_open.is_err() {
@@ -238,15 +237,15 @@ fn is_rgba8(color: ColorType) -> bool {
     }
 }
 
-pub fn quantize(input_path: String, output_path: String) -> Result<(), ToolKitRustError> {
+pub fn quantize(input_path: String, output_path: String, minimum: u8, target: u8, speed: i32, preset: u8) -> Result<(), ToolKitRustError> {
     // 解码图片
     let img = lodepng::decode32_file(input_path).unwrap();
     let (width, height) = (img.width, img.height);
 
     // 准备量化图片
     let mut attributes = imagequant::Attributes::new();
-    attributes.set_speed(1).unwrap();
-    attributes.set_quality(85, 100).unwrap();
+    attributes.set_speed(speed).unwrap();
+    attributes.set_quality(minimum, target).unwrap();
     let created_image = attributes.new_image(&*img.buffer, width, height, 0.0);
     if created_image.is_err() {
         let err = format!("Unable to create image: {}", created_image.err().unwrap());
@@ -281,7 +280,7 @@ pub fn quantize(input_path: String, output_path: String) -> Result<(), ToolKitRu
     }
 
     // 使用oxipng再次进行无损压缩
-    let mut options = oxipng::Options::from_preset(6);
+    let mut options = oxipng::Options::from_preset(preset);
     options.optimize_alpha = true;
     let oxipng_vec = oxipng::optimize_from_memory(&png_vec.unwrap(), &options);
     if oxipng_vec.is_err() {
@@ -310,7 +309,7 @@ pub const ALL_MARKERS: &[Marker] = &[
     Marker::COM,
 ];
 
-pub fn mozjpeg(input_path: String, output_path: String) -> Result<(), ToolKitRustError> {
+pub fn moz_jpeg(input_path: String, output_path: String, quality: f32) -> Result<(), ToolKitRustError> {
     let decompress_builder = mozjpeg::decompress::DecompressBuilder::new();
     let image = decompress_builder.with_markers(ALL_MARKERS)
         .from_path(input_path).unwrap();
@@ -336,7 +335,7 @@ pub fn mozjpeg(input_path: String, output_path: String) -> Result<(), ToolKitRus
 
     let mut compress = mozjpeg::Compress::new(color_space);
     compress.set_size(width, height);
-    compress.set_quality(85.0);
+    compress.set_quality(quality);
     let comp = compress.start_compress(Vec::new());
     if comp.is_err() {
         let err = format!("Failed to start compress: {}", comp.err().unwrap());

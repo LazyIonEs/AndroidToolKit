@@ -11,12 +11,12 @@ name = "toolkit_rs"
 uniffi = "0.27.3"
 image = "0.25.1"
 imagequant = "4.3.1"
-thiserror = "1.0.61"
-lodepng = "3.10.1"
+thiserror = "1.0.62"
+lodepng = "3.10.2"
 fast_image_resize = { version = "4.0.0", features = ["image"] }
-mozjpeg = "0.10.7"
+mozjpeg = "0.10.9"
 oxipng = { version = "9.1.1", features = ["parallel", "zopfli", "filetime"], default-features = false }
-rgb = { version = "0.8.36", default-features = false }
+rgb = { version = "0.8.44", default-features = false }
 resize = "0.8.4"
 
 [build-dependencies]
