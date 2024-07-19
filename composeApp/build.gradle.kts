@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileOutputStream
 import java.nio.file.Files
@@ -6,16 +7,9 @@ import java.nio.file.Files
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.jetbrainsCompose)
-    alias(libs.plugins.sqlDelight)
     alias(libs.plugins.githubBuildconfig)
-}
-
-sqldelight {
-    databases {
-        create("ToolKitDatabase") {
-            packageName.set("kit")
-        }
-    }
+    alias(libs.plugins.kotlinSerialization)
+    alias(libs.plugins.compose.compiler)
 }
 
 val javaLanguageVersion = JavaLanguageVersion.of(17)
@@ -75,8 +69,6 @@ kotlin {
             implementation(compose.material3)
             implementation(compose.materialIconsExtended)
             implementation(compose.foundation)
-            implementation(libs.sqlDelight.coroutine)
-            implementation(libs.sqlDelight.runtime)
             implementation(libs.slf4j.api)
             implementation(libs.slf4j.simple)
             implementation(libs.android.apksig)
@@ -84,28 +76,28 @@ kotlin {
             implementation(libs.asm)
             implementation(libs.lifecycle.viewmodel.compose)
             runtimeOnly(libs.kotlinx.coroutines.swing)
+            implementation(libs.jna)
             implementation("com.android.tools:sdk-common:31.4.1") {
                 exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
                 exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
                 exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
             }
+            implementation("com.russhwolf:multiplatform-settings:1.1.1")
+            implementation("com.russhwolf:multiplatform-settings-serialization:1.1.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+            implementation("com.russhwolf:multiplatform-settings-coroutines:1.1.1")
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:0.7.9")
             implementation(libs.mpfilepicker)
-            implementation(libs.sqlDelight.driver)
-            implementation(libs.jna)
         }
     }
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = JavaVersion.VERSION_17.majorVersion
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+    compilerOptions.jvmTarget = JvmTarget.JVM_17
+    compilerOptions.freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
 }
 
 tasks.withType<JavaExec> {
@@ -133,7 +125,7 @@ compose.desktop {
             vendor = kitVendor
             licenseFile.set(kitLicenseFile)
 
-            modules("java.compiler", "java.instrument", "java.naming", "java.sql", "jdk.management", "jdk.unsupported")
+            modules("java.compiler", "java.instrument", "java.naming", "java.prefs", "java.sql", "jdk.management", "jdk.unsupported")
 
             outputBaseDir.set(project.layout.projectDirectory.dir("output"))
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))

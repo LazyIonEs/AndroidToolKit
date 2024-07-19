@@ -20,13 +20,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import model.Exterior
-import model.StoreSize
-import model.StoreType
+import model.DarkThemeConfig
+import model.DestStoreSize
+import model.DestStoreType
 import org.tool.kit.BuildConfig
 import vm.MainViewModel
 import java.awt.Desktop
@@ -40,16 +44,14 @@ import java.io.File
  */
 @Composable
 fun SetUp(viewModel: MainViewModel) {
-    val signerSuffixError = viewModel.signerSuffix.isBlank()
-    val outPutError = viewModel.outputPath.isNotBlank() && !File(viewModel.outputPath).isDirectory
     Box(modifier = Modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp)) {
         LazyColumn {
             item {
-                Conventional(viewModel, outPutError)
+                Conventional(viewModel)
             }
             item {
                 Spacer(Modifier.size(16.dp))
-                ApkSignature(viewModel, signerSuffixError)
+                ApkSignatureSetUp(viewModel)
             }
             item {
                 Spacer(Modifier.size(16.dp))
@@ -67,9 +69,11 @@ fun SetUp(viewModel: MainViewModel) {
  * APK签名设置页
  */
 @Composable
-private fun ApkSignature(
-    viewModel: MainViewModel, signerSuffixError: Boolean
+private fun ApkSignatureSetUp(
+    viewModel: MainViewModel
 ) {
+    val userData by viewModel.userData.collectAsState()
+    var signerSuffix by mutableStateOf(userData.defaultSignerSuffix)
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -80,13 +84,16 @@ private fun ApkSignature(
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.size(20.dp))
-            StringInput(value = viewModel.signerSuffix,
+            StringInput(value = signerSuffix,
                 label = "签名后缀",
-                isError = signerSuffixError,
-                onValueChange = { suffix -> viewModel.updateSignerSuffix(suffix) })
+                isError = userData.defaultSignerSuffix.isBlank(),
+                onValueChange = { suffix ->
+                    signerSuffix = suffix
+                    viewModel.saveUserData(userData.copy(defaultSignerSuffix = suffix))
+                })
             Spacer(Modifier.size(3.dp))
             Text(
-                "签名后缀： Apk签名后输出名称（比如：输入Apk名称为apk_unsign.apk，则输入Apk名称为apk_unsign${viewModel.signerSuffix}.apk）",
+                "签名后缀： Apk签名后输出名称（比如：输入Apk名称为apk_unsign.apk，则输入Apk名称为apk_unsign${userData.defaultSignerSuffix}.apk）",
                 modifier = Modifier.padding(horizontal = 24.dp),
                 style = MaterialTheme.typography.labelSmall
             )
@@ -96,7 +103,7 @@ private fun ApkSignature(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("输出文件重复是否删除重复文件", style = MaterialTheme.typography.bodyLarge)
-                    if (!viewModel.flagDelete) {
+                    if (!userData.duplicateFileRemoval) {
                         Text(
                             "注意：输出文件重复后无法成功签名，会提示输出文件已存在",
                             color = MaterialTheme.colorScheme.error,
@@ -104,7 +111,8 @@ private fun ApkSignature(
                         )
                     }
                 }
-                Switch(checked = viewModel.flagDelete, onCheckedChange = { viewModel.updateFlagDelete(it) })
+                Switch(checked = userData.duplicateFileRemoval,
+                    onCheckedChange = { viewModel.saveUserData(userData.copy(duplicateFileRemoval = it)) })
             }
             Row(
                 modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 6.dp),
@@ -112,7 +120,7 @@ private fun ApkSignature(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text("启用文件对齐", style = MaterialTheme.typography.bodyLarge)
-                    if (!viewModel.isAlignFileSize) {
+                    if (!userData.alignFileSize) {
                         Text(
                             "注意：目标 R+（版本 30 及更高版本）要求已安装 APK 内的文件未压缩存储并在 4 字节边界上对齐",
                             color = MaterialTheme.colorScheme.error,
@@ -120,7 +128,8 @@ private fun ApkSignature(
                         )
                     }
                 }
-                Switch(checked = viewModel.isAlignFileSize, onCheckedChange = { viewModel.updateIsAlignFileSize(it) })
+                Switch(checked = userData.alignFileSize,
+                    onCheckedChange = { viewModel.saveUserData(userData.copy(alignFileSize = it)) })
             }
         }
     }
@@ -131,6 +140,7 @@ private fun ApkSignature(
  */
 @Composable
 private fun KeyStore(viewModel: MainViewModel) {
+    val userData by viewModel.userData.collectAsState()
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -141,33 +151,13 @@ private fun KeyStore(viewModel: MainViewModel) {
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.size(6.dp))
-            // 注释的代码会在后面版本中删除
-//            FileInput(
-//                value = viewModel.keytool, label = "Keytool可执行文件", isError = keytoolError, FileSelectorType.EXECUTE
-//            ) { path ->
-//                viewModel.updateKeytoolPath(path)
-//            }
-//            Spacer(Modifier.size(6.dp))
-//            if (isWindows) {
-//                Text(
-//                    "Keytool可执行文件： 一般位于/JDK 安装目录/bin/keytool",
-//                    modifier = Modifier.padding(horizontal = 24.dp),
-//                    style = MaterialTheme.typography.labelSmall
-//                )
-//            } else {
-//                Text(
-//                    "Keytool可执行文件： 一般位于/JDK 安装目录/Contents/Home/bin/keytool",
-//                    modifier = Modifier.padding(horizontal = 24.dp),
-//                    style = MaterialTheme.typography.labelSmall
-//                )
-//            }
             Row(
                 modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(2.5f)) {
                     Text("目标密钥类型", style = MaterialTheme.typography.bodyLarge)
-                    if (viewModel.destStoreType == StoreType.JKS.value) {
+                    if (userData.destStoreType == DestStoreType.JKS) {
                         Text(
                             text = "注意：JKS 密钥库使用专用格式。建议使用行业标准格式 PKCS12。",
                             color = MaterialTheme.colorScheme.error,
@@ -181,18 +171,18 @@ private fun KeyStore(viewModel: MainViewModel) {
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        StoreType.JKS.value,
+                        DestStoreType.JKS.name,
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center
                     )
                     Switch(
-                        checked = viewModel.destStoreType == StoreType.PKCS12.value,
-                        onCheckedChange = { viewModel.updateDestStoreType(if (it) StoreType.PKCS12 else StoreType.JKS) },
+                        checked = userData.destStoreType == DestStoreType.PKCS12,
+                        onCheckedChange = { viewModel.saveUserData(userData.copy(destStoreType = if (it) DestStoreType.PKCS12 else DestStoreType.JKS)) },
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        StoreType.PKCS12.value,
+                        DestStoreType.PKCS12.name,
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center
@@ -205,7 +195,7 @@ private fun KeyStore(viewModel: MainViewModel) {
             ) {
                 Column(modifier = Modifier.weight(2.5f)) {
                     Text("目标密钥大小", style = MaterialTheme.typography.bodyLarge)
-                    if (viewModel.destStoreSize.toInt() == StoreSize.SIZE_1024.value) {
+                    if (userData.destStoreSize == DestStoreSize.ONE_THOUSAND_TWENTY_FOUR) {
                         Text(
                             text = "注意：生成的证书 使用的 1024 位 RSA 密钥 被视为存在安全风险。此密钥大小将在未来的更新中被禁用。",
                             color = MaterialTheme.colorScheme.error,
@@ -219,18 +209,18 @@ private fun KeyStore(viewModel: MainViewModel) {
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        StoreSize.SIZE_1024.value.toString(),
+                        DestStoreSize.ONE_THOUSAND_TWENTY_FOUR.size.toString(),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center
                     )
                     Switch(
-                        checked = viewModel.destStoreSize.toInt() == StoreSize.SIZE_2048.value,
-                        onCheckedChange = { viewModel.updateDestStoreSize(if (it) StoreSize.SIZE_2048 else StoreSize.SIZE_1024) },
+                        checked = userData.destStoreSize == DestStoreSize.TWO_THOUSAND_FORTY_EIGHT,
+                        onCheckedChange = { viewModel.saveUserData(userData.copy(destStoreSize = if (it) DestStoreSize.TWO_THOUSAND_FORTY_EIGHT else DestStoreSize.ONE_THOUSAND_TWENTY_FOUR)) },
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        StoreSize.SIZE_2048.value.toString(),
+                        DestStoreSize.TWO_THOUSAND_FORTY_EIGHT.size.toString(),
                         style = MaterialTheme.typography.titleSmall,
                         modifier = Modifier.weight(1f),
                         textAlign = TextAlign.Center
@@ -243,8 +233,11 @@ private fun KeyStore(viewModel: MainViewModel) {
 
 @Composable
 private fun Conventional(
-    viewModel: MainViewModel, outPutError: Boolean
+    viewModel: MainViewModel
 ) {
+    val userData by viewModel.userData.collectAsState()
+    var outputPath by mutableStateOf(userData.defaultOutputPath)
+    val outPutError = userData.defaultOutputPath.isNotBlank() && !File(userData.defaultOutputPath).isDirectory
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -255,10 +248,10 @@ private fun Conventional(
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.size(12.dp))
-            FolderInput(value = viewModel.outputPath,
-                label = "默认输出路径",
-                isError = outPutError,
-                onValueChange = { path -> viewModel.updateOutputPath(path) })
+            FolderInput(value = outputPath, label = "默认输出路径", isError = outPutError, onValueChange = { path ->
+                outputPath = path
+                viewModel.saveUserData(userData.copy(defaultOutputPath = path))
+            })
             Spacer(Modifier.size(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -267,19 +260,19 @@ private fun Conventional(
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)
                 ) {
-                    val modeList = listOf(Exterior.AutoMode, Exterior.LightMode, Exterior.DarkMode)
-                    modeList.forEach { exterior ->
+                    val modeList = listOf(DarkThemeConfig.FOLLOW_SYSTEM, DarkThemeConfig.LIGHT, DarkThemeConfig.DARK)
+                    modeList.forEach { theme ->
                         ElevatedFilterChip(modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
-                            selected = viewModel.darkMode == exterior.mode,
-                            onClick = { viewModel.updateDarkMode(exterior.mode) },
+                            selected = userData.darkThemeConfig == theme,
+                            onClick = { viewModel.saveUserData(userData.copy(darkThemeConfig = theme)) },
                             label = {
                                 Text(
-                                    exterior.title,
+                                    theme.value,
                                     textAlign = TextAlign.End,
                                     modifier = Modifier.fillMaxWidth().padding(8.dp)
                                 )
                             },
-                            leadingIcon = if (viewModel.darkMode == exterior.mode) {
+                            leadingIcon = if (userData.darkThemeConfig == theme) {
                                 {
                                     Icon(
                                         imageVector = Icons.Rounded.Done,

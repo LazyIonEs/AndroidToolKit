@@ -1,10 +1,10 @@
 package platform
 
-import app.cash.sqldelight.db.SqlDriver
-import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
-import kit.ToolKitDatabase
-import java.io.File
-import java.util.Properties
+import com.russhwolf.settings.ExperimentalSettingsApi
+import com.russhwolf.settings.PreferencesSettings
+import com.russhwolf.settings.coroutines.FlowSettings
+import com.russhwolf.settings.coroutines.toFlowSettings
+import kotlinx.coroutines.Dispatchers
 
 /**
  * @Author      : LazyIonEs
@@ -12,27 +12,5 @@ import java.util.Properties
  * @Description : 数据库驱动工厂
  * @Version     : 1.0
  */
-actual fun createDriver(): SqlDriver {
-    val dbFile = getDatabaseFile()
-    // 后续删除
-    if (!dbFile.exists()) {
-        val oldDbDir = getOldDatabaseDir()
-        if (oldDbDir.exists()) {
-            oldDbDir.renameTo(dbFile.parentFile)
-        }
-    }
-    // 移动至getDatabaseFile()
-    dbFile.parentFile.also { if (!it.exists()) it.mkdirs() }
-    return JdbcSqliteDriver(
-        url = "jdbc:sqlite:${dbFile.absolutePath}",
-        properties = Properties(),
-        schema = ToolKitDatabase.Schema,
-        migrateEmptySchema = dbFile.exists(),
-    ).also {
-        ToolKitDatabase.Schema.create(it)
-    }
-}
-
-private fun getDatabaseFile() = File(File(System.getProperty("user.home"), ".android_tool_kit"), "config.db")
-
-private fun getOldDatabaseDir() = File(System.getProperty("user.home"), ".android_tools_kit")
+@OptIn(ExperimentalSettingsApi::class)
+actual fun createFlowSettings(): FlowSettings = PreferencesSettings.Factory().create("toolkit").toFlowSettings(Dispatchers.IO)

@@ -2,15 +2,11 @@ package platform
 
 import androidx.annotation.FloatRange
 import androidx.annotation.IntRange
-import app.cash.sqldelight.db.SqlDriver
-import kit.ToolKitDatabase
-import org.jetbrains.annotations.Range
+import com.russhwolf.settings.ExperimentalSettingsApi
+import com.russhwolf.settings.coroutines.FlowSettings
 
-expect fun createDriver(): SqlDriver
-
-fun createDatabase(driver: SqlDriver): ToolKitDatabase {
-    return ToolKitDatabase(driver)
-}
+@OptIn(ExperimentalSettingsApi::class)
+expect fun createFlowSettings(): FlowSettings
 
 /**
  * 缩放图片
@@ -34,7 +30,7 @@ expect fun resizePng(inputPath: String, outputPath: String, width: UInt, height:
 expect fun resizeFir(inputPath: String, outputPath: String, width: UInt, height: UInt)
 
 /**
- * 量化并压缩图片
+ * 量化（有损）并压缩图片
  * @param inputPath 输入路径
  * @param outputPath 输出路径
  * @param minimum 最低限度
@@ -47,9 +43,22 @@ expect fun resizeFir(inputPath: String, outputPath: String, width: UInt, height:
 expect fun quantize(
     inputPath: String,
     outputPath: String,
-    @IntRange(from = 0, to = 100) minimum: Int = 0,
+    @IntRange(from = 0, to = 100) minimum: Int = 70,
     @IntRange(from = 30, to = 100) target: Int = 100,
     @IntRange(from = 1, to = 10) speed: Int = 1,
+    @IntRange(from = 0, to = 6) preset: Int = 6
+)
+
+/**
+ * 无损压缩PNG
+ * @param inputPath 输入路径
+ * @param outputPath 输出路径
+ * @param preset 预设 1 - 6 预设越高、速度越慢、压缩效果越好
+ */
+@Throws(RustException::class)
+expect fun oxipng(
+    inputPath: String,
+    outputPath: String,
     @IntRange(from = 0, to = 6) preset: Int = 6
 )
 

@@ -45,8 +45,10 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.russhwolf.settings.ExperimentalSettingsApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import model.DarkThemeConfig
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.composeapp.generated.resources.APK信息
@@ -57,6 +59,7 @@ import org.tool.kit.composeapp.generated.resources.垃圾代码
 import org.tool.kit.composeapp.generated.resources.签名信息
 import org.tool.kit.composeapp.generated.resources.签名生成
 import org.tool.kit.composeapp.generated.resources.设置
+import platform.createFlowSettings
 import theme.AppTheme
 import ui.ApkInformation
 import ui.ApkSignature
@@ -67,15 +70,23 @@ import ui.SignatureGeneration
 import ui.SignatureInformation
 import vm.MainViewModel
 
+@OptIn(ExperimentalSettingsApi::class)
 @Composable
 fun App() {
-    val viewModel = viewModel { MainViewModel() }
-    val useDarkTheme = when (viewModel.darkMode) {
-        1L -> false
-        2L -> true
-        else -> isSystemInDarkTheme()
+    val viewModel = viewModel { MainViewModel(settings = createFlowSettings()) }
+    val userData by viewModel.userData.collectAsState()
+    val outputPath = userData.defaultOutputPath
+    viewModel.apply {
+        updateApkSignature(viewModel.apkSignatureState.copy(outputPath = outputPath))
+        updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePath = outputPath))
+        updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = outputPath))
+        updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = outputPath))
     }
-    viewModel.initInternal()
+    val useDarkTheme = when (userData.darkThemeConfig) {
+        DarkThemeConfig.LIGHT -> false
+        DarkThemeConfig.DARK -> true
+        DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
+    }
     AppTheme(useDarkTheme) {
         Surface(color = MaterialTheme.colorScheme.background) {
             MainContentScreen(viewModel)

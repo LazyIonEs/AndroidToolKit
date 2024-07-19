@@ -9,11 +9,15 @@ import androidx.lifecycle.viewModelScope
 import com.android.apksig.ApkSigner
 import com.android.apksig.ApkVerifier
 import com.android.ide.common.signing.KeystoreHelper
+import com.russhwolf.settings.ExperimentalSettingsApi
+import com.russhwolf.settings.coroutines.FlowSettings
 import constant.ConfigConstant
-import database.DataBase
+import database.PreferencesDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import model.ApkInformation
@@ -23,14 +27,13 @@ import model.JunkCodeInfo
 import model.KeyStoreInfo
 import model.SignaturePolicy
 import model.SnackbarVisualsData
-import model.StoreSize
-import model.StoreType
+import model.UserData
 import model.Verifier
 import model.VerifierResult
 import org.apache.commons.codec.digest.DigestUtils
 import platform.RustException
 import platform.mozJpeg
-import platform.quantize
+import platform.oxipng
 import platform.resizeFir
 import platform.resizePng
 import utils.AndroidJunkGenerator
@@ -39,7 +42,6 @@ import utils.extractIcon
 import utils.extractValue
 import utils.extractVersion
 import utils.formatFileSize
-import utils.getDownloadDirectory
 import utils.getVerifier
 import utils.isJPEG
 import utils.isJPG
@@ -63,38 +65,26 @@ import java.security.cert.X509Certificate
  * @Description : MainViewModel
  * @Version     : 1.0
  */
-class MainViewModel : ViewModel() {
+class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings: FlowSettings) :
+    ViewModel() {
 
-    // 数据库
-    private val dataBase = DataBase()
+    // 数据存储
+    @OptIn(ExperimentalSettingsApi::class)
+    private val preferences = PreferencesDataSource(settings)
 
-    // 暗色模式
-    private val _darkMode = mutableStateOf(dataBase.getDarkMode())
-    val darkMode by _darkMode
+    // 偏好设置
+    val userData = preferences.userData.stateIn(
+        scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = PreferencesDataSource.DEFAULT_USER_DATA
+    )
 
-    // 删除标识
-    private val _flagDelete = mutableStateOf(dataBase.getFlagDelete())
-    val flagDelete by _flagDelete
-
-    // 签名后缀
-    private val _signerSuffix = mutableStateOf(dataBase.getSignerSuffix())
-    val signerSuffix by _signerSuffix
-
-    // 默认输出路径
-    private val _outputPath = mutableStateOf(dataBase.getOutputPath())
-    val outputPath by _outputPath
-
-    // 文件对齐标识
-    private val _isAlignFileSize = mutableStateOf(dataBase.getIsAlignFileSize())
-    val isAlignFileSize by _isAlignFileSize
-
-    // 目标密钥类型
-    private val _destStoreType = mutableStateOf(dataBase.getDestStoreType())
-    val destStoreType by _destStoreType
-
-    // 目标密钥大小
-    private val _destStoreSize = mutableStateOf(dataBase.getDestStoreSize())
-    val destStoreSize by _destStoreSize
+    /**
+     * 更新用户偏好
+     */
+    fun saveUserData(userData: UserData) {
+        viewModelScope.launch {
+            preferences.saveData(userData)
+        }
+    }
 
     // 主页选中下标
     private val _uiPageIndex = mutableStateOf(Page.SIGNATURE_INFORMATION)
@@ -109,7 +99,7 @@ class MainViewModel : ViewModel() {
     val verifierState by _verifierState
 
     // APK签名信息
-    private val _apkSignatureState = mutableStateOf(ApkSignature(outputPath = outputPath))
+    private val _apkSignatureState = mutableStateOf(ApkSignature())
     val apkSignatureState by _apkSignatureState
 
     // Apk签名UI状态
@@ -117,7 +107,7 @@ class MainViewModel : ViewModel() {
     val apkSignatureUIState by _apkSignatureUIState
 
     // 签名生成信息
-    private val _keyStoreInfoState = mutableStateOf(KeyStoreInfo(keyStorePath = outputPath))
+    private val _keyStoreInfoState = mutableStateOf(KeyStoreInfo())
     val keyStoreInfoState by _keyStoreInfoState
 
     // 签名生成UI状态
@@ -129,7 +119,7 @@ class MainViewModel : ViewModel() {
     val apkInformationState by _apkInformationState
 
     // 垃圾代码生成信息
-    private val _junkCodeInfoState = mutableStateOf(JunkCodeInfo(outputPath = outputPath))
+    private val _junkCodeInfoState = mutableStateOf(JunkCodeInfo())
     val junkCodeInfoState by _junkCodeInfoState
 
     // 垃圾代码生成UI状态
@@ -137,7 +127,7 @@ class MainViewModel : ViewModel() {
     val junkCodeUIState by _junkCodeUIState
 
     // 图标工厂信息
-    private val _iconFactoryInfoState = mutableStateOf(IconFactoryInfo(outputPath = outputPath))
+    private val _iconFactoryInfoState = mutableStateOf(IconFactoryInfo())
     val iconFactoryInfoState by _iconFactoryInfoState
 
     // 图标工厂UI状态
@@ -206,6 +196,9 @@ class MainViewModel : ViewModel() {
      */
     fun apkSigner() = viewModelScope.launch(Dispatchers.IO) {
         try {
+            val signerSuffix = userData.value.defaultSignerSuffix
+            val flagDelete = userData.value.duplicateFileRemoval
+            val isAlignFileSize = userData.value.alignFileSize
             _apkSignatureUIState.update { UIState.Loading }
             val inputApk = File(apkSignatureState.apkPath)
             val outputApk = File(
@@ -344,17 +337,19 @@ class MainViewModel : ViewModel() {
      */
     fun createSignature() = viewModelScope.launch(Dispatchers.IO) {
         try {
+            val destStoreType = userData.value.destStoreType
+            val destStoreSize = userData.value.destStoreSize.size
             _keyStoreInfoUIState.update { UIState.Loading }
             val outputFile = File(keyStoreInfoState.keyStorePath, keyStoreInfoState.keyStoreName)
             val result = KeystoreHelper.createNewStore(
-                destStoreType,
+                destStoreType.name,
                 outputFile,
                 keyStoreInfoState.keyStorePassword,
                 keyStoreInfoState.keyStoreAlisaPassword,
                 keyStoreInfoState.keyStoreAlisa,
                 "CN=${keyStoreInfoState.authorName},OU=${keyStoreInfoState.organizationalUnit},O=${keyStoreInfoState.organizational},L=${keyStoreInfoState.city},S=${keyStoreInfoState.province}, C=${keyStoreInfoState.countryCode}",
                 keyStoreInfoState.validityPeriod.toInt(),
-                destStoreSize.toInt()
+                destStoreSize
             )
             if (result) {
                 val snackbarVisualsData = SnackbarVisualsData(message = "创建签名成功，点击跳转至签名文件",
@@ -559,10 +554,13 @@ class MainViewModel : ViewModel() {
                         width = size,
                         height = size
                     )
-                    quantize(
-                        inputPath = outputSizeFile.absolutePath,
-                        outputPath = outputFile.absolutePath,
+                    oxipng(
+                        inputPath = outputSizeFile.absolutePath, outputPath = outputFile.absolutePath
                     )
+//                    quantize(
+//                        inputPath = outputSizeFile.absolutePath,
+//                        outputPath = outputFile.absolutePath,
+//                    )
                 } else if (path.isJPG || path.isJPEG) {
                     resizeFir(
                         inputPath = inputFile.absolutePath,
@@ -591,7 +589,7 @@ class MainViewModel : ViewModel() {
                 error = e.message ?: "图标制作失败"
                 break
             }
-            outputSizeFile.delete()
+//            outputSizeFile.delete()
         }
         _iconFactoryUIState.update { UIState.WAIT }
         if (isSuccess) {
@@ -653,87 +651,6 @@ class MainViewModel : ViewModel() {
             fileInputStream?.close()
         }
         return false
-    }
-
-    /**
-     * 初始化内置
-     * 如果为空，填充内置路径
-     */
-    fun initInternal() {
-        if (outputPath.isBlank()) {
-            val file = File(getDownloadDirectory())
-            if (file.exists()) {
-                updateOutputPath(file.absolutePath)
-            }
-        }
-    }
-
-    /**
-     * 更新删除标识
-     * @param flagDelete 是否删除
-     */
-    fun updateFlagDelete(flagDelete: Boolean) {
-        dataBase.updateFlagDelete(flagDelete)
-        _flagDelete.update { dataBase.getFlagDelete() }
-    }
-
-    /**
-     * 更新签名后缀
-     * @param signerSuffix 后缀
-     */
-    fun updateSignerSuffix(signerSuffix: String) {
-        dataBase.updateSignerSuffix(signerSuffix)
-        _signerSuffix.update { dataBase.getSignerSuffix() }
-    }
-
-    /**
-     * 更新暗色模式
-     * @param darkMode 0：自动 1：浅色 2：暗色
-     */
-    fun updateDarkMode(darkMode: Long) {
-        updateSnackbarVisuals("")
-        dataBase.updateDarkMode(darkMode)
-        _darkMode.update { dataBase.getDarkMode() }
-    }
-
-    /**
-     * 更新默认输出路径
-     * @param outputPath 路径
-     */
-    fun updateOutputPath(outputPath: String) {
-        dataBase.updateOutputPath(outputPath)
-        _outputPath.update { dataBase.getOutputPath() }
-        apkSignatureState.outputPath = this.outputPath
-        keyStoreInfoState.keyStorePath = this.outputPath
-        junkCodeInfoState.outputPath = this.outputPath
-        iconFactoryInfoState.outputPath = this.outputPath
-    }
-
-    /**
-     * 更新文件对齐标识
-     * @param isAlignFileSize 是否开启文件对齐
-     */
-    fun updateIsAlignFileSize(isAlignFileSize: Boolean) {
-        dataBase.updateIsAlignFileSize(isAlignFileSize)
-        _isAlignFileSize.update { dataBase.getIsAlignFileSize() }
-    }
-
-    /**
-     * 更新目标密钥类型
-     * @param type JKS or PKCS12
-     */
-    fun updateDestStoreType(type: StoreType) {
-        dataBase.updateDestStoreType(type.value)
-        _destStoreType.update { dataBase.getDestStoreType() }
-    }
-
-    /**
-     * 更新目标密钥大小
-     * @param type 1024 or 2048
-     */
-    fun updateDestStoreSize(type: StoreSize) {
-        dataBase.updateDestStoreSize(type.value.toLong())
-        _destStoreSize.update { dataBase.getDestStoreSize() }
     }
 }
 

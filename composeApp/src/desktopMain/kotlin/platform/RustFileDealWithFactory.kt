@@ -44,14 +44,14 @@ actual fun resizeFir(inputPath: String, outputPath: String, width: UInt, height:
 }
 
 /**
- * 量化并压缩图片
+ * 量化（有损）并压缩图片
  * @param inputPath 输入路径
  * @param outputPath 输出路径
  * @param minimum 最低限度
  * @param target 目标质量 如果不能满足最低质量，量化将因错误而中止。默认值为最小值 0，最大值 100，表示尽力而为，并且永不中止该过程。
  * 如果最大值小于 100，则库将尝试使用较少的颜色。颜色较少的图像并不总是较小，因为它会导致抖动增加。
  * @param speed 速度 1 - 10 更快的速度会生成质量较低的图像，但可能对于实时生成图像有用
- * @param preset 预设
+ * @param preset 预设 1 - 6 预设越高、速度越慢、压缩效果越好
  */
 @Throws(RustException::class)
 actual fun quantize(
@@ -76,6 +76,31 @@ actual fun quantize(
         throw RustException(e.message)
     }
 }
+
+/**
+ * 无损压缩PNG
+ * @param inputPath 输入路径
+ * @param outputPath 输出路径
+ * @param preset 预设 1 - 6 预设越高、速度越慢、压缩效果越好
+ */
+@Throws(RustException::class)
+actual fun oxipng(
+    inputPath: String,
+    outputPath: String,
+    @IntRange(from = 0, to = 6) preset: Int
+) {
+    try {
+        uniffi.toolkit.oxipng(
+            inputPath = inputPath,
+            outputPath = outputPath,
+            preset = preset.toUByte()
+        )
+    } catch (e: ToolKitRustException) {
+        e.printStackTrace()
+        throw RustException(e.message)
+    }
+}
+
 
 /**
  * 压缩图片

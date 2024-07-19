@@ -1,5 +1,8 @@
 package model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class UserData(
     val darkThemeConfig: DarkThemeConfig, // 主题配置
     val defaultOutputPath: String, // 默认输出路径
@@ -9,3 +12,19 @@ data class UserData(
     val destStoreType: DestStoreType, // 目标密钥类型
     val destStoreSize: DestStoreSize, // 目标密钥大小
 )
+
+enum class DarkThemeConfig(val value: String) {
+    FOLLOW_SYSTEM("跟随系统"),
+    LIGHT("亮色模式"),
+    DARK("暗色模式"),
+}
+
+enum class DestStoreSize(val size: Int) {
+    ONE_THOUSAND_TWENTY_FOUR(1024),
+    TWO_THOUSAND_FORTY_EIGHT(2048)
+}
+
+enum class DestStoreType {
+    JKS,
+    PKCS12
+}

@@ -144,20 +144,6 @@ data class JunkCodeInfo(
         }
 }
 
-enum class StoreType(val value: String) {
-    JKS("JKS"), PKCS12("PKCS12")
-}
-
-enum class StoreSize(val value: Int) {
-    SIZE_1024(1024), SIZE_2048(2048)
-}
-
-/**
- * 外观
- */
-enum class Exterior(val title: String, val mode: Long) {
-    AutoMode("跟随系统", 0), LightMode("浅色模式", 1), DarkMode("暗色模式", 2)
-}
 
 /**
  * 未签名APK
