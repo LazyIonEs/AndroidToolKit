@@ -1,6 +1,6 @@
 namespace toolkit {
     [Throws=ToolKitRustError]
-    void resize_fir(string input_path, string output_path, u32 dst_width, u32 dst_height);
+    void resize_fir(string input_path, string output_path, u32 dst_width, u32 dst_height, u8 typ_idx);
     [Throws=ToolKitRustError]
     void resize_png(string input_path, string output_path, u32 dst_width, u32 dst_height, u8 typ_idx);
     [Throws=ToolKitRustError]

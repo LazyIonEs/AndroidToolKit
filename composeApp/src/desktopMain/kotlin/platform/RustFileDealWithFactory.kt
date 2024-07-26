@@ -32,10 +32,10 @@ actual fun resizePng(inputPath: String, outputPath: String, width: UInt, height:
  * @param height 高度
  */
 @Throws(RustException::class)
-actual fun resizeFir(inputPath: String, outputPath: String, width: UInt, height: UInt) {
+actual fun resizeFir(inputPath: String, outputPath: String, width: UInt, height: UInt, typIdx: UByte) {
     try {
         uniffi.toolkit.resizeFir(
-            inputPath = inputPath, outputPath = outputPath, dstWidth = width, dstHeight = height
+            inputPath = inputPath, outputPath = outputPath, dstWidth = width, dstHeight = height, typIdx = typIdx
         )
     } catch (e: ToolKitRustException) {
         e.printStackTrace()

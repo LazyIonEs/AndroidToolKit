@@ -3,7 +3,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::vec::Vec;
 
-use fast_image_resize::{IntoImageView, PixelType, Resizer};
+use fast_image_resize::{FilterType, IntoImageView, PixelType, ResizeAlg, ResizeOptions, Resizer};
 use fast_image_resize::images::Image;
 use image::{ColorType, DynamicImage, ExtendedColorType, GenericImageView, ImageEncoder};
 use image::codecs::png::PngEncoder;
@@ -17,7 +17,7 @@ use srgb::linear_to_srgb;
 mod srgb;
 include!("./lut.inc");
 
-pub fn resize_fir(input_path: String, output_path: String, dst_width: u32, dst_height: u32) -> Result<(), ToolKitRustError> {
+pub fn resize_fir(input_path: String, output_path: String, dst_width: u32, dst_height: u32, typ_idx: u8) -> Result<(), ToolKitRustError> {
     let src_image_open = ImageReader::open(input_path);
 
     if src_image_open.is_err() {
@@ -51,8 +51,19 @@ pub fn resize_fir(input_path: String, output_path: String, dst_width: u32, dst_h
         src_image.pixel_type().unwrap(),
     );
 
+    let typ = match typ_idx {
+        0 => FilterType::Bilinear,
+        1 => FilterType::Hamming,
+        2 => FilterType::CatmullRom,
+        3 => FilterType::Mitchell,
+        4 => FilterType::Gaussian,
+        5 => FilterType::Lanczos3,
+        _ => panic!("Nope"),
+    };
+
     let mut resizer = Resizer::new();
-    if let Err(e) = resizer.resize(&src_image, &mut dst_image, None) {
+    let options = ResizeOptions::new().resize_alg(ResizeAlg::Convolution(typ));
+    if let Err(e) = resizer.resize(&src_image, &mut dst_image, &options) {
         let err = format!("Failed to resize: {e}");
         return Err(ToolKitRustError::Error(err));
     }

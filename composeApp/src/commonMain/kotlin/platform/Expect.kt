@@ -25,9 +25,10 @@ expect fun resizePng(inputPath: String, outputPath: String, width: UInt, height:
  * @param outputPath 输出路径
  * @param width 宽度
  * @param height 高度
+ * @param typIdx 缩放算法 0 Bilinear 1 Hamming 2 CatmullRom 3 Mitchell 4 Gaussian 5 Lanczos3
  */
 @Throws(RustException::class)
-expect fun resizeFir(inputPath: String, outputPath: String, width: UInt, height: UInt)
+expect fun resizeFir(inputPath: String, outputPath: String, width: UInt, height: UInt, typIdx: UByte = 5u)
 
 /**
  * 量化（有损）并压缩图片
