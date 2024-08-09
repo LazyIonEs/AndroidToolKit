@@ -11,6 +11,7 @@ data class IconFactoryData(
     val target: Int,
     val speed: Int,
     val preset: Int,
+    val percentage: Float,
     val quality: Float
 )
 

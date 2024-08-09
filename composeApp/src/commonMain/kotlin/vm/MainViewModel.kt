@@ -15,13 +15,15 @@ import constant.ConfigConstant
 import database.PreferencesDataSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import model.ApkInformation
 import model.ApkSignature
+import model.DarkThemeConfig
+import model.IconFactoryData
 import model.IconFactoryInfo
 import model.JunkCodeInfo
 import model.KeyStoreInfo
@@ -34,9 +36,11 @@ import org.apache.commons.codec.digest.DigestUtils
 import platform.RustException
 import platform.mozJpeg
 import platform.oxipng
+import platform.quantize
 import platform.resizeFir
 import platform.resizePng
 import utils.AndroidJunkGenerator
+import utils.WhileUiSubscribed
 import utils.browseFileDirectory
 import utils.extractIcon
 import utils.extractValue
@@ -65,26 +69,28 @@ import java.security.cert.X509Certificate
  * @Description : MainViewModel
  * @Version     : 1.0
  */
-class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings: FlowSettings) :
-    ViewModel() {
+class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings: FlowSettings) : ViewModel() {
 
     // 数据存储
     @OptIn(ExperimentalSettingsApi::class)
     private val preferences = PreferencesDataSource(settings)
 
     // 偏好设置
-    val userData = preferences.userData.stateIn(
-        scope = viewModelScope, started = SharingStarted.Eagerly, initialValue = PreferencesDataSource.DEFAULT_USER_DATA
+    val themeConfig = preferences.themeConfig.stateIn(
+        scope = viewModelScope, started = WhileUiSubscribed, initialValue = PreferencesDataSource.DEFAULT_THEME_CONFIG
     )
 
-    /**
-     * 更新用户偏好
-     */
-    fun saveUserData(userData: UserData) {
-        viewModelScope.launch {
-            preferences.saveData(userData)
-        }
-    }
+    // 偏好设置
+    val userData = preferences.userData.stateIn(
+        scope = viewModelScope, started = WhileUiSubscribed, initialValue = PreferencesDataSource.DEFAULT_USER_DATA
+    )
+
+    // 图标生成偏好设置
+    val iconFactoryData = preferences.iconFactoryData.stateIn(
+        scope = viewModelScope,
+        started = Eagerly,
+        initialValue = PreferencesDataSource.DEFAULT_ICON_FACTORY_DATA
+    )
 
     // 主页选中下标
     private val _uiPageIndex = mutableStateOf(Page.SIGNATURE_INFORMATION)
@@ -136,6 +142,33 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
 
     private val _snackbarVisuals = MutableStateFlow(SnackbarVisualsData())
     val snackbarVisuals = _snackbarVisuals.asStateFlow()
+
+    /**
+     * 更新主题
+     */
+    fun saveThemeConfig(themeConfig: DarkThemeConfig) {
+        viewModelScope.launch {
+            preferences.saveThemeConfig(themeConfig)
+        }
+    }
+
+    /**
+     * 更新用户偏好
+     */
+    fun saveUserData(userData: UserData) {
+        viewModelScope.launch {
+            preferences.saveUserData(userData)
+        }
+    }
+
+    /**
+     * 更新图标生成偏好
+     */
+    fun saveIconFactoryData(iconFactoryData: IconFactoryData) {
+        viewModelScope.launch {
+            preferences.saveIconFactoryData(iconFactoryData)
+        }
+    }
 
     /**
      * 显示快捷信息栏
@@ -518,6 +551,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      */
     fun iconGeneration(path: String) = viewModelScope.launch(Dispatchers.IO) {
         _iconFactoryUIState.update { UIState.Loading }
+        val iconFactory = iconFactoryData.value
         val densities = ConfigConstant.ICON_FILE_LIST
         val sizes = ConfigConstant.ICON_SIZE_LIST
         val inputFile = File(path)
@@ -552,24 +586,37 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                         inputPath = inputFile.absolutePath,
                         outputPath = outputSizeFile.absolutePath,
                         width = size,
-                        height = size
+                        height = size,
+                        typIdx = iconFactory.pngTypIdx.typIdx.toUByte()
                     )
-                    oxipng(
-                        inputPath = outputSizeFile.absolutePath, outputPath = outputFile.absolutePath
-                    )
-//                    quantize(
-//                        inputPath = outputSizeFile.absolutePath,
-//                        outputPath = outputFile.absolutePath,
-//                    )
+                    if (iconFactory.lossless) {
+                        oxipng(
+                            inputPath = outputSizeFile.absolutePath,
+                            outputPath = outputFile.absolutePath,
+                            preset = iconFactory.preset
+                        )
+                    } else {
+                        quantize(
+                            inputPath = outputSizeFile.absolutePath,
+                            outputPath = outputFile.absolutePath,
+                            minimum = iconFactory.minimum,
+                            target = iconFactory.target,
+                            speed = iconFactory.speed,
+                            preset = iconFactory.preset
+                        )
+                    }
                 } else if (path.isJPG || path.isJPEG) {
                     resizeFir(
                         inputPath = inputFile.absolutePath,
                         outputPath = outputSizeFile.absolutePath,
                         width = size,
-                        height = size
+                        height = size,
+                        typIdx = iconFactory.jpegTypIdx.typIdx.toUByte()
                     )
                     mozJpeg(
-                        inputPath = outputSizeFile.absolutePath, outputPath = outputFile.absolutePath
+                        inputPath = outputSizeFile.absolutePath,
+                        outputPath = outputFile.absolutePath,
+                        quality = if (iconFactory.lossless) 100f else iconFactory.quality
                     )
                 }
                 val infoState = iconFactoryInfoState.copy()
@@ -589,7 +636,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 error = e.message ?: "图标制作失败"
                 break
             }
-//            outputSizeFile.delete()
+            outputSizeFile.delete()
         }
         _iconFactoryUIState.update { UIState.WAIT }
         if (isSuccess) {

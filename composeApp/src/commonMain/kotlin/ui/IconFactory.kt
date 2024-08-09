@@ -3,12 +3,13 @@ package ui
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,7 +23,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Start
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.Button
@@ -33,15 +36,30 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.RangeSlider
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SheetState
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults.rememberPlainTooltipPositionProvider
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,6 +68,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.DragData
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.onExternalDrag
 import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.text.font.FontFamily
@@ -57,6 +76,9 @@ import androidx.compose.ui.unit.dp
 import constant.ConfigConstant
 import file.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import model.DarkThemeConfig
+import model.IconFactoryData
 import org.jetbrains.compose.resources.Font
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.ZCOOLKuaiLe_Regular
@@ -67,6 +89,7 @@ import vm.MainViewModel
 import vm.UIState
 import java.io.File
 import java.net.URI
+import kotlin.math.roundToInt
 
 /**
  * @Author      : LazyIonEs
@@ -79,14 +102,13 @@ fun IconFactory(viewModel: MainViewModel) {
     val scope = rememberCoroutineScope()
     val showBottomSheet = remember { mutableStateOf(false) }
     IconFactoryPreview(viewModel, showBottomSheet, scope)
-    LoadingAnimate(viewModel.iconFactoryUIState == UIState.Loading, scope)
+    LoadingAnimate(viewModel.iconFactoryUIState == UIState.Loading, viewModel, scope)
     IconFactorySheet(viewModel, showBottomSheet, scope)
 }
 
 /**
  * 图标生成预览
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun IconFactoryPreview(
     viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>, scope: CoroutineScope
@@ -106,7 +128,7 @@ private fun IconFactoryPreview(
             ) {
                 item {
                     Row(
-                        modifier = Modifier.animateItemPlacement(),
+                        modifier = Modifier.animateItem(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -136,20 +158,34 @@ private fun IconFactoryPreview(
                     Box(
                         modifier = Modifier.animateContentSize(finishedListener = { _, _ ->
                             animationEnds = true
-                        }).size(if (icon != null) 192.dp else 256.dp).animateItemPlacement()
+                        }).size(if (icon != null) 192.dp else 256.dp).animateItem()
                     ) {
                         icon?.let {
                             if (icon.exists()) {
                                 val bitmap = loadImageBitmap(icon.inputStream())
-                                Crossfade(targetState = bitmap) {
-                                    Image(
-                                        bitmap = it, contentDescription = "预览图标", modifier = Modifier.fillMaxSize()
-                                    )
-                                }
+                                Image(
+                                    bitmap = bitmap, contentDescription = "预览图标", modifier = Modifier.fillMaxSize()
+                                )
                             } else {
-                                viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(icon = null, result = null))
+                                viewModel.updateIconFactoryInfo(
+                                    viewModel.iconFactoryInfoState.copy(
+                                        icon = null, result = null
+                                    )
+                                )
                             }
-                        } ?: LottieAnimation(scope, "files/lottie_main_3.json")
+                        } ?: let {
+                            val themeConfig by viewModel.themeConfig.collectAsState()
+                            val useDarkTheme = when (themeConfig) {
+                                DarkThemeConfig.LIGHT -> false
+                                DarkThemeConfig.DARK -> true
+                                DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
+                            }
+                            if (useDarkTheme) {
+                                LottieAnimation(scope, "files/lottie_main_3_dark.json")
+                            } else {
+                                LottieAnimation(scope, "files/lottie_main_3_light.json")
+                            }
+                        }
                     }
                 }
                 if (icon != null) {
@@ -157,11 +193,11 @@ private fun IconFactoryPreview(
                         Icon(
                             imageVector = Icons.Rounded.Start,
                             contentDescription = "向右",
-                            modifier = Modifier.size(48.dp).animateItemPlacement()
+                            modifier = Modifier.size(48.dp).animateItem()
                         )
                     }
                     item {
-                        Box(modifier = Modifier.animateItemPlacement()) {
+                        Box(modifier = Modifier.animateItem()) {
                             IconFactoryResult(viewModel)
                         }
                     }
@@ -279,9 +315,7 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
                         "愣着干嘛，还不松手"
                     } else {
                         "点击选择或拖拽上传图片"
-                    },
-                    expanded = viewModel.iconFactoryInfoState.icon == null,
-                    FileSelectorType.IMAGE
+                    }, expanded = viewModel.iconFactoryInfoState.icon == null, FileSelectorType.IMAGE
                 ) { path ->
                     if (path.isImage) {
                         val file = File(path)
@@ -297,8 +331,7 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
                 visible = viewModel.iconFactoryInfoState.icon != null,
                 modifier = Modifier.padding(bottom = 16.dp, end = 16.dp).align(Alignment.End)
             ) {
-                ExtendedFloatingActionButton(
-                    onClick = { showBottomSheet.update { true } },
+                ExtendedFloatingActionButton(onClick = { showBottomSheet.update { true } },
                     expanded = true,
                     icon = { Icon(Icons.Rounded.Tune, "更多设置") },
                     text = { Text("更多设置") })
@@ -308,14 +341,16 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
             ModalBottomSheet(modifier = Modifier.fillMaxHeight().align(Alignment.BottomEnd),
                 sheetState = sheetState,
                 onDismissRequest = { showBottomSheet.update { false } }) {
-                IconFactorySetting(viewModel)
+                IconFactorySetting(viewModel, sheetState)
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun IconFactorySetting(viewModel: MainViewModel) {
+private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState) {
+    val scope = rememberCoroutineScope()
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(bottom = 20.dp, end = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -335,12 +370,136 @@ private fun IconFactorySetting(viewModel: MainViewModel) {
         }
         item {
             Spacer(Modifier.size(8.dp))
-            StringInput(value = viewModel.iconFactoryInfoState.iconName,
-                label = "图标名称",
-                isError = viewModel.iconFactoryInfoState.iconName.isBlank(),
-                onValueChange = { iconName ->
-                    viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(iconName = iconName))
-                })
+            Box(modifier = Modifier.fillMaxWidth()) {
+                StringInput(value = viewModel.iconFactoryInfoState.iconName,
+                    label = "图标名称",
+                    isError = viewModel.iconFactoryInfoState.iconName.isBlank(),
+                    onValueChange = { iconName ->
+                        viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(iconName = iconName))
+                    })
+                Box(modifier = Modifier.align(Alignment.CenterEnd).padding(top = 3.dp, end = 16.dp)) {
+                    TooltipBox(
+                        positionProvider = rememberPlainTooltipPositionProvider(), tooltip = {
+                            PlainTooltip {
+                                Text(
+                                    if (sheetState.currentValue == SheetValue.Expanded) "收起" else "展开更多自定义项",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }, state = rememberTooltipState()
+                    ) {
+                        FilledTonalIconButton(onClick = {
+                            scope.launch {
+                                if (sheetState.currentValue == SheetValue.Expanded) {
+                                    sheetState.partialExpand()
+                                } else {
+                                    sheetState.expand()
+                                }
+                            }
+                        }) {
+                            val rotate by animateFloatAsState(if (sheetState.currentValue == SheetValue.Expanded) 180f else 0f)
+                            Icon(
+                                imageVector = Icons.Rounded.KeyboardArrowUp,
+                                contentDescription = "展开更多",
+                                modifier = Modifier.rotate(rotate)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        item {
+            Spacer(Modifier.size(12.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 24.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("压缩自定义项", style = MaterialTheme.typography.titleSmall)
+                Divider(thickness = 2.dp, startIndent = 18.dp)
+            }
+            Spacer(Modifier.size(12.dp))
+            Compression(viewModel)
+        }
+    }
+}
+
+@ExperimentalMaterial3Api
+@Composable
+fun Compression(viewModel: MainViewModel) {
+    val iconFactoryData by viewModel.iconFactoryData.collectAsState()
+    val compressionOptions = listOf("无损压缩", "有损压缩")
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
+        compressionOptions.forEachIndexed { index, label ->
+            SegmentedButton(
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = compressionOptions.size), onClick = {
+                    viewModel.saveIconFactoryData(iconFactoryData.copy(lossless = index == 0))
+                }, selected = if (iconFactoryData.lossless) index == 0 else index == 1
+            ) {
+                Text(label, style = MaterialTheme.typography.labelLarge)
+            }
+        }
+    }
+
+    AnimatedVisibility(!iconFactoryData.lossless) {
+        CompressRangeSliders(viewModel, iconFactoryData)
+    }
+
+    Spacer(Modifier.size(8.dp))
+
+    var compressionSpeed by remember { mutableFloatStateOf(iconFactoryData.percentage * 10f) }
+
+    Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.align(Alignment.CenterStart), verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "压缩速度", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "快速",
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+            }
+            Text(
+                text = "疯狂",
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.align(Alignment.CenterEnd)
+            )
+        }
+        Slider(value = compressionSpeed, onValueChange = {
+            compressionSpeed = it
+        }, onValueChangeFinished = {
+            val percentage =
+                "%.2f".format(compressionSpeed.toBigDecimal().divide(10f.toBigDecimal()).toFloat()).toFloat()
+            val speed = 11 - (10 * percentage).roundToInt()
+            val preset = (7 * percentage).roundToInt() - 1
+            viewModel.saveIconFactoryData(
+                iconFactoryData.copy(
+                    speed = speed, preset = preset, percentage = percentage
+                )
+            )
+        }, valueRange = 1f..10f)
+    }
+    Spacer(Modifier.size(8.dp))
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
+    ) {
+        Algorithm(
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+            options = ConfigConstant.ICON_PNG_ALGORITHM,
+            isPng = true,
+            name = iconFactoryData.pngTypIdx.name
+        ) { select ->
+            viewModel.saveIconFactoryData(iconFactoryData.copy(pngTypIdx = select))
+        }
+
+        Algorithm(
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+            options = ConfigConstant.ICON_JPEG_ALGORITHM,
+            isPng = false,
+            name = iconFactoryData.jpegTypIdx.name
+        ) { select ->
+            viewModel.saveIconFactoryData(iconFactoryData.copy(jpegTypIdx = select))
         }
     }
 }
@@ -368,7 +527,7 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
             expanded = expanded,
             onExpandedChange = { expanded = it }) {
             OutlinedTextField(
-                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
                 value = viewModel.iconFactoryInfoState.iconDir,
                 onValueChange = { iconDir ->
                     viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(iconDir = iconDir))
@@ -393,6 +552,111 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
                     )
                 }
+            }
+        }
+    }
+}
+
+@ExperimentalMaterial3Api
+@Composable
+private fun CompressRangeSliders(viewModel: MainViewModel, iconFactoryData: IconFactoryData) {
+    var rangeSliderPosition by remember { mutableStateOf(iconFactoryData.minimum.toFloat()..iconFactoryData.target.toFloat()) }
+    val rangeStart = rangeSliderPosition.start.roundToInt()
+    val rangeEnd = rangeSliderPosition.endInclusive.roundToInt()
+    Column(modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 8.dp)) {
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.align(Alignment.CenterStart), verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "PNG质量", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "最低限度：$rangeStart",
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(start = 12.dp)
+                )
+            }
+            Text(
+                text = "目标：$rangeEnd",
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.align(Alignment.CenterEnd)
+            )
+        }
+        RangeSlider(value = rangeSliderPosition, onValueChange = {
+            rangeSliderPosition = if (it.endInclusive < 30) {
+                it.start.rangeTo(30f)
+            } else {
+                it
+            }
+        }, valueRange = 0f..100f, onValueChangeFinished = {
+            viewModel.saveIconFactoryData(
+                iconFactoryData.copy(
+                    minimum = rangeSliderPosition.start.roundToInt(),
+                    target = rangeSliderPosition.endInclusive.roundToInt()
+                )
+            )
+        })
+        Spacer(Modifier.size(8.dp))
+        var jpegQuality by remember { mutableFloatStateOf(iconFactoryData.quality) }
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "JPEG质量",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.align(Alignment.CenterStart)
+            )
+            Text(
+                text = "目标：${jpegQuality.roundToInt()}",
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.align(Alignment.CenterEnd)
+            )
+        }
+        Slider(value = jpegQuality, onValueChange = {
+            jpegQuality = it
+        }, onValueChangeFinished = {
+            viewModel.saveIconFactoryData(
+                iconFactoryData.copy(
+                    quality = jpegQuality.roundToInt().toFloat()
+                )
+            )
+        }, valueRange = 0f..100f)
+    }
+}
+
+@ExperimentalMaterial3Api
+@Composable
+private fun <T> Algorithm(modifier: Modifier, options: List<T>, isPng: Boolean, name: String, onClick: (T) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(modifier = modifier, expanded = expanded, onExpandedChange = { expanded = it }) {
+        OutlinedTextField(
+            modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            value = name,
+            onValueChange = {},
+            label = {
+                Text(
+                    text = if (isPng) "PNG 缩放算法" else "JPEG 缩放算法",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            },
+            singleLine = true,
+            readOnly = true,
+            trailingIcon = { TrailingIcon(expanded = expanded) },
+        )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            options.forEach { selectionOption ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = (selectionOption as Enum<*>).name, style = MaterialTheme.typography.labelLarge
+                        )
+                    },
+                    onClick = {
+                        onClick(selectionOption)
+                        expanded = false
+                    },
+                    contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                )
             }
         }
     }

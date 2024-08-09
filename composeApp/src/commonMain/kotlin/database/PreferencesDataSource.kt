@@ -2,9 +2,13 @@ package database
 
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.coroutines.FlowSettings
+import com.russhwolf.settings.coroutines.toBlockingSettings
+import com.russhwolf.settings.serialization.decodeValue
+import com.russhwolf.settings.serialization.encodeValue
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
+import kotlinx.serialization.ExperimentalSerializationApi
 import model.DarkThemeConfig
 import model.DestStoreSize
 import model.DestStoreType
@@ -20,12 +24,16 @@ import utils.getDownloadDirectory
  * @Description : 用户偏好设置
  * @Version     : 1.0
  */
+@OptIn(ExperimentalSerializationApi::class, ExperimentalSettingsApi::class)
 class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(private val settings: FlowSettings) {
 
+    private val blockingSettings = settings.toBlockingSettings()
+
     companion object {
+        private const val THEME_CONFIG = "theme_config"
+        val DEFAULT_THEME_CONFIG = DarkThemeConfig.FOLLOW_SYSTEM
         private const val USER_DATA = "user_data"
         val DEFAULT_USER_DATA = UserData(
-            darkThemeConfig = DarkThemeConfig.FOLLOW_SYSTEM,
             defaultOutputPath = getDownloadDirectory(),
             duplicateFileRemoval = true,
             defaultSignerSuffix = "_sign",
@@ -42,37 +50,46 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
             target = 100,
             speed = 1,
             preset = 6,
+            percentage = 1f,
             quality = 85f
         )
     }
 
-    @OptIn(ExperimentalSettingsApi::class)
-    val userData = settings.getStringOrNullFlow(USER_DATA).map { string ->
+    private val _userData = MutableStateFlow(DEFAULT_USER_DATA)
+    val userData = _userData.asStateFlow()
+
+    private val _iconFactoryData = MutableStateFlow(DEFAULT_ICON_FACTORY_DATA)
+    val iconFactoryData = _iconFactoryData.asStateFlow()
+
+    val themeConfig = settings.getStringOrNullFlow(THEME_CONFIG).map { string ->
         string?.let {
-            Json.decodeFromString<UserData>(it)
+            when (it) {
+                DarkThemeConfig.FOLLOW_SYSTEM.name -> DarkThemeConfig.FOLLOW_SYSTEM
+                DarkThemeConfig.DARK.name -> DarkThemeConfig.DARK
+                else -> DarkThemeConfig.LIGHT
+            }
         } ?: let {
-            DEFAULT_USER_DATA
+            DEFAULT_THEME_CONFIG
         }
     }
 
-    @OptIn(ExperimentalSettingsApi::class)
-    suspend fun saveUserData(userData: UserData) {
-        val string = Json.encodeToString(userData)
-        settings.putString(USER_DATA, string)
+    init {
+        _userData.value = blockingSettings.decodeValue(UserData.serializer(), USER_DATA, DEFAULT_USER_DATA)
+        _iconFactoryData.value =
+            blockingSettings.decodeValue(IconFactoryData.serializer(), ICON_FACTORY_DATA, DEFAULT_ICON_FACTORY_DATA)
     }
 
-    @OptIn(ExperimentalSettingsApi::class)
-    val iconFactoryData = settings.getStringOrNullFlow(ICON_FACTORY_DATA).map { string ->
-        string?.let {
-            Json.decodeFromString<IconFactoryData>(it)
-        } ?: let {
-            DEFAULT_ICON_FACTORY_DATA
-        }
+    suspend fun saveThemeConfig(themeConfig: DarkThemeConfig) {
+        settings.putString(THEME_CONFIG, themeConfig.name)
     }
 
-    @OptIn(ExperimentalSettingsApi::class)
-    suspend fun saveIconFactoryData(iconFactoryData: IconFactoryData) {
-        val string = Json.encodeToString(iconFactoryData)
-        settings.putString(ICON_FACTORY_DATA, string)
+    fun saveUserData(userData: UserData) {
+        blockingSettings.encodeValue(UserData.serializer(), USER_DATA, userData)
+        _userData.value = userData
+    }
+
+    fun saveIconFactoryData(iconFactoryData: IconFactoryData) {
+        blockingSettings.encodeValue(IconFactoryData.serializer(), ICON_FACTORY_DATA, iconFactoryData)
+        _iconFactoryData.value = iconFactoryData
     }
 }
