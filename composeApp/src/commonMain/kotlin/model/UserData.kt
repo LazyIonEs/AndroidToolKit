@@ -4,7 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserData(
-    val darkThemeConfig: DarkThemeConfig, // 主题配置
     val defaultOutputPath: String, // 默认输出路径
     val duplicateFileRemoval: Boolean, // 重复文件删除
     val defaultSignerSuffix: String, // 默认签名后缀
@@ -14,17 +13,13 @@ data class UserData(
 )
 
 enum class DarkThemeConfig(val value: String) {
-    FOLLOW_SYSTEM("跟随系统"),
-    LIGHT("亮色模式"),
-    DARK("暗色模式"),
+    FOLLOW_SYSTEM("跟随系统"), LIGHT("亮色模式"), DARK("暗色模式"),
 }
 
 enum class DestStoreSize(val size: Int) {
-    ONE_THOUSAND_TWENTY_FOUR(1024),
-    TWO_THOUSAND_FORTY_EIGHT(2048)
+    ONE_THOUSAND_TWENTY_FOUR(1024), TWO_THOUSAND_FORTY_EIGHT(2048)
 }
 
 enum class DestStoreType {
-    JKS,
-    PKCS12
+    JKS, PKCS12
 }

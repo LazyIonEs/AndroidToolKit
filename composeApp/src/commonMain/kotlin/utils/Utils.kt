@@ -68,10 +68,9 @@ fun <T> Array<out T>.toFileExtensions(): List<String> {
         when (type) {
             FileSelectorType.APK -> list.add("apk")
             FileSelectorType.KEY -> {
-                list.add("key")
+                list.add("jks")
                 list.add("keystore")
             }
-
             FileSelectorType.EXECUTE -> list.add("exe")
             FileSelectorType.IMAGE -> {
                 list.add("png")

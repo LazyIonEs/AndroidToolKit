@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -37,6 +38,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
@@ -46,6 +48,7 @@ import androidx.compose.material3.TooltipDefaults.rememberPlainTooltipPositionPr
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,6 +65,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import file.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
+import model.DarkThemeConfig
 import model.Verifier
 import model.VerifierResult
 import utils.LottieAnimation
@@ -86,11 +90,11 @@ fun SignatureInformation(
     val scope = rememberCoroutineScope()
     val signaturePath = remember { mutableStateOf("") }
     if (viewModel.verifierState == UIState.WAIT) {
-        SignatureLottie(scope)
+        SignatureLottie(viewModel, scope)
     }
     SignatureList(viewModel)
     SignatureBox(viewModel, signaturePath, scope)
-    LoadingAnimate(viewModel.verifierState == UIState.Loading, scope)
+    LoadingAnimate(viewModel.verifierState == UIState.Loading, viewModel, scope)
     SignatureDialog(viewModel, signaturePath)
 }
 
@@ -98,11 +102,21 @@ fun SignatureInformation(
  * 主页动画
  */
 @Composable
-private fun SignatureLottie(scope: CoroutineScope) {
+private fun SignatureLottie(viewModel: MainViewModel, scope: CoroutineScope) {
+    val themeConfig by viewModel.themeConfig.collectAsState()
+    val useDarkTheme = when (themeConfig) {
+        DarkThemeConfig.LIGHT -> false
+        DarkThemeConfig.DARK -> true
+        DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
+    }
     Box(
         modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
     ) {
-        LottieAnimation(scope, "files/lottie_main_2.json")
+        if (useDarkTheme) {
+            LottieAnimation(scope, "files/lottie_main_1_dark.json")
+        } else {
+            LottieAnimation(scope, "files/lottie_main_1_light.json")
+        }
     }
 }
 
@@ -117,29 +131,31 @@ private fun SignatureBox(
     var dragging by remember { mutableStateOf(false) }
     UploadAnimate(dragging, scope)
     Box(
-        modifier = Modifier.fillMaxSize()
-            .onExternalDrag(onDragStart = { dragging = true }, onDragExit = { dragging = false }, onDrop = { state ->
-                val dragData = state.dragData
-                if (dragData is DragData.FilesList) {
-                    dragData.readFiles().first().let {
-                        if (it.isApk) {
-                            val path = File(URI.create(it)).path
-                            viewModel.apkVerifier(path)
-                        } else if (it.isKey) {
-                            val path = File(URI.create(it)).path
-                            signaturePath.value = path
-                        } else {
+        modifier = Modifier.fillMaxSize().onExternalDrag(onDragStart = {
+            dragging = true
+        }, onDragExit = {
+            dragging = false
+        }, onDrop = { state ->
+            val dragData = state.dragData
+            if (dragData is DragData.FilesList) {
+                dragData.readFiles().first().let {
+                    if (it.isApk) {
+                        val path = File(URI.create(it)).path
+                        viewModel.apkVerifier(path)
+                    } else if (it.isKey) {
+                        val path = File(URI.create(it)).path
+                        signaturePath.value = path
+                    } else {
 
-                        }
                     }
                 }
-                dragging = false
-            }), contentAlignment = Alignment.TopCenter
+            }
+            dragging = false
+        }), contentAlignment = Alignment.TopCenter
     ) {
         Column(modifier = Modifier.align(Alignment.BottomEnd)) {
             AnimatedVisibility(
-                visible = viewModel.verifierState != UIState.Loading,
-                modifier = Modifier.align(Alignment.End)
+                visible = viewModel.verifierState != UIState.Loading, modifier = Modifier.align(Alignment.End)
             ) {
                 FileButton(
                     value = if (dragging) {
@@ -264,8 +280,7 @@ private fun SignatureDialog(
         }, text = {
             var expanded by remember { mutableStateOf(false) }
             Column {
-                OutlinedTextField(
-                    modifier = Modifier.padding(vertical = 4.dp),
+                OutlinedTextField(modifier = Modifier.padding(vertical = 4.dp),
                     value = password.value,
                     onValueChange = { value ->
                         password.value = value
@@ -286,7 +301,7 @@ private fun SignatureDialog(
                     expanded = expanded,
                     onExpandedChange = { expanded = it }) {
                     OutlinedTextField(
-                        modifier = Modifier.menuAnchor(),
+                        modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
                         value = alisa,
                         readOnly = true,
                         onValueChange = { },

@@ -33,7 +33,7 @@ fun JunkCode(
 ) {
     val scope = rememberCoroutineScope()
     JunkCodeBox(viewModel)
-    LoadingAnimate(viewModel.junkCodeUIState == UIState.Loading, scope)
+    LoadingAnimate(viewModel.junkCodeUIState == UIState.Loading, viewModel, scope)
 }
 
 @Composable

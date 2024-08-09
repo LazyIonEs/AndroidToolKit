@@ -38,7 +38,7 @@ fun SignatureGeneration(
 ) {
     val scope = rememberCoroutineScope()
     GenerationBox(viewModel)
-    LoadingAnimate(viewModel.keyStoreInfoUIState == UIState.Loading, scope)
+    LoadingAnimate(viewModel.keyStoreInfoUIState == UIState.Loading, viewModel, scope)
 }
 
 /**

@@ -7,10 +7,13 @@
 -keep class org.sqlite.** { *; }
 -keep class org.slf4j.** { *; }
 -keep class com.sun.jna.** { *; }
+-keepclassmembers class * extends com.sun.jna.** { public *; }
+-keep class * implements com.sun.jna.** { *; }
 -keep class java.nio.** { *; }
 -keep class java.util.concurrent.** { *; }
 -keep class uniffi.toolkit.** { *; }
 -keep class androidx.datastore.** { *; }
+-dontnote com.sun.**
 -keepclassmembers class androidx.datastore.** { *; }
 -keep class androidx.datastore.preferences.protobuf.** { *;}
 -keepclassmembers class androidx.datastore.preferences.protobuf.** { *; }

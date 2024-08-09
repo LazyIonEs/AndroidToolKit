@@ -47,6 +47,8 @@ import androidx.compose.ui.window.PopupPositionProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.russhwolf.settings.ExperimentalSettingsApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.drop
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import model.DarkThemeConfig
 import org.jetbrains.compose.resources.StringResource
@@ -69,26 +71,20 @@ import ui.SetUp
 import ui.SignatureGeneration
 import ui.SignatureInformation
 import vm.MainViewModel
+import kotlin.math.abs
 
 @OptIn(ExperimentalSettingsApi::class)
 @Composable
 fun App() {
     val viewModel = viewModel { MainViewModel(settings = createFlowSettings()) }
-    val userData by viewModel.userData.collectAsState()
-    val outputPath = userData.defaultOutputPath
-    viewModel.apply {
-        updateApkSignature(viewModel.apkSignatureState.copy(outputPath = outputPath))
-        updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePath = outputPath))
-        updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = outputPath))
-        updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = outputPath))
-    }
-    val useDarkTheme = when (userData.darkThemeConfig) {
+    val themeConfig by viewModel.themeConfig.collectAsState()
+    val useDarkTheme = when (themeConfig) {
         DarkThemeConfig.LIGHT -> false
         DarkThemeConfig.DARK -> true
         DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
     }
     AppTheme(useDarkTheme) {
-        Surface(color = MaterialTheme.colorScheme.background) {
+        Surface {
             MainContentScreen(viewModel)
         }
     }
@@ -102,6 +98,9 @@ fun App() {
 fun MainContentScreen(viewModel: MainViewModel) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    scope.launch {
+        collectOutputPath(viewModel)
+    }
     Scaffold(snackbarHost = {
         SnackbarHost(hostState = snackbarHostState)
     }) { innerPadding ->
@@ -159,7 +158,7 @@ fun MainContentScreen(viewModel: MainViewModel) {
     }
     val snackbarVisuals by viewModel.snackbarVisuals.collectAsState()
     snackbarVisuals.apply {
-        if (message.isBlank()) return@apply
+        if (message.isBlank() || abs(timestamp - System.currentTimeMillis()) > 50) return@apply
         scope.launch(Dispatchers.Main) {
             val snackbarResult = snackbarHostState.showSnackbar(this@apply)
             when (snackbarResult) {
@@ -167,6 +166,17 @@ fun MainContentScreen(viewModel: MainViewModel) {
                 SnackbarResult.Dismissed -> Unit
             }
         }
+    }
+}
+
+suspend fun collectOutputPath(viewModel: MainViewModel) {
+    val userData = viewModel.userData.drop(0).first()
+    val outputPath = userData.defaultOutputPath
+    viewModel.apply {
+        updateApkSignature(viewModel.apkSignatureState.copy(outputPath = outputPath))
+        updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePath = outputPath))
+        updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = outputPath))
+        updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = outputPath))
     }
 }
 

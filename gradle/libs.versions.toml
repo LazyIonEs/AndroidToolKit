@@ -4,17 +4,19 @@ compose-compiler = "1.5.8"
 compose-plugin = "1.7.0-alpha01"
 junit = "4.13.2"
 kotlin = "2.0.0"
-apksig = "8.4.0"
-mpfilepicker = "3.1.0"
-tools = "31.4.0"
-slf4j = "2.0.12"
-buildconfig = "5.3.5"
-commons-codec = "1.16.1"
+apksig = "8.5.1"
+tools = "31.5.1"
+slf4j = "2.0.13"
+buildconfig = "5.4.0"
+commons-codec = "1.17.1"
 asm = "9.7"
-jna = "5.13.0"
+jna = "5.14.0"
 logging = "7.0.0"
 lifecycle = "2.8.0"
 coroutines = "1.8.1"
+filekit = "0.7.0"
+multiplatform-settings = "1.1.1"
+kotlinx-serialization-json = "1.7.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -29,7 +31,6 @@ compose-material3 = { module = "androidx.compose.material3:material3", version.r
 compose-material-icons-extended-desktop = { module = "androidx.compose.material:material-icons-extended-desktop", version.ref = "compose" }
 lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 android-apksig = { module = "com.android.tools.build:apksig", version.ref = "apksig" }
-mpfilepicker = { module = "com.darkrockstudios:mpfilepicker", version.ref = "mpfilepicker" }
 android-tools-sdk-common = { module = "com.android.tools:sdk-common", version.ref = "tools" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
@@ -38,6 +39,11 @@ asm = { module = "org.ow2.asm:asm", version.ref = "asm" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "logging" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
+filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
+multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatform-settings" }
+multiplatform-settings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatform-settings" }
+multiplatform-settings-serialization = { module = "com.russhwolf:multiplatform-settings-serialization", version.ref = "multiplatform-settings" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization-json" }
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

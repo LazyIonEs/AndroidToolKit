@@ -31,22 +31,6 @@ val rustGeneratedSource = "${layout.buildDirectory.get()}/generated/source/uniff
 group = "org.tool.kit"
 version = kitVersion
 
-val osName: String = System.getProperty("os.name")
-val targetOs = when {
-    osName == "Mac OS X" -> "macos"
-    osName.startsWith("Win") -> "windows"
-    osName.startsWith("Linux") -> "linux"
-    else -> error("Unsupported OS: $osName")
-}
-
-var targetArch = when (val osArch = System.getProperty("os.arch")) {
-    "x86_64", "amd64" -> "x64"
-    "aarch64" -> "arm64"
-    else -> error("Unsupported arch: $osArch")
-}
-
-val target = "${targetOs}-${targetArch}"
-
 kotlin {
     jvmToolchain {
         languageVersion.set(javaLanguageVersion)
@@ -77,20 +61,19 @@ kotlin {
             implementation(libs.lifecycle.viewmodel.compose)
             runtimeOnly(libs.kotlinx.coroutines.swing)
             implementation(libs.jna)
-            implementation("com.android.tools:sdk-common:31.4.1") {
+            implementation("com.android.tools:sdk-common:31.5.1") {
                 exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
                 exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
                 exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
             }
-            implementation("com.russhwolf:multiplatform-settings:1.1.1")
-            implementation("com.russhwolf:multiplatform-settings-serialization:1.1.1")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
-            implementation("com.russhwolf:multiplatform-settings-coroutines:1.1.1")
+            implementation(libs.filekit.core)
+            implementation(libs.multiplatform.settings)
+            implementation(libs.multiplatform.settings.coroutines)
+            implementation(libs.multiplatform.settings.serialization)
+            implementation(libs.kotlinx.serialization.json)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
-            implementation("org.jetbrains.skiko:skiko-awt-runtime-$target:0.7.9")
-            implementation(libs.mpfilepicker)
         }
     }
 }

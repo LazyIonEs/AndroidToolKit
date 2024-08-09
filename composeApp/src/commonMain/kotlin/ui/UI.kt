@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,26 +29,25 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
-import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import file.FileSelectorType
-import file.showFileSelector
-import file.showFolderSelector
+import io.github.vinceglb.filekit.core.FileKit
+import io.github.vinceglb.filekit.core.PickerMode
+import io.github.vinceglb.filekit.core.PickerType
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import model.DarkThemeConfig
 import utils.LottieAnimation
 import utils.checkFile
-import utils.isMac
 import utils.toFileExtensions
+import vm.MainViewModel
 
 /**
  * @Author      : LazyIonEs
@@ -70,31 +70,23 @@ fun FileButton(
     vararg fileSelectorType: FileSelectorType,
     onFileSelector: (String) -> Unit
 ) {
-    var showFilePicker by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     ExtendedFloatingActionButton(
         modifier = Modifier.padding(end = 16.dp, bottom = 16.dp),
         onClick = {
-            if (isMac) {
-                showFileSelector(*fileSelectorType) { path ->
-                    onFileSelector(path)
+            scope.launch {
+                val file = FileKit.pickFile(
+                    type = PickerType.File(fileSelectorType.toFileExtensions()),
+                    mode = PickerMode.Single
+                )
+                if (fileSelectorType.checkFile(file?.path ?: return@launch)) {
+                    onFileSelector(file.path ?: return@launch)
                 }
-            } else {
-                showFilePicker = true
             }
         }, icon = { Icon(Icons.Rounded.DriveFolderUpload, value) }, text = {
             Text(value)
         }, expanded = expanded
     )
-    if (!isMac) {
-        FilePicker(
-            show = showFilePicker, fileExtensions = fileSelectorType.toFileExtensions()
-        ) { platformFile ->
-            showFilePicker = false
-            if (platformFile?.path?.isNotBlank() == true && fileSelectorType.checkFile(platformFile.path)) {
-                onFileSelector(platformFile.path)
-            }
-        }
-    }
 }
 
 /**
@@ -142,7 +134,7 @@ fun FileInput(
     vararg fileSelectorType: FileSelectorType,
     onValueChange: (String) -> Unit,
 ) {
-    var showFilePicker by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -156,23 +148,17 @@ fun FileInput(
             onValueChange = onValueChange,
         )
         SmallFloatingActionButton(onClick = {
-            if (isMac) {
-                showFileSelector(*fileSelectorType) { path ->
-                    onValueChange(path)
+            scope.launch {
+                val file = FileKit.pickFile(
+                    type = PickerType.File(fileSelectorType.toFileExtensions()),
+                    mode = PickerMode.Single
+                )
+                if (fileSelectorType.checkFile(file?.path ?: return@launch)) {
+                    onValueChange(file.path ?: return@launch)
                 }
-            } else {
-                showFilePicker = true
             }
         }) {
             Icon(Icons.Rounded.FolderOpen, "选择文件")
-        }
-    }
-    if (!isMac) {
-        FilePicker(show = showFilePicker, fileExtensions = fileSelectorType.toFileExtensions()) { platformFile ->
-            showFilePicker = false
-            if (platformFile?.path?.isNotBlank() == true && fileSelectorType.checkFile(platformFile.path)) {
-                onValueChange(platformFile.path)
-            }
         }
     }
 }
@@ -186,7 +172,6 @@ fun FileInput(
  */
 @Composable
 fun FolderInput(value: String, label: String, isError: Boolean, onValueChange: (String) -> Unit) {
-    var showDirPicker by remember { mutableStateOf(false) }
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
     ) {
@@ -197,24 +182,14 @@ fun FolderInput(value: String, label: String, isError: Boolean, onValueChange: (
             isError = isError,
             onValueChange = onValueChange
         )
+        val scope = rememberCoroutineScope()
         SmallFloatingActionButton(onClick = {
-            if (isMac) {
-                showFolderSelector { path ->
-                    onValueChange(path)
-                }
-            } else {
-                showDirPicker = true
+            scope.launch {
+                val directory = FileKit.pickDirectory()
+                onValueChange(directory?.path ?: return@launch)
             }
         }) {
             Icon(Icons.Rounded.FolderOpen, "选择文件夹")
-        }
-    }
-    if (!isMac) {
-        DirectoryPicker(showDirPicker) { path ->
-            showDirPicker = false
-            if (path?.isNotBlank() == true) {
-                onValueChange(path)
-            }
         }
     }
 }
@@ -326,16 +301,25 @@ fun UploadAnimate(dragging: Boolean, scope: CoroutineScope) {
  * @param scope 协程作用域
  */
 @Composable
-fun LoadingAnimate(visible: Boolean, scope: CoroutineScope) {
+fun LoadingAnimate(visible: Boolean, viewModel: MainViewModel, scope: CoroutineScope) {
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn() + expandHorizontally(),
         exit = scaleOut() + fadeOut(),
     ) {
         Box(
-            modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
+            modifier = Modifier.padding(top = 16.dp, bottom = 16.dp, end = 80.dp), contentAlignment = Alignment.Center
         ) {
-            LottieAnimation(scope, "files/lottie_loading.json")
+            val useDarkTheme = when (viewModel.themeConfig.value) {
+                DarkThemeConfig.LIGHT -> false
+                DarkThemeConfig.DARK -> true
+                DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
+            }
+            if (useDarkTheme) {
+                LottieAnimation(scope, "files/lottie_loading_light.json")
+            } else {
+                LottieAnimation(scope, "files/lottie_loading_dark.json")
+            }
         }
     }
 }

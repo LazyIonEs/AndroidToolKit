@@ -22,6 +22,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -59,7 +60,7 @@ fun ApkSignature(viewModel: MainViewModel) {
     val scope = rememberCoroutineScope()
     SignatureCard(viewModel)
     SignatureBox(viewModel, scope)
-    LoadingAnimate(viewModel.apkSignatureUIState == UIState.Loading, scope)
+    LoadingAnimate(viewModel.apkSignatureUIState == UIState.Loading, viewModel, scope)
 }
 
 /**
@@ -221,7 +222,7 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
             value = viewModel.apkSignatureState.apkPath,
             label = "APK文件",
             isError = apkError,
-            modifier = Modifier.padding(end = 8.dp, bottom = 3.dp).menuAnchor(),
+            modifier = Modifier.padding(end = 8.dp, bottom = 3.dp).menuAnchor(MenuAnchorType.PrimaryEditable),
             trailingIcon = { TrailingIcon(expanded = expanded) },
             FileSelectorType.APK
         ) { path ->
@@ -319,7 +320,7 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
         onExpandedChange = { expanded = it }
     ) {
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth().menuAnchor(),
+            modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
             value = selectedOptionText,
             readOnly = true,
             onValueChange = { },

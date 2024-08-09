@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -17,6 +18,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import file.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
 import model.ApkInformation
+import model.DarkThemeConfig
 import utils.LottieAnimation
 import utils.copy
 import utils.formatFileSize
@@ -50,10 +53,10 @@ import java.net.URI
 fun ApkInformation(viewModel: MainViewModel) {
     val scope = rememberCoroutineScope()
     if (viewModel.apkInformationState == UIState.WAIT) {
-        ApkInformationLottie(scope)
+        ApkInformationLottie(viewModel, scope)
     }
     ApkInformationBox(viewModel)
-    LoadingAnimate(viewModel.apkInformationState == UIState.Loading, scope)
+    LoadingAnimate(viewModel.apkInformationState == UIState.Loading, viewModel, scope)
     ApkDraggingBox(viewModel, scope)
 }
 
@@ -61,11 +64,21 @@ fun ApkInformation(viewModel: MainViewModel) {
  * 主页动画
  */
 @Composable
-private fun ApkInformationLottie(scope: CoroutineScope) {
+private fun ApkInformationLottie(viewModel: MainViewModel, scope: CoroutineScope) {
+    val themeConfig by viewModel.themeConfig.collectAsState()
+    val useDarkTheme = when (themeConfig) {
+        DarkThemeConfig.LIGHT -> false
+        DarkThemeConfig.DARK -> true
+        DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
+    }
     Box(
         modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
     ) {
-        LottieAnimation(scope, "files/lottie_main_1.json")
+        if (useDarkTheme) {
+            LottieAnimation(scope, "files/lottie_main_2_dark.json")
+        } else {
+            LottieAnimation(scope, "files/lottie_main_2_light.json")
+        }
     }
 }
 
