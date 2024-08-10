@@ -14,6 +14,7 @@
 -keep class uniffi.toolkit.** { *; }
 -keep class androidx.datastore.** { *; }
 -dontnote com.sun.**
+-keep class io.github.vinceglb.filekit.** { *; }
 -keepclassmembers class androidx.datastore.** { *; }
 -keep class androidx.datastore.preferences.protobuf.** { *;}
 -keepclassmembers class androidx.datastore.preferences.protobuf.** { *; }
