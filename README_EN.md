@@ -7,6 +7,9 @@
 ![GitHub Release](https://img.shields.io/github/v/release/LazyIonEs/AndroidToolKit)
 ![GitHub License](https://img.shields.io/github/license/LazyIonEs/AndroidToolKit)
 <!-- ![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/LazyIonEs/AndroidToolKit/latest/total) -->
+
+[简体中文](./README.md) | English
+
 Desktop tools applicable to Android development, supporting Windows, Mac and Linux :tada:
 > The Linux platform has not been tested. If you have any questions, please give us feedback in time.
 
