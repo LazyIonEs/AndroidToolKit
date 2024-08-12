@@ -7,7 +7,11 @@
 ![GitHub Release](https://img.shields.io/github/v/release/LazyIonEs/AndroidToolKit)
 ![GitHub License](https://img.shields.io/github/license/LazyIonEs/AndroidToolKit)
 <!-- ![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/LazyIonEs/AndroidToolKit/latest/total) -->
+
+简体中文 | [English](./README_EN.md)
+
 适用于安卓开发的桌面工具，支持 Windows、Mac 和 Linux  :tada:
+
 > linux 平台未经测试，如有问题，请及时反馈
 
 ### 主要功能
