@@ -53,10 +53,8 @@
 ![图标生成](screenshots/screenshot_icon_factory_2.png)
 
 #### 黑白主题
-<div align="center">
-  <img src=/screenshots/screenshot_light.png width=49% />
-  <img src=/screenshots/screenshot_dark.png width=49% />
-</div>
+![黑白主题](screenshots/screenshot_light.png)
+![黑白主题](screenshots/screenshot_dark.png)
 
 ### 技术栈
 - [Kotlin Multiplatform](https://kotlinlang.org/lp/multiplatform/)
