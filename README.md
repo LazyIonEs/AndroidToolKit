@@ -1,4 +1,4 @@
-<img src="https://github.com/LazyIonEs/AndroidToolKit/blob/main/composeApp/launcher/icon.png" width="64" align="left" />
+<img src="/composeApp/launcher/icon.png" width="64" align="left" />
 
 ## AndroidToolKit
 
@@ -35,27 +35,27 @@
 
 ### 截屏
 #### 签名信息
-<div align="center">
-  <img src=https://github.com/LazyIonEs/AndroidToolKit/blob/main/screenshots/screenshot_signature_information_1.png width=100% />
-  <img src=https://github.com/LazyIonEs/AndroidToolKit/blob/main/screenshots/screenshot_signature_information_2.png width=100% />
-  <img src=https://github.com/LazyIonEs/AndroidToolKit/blob/main/screenshots/screenshot_signature_information_3.png width=100% />
-</div>
+![签名信息](screenshots/screenshot_signature_information_1.png)
+![签名信息](screenshots/screenshot_signature_information_2.png)
+![签名信息](screenshots/screenshot_signature_information_3.png)
 
 #### APK信息
-<div align="center">
-  <img src=https://github.com/LazyIonEs/AndroidToolKit/blob/main/screenshots/screenshot_apk_information_1.png width=100% />
-</div>
+![APK信息](screenshots/screenshot_apk_information_1.png)
 
 #### APK签名
-<div align="center">
-  <img src=https://github.com/LazyIonEs/AndroidToolKit/blob/main/screenshots/screenshot_apk_signature_1.png width=49% />
-  <img src=https://github.com/LazyIonEs/AndroidToolKit/blob/main/screenshots/screenshot_apk_signature_2.png width=49% />
-</div>
+![APK签名](screenshots/screenshot_apk_signature_1.png)
 
 #### 签名生成
+![签名生成](screenshots/screenshot_signature_generation_1.png)
+
+#### 图标生成
+![图标生成](screenshots/screenshot_icon_factory_1.png)
+![图标生成](screenshots/screenshot_icon_factory_2.png)
+
+#### 黑白主题
 <div align="center">
-  <img src=https://github.com/LazyIonEs/AndroidToolKit/blob/main/screenshots/screenshot_signature_generation_1.png width=49% />
-  <img src=https://github.com/LazyIonEs/AndroidToolKit/blob/main/screenshots/screenshot_signature_generation_2.png width=49% />
+  <img src=/screenshots/screenshot_light.png width=49% />
+  <img src=/screenshots/screenshot_dark.png width=49% />
 </div>
 
 ### 技术栈
