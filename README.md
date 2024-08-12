@@ -60,7 +60,7 @@
 - [Kotlin Multiplatform](https://kotlinlang.org/lp/multiplatform/)
 - [Kotlin Coroutines](https://github.com/Kotlin/kotlinx.coroutines)
 - [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/)
-- [SQLDelight](https://github.com/cashapp/sqldelight)
+- [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
 
 有关所使用依赖项的完整列表，请查看 [catalog](/gradle/libs.versions.toml) 文件
 
