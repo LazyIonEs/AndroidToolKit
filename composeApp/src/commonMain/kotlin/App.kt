@@ -110,7 +110,9 @@ fun MainContentScreen(viewModel: MainViewModel) {
             Row(
                 modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically
             ) {
-                val pages = Page.entries.toTypedArray()
+                val pages = Page.entries.toMutableList().apply {
+                    if (!viewModel.junkCode) remove(Page.JUNK_CODE)
+                }
                 // 导航栏
                 NavigationRail(Modifier.fillMaxHeight()) {
                     Column(

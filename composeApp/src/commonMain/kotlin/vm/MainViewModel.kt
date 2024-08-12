@@ -92,6 +92,9 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         initialValue = PreferencesDataSource.DEFAULT_ICON_FACTORY_DATA
     )
 
+    // 偏好设置
+    val junkCode = preferences.junkCode
+
     // 主页选中下标
     private val _uiPageIndex = mutableStateOf(Page.SIGNATURE_INFORMATION)
     val uiPageIndex by _uiPageIndex
@@ -158,6 +161,13 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     fun saveUserData(userData: UserData) {
         viewModelScope.launch {
             preferences.saveUserData(userData)
+        }
+    }
+
+    fun saveJunkCode(show: Boolean) {
+        viewModelScope.launch {
+            preferences.saveJunkCode(show)
+            updateSnackbarVisuals("重启后生效")
         }
     }
 

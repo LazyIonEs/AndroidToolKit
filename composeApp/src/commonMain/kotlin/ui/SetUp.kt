@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import constant.ConfigConstant
 import model.DarkThemeConfig
 import model.DestStoreSize
 import model.DestStoreType
@@ -258,6 +259,11 @@ private fun Conventional(
                     updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePath = outputPath))
                     updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = outputPath))
                     updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = outputPath))
+                }
+                if (path == "${ConfigConstant.SHOW_JUNK} 1") {
+                    viewModel.saveJunkCode(true)
+                } else if (path == "${ConfigConstant.SHOW_JUNK} 0") {
+                    viewModel.saveJunkCode(false)
                 }
             })
             Spacer(Modifier.size(18.dp))

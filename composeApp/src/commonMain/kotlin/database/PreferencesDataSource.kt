@@ -53,6 +53,7 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
             percentage = 1f,
             quality = 85f
         )
+        private const val JUNK_CODE = "junk_code"
     }
 
     private val _userData = MutableStateFlow(DEFAULT_USER_DATA)
@@ -91,5 +92,11 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
     fun saveIconFactoryData(iconFactoryData: IconFactoryData) {
         blockingSettings.encodeValue(IconFactoryData.serializer(), ICON_FACTORY_DATA, iconFactoryData)
         _iconFactoryData.value = iconFactoryData
+    }
+
+    val junkCode = blockingSettings.getBoolean(JUNK_CODE, false)
+
+    fun saveJunkCode(show: Boolean) {
+        blockingSettings.putBoolean(JUNK_CODE, show)
     }
 }
