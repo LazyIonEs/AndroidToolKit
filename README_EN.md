@@ -19,13 +19,13 @@ Desktop tools applicable to Android development, supporting Windows, Mac and Lin
 - [x] APK Signature - Sign your APK
 - [x] Signature Generation - Generate a signed certificate
 - [x] Icon Generation - Generate icons of multiple sizes with one click
-- [ ] Image Compression - Compress images
-- [ ] Check for updates - Check for updates/auto-updates (pending)
+- [ ] Check for updates - Check for updates/auto-updates
 - [ ] Custom themes - custom color schemes
+- [ ] ~~Image Compression - Compress images~~
 > Supports APK signature verification; single signature verification (signature password required); file dragging; apk signature file alignment; generate signatures with specified key type and key size; appearance light and dark modes.
 
-### Download and install
-- [Github Releases](https://github.com/LazyIonEs/AndroidToolKit/releases)
+### Download
+- [Github Releases](https://github.com/LazyIonEs/AndroidToolKit/releases/latest)
 
 | device | chip | download |
 |:----:|:----:|:----:|
