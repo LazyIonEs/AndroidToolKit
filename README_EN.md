@@ -25,7 +25,7 @@ Desktop tools applicable to Android development, supporting Windows, Mac and Lin
 > Supports APK signature verification; single signature verification (signature password required); file dragging; apk signature file alignment; generate signatures with specified key type and key size; appearance light and dark modes.
 
 ### Download
-- [Github Releases](https://github.com/LazyIonEs/AndroidToolKit/releases/latest)
+- [Releases](https://github.com/LazyIonEs/AndroidToolKit/releases/latest)
 
 | device | chip | download |
 |:----:|:----:|:----:|
