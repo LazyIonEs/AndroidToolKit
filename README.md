@@ -25,8 +25,8 @@
 - [ ] 自定义主题 - 自定配色方案
 > 支持APK签名校验；单签名校验（需输入签名密码）；文件拖拽；apk签名文件对齐；生成签名指定密钥类型，密钥大小；外观浅色深色模式。
 
-### 下载安装
-- [Github Releases](https://github.com/LazyIonEs/AndroidToolKit/releases)
+### 下载
+- [Releases](https://github.com/LazyIonEs/AndroidToolKit/releases/latest)
 
 | 设备 | 芯片 | 下载 |
 |:----:|:----:|:----:|
