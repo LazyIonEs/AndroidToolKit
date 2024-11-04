@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,10 +57,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.DragData
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.onExternalDrag
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -74,8 +74,7 @@ import utils.isApk
 import utils.isKey
 import vm.MainViewModel
 import vm.UIState
-import java.io.File
-import java.net.URI
+import kotlin.io.path.pathString
 
 /**
  * @Author      : LazyIonEs
@@ -123,35 +122,29 @@ private fun SignatureLottie(viewModel: MainViewModel, scope: CoroutineScope) {
 /**
  * 签名主页，包含拖拽文件逻辑
  */
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun SignatureBox(
     viewModel: MainViewModel, signaturePath: MutableState<String>, scope: CoroutineScope
 ) {
     var dragging by remember { mutableStateOf(false) }
     UploadAnimate(dragging, scope)
-    Box(
-        modifier = Modifier.fillMaxSize().onExternalDrag(onDragStart = {
-            dragging = true
-        }, onDragExit = {
-            dragging = false
-        }, onDrop = { state ->
-            val dragData = state.dragData
-            if (dragData is DragData.FilesList) {
-                dragData.readFiles().first().let {
-                    if (it.isApk) {
-                        val path = File(URI.create(it)).path
+    Box(modifier = Modifier.fillMaxSize()
+        .dragAndDropTarget(shouldStartDragAndDrop = accept@{ true }, target = dragAndDropTarget(dragging = {
+            dragging = it
+        }, onFinish = { result ->
+            result.onSuccess { fileList ->
+                fileList.firstOrNull()?.let {
+                    val path = it.toAbsolutePath().pathString
+                    if (path.isApk) {
                         viewModel.apkVerifier(path)
-                    } else if (it.isKey) {
-                        val path = File(URI.create(it)).path
+                    } else if (path.isKey) {
                         signaturePath.value = path
-                    } else {
-
                     }
                 }
             }
-            dragging = false
-        }), contentAlignment = Alignment.TopCenter
+        })
+        ), contentAlignment = Alignment.TopCenter
     ) {
         Column(modifier = Modifier.align(Alignment.BottomEnd)) {
             AnimatedVisibility(
@@ -280,7 +273,8 @@ private fun SignatureDialog(
         }, text = {
             var expanded by remember { mutableStateOf(false) }
             Column {
-                OutlinedTextField(modifier = Modifier.padding(vertical = 4.dp),
+                OutlinedTextField(
+                    modifier = Modifier.padding(vertical = 4.dp),
                     value = password.value,
                     onValueChange = { value ->
                         password.value = value

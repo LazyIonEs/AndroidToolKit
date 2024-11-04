@@ -32,7 +32,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+import androidx.compose.ui.draganddrop.DragData
+import androidx.compose.ui.draganddrop.dragData
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.IntOffset
@@ -48,6 +53,11 @@ import utils.LottieAnimation
 import utils.checkFile
 import utils.toFileExtensions
 import vm.MainViewModel
+import java.net.URI
+import java.nio.file.LinkOption
+import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.io.path.toPath
 
 /**
  * @Author      : LazyIonEs
@@ -347,4 +357,41 @@ private fun CurrentTextField(
         readOnly = realOnly,
         trailingIcon = trailingIcon
     )
+}
+
+/**
+ * 拖拽回调
+ */
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun dragAndDropTarget(dragging: (Boolean) -> Unit, onFinish: (Result<List<Path>>) -> Unit): DragAndDropTarget {
+    val dragAndDropTarget = remember {
+        object : DragAndDropTarget {
+            override fun onEntered(event: DragAndDropEvent) {
+                dragging(true)
+            }
+
+            override fun onExited(event: DragAndDropEvent) {
+                dragging(false)
+            }
+
+            override fun onEnded(event: DragAndDropEvent) {
+                dragging(false)
+            }
+
+            override fun onDrop(event: DragAndDropEvent): Boolean {
+                dragging(false)
+                if (event.dragData() is DragData.FilesList) {
+                    val fileList = (event.dragData() as DragData.FilesList).readFiles().mapNotNull { path ->
+                        URI(path).toPath().takeIf { it.exists(LinkOption.NOFOLLOW_LINKS) }
+                    }
+                    onFinish(Result.success(fileList))
+                    return true
+                }
+                onFinish(Result.failure(Throwable("file list not obtained")))
+                return false
+            }
+        }
+    }
+    return dragAndDropTarget
 }

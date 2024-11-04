@@ -71,6 +71,7 @@ fun <T> Array<out T>.toFileExtensions(): List<String> {
                 list.add("jks")
                 list.add("keystore")
             }
+
             FileSelectorType.EXECUTE -> list.add("exe")
             FileSelectorType.IMAGE -> {
                 list.add("png")
@@ -274,10 +275,10 @@ private fun runCommand(command: String): Boolean {
             } else {
                 false
             }
-        } catch (e: IllegalThreadStateException) {
+        } catch (_: IllegalThreadStateException) {
             return true
         }
-    } catch (e: IOException) {
+    } catch (_: IOException) {
         return false
     }
 }

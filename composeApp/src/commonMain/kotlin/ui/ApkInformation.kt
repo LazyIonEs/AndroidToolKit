@@ -4,7 +4,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,10 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.DragData
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.onExternalDrag
 import androidx.compose.ui.unit.dp
 import file.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
@@ -40,8 +40,7 @@ import utils.formatFileSize
 import utils.isApk
 import vm.MainViewModel
 import vm.UIState
-import java.io.File
-import java.net.URI
+import kotlin.io.path.pathString
 
 /**
  * @Author      : LazyIonEs
@@ -82,25 +81,25 @@ private fun ApkInformationLottie(viewModel: MainViewModel, scope: CoroutineScope
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
     var dragging by remember { mutableStateOf(false) }
     UploadAnimate(dragging, scope)
     Box(
         modifier = Modifier.fillMaxSize()
-            .onExternalDrag(onDragStart = { dragging = true }, onDragExit = { dragging = false }, onDrop = { state ->
-                val dragData = state.dragData
-                if (dragData is DragData.FilesList) {
-                    dragData.readFiles().first().let {
-                        if (it.isApk) {
-                            val path = File(URI.create(it)).path
+            .dragAndDropTarget(shouldStartDragAndDrop = accept@{ true }, target = dragAndDropTarget(dragging = {
+                dragging = it
+            }, onFinish = { result ->
+                result.onSuccess { fileList ->
+                    fileList.firstOrNull()?.let {
+                        val path = it.toAbsolutePath().pathString
+                        if (path.isApk) {
                             viewModel.apkInformation(path)
                         }
                     }
                 }
-                dragging = false
-            })
+            }))
     ) {
         Box(
             modifier = Modifier.align(Alignment.BottomEnd)

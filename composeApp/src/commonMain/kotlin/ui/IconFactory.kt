@@ -8,7 +8,9 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -65,11 +67,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.DragData
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.onExternalDrag
 import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
@@ -79,7 +79,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import model.DarkThemeConfig
 import model.IconFactoryData
+import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.Font
+import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.ZCOOLKuaiLe_Regular
 import utils.LottieAnimation
@@ -88,7 +90,7 @@ import utils.update
 import vm.MainViewModel
 import vm.UIState
 import java.io.File
-import java.net.URI
+import kotlin.io.path.pathString
 import kotlin.math.roundToInt
 
 /**
@@ -263,11 +265,13 @@ private fun IconFactoryResult(viewModel: MainViewModel) {
     }
 }
 
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun IconFactoryResultPlaceholder(resultFile: File?, title: String, size: Int) {
     Crossfade(targetState = resultFile) { file ->
+        println("测试 ${file?.path}")
         if (file != null && file.exists()) {
-            val bitmap = loadImageBitmap(file.inputStream())
+            val bitmap = file.inputStream().readAllBytes().decodeToImageBitmap()
             Image(
                 bitmap = bitmap, contentDescription = "预览图标", modifier = Modifier.size(size.dp)
             )
@@ -281,7 +285,7 @@ private fun IconFactoryResultPlaceholder(resultFile: File?, title: String, size:
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>, scope: CoroutineScope) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
@@ -289,22 +293,23 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
     UploadAnimate(dragging, scope)
     Box(
         modifier = Modifier.fillMaxSize()
-            .onExternalDrag(onDragStart = { dragging = true }, onDragExit = { dragging = false }, onDrop = { state ->
-                val dragData = state.dragData
-                if (dragData is DragData.FilesList) {
-                    dragData.readFiles().firstOrNull()?.let {
-                        if (it.isImage) {
-                            val file = File(URI.create(it))
+            .dragAndDropTarget(shouldStartDragAndDrop = accept@{ true }, target = dragAndDropTarget(dragging = {
+                dragging = it
+            }, onFinish = { result ->
+                result.onSuccess { fileList ->
+                    fileList.firstOrNull()?.let {
+                        val path = it.toAbsolutePath().pathString
+                        if (path.isImage) {
                             viewModel.updateIconFactoryInfo(
                                 viewModel.iconFactoryInfoState.copy(
-                                    icon = file, result = null
+                                    icon = File(path),
+                                    result = null
                                 )
                             )
                         }
                     }
                 }
-                dragging = false
-            })
+            }))
     ) {
         Column(modifier = Modifier.align(Alignment.BottomEnd)) {
             AnimatedVisibility(
@@ -632,8 +637,7 @@ private fun <T> Algorithm(modifier: Modifier, options: List<T>, isPng: Boolean, 
             onValueChange = {},
             label = {
                 Text(
-                    text = if (isPng) "PNG 缩放算法" else "JPEG 缩放算法",
-                    style = MaterialTheme.typography.labelLarge
+                    text = if (isPng) "PNG 缩放算法" else "JPEG 缩放算法", style = MaterialTheme.typography.labelLarge
                 )
             },
             singleLine = true,

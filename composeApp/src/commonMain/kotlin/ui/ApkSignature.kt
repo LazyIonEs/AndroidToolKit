@@ -1,5 +1,7 @@
 package ui
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,10 +34,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.DragData
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.onExternalDrag
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import constant.ConfigConstant
@@ -47,7 +47,7 @@ import utils.isKey
 import vm.MainViewModel
 import vm.UIState
 import java.io.File
-import java.net.URI
+import kotlin.io.path.pathString
 
 /**
  * @Author      : LazyIonEs
@@ -66,26 +66,26 @@ fun ApkSignature(viewModel: MainViewModel) {
 /**
  * 签名主页
  */
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun SignatureBox(
     viewModel: MainViewModel, scope: CoroutineScope
 ) {
     var dragging by remember { mutableStateOf(false) }
     Box(
-        modifier = Modifier.fillMaxSize().onExternalDrag(
-            onDragStart = { dragging = true },
-            onDragExit = { dragging = false },
-            onDrop = { state ->
-                val dragData = state.dragData
-                if (dragData is DragData.FilesList) {
+        modifier = Modifier.fillMaxSize()
+            .dragAndDropTarget(shouldStartDragAndDrop = accept@{ true }, target = dragAndDropTarget(dragging = {
+                dragging = it
+            }, onFinish = { result ->
+                result.onSuccess { fileList ->
                     var mApkPath = ""
                     var mSignaturePath = ""
-                    dragData.readFiles().forEach {
-                        if (it.isApk && mApkPath.isBlank()) {
-                            mApkPath = File(URI.create(it)).path
-                        } else if (it.isKey && mSignaturePath.isBlank()) {
-                            mSignaturePath = File(URI.create(it)).path
+                    fileList.forEach {
+                        val path = it.toAbsolutePath().pathString
+                        if (path.isApk && mApkPath.isBlank()) {
+                            mApkPath = path
+                        } else if (path.isKey && mSignaturePath.isBlank()) {
+                            mSignaturePath = path
                         }
                     }
                     if (mApkPath.isNotBlank()) {
@@ -97,16 +97,14 @@ private fun SignatureBox(
                         viewModel.updateApkSignature(apkSignature)
                     }
                 }
-                dragging = false
-            })
+            }))
     )
     UploadAnimate(dragging, scope)
 }
 
 @Composable
 private fun SignatureCard(viewModel: MainViewModel) {
-    val apkError =
-        viewModel.apkSignatureState.apkPath.isNotBlank() && !File(viewModel.apkSignatureState.apkPath).isFile
+    val apkError = viewModel.apkSignatureState.apkPath.isNotBlank() && !File(viewModel.apkSignatureState.apkPath).isFile
     val outputError =
         viewModel.apkSignatureState.outputPath.isNotBlank() && !File(viewModel.apkSignatureState.outputPath).isDirectory
     val signatureError =
@@ -119,8 +117,7 @@ private fun SignatureCard(viewModel: MainViewModel) {
         modifier = Modifier.fillMaxSize().padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
     ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 Spacer(Modifier.size(16.dp))
@@ -129,9 +126,7 @@ private fun SignatureCard(viewModel: MainViewModel) {
             item {
                 Spacer(Modifier.size(6.dp))
                 FolderInput(
-                    value = viewModel.apkSignatureState.outputPath,
-                    label = "输出路径",
-                    isError = outputError
+                    value = viewModel.apkSignatureState.outputPath, label = "输出路径", isError = outputError
                 ) { outputPath ->
                     viewModel.updateApkSignature(viewModel.apkSignatureState.copy(outputPath = outputPath))
                 }
@@ -213,11 +208,9 @@ private fun SignatureCard(viewModel: MainViewModel) {
 private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
     var expanded by remember { mutableStateOf(false) }
     val options = ConfigConstant.unsignedApkList
-    ExposedDropdownMenuBox(
-        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
+    ExposedDropdownMenuBox(modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
         expanded = expanded,
-        onExpandedChange = { expanded = it }
-    ) {
+        onExpandedChange = { expanded = it }) {
         FileInput(
             value = viewModel.apkSignatureState.apkPath,
             label = "APK文件",
@@ -253,20 +246,16 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
 private fun SignaturePolicy(
     viewModel: MainViewModel
 ) {
-    val policyList =
-        listOf(SignaturePolicy.V1, SignaturePolicy.V2, SignaturePolicy.V2Only, SignaturePolicy.V3)
+    val policyList = listOf(SignaturePolicy.V1, SignaturePolicy.V2, SignaturePolicy.V2Only, SignaturePolicy.V3)
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "签名策略：",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(start = 24.dp)
+                "签名策略：", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 24.dp)
             )
             Text(
-                viewModel.apkSignatureState.keyStorePolicy.value,
-                style = MaterialTheme.typography.bodyMedium
+                viewModel.apkSignatureState.keyStorePolicy.value, style = MaterialTheme.typography.bodyMedium
             )
         }
         Spacer(Modifier.size(2.dp))
@@ -314,11 +303,9 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
     var expanded by remember { mutableStateOf(false) }
     val options = viewModel.apkSignatureState.keyStoreAlisaList
     val selectedOptionText = options?.getOrNull(viewModel.apkSignatureState.keyStoreAlisaIndex) ?: ""
-    ExposedDropdownMenuBox(
-        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 72.dp, bottom = 3.dp),
+    ExposedDropdownMenuBox(modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 72.dp, bottom = 3.dp),
         expanded = expanded,
-        onExpandedChange = { expanded = it }
-    ) {
+        onExpandedChange = { expanded = it }) {
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
             value = selectedOptionText,
@@ -371,9 +358,7 @@ private fun Signature(
         signatureApk(viewModel)
     }) {
         Text(
-            "开始签名",
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 48.dp)
+            "开始签名", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 48.dp)
         )
     }
 }
