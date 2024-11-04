@@ -70,7 +70,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import constant.ConfigConstant
@@ -111,6 +110,7 @@ fun IconFactory(viewModel: MainViewModel) {
 /**
  * 图标生成预览
  */
+@OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun IconFactoryPreview(
     viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>, scope: CoroutineScope
@@ -164,7 +164,7 @@ private fun IconFactoryPreview(
                     ) {
                         icon?.let {
                             if (icon.exists()) {
-                                val bitmap = loadImageBitmap(icon.inputStream())
+                                val bitmap = icon.inputStream().readAllBytes().decodeToImageBitmap()
                                 Image(
                                     bitmap = bitmap, contentDescription = "预览图标", modifier = Modifier.fillMaxSize()
                                 )
