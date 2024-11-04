@@ -7,7 +7,7 @@ use fast_image_resize::{FilterType, IntoImageView, PixelType, ResizeAlg, ResizeO
 use fast_image_resize::images::Image;
 use image::{ColorType, DynamicImage, ExtendedColorType, GenericImageView, ImageEncoder};
 use image::codecs::png::PngEncoder;
-use image::io::Reader as ImageReader;
+use image::ImageReader;
 use mozjpeg::Marker;
 use resize::{Pixel, Type};
 use rgb::FromSlice;
