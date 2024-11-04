@@ -16,7 +16,7 @@ val javaLanguageVersion = JavaLanguageVersion.of(17)
 val linuxArmTarget = "aarch64-unknown-linux-gnu"
 val linuxX64Target = "x86_64-unknown-linux-gnu"
 
-val kitVersion by extra("1.5.0")
+val kitVersion by extra("1.5.1")
 val kitPackageName = "AndroidToolKit"
 val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
@@ -61,7 +61,7 @@ kotlin {
             implementation(libs.lifecycle.viewmodel.compose)
             runtimeOnly(libs.kotlinx.coroutines.swing)
             implementation(libs.jna)
-            implementation("com.android.tools:sdk-common:31.5.1") {
+            implementation("com.android.tools:sdk-common:31.7.2") {
                 exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
                 exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
                 exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
