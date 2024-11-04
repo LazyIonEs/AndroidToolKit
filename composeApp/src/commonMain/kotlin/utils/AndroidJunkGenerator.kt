@@ -796,7 +796,7 @@ class AndroidJunkGenerator(
     private fun writeRFile() {
         val strings = mStringIds.joinToString("\n") { "int string $it 0x0" }
         val layouts = mLayoutIds.joinToString("\n") { "int layout $it 0x0" }
-        val drawables = mLayoutIds.joinToString("\n") { "int drawable $it 0x0" }
+        val drawables = mDrawableIds.joinToString("\n") { "int drawable $it 0x0" }
         val ids = mIds.joinToString("\n") { "int id $it 0x0" }
 
         val txt = strings + "\n" + layouts + "\n" + drawables + "\n" + ids
