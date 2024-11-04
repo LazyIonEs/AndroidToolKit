@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.android.apksig.ApkSigner
 import com.android.apksig.ApkVerifier
+import com.android.apksig.KeyConfig
 import com.android.ide.common.signing.KeystoreHelper
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.coroutines.FlowSettings
@@ -266,7 +267,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             )
             val privateKey = certificateInfo.key
             val certificate = certificateInfo.certificate
-            val signerConfig = ApkSigner.SignerConfig.Builder("CERT", privateKey, listOf(certificate)).build()
+            val keyConfig = KeyConfig.Jca(privateKey)
+            val signerConfig = ApkSigner.SignerConfig.Builder("CERT", keyConfig, listOf(certificate)).build()
             val signerBuild = ApkSigner.Builder(listOf(signerConfig))
             val apkSigner = signerBuild.setInputApk(inputApk).setOutputApk(outputApk).setAlignFileSize(isAlignFileSize)
                 .setV1SigningEnabled(v1SigningEnabled).setV2SigningEnabled(v2SigningEnabled)
@@ -333,9 +335,14 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             apkInformation.md5 = DigestUtils.md5Hex(FileInputStream(apkFile))
             while (bufferedReader.readLine().also { line = it } != null) {
                 line?.let {
-                    if (it.startsWith("application:")) {
+                    if (it.startsWith("application-icon-640:")) {
+                        val path = (it.split("application-icon-640:").getOrNull(1) ?: "").trim().replace("'", "")
+                        apkInformation.icon = extractIcon(input, path)
+                    } else if (it.startsWith("application:")) {
                         apkInformation.label = extractValue(it, "label")
-                        apkInformation.icon = extractIcon(input, extractValue(it, "icon"))
+                        if (apkInformation.icon == null) {
+                            apkInformation.icon = extractIcon(input, extractValue(it, "icon"))
+                        }
                     } else if (it.startsWith("package:")) {
                         apkInformation.packageName = extractValue(it, "name")
                         apkInformation.versionCode = extractValue(it, "versionCode")
@@ -353,8 +360,6 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                     } else if (it.startsWith("native-code:")) {
                         apkInformation.nativeCode =
                             (it.split("native-code:").getOrNull(1) ?: "").trim().replace("'", "")
-                    } else {
-
                     }
                 }
             }
@@ -580,6 +585,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         }
         var isSuccess = true
         var error = ""
+        val result = mutableListOf<File>()
         for ((index, density) in densities.withIndex()) {
             val size = sizes[index]
             val outputFile =
@@ -629,13 +635,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                         quality = if (iconFactory.lossless) 100f else iconFactory.quality
                     )
                 }
-                val infoState = iconFactoryInfoState.copy()
-                infoState.result?.apply {
-                    add(outputFile)
-                } ?: let {
-                    infoState.result = mutableListOf(outputFile)
-                }
-                updateIconFactoryInfo(infoState)
+                result.add(outputFile)
             } catch (e: RustException) {
                 isSuccess = false
                 error = e.message ?: "图标制作失败"
@@ -648,6 +648,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             }
             outputSizeFile.delete()
         }
+        updateIconFactoryInfo(iconFactoryInfoState.copy(result = result))
         _iconFactoryUIState.update { UIState.WAIT }
         if (isSuccess) {
             val snackbarVisualsData = SnackbarVisualsData(message = "图标生成完成。点击跳转至输出目录",
@@ -702,7 +703,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 val key = keyStore.getKey(alisa, apkSignatureState.keyStoreAlisaPassword.toCharArray())
                 return key != null
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             return false
         } finally {
             fileInputStream?.close()
