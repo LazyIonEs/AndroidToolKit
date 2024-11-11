@@ -66,7 +66,7 @@
 - [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/)
 - [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
 
-有关所使用依赖项的完整列表，请查看 [catalog](/gradle/libs.versions.toml) 文件
+有关所使用依赖项的完整列表，请查看 [catlog](/gradle/libs.versions.toml) 文件
 
 ### License
 
