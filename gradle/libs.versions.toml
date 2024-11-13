@@ -1,7 +1,7 @@
 [versions]
 compose = "1.6.5"
 compose-compiler = "1.5.8"
-compose-plugin = "1.7.0"
+compose-plugin = "1.7.1"
 junit = "4.13.2"
 kotlin = "2.0.21"
 apksig = "8.7.2"
