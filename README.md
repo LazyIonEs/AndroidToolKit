@@ -20,8 +20,6 @@
 - [x] APK签名 - 对APK进行签名
 - [x] 签名生成 - 生成签名证书
 - [x] 图标生成 - 一键生成多尺寸图标
-- [ ] 检查更新 - 检查更新/自动更新
-- [ ] 自定义主题 - 自定配色方案
 - [ ] ~~图片压缩 - 压缩图片（预计开发新应用）~~
 > 支持APK签名校验；单签名校验（需输入签名密码）；文件拖拽；apk签名文件对齐；生成签名指定密钥类型，密钥大小；外观浅色深色模式。
 
@@ -66,7 +64,7 @@
 - [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/)
 - [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
 
-有关所使用依赖项的完整列表，请查看 [catlog](/gradle/libs.versions.toml) 文件
+有关所使用依赖项的完整列表，请查看 [catalog](/gradle/libs.versions.toml) 文件
 
 ### License
 
