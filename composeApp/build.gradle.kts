@@ -16,7 +16,7 @@ val javaLanguageVersion = JavaLanguageVersion.of(17)
 val linuxArmTarget = "aarch64-unknown-linux-gnu"
 val linuxX64Target = "x86_64-unknown-linux-gnu"
 
-val kitVersion by extra("1.5.1")
+val kitVersion by extra("1.5.2")
 val kitPackageName = "AndroidToolKit"
 val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
@@ -71,6 +71,27 @@ kotlin {
             implementation(libs.multiplatform.settings.coroutines)
             implementation(libs.multiplatform.settings.serialization)
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.binary.resources)
+            implementation("com.jetbrains.intellij.platform:util:243.21565.208") {
+                exclude(group = "com.fasterxml", module = "aalto-xml")
+                exclude(group = "com.github.ben-manes.caffeine", module = "caffeine")
+                exclude(group = "com.intellij.platform", module = "kotlinx-coroutines-core-jvm")
+                exclude(group = "com.intellij.platform", module = "kotlinx-coroutines-debug")
+                exclude(group = "com.jetbrains.intellij.platform", module = "util-jdom")
+                exclude(group = "com.jetbrains.intellij.platform", module = "util-class-loader")
+                exclude(group = "com.jetbrains.intellij.platform", module = "util-xml-dom")
+                exclude(group = "commons-codec", module = "commons-codec")
+                exclude(group = "commons-io", module = "commons-io")
+                exclude(group = "net.java.dev.jna", module = "jna-platform")
+                exclude(group = "org.apache.commons", module = "commons-compress")
+                exclude(group = "org.jetbrains.intellij.deps.fastutil", module = "intellij-deps-fastutil")
+                exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
+                exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-core-jvm")
+                exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-json-jvm")
+                exclude(group = "org.lz4", module = "lz4-java")
+                exclude(group = "org.slf4j", module = "log4j-over-slf4j")
+                exclude(group = "oro", module = "oro")
+            }
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

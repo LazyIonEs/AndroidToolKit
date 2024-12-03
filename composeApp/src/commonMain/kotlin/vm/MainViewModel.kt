@@ -10,6 +10,7 @@ import com.android.apksig.ApkSigner
 import com.android.apksig.ApkVerifier
 import com.android.apksig.KeyConfig
 import com.android.ide.common.signing.KeystoreHelper
+import com.intellij.openapi.util.text.StringUtil
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.coroutines.FlowSettings
 import constant.ConfigConstant
@@ -21,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import model.ApkInformation
 import model.ApkSignature
 import model.DarkThemeConfig
@@ -41,6 +43,7 @@ import platform.quantize
 import platform.resizeFir
 import platform.resizePng
 import utils.AndroidJunkGenerator
+import utils.ExternalCommand
 import utils.WhileUiSubscribed
 import utils.browseFileDirectory
 import utils.extractIcon
@@ -56,13 +59,12 @@ import utils.isWindows
 import utils.resourcesDir
 import utils.resourcesDirWithOs
 import utils.update
-import java.io.BufferedReader
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
-import java.io.InputStream
-import java.io.InputStreamReader
 import java.security.KeyStore
 import java.security.cert.X509Certificate
+import java.util.concurrent.TimeUnit
 
 /**
  * @Author      : LazyIonEs
@@ -294,9 +296,6 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      * @param input 输入APK路径
      */
     fun apkInformation(input: String) = viewModelScope.launch(Dispatchers.IO) {
-        var process: Process? = null
-        var inputStream: InputStream? = null
-        var bufferedReader: BufferedReader? = null
         try {
             val aapt = File(
                 resourcesDirWithOs, if (isWindows) {
@@ -311,60 +310,63 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 aapt.setExecutable(true)
             }
             _apkInformationState.update { UIState.Loading }
-            val builder = ProcessBuilder()
-            process = builder.command(aapt.absolutePath, "dump", "badging", input).start()
-            inputStream = process!!.inputStream
 
-            var errors = ""
+            val stdinStream = "".byteInputStream()
+            val stdoutStream = ByteArrayOutputStream()
+            val stderrStream = ByteArrayOutputStream()
 
-            viewModelScope.launch(Dispatchers.IO) {
-                process.errorStream.use { stream ->
-                    BufferedReader(InputStreamReader(stream, "utf-8")).use { reader ->
-                        reader.readLines().forEach {
-                            errors += it
-                        }
-                    }
-                }
+            val exitValue = withContext(Dispatchers.IO) {
+                ExternalCommand(aapt.absolutePath).execute(
+                    listOf("dump", "badging", input),
+                    stdinStream, stdoutStream, stderrStream, 3000L, TimeUnit.MILLISECONDS
+                )
             }
 
-            bufferedReader = BufferedReader(InputStreamReader(inputStream!!, "utf-8"))
-            var line: String?
+            if (exitValue != 0) {
+                // 执行命令出现错误
+                throw InterruptedException("执行命令出现错误")
+            }
+
+            val converted = StringUtil.convertLineSeparators(stdoutStream.toString("UTF-8"))
+            val lines = StringUtil.split(converted, "\n", true, true)
+
             val apkInformation = ApkInformation()
             val apkFile = File(input)
             apkInformation.size = apkFile.length()
             apkInformation.md5 = DigestUtils.md5Hex(FileInputStream(apkFile))
-            while (bufferedReader.readLine().also { line = it } != null) {
-                line?.let {
-                    if (it.startsWith("application-icon-640:")) {
-                        val path = (it.split("application-icon-640:").getOrNull(1) ?: "").trim().replace("'", "")
-                        apkInformation.icon = extractIcon(input, path)
-                    } else if (it.startsWith("application:")) {
-                        apkInformation.label = extractValue(it, "label")
-                        if (apkInformation.icon == null) {
-                            apkInformation.icon = extractIcon(input, extractValue(it, "icon"))
-                        }
-                    } else if (it.startsWith("package:")) {
-                        apkInformation.packageName = extractValue(it, "name")
-                        apkInformation.versionCode = extractValue(it, "versionCode")
-                        apkInformation.versionName = extractValue(it, "versionName")
-                        apkInformation.compileSdkVersion = extractValue(it, "compileSdkVersion")
-                    } else if (it.startsWith("targetSdkVersion:")) {
-                        apkInformation.targetSdkVersion = extractVersion(it, "targetSdkVersion")
-                    } else if (it.startsWith("sdkVersion:")) {
-                        apkInformation.minSdkVersion = extractVersion(it, "sdkVersion")
-                    } else if (it.startsWith("uses-permission:")) {
-                        if (apkInformation.usesPermissionList == null) {
-                            apkInformation.usesPermissionList = ArrayList()
-                        }
-                        apkInformation.usesPermissionList?.add(extractValue(it, "name"))
-                    } else if (it.startsWith("native-code:")) {
-                        apkInformation.nativeCode =
-                            (it.split("native-code:").getOrNull(1) ?: "").trim().replace("'", "")
+
+            lines.forEach { line ->
+                if (line.startsWith("application-icon-640:")) {
+                    val path = (line.split("application-icon-640:").getOrNull(1) ?: "").trim().replace("'", "")
+                    apkInformation.icon = extractIcon(aapt, input, path)
+                } else if (line.startsWith("application:")) {
+                    apkInformation.label = extractValue(line, "label")
+                    val iconPath = extractValue(line, "icon")
+                    if (apkInformation.icon == null && !iconPath.endsWith(".xml")) {
+                        apkInformation.icon = extractIcon(aapt, input, iconPath)
                     }
+                } else if (line.startsWith("package:")) {
+                    apkInformation.packageName = extractValue(line, "name")
+                    apkInformation.versionCode = extractValue(line, "versionCode")
+                    apkInformation.versionName = extractValue(line, "versionName")
+                    apkInformation.compileSdkVersion = extractValue(line, "compileSdkVersion")
+                } else if (line.startsWith("targetSdkVersion:")) {
+                    apkInformation.targetSdkVersion = extractVersion(line, "targetSdkVersion")
+                } else if (line.startsWith("sdkVersion:")) {
+                    apkInformation.minSdkVersion = extractVersion(line, "sdkVersion")
+                } else if (line.startsWith("uses-permission:")) {
+                    if (apkInformation.usesPermissionList == null) {
+                        apkInformation.usesPermissionList = ArrayList()
+                    }
+                    apkInformation.usesPermissionList?.add(extractValue(line, "name"))
+                } else if (line.startsWith("native-code:")) {
+                    apkInformation.nativeCode =
+                        (line.split("native-code:").getOrNull(1) ?: "").trim().replace("'", "")
                 }
             }
+
             if (apkInformation.isBlank()) {
-                updateSnackbarVisuals(errors)
+                updateSnackbarVisuals("APK解析失败")
                 _apkInformationState.update { UIState.WAIT }
             } else {
                 _apkInformationState.update { UIState.Success(apkInformation) }
@@ -373,10 +375,6 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             e.printStackTrace()
             updateSnackbarVisuals(e.message ?: "APK解析失败")
             _apkInformationState.update { UIState.WAIT }
-        } finally {
-            process?.destroy()
-            inputStream?.close()
-            bufferedReader?.close()
         }
     }
 

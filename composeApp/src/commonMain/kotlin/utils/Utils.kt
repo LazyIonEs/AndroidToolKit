@@ -2,18 +2,26 @@ package utils
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import com.google.devrel.gmscore.tools.apk.arsc.ArscBlamer
+import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
+import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier
+import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
 import file.FileSelectorType
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import model.Verifier
 import org.jetbrains.skia.Image
 import java.awt.Desktop
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.IOException
+import java.io.InputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.security.MessageDigest
 import java.security.cert.X509Certificate
 import java.security.interfaces.RSAPublicKey
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipFile
 
 /**
@@ -157,21 +165,73 @@ fun extractVersion(line: String, attribute: String): String {
     return matchResult?.groups?.get(1)?.value ?: ""
 }
 
-fun extractIcon(apkPath: String, iconPath: String): ImageBitmap? {
+suspend fun extractIcon(aapt: File, apkPath: String, iconPath: String): ImageBitmap? = withContext(Dispatchers.IO) {
     try {
         if (iconPath.endsWith(".xml")) {
-            // adaptive icon ?
-            return null
-        } else {
-            ZipFile(apkPath).use { zipFile ->
-                val bytes = zipFile.getZipFileData(iconPath) ?: return null
-                return Image.makeFromEncoded(bytes).toComposeImageBitmap()
+            val stdinStream = "".byteInputStream()
+            val stdoutStream = ByteArrayOutputStream()
+            val stderrStream = ByteArrayOutputStream()
+
+            val exitValue = withContext(Dispatchers.IO) {
+                ExternalCommand(aapt.absolutePath).execute(
+                    listOf("dump", "xmltree", apkPath, "--file", "AndroidManifest.xml"),
+                    stdinStream, stdoutStream, stderrStream, 3000L, TimeUnit.MILLISECONDS
+                )
             }
+            if (exitValue != 0) {
+                // 执行命令出现错误
+                return@withContext null
+            }
+            val result = stdoutStream.toString("UTF-8").trimIndent()
+            // 正则表达式匹配 "A: http://schemas.android.com/apk/res/android:icon" 后面的十六进制值
+            val regex =
+                """A: http://schemas.android.com/apk/res/android:icon\(0x[0-9a-fA-F]+\)=@0x([0-9a-fA-F]+)""".toRegex()
+            // 查找匹配
+            regex.find(result)?.let { matchResult ->
+                val resourceId = matchResult.groupValues[1].toIntOrNull(16) ?: return@withContext null
+                return@withContext extractBitmapFromResourceTable(apkPath, resourceId)
+            }
+        } else {
+            return@withContext processIconFromZip(apkPath, iconPath)
         }
     } catch (e: Exception) {
         e.printStackTrace()
     }
-    return null
+    return@withContext null
+}
+
+private fun extractBitmapFromResourceTable(apkPath: String, resourceId: Int): ImageBitmap? {
+    val binaryResourceIdentifier = BinaryResourceIdentifier.create(resourceId)
+
+    ZipFile(apkPath).use { zipFile ->
+        val inputStream = zipFile.getZipFileInputStream("resources.arsc") ?: return null
+        val resourceFile = BinaryResourceFile.fromInputStream(inputStream)
+
+        val resourceTable = resourceFile.chunks.firstOrNull() as? ResourceTableChunk ?: return null
+
+        val blamer = ArscBlamer(resourceTable).apply { blame() }
+
+        val matchingTypeChunk = blamer.typeChunks.lastOrNull { typeChunk ->
+            typeChunk.containsResource(binaryResourceIdentifier) &&
+                    typeChunk.configuration.density() in listOf(160, 240, 320, 480, 640)
+        } ?: return null
+
+        val entry = matchingTypeChunk.entries[binaryResourceIdentifier.entryId()] ?: return null
+        if (entry.isComplex) return null
+
+        val resourcePath = resourceTable.stringPool.getString(entry.value().data())
+        val resourceBytes = zipFile.getZipFileData(resourcePath) ?: return null
+
+        return Image.makeFromEncoded(resourceBytes).toComposeImageBitmap()
+    }
+}
+
+private fun processIconFromZip(apkPath: String, iconPath: String): ImageBitmap? {
+    ZipFile(apkPath).use { zipFile ->
+        return zipFile.getZipFileData(iconPath)?.let { bytes ->
+            Image.makeFromEncoded(bytes).toComposeImageBitmap()
+        }
+    }
 }
 
 fun ZipFile.getZipFileData(path: String): ByteArray? {
@@ -186,6 +246,11 @@ fun ZipFile.getZipFileData(path: String): ByteArray? {
         }
         return outputStream.toByteArray()
     }
+}
+
+fun ZipFile.getZipFileInputStream(path: String): InputStream? {
+    val zipEntry = this.getEntry(path) ?: return null
+    return this.getInputStream(zipEntry)
 }
 
 private val appInternalResourcesDir: String
