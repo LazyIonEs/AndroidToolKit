@@ -67,7 +67,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontFamily
@@ -269,7 +268,6 @@ private fun IconFactoryResult(viewModel: MainViewModel) {
 @Composable
 private fun IconFactoryResultPlaceholder(resultFile: File?, title: String, size: Int) {
     Crossfade(targetState = resultFile) { file ->
-        println("测试 ${file?.path}")
         if (file != null && file.exists()) {
             val bitmap = file.inputStream().readAllBytes().decodeToImageBitmap()
             Image(
@@ -285,7 +283,7 @@ private fun IconFactoryResultPlaceholder(resultFile: File?, title: String, size:
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>, scope: CoroutineScope) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
