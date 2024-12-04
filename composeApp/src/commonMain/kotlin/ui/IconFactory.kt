@@ -72,7 +72,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import constant.ConfigConstant
-import file.FileSelectorType
+import model.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import model.DarkThemeConfig

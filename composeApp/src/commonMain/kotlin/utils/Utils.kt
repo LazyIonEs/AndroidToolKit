@@ -6,7 +6,7 @@ import com.google.devrel.gmscore.tools.apk.arsc.ArscBlamer
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
-import file.FileSelectorType
+import model.FileSelectorType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import model.Verifier

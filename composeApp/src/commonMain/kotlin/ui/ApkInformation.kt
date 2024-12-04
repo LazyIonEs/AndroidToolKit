@@ -29,7 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import file.FileSelectorType
+import model.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
 import model.ApkInformation
 import model.DarkThemeConfig

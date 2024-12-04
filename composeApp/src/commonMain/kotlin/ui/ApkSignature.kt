@@ -38,7 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import constant.ConfigConstant
-import file.FileSelectorType
+import model.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
 import model.SignaturePolicy
 import utils.isApk

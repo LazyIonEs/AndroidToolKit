@@ -1,4 +1,3 @@
-import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
@@ -85,10 +84,4 @@ private class WindowState(
     private val close: (WindowState) -> Unit
 ) {
     fun close() = close(this)
-}
-
-@Preview
-@Composable
-fun AppDesktopPreview() {
-    App()
 }

@@ -192,34 +192,18 @@ private fun GenerationBox(
 private fun KeyStorePassword(
     viewModel: MainViewModel, keyStoreConfirmPasswordError: Boolean
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 64.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        OutlinedTextField(
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
-            value = viewModel.keyStoreInfoState.keyStorePassword,
-            onValueChange = { keyStorePassword ->
-                viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePassword = keyStorePassword))
-            },
-            label = { Text("密钥密码", style = MaterialTheme.typography.labelLarge) },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-        )
-        OutlinedTextField(
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
-            value = viewModel.keyStoreInfoState.keyStoreConfirmPassword,
-            onValueChange = { keyStoreConfirmPassword ->
-                viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreConfirmPassword = keyStoreConfirmPassword))
-            },
-            label = { Text("确认密码", style = MaterialTheme.typography.labelLarge) },
-            isError = keyStoreConfirmPasswordError,
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-        )
-    }
+    ConfirmPasswordTextField(
+        title = "密钥密码",
+        password = viewModel.keyStoreInfoState.keyStorePassword,
+        confirmPassword = viewModel.keyStoreInfoState.keyStoreConfirmPassword,
+        confirmPasswordError = keyStoreConfirmPasswordError,
+        onPasswordChange = { keyStorePassword ->
+            viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePassword = keyStorePassword))
+        },
+        onConfirmPasswordChange = { keyStoreConfirmPassword ->
+            viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreConfirmPassword = keyStoreConfirmPassword))
+        }
+    )
 }
 
 /**
@@ -229,34 +213,18 @@ private fun KeyStorePassword(
 private fun KeyStoreAlisaPassword(
     viewModel: MainViewModel, keyStoreAlisaConfirmPasswordError: Boolean
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 64.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        OutlinedTextField(
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
-            value = viewModel.keyStoreInfoState.keyStoreAlisaPassword,
-            onValueChange = { keyStoreAlisaPassword ->
-                viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreAlisaPassword = keyStoreAlisaPassword))
-            },
-            label = { Text("别名密码", style = MaterialTheme.typography.labelLarge) },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-        )
-        OutlinedTextField(
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
-            value = viewModel.keyStoreInfoState.keyStoreAlisaConfirmPassword,
-            onValueChange = { keyStoreAlisaConfirmPassword ->
-                viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreAlisaConfirmPassword = keyStoreAlisaConfirmPassword))
-            },
-            label = { Text("确认密码", style = MaterialTheme.typography.labelLarge) },
-            isError = keyStoreAlisaConfirmPasswordError,
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-        )
-    }
+    ConfirmPasswordTextField(
+        title = "别名密码",
+        password = viewModel.keyStoreInfoState.keyStoreAlisaPassword,
+        confirmPassword = viewModel.keyStoreInfoState.keyStoreAlisaConfirmPassword,
+        confirmPasswordError = keyStoreAlisaConfirmPasswordError,
+        onPasswordChange = { keyStoreAlisaPassword ->
+            viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreAlisaPassword = keyStoreAlisaPassword))
+        },
+        onConfirmPasswordChange = { keyStoreAlisaConfirmPassword ->
+            viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreAlisaConfirmPassword = keyStoreAlisaConfirmPassword))
+        }
+    )
 }
 
 /**
@@ -294,4 +262,42 @@ private fun createSignature(viewModel: MainViewModel) {
     viewModel.createSignature()
 }
 
+@Composable
+private fun ConfirmPasswordTextField(
+    title: String,
+    password: String,
+    confirmPassword: String,
+    confirmPasswordError: Boolean,
+    onPasswordChange: (String) -> Unit,
+    onConfirmPasswordChange: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 64.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        OutlinedTextField(
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+            value = password,
+            onValueChange = { keyStorePassword ->
+                onPasswordChange(keyStorePassword)
+            },
+            label = { Text(title, style = MaterialTheme.typography.labelLarge) },
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+        )
+        OutlinedTextField(
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+            value = confirmPassword,
+            onValueChange = { keyStoreConfirmPassword ->
+                onConfirmPasswordChange(keyStoreConfirmPassword)
+            },
+            label = { Text("确认密码", style = MaterialTheme.typography.labelLarge) },
+            isError = confirmPasswordError,
+            singleLine = true,
+            visualTransformation = PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+        )
+    }
+}
 

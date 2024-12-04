@@ -62,7 +62,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import file.FileSelectorType
+import model.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
 import model.DarkThemeConfig
 import model.Verifier
