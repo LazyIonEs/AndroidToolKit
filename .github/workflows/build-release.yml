@@ -10,8 +10,7 @@ jobs:
   create-release-distribution:
     strategy:
       matrix:
-#        os: [ windows-latest , ubuntu-latest , macos-13 , macos-14 ]
-        os: [ ubuntu-latest ]
+        os: [ windows-latest , ubuntu-latest , macos-13 , macos-14 ]
     runs-on: ${{ matrix.os }}
     name: Create Release Distribution
 
@@ -48,8 +47,6 @@ jobs:
         name: Rename File
         run: |
           mv /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/deb/androidtoolkit_${{ inputs.tag_version }}-1_amd64.deb  /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/deb/AndroidToolKit-${{ inputs.tag_version }}-linux.deb
-          ls /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release
-          ls /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/deb
 
       - if: matrix.os == 'macos-13'
         name: Rename File
