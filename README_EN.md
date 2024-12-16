@@ -1,4 +1,4 @@
-<img src="/composeApp/launcher/icon.png" width="64" align="left" />
+<img src="/composeApp/launcher/icon.png" width="56" align="left" />
 
 ## AndroidToolKit
 
