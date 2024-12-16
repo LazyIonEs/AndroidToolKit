@@ -46,7 +46,8 @@ jobs:
       - if: matrix.os == 'ubuntu-latest'
         name: Rename File
         run: |
-          mv /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/deb/androidtoolkit_${{ inputs.tag_version }}-1_amd64.deb  /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/deb/AndroidToolKit-${{ inputs.tag_version }}-linux.deb
+          mv /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/deb/androidtoolkit_${{ inputs.tag_version }}-1_amd64.deb  /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/deb/AndroidToolKit-${{ inputs.tag_version }}-linux-amd64.deb
+          mv /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/rpm/androidtoolkit_${{ inputs.tag_version }}-1.x86_64.rpm  /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/rpm/AndroidToolKit-${{ inputs.tag_version }}-linux-x86_64.rpm
 
       - if: matrix.os == 'macos-13'
         name: Rename File
