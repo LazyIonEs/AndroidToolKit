@@ -16,7 +16,7 @@ val javaLanguageVersion = JavaLanguageVersion.of(17)
 val linuxArmTarget = "aarch64-unknown-linux-gnu"
 val linuxX64Target = "x86_64-unknown-linux-gnu"
 
-val kitVersion by extra("1.5.2")
+val kitVersion by extra("1.5.3")
 val kitPackageName = "AndroidToolKit"
 val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
@@ -121,7 +121,7 @@ compose.desktop {
         }
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Exe, TargetFormat.Deb, TargetFormat.Rpm)
             packageName = kitPackageName
             packageVersion = kitVersion
             description = kitDescription
@@ -137,6 +137,7 @@ compose.desktop {
             linux {
                 debPackageVersion = packageVersion
                 rpmPackageVersion = packageVersion
+                debMaintainer = "lazyiones@gmail.com"
                 iconFile.set(project.file("launcher/icon.png"))
             }
             macOS {
@@ -155,12 +156,12 @@ compose.desktop {
                 msiPackageVersion = packageVersion
                 exePackageVersion = packageVersion
                 menuGroup = packageName
+                dirChooser = true
                 perUserInstall = true
                 shortcut = true
                 menu = true
                 upgradeUuid = "2B0C6D0B-BEB7-4E64-807E-BEE0F91C7B04"
                 iconFile.set(project.file("launcher/icon.ico"))
-                installationPath = "AndroidToolKit"
             }
         }
         buildTypes.release.proguard {
