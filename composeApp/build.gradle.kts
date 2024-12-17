@@ -137,6 +137,7 @@ compose.desktop {
             linux {
                 debPackageVersion = packageVersion
                 rpmPackageVersion = packageVersion
+                debMaintainer = "lazyiones@gmail.com"
                 iconFile.set(project.file("launcher/icon.png"))
             }
             macOS {
@@ -155,12 +156,12 @@ compose.desktop {
                 msiPackageVersion = packageVersion
                 exePackageVersion = packageVersion
                 menuGroup = packageName
+                dirChooser = true
                 perUserInstall = true
                 shortcut = true
                 menu = true
                 upgradeUuid = "2B0C6D0B-BEB7-4E64-807E-BEE0F91C7B04"
                 iconFile.set(project.file("launcher/icon.ico"))
-                installationPath = "AndroidToolKit"
             }
         }
         buildTypes.release.proguard {
