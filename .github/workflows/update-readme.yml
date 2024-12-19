@@ -33,6 +33,14 @@ jobs:
           done
 
       # 提交更新到 GitHub
+      - name: Commit changes
+        run: |
+          git config --local user.name "github-actions[bot]@users.noreply.github.coms"
+          git config --local user.email "github-actions[bot]"
+          git add README.md
+          git commit -m "Update download links for version ${{ env.tag }}"
+        
+      # 提交更新到 GitHub
       - name: Push changes
         uses: ad-m/github-push-action@master
         with:
