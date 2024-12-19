@@ -44,9 +44,11 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
           branch: update-readme-links # 更新的临时分支名称
+          commit-message: "Update download links for release ${{ env.tag }}"
+          author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
           title: "Update download links for release ${{ env.tag }}"
+          delete-branch: true
           body: |
             This PR updates the download links in `README.md` and `README_EN.md` to reflect the latest release version **${{ env.tag }}**.
             
@@ -58,5 +60,5 @@ jobs:
             - Linux DEB
             - Linux RPM
           labels: update, documentation
-          commit-message: "Update download links for release ${{ env.tag }}"
-          delete-branch: true
+          assignees: LazyIonEs
+          reviewers: LazyIonEs
