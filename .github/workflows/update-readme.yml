@@ -1,0 +1,62 @@
+name: Update README with Release Links
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published] # 在新 Release 发布时触发
+
+jobs:
+  update-readme:
+    name: Update README
+    runs-on: ubuntu-latest
+
+    steps:
+      # 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 获取 Release 版本号
+      - name: Extract release tag
+        id: get_tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      # 替换 README 和 README_EN 中的链接
+      - name: Update README links
+        run: |
+          for file in README.md README_EN.md; do
+            sed -i "s|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-[0-9.]*-macos-arm64.dmg|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-${{ env.tag }}-macos-arm64.dmg|g" "$file"
+            sed -i "s|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-[0-9.]*-macos-x64.dmg|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-${{ env.tag }}-macos-x64.dmg|g" "$file"
+            sed -i "s|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-[0-9.]*-windows-x64.msi|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-${{ env.tag }}-windows-x64.msi|g" "$file"
+            sed -i "s|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-[0-9.]*-windows-x64.exe|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-${{ env.tag }}-windows-x64.exe|g" "$file"
+            sed -i "s|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-[0-9.]*-linux-amd64.deb|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-${{ env.tag }}-linux-amd64.deb|g" "$file"
+            sed -i "s|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-[0-9.]*-linux-x86_64.rpm|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-${{ env.tag }}-linux-x86_64.rpm|g" "$file"
+          done
+
+      # 提交更新到 GitHub
+      - name: Commit changes
+        run: |
+          git config --local user.name "github-actions[bot]@users.noreply.github.com"
+          git config --local user.email "github-actions[bot]"
+          git add README.md
+          git commit -m "Update download links for version ${{ env.tag }}"
+        
+      # 创建 Pull Request
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: update-readme-links # 更新的临时分支名称
+          title: "Update download links for release ${{ env.tag }}"
+          body: |
+            This PR updates the download links in `README.md` and `README_EN.md` to reflect the latest release version **${{ env.tag }}**.
+            
+            **Updated Links:**
+            - macOS ARM64
+            - macOS x64
+            - Windows MSI
+            - Windows EXE
+            - Linux DEB
+            - Linux RPM
+          labels: update, documentation
+          commit-message: "Update download links for release ${{ env.tag }}"
+          delete-branch: true
