@@ -40,9 +40,23 @@ jobs:
           git add README.md
           git commit -m "Update download links for version ${{ env.tag }}"
         
-      # 提交更新到 GitHub
-      - name: Push changes
-        uses: ad-m/github-push-action@master
+      # 创建 Pull Request
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: update-readme-links # 更新的临时分支名称
+          title: "Update download links for release ${{ env.tag }}"
+          body: |
+            This PR updates the download links in `README.md` and `README_EN.md` to reflect the latest release version **${{ env.tag }}**.
+            
+            **Updated Links:**
+            - macOS ARM64
+            - macOS x64
+            - Windows MSI
+            - Windows EXE
+            - Linux DEB
+            - Linux RPM
+          labels: update, documentation
+          commit-message: "Update download links for release ${{ env.tag }}"
+          delete-branch: true
