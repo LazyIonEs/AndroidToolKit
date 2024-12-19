@@ -1,0 +1,37 @@
+name: Update README with Release Links
+
+on:
+  release:
+    types: [published] # 在新 Release 发布时触发
+
+jobs:
+  update-readme:
+    name: Update README
+    runs-on: ubuntu-latest
+
+    steps:
+      # 检出代码
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 获取 Release 版本号
+      - name: Extract release tag
+        id: get_tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
+
+      # 替换 README 中的链接
+      - name: Update README links
+        run: |
+          sed -i "s|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-[0-9.]*-macos-arm64.dmg|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-${{ env.tag }}-macos-arm64.dmg|g" README.md
+          sed -i "s|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-[0-9.]*-macos-x64.dmg|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-${{ env.tag }}-macos-x64.dmg|g" README.md
+          sed -i "s|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-[0-9.]*-windows-x64.msi|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-${{ env.tag }}-windows-x64.msi|g" README.md
+          sed -i "s|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-[0-9.]*-windows-x64.exe|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-${{ env.tag }}-windows-x64.exe|g" README.md
+          sed -i "s|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-[0-9.]*-linux-amd64.deb|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-${{ env.tag }}-linux-amd64.deb|g" README.md
+          sed -i "s|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-[0-9.]*-linux-x86_64.rpm|https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-${{ env.tag }}-linux-x86_64.rpm|g" README.md
+
+      # 提交更新到 GitHub
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
