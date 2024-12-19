@@ -1,6 +1,7 @@
 name: Update README with Release Links
 
 on:
+  workflow_dispatch:
   release:
     types: [published] # 在新 Release 发布时触发
 
