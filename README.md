@@ -1,6 +1,6 @@
 <img src="/composeApp/launcher/icon.png" width="56" align="left" />
 
-# AndroidToolKit
+## AndroidToolKit
 
 <p align="start">
 <a href="https://opensource.org/license/mit"><img src="https://img.shields.io/github/license/LazyIonEs/AndroidToolKit?color=green"/></a>
