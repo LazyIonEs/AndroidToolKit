@@ -47,37 +47,21 @@ Desktop tools applicable to Android development, supporting Windows, Mac and Lin
 
 > [!CAUTION]
 > It is not recommended to install the Windows version to the C drive (the default installation path is the C drive :
-> clown_face:), which may cause problems such as permissions. If you encounter any problems, please refer to [FAQ](FAQ.md)
+> clown_face:), which may cause problems such as permissions. If you encounter any problems, please refer
+> to [FAQ](FAQ.md)
 
 ## screenshot
 
-### Signature Information
+|                                    Signature Information                                    |                                    Signature Information                                    |                                    Signature Information                                    |
+|:-------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------------------:|
+| <img src="./screenshots/screenshot_signature_information_1.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_signature_information_2.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_signature_information_3.png" alt="" style="zoom:33%;" /> |
+|                                       APK Information                                       |                                        APK Signature                                        |                                    Signature generation                                     |
+|    <img src="./screenshots/screenshot_apk_information_1.png" alt="" style="zoom:32%;" />    |     <img src="./screenshots/screenshot_apk_signature_1.png" alt="" style="zoom:33%;" />     | <img src="./screenshots/screenshot_signature_generation_1.png" alt="" style="zoom:33%;" />  |
 
-![Signature Information](screenshots/screenshot_signature_information_1.png)
-![Signature Information](screenshots/screenshot_signature_information_2.png)
-![Signature Information](screenshots/screenshot_signature_information_3.png)
-
-#### APK Information
-
-![APK Information](screenshots/screenshot_apk_information_1.png)
-
-### APK Signature
-
-![APK Signature](screenshots/screenshot_apk_signature_1.png)
-
-### Signature generation
-
-![Signature generation](screenshots/screenshot_signature_generation_1.png)
-
-### Icon Generation
-
-![Icon Generation](screenshots/screenshot_icon_factory_1.png)
-![Icon Generation](screenshots/screenshot_icon_factory_2.png)
-
-### Black and white theme
-
-![Black and white theme](screenshots/screenshot_light.png)
-![Black and white theme](screenshots/screenshot_dark.png)
+|                                  Icon Generation                                   |                           Black and white theme                           |
+|:----------------------------------------------------------------------------------:|:-------------------------------------------------------------------------:|
+| <img src="./screenshots/screenshot_icon_factory_1.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_light.png" alt="" style="zoom:33%;" /> |
+| <img src="./screenshots/screenshot_icon_factory_2.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_dark.png" alt="" style="zoom:33%;" />  |
 
 ## Technology Stack
 
