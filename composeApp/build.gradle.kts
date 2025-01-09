@@ -129,7 +129,16 @@ compose.desktop {
             vendor = kitVendor
             licenseFile.set(kitLicenseFile)
 
-            modules("java.compiler", "java.instrument", "java.naming", "java.prefs", "java.sql", "jdk.management", "jdk.unsupported")
+            modules(
+                "java.compiler",
+                "java.instrument",
+                "java.naming",
+                "java.prefs",
+                "java.sql",
+                "jdk.management",
+                "jdk.unsupported",
+                "jdk.security.auth"
+            )
 
             outputBaseDir.set(project.layout.projectDirectory.dir("output"))
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
