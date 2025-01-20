@@ -9,6 +9,7 @@
 <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest"><img src="https://img.shields.io/github/downloads/LazyIonEs/AndroidToolKit/total?color=orange"/></a>
 <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest"><img src="https://img.shields.io/github/v/release/LazyIonEs/AndroidToolKit"/></a>
 <a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/kotlin-2.1.0-7a54f6"/></a>
+<a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.84.0-black"/></a>
 </p>
 
 
@@ -66,6 +67,10 @@
 - [Kotlin Coroutines](https://github.com/Kotlin/kotlinx.coroutines)
 - [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/)
 - [Kotlinx Serialization](https://github.com/Kotlin/kotlinx.serialization)
+- [Rust](https://github.com/rust-lang/rust)
+- [mozjpeg](https://github.com/mozilla/mozjpeg)
+- [libimagequant](https://github.com/ImageOptim/libimagequant)
+- [uniffi-rs](https://github.com/mozilla/uniffi-rs)
 
 有关所使用依赖项的完整列表，请查看 [catalog](/gradle/libs.versions.toml) 文件
 
