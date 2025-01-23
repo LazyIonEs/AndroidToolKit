@@ -30,7 +30,6 @@ import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -42,17 +41,18 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import model.FileSelectorType
-import io.github.vinceglb.filekit.core.FileKit
+import io.github.vinceglb.filekit.compose.rememberDirectoryPickerLauncher
+import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.core.PickerMode
 import io.github.vinceglb.filekit.core.PickerType
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 import model.DarkThemeConfig
+import model.FileSelectorType
 import utils.LottieAnimation
 import utils.checkFile
 import utils.toFileExtensions
 import vm.MainViewModel
+import java.io.File
 import java.net.URI
 import java.nio.file.LinkOption
 import java.nio.file.Path
@@ -80,19 +80,36 @@ fun FileButton(
     vararg fileSelectorType: FileSelectorType,
     onFileSelector: (String) -> Unit
 ) {
-    val scope = rememberCoroutineScope()
+    val launcher = rememberFilePickerLauncher(
+        type = PickerType.File(fileSelectorType.toFileExtensions()),
+        mode = PickerMode.Single
+    ) { file ->
+        if (fileSelectorType.checkFile(file?.path ?: return@rememberFilePickerLauncher)) {
+            onFileSelector(file.path ?: return@rememberFilePickerLauncher)
+        }
+    }
+    ExtendedFloatingActionButton(
+        modifier = Modifier.padding(end = 16.dp, bottom = 16.dp),
+        onClick = { launcher.launch() },
+        icon = { Icon(Icons.Rounded.DriveFolderUpload, value) },
+        text = { Text(value) },
+        expanded = expanded
+    )
+}
+
+@Composable
+fun DirectoryButton(
+    value: String,
+    expanded: Boolean,
+    onDirectorySelector: (File) -> Unit
+) {
+    val launcher = rememberDirectoryPickerLauncher { directory ->
+        onDirectorySelector(directory?.file ?: return@rememberDirectoryPickerLauncher)
+    }
     ExtendedFloatingActionButton(
         modifier = Modifier.padding(end = 16.dp, bottom = 16.dp),
         onClick = {
-            scope.launch {
-                val file = FileKit.pickFile(
-                    type = PickerType.File(fileSelectorType.toFileExtensions()),
-                    mode = PickerMode.Single
-                )
-                if (fileSelectorType.checkFile(file?.path ?: return@launch)) {
-                    onFileSelector(file.path ?: return@launch)
-                }
-            }
+            launcher.launch()
         }, icon = { Icon(Icons.Rounded.DriveFolderUpload, value) }, text = {
             Text(value)
         }, expanded = expanded
@@ -144,7 +161,14 @@ fun FileInput(
     vararg fileSelectorType: FileSelectorType,
     onValueChange: (String) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
+    val launcher = rememberFilePickerLauncher(
+        type = PickerType.File(fileSelectorType.toFileExtensions()),
+        mode = PickerMode.Single
+    ) { file ->
+        if (fileSelectorType.checkFile(file?.path ?: return@rememberFilePickerLauncher)) {
+            onValueChange(file.path ?: return@rememberFilePickerLauncher)
+        }
+    }
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
@@ -157,17 +181,7 @@ fun FileInput(
             trailingIcon = trailingIcon,
             onValueChange = onValueChange,
         )
-        SmallFloatingActionButton(onClick = {
-            scope.launch {
-                val file = FileKit.pickFile(
-                    type = PickerType.File(fileSelectorType.toFileExtensions()),
-                    mode = PickerMode.Single
-                )
-                if (fileSelectorType.checkFile(file?.path ?: return@launch)) {
-                    onValueChange(file.path ?: return@launch)
-                }
-            }
-        }) {
+        SmallFloatingActionButton(onClick = { launcher.launch() }) {
             Icon(Icons.Rounded.FolderOpen, "选择文件")
         }
     }
@@ -192,13 +206,10 @@ fun FolderInput(value: String, label: String, isError: Boolean, onValueChange: (
             isError = isError,
             onValueChange = onValueChange
         )
-        val scope = rememberCoroutineScope()
-        SmallFloatingActionButton(onClick = {
-            scope.launch {
-                val directory = FileKit.pickDirectory()
-                onValueChange(directory?.path ?: return@launch)
-            }
-        }) {
+        val launcher = rememberDirectoryPickerLauncher { directory ->
+            onValueChange(directory?.path ?: return@rememberDirectoryPickerLauncher)
+        }
+        SmallFloatingActionButton(onClick = { launcher.launch() }) {
             Icon(Icons.Rounded.FolderOpen, "选择文件夹")
         }
     }

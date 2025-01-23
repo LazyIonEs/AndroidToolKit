@@ -67,6 +67,7 @@ kotlin {
                 exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
             }
             implementation(libs.filekit.core)
+            implementation(libs.filekit.compose)
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.settings.coroutines)
             implementation(libs.multiplatform.settings.serialization)
