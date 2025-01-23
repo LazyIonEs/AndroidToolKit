@@ -162,7 +162,7 @@ private fun ApkInformationBox(
                             AppInfoItem("文件MD5：", apkInformation.md5, viewModel)
                         }
                         item {
-                            AppInfoItem("大小：", formatFileSize(apkInformation.size, 1, true), viewModel)
+                            AppInfoItem("大小：", apkInformation.size.formatFileSize(1), viewModel)
                         }
                         item {
                             PermissionsList(apkInformation.usesPermissionList)

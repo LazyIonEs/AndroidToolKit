@@ -6,9 +6,9 @@ import com.google.devrel.gmscore.tools.apk.arsc.ArscBlamer
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
-import model.FileSelectorType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import model.FileSelectorType
 import model.Verifier
 import org.jetbrains.skia.Image
 import java.awt.Desktop
@@ -21,7 +21,6 @@ import java.math.RoundingMode
 import java.security.MessageDigest
 import java.security.cert.X509Certificate
 import java.security.interfaces.RSAPublicKey
-import java.util.concurrent.TimeUnit
 import java.util.zip.ZipFile
 
 /**
@@ -175,7 +174,7 @@ suspend fun extractIcon(aapt: File, apkPath: String, iconPath: String): ImageBit
             val exitValue = withContext(Dispatchers.IO) {
                 ExternalCommand(aapt.absolutePath).execute(
                     listOf("dump", "xmltree", apkPath, "--file", "AndroidManifest.xml"),
-                    stdinStream, stdoutStream, stderrStream, 3000L, TimeUnit.MILLISECONDS
+                    stdinStream, stdoutStream, stderrStream
                 )
             }
             if (exitValue != 0) {
@@ -277,17 +276,28 @@ private enum class FileSizeType(val unit: String) {
     SIZE_TYPE_B("B"), SIZE_TYPE_KB("KB"), SIZE_TYPE_MB("M"), SIZE_TYPE_GB("GB"), SIZE_TYPE_TB("TB")
 }
 
+fun File.getFileLength(): Long {
+    if (this.isDirectory) {
+        var sum = 0L
+        this.walk()
+            .forEach { file -> sum += file.length() }
+        return sum
+    } else {
+        return this.length()
+    }
+}
+
 /**
  * @param scale 精确到小数点以后几位 (Accurate to a few decimal places)
  */
-fun formatFileSize(size: Long, scale: Int, withUnit: Boolean = false): String {
+fun Long.formatFileSize(scale: Int = 2, withUnit: Boolean = true): String {
     val divisor = if (isMac) { //ROUND_DOWN 1023 -> 1023B ; ROUND_HALF_UP  1023 -> 1KB
         1000L
     } else {
         1024L
     }
     val kiloByte: BigDecimal =
-        formatSizeByTypeWithDivisor(BigDecimal.valueOf(size), scale, FileSizeType.SIZE_TYPE_B, divisor)
+        formatSizeByTypeWithDivisor(BigDecimal.valueOf(this), scale, FileSizeType.SIZE_TYPE_B, divisor)
     if (kiloByte.toDouble() < 1) {
         return "${kiloByte.toPlainString()}${if (withUnit) FileSizeType.SIZE_TYPE_B.unit else ""}"
     } //KB

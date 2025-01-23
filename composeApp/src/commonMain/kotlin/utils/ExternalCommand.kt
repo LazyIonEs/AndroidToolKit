@@ -17,8 +17,8 @@ class ExternalCommand(private val executable: String) {
         stdin: InputStream,
         stdout: OutputStream,
         stderr: OutputStream,
-        timeout: Long,
-        unit: TimeUnit
+        timeout: Long = 30000L,
+        unit: TimeUnit = TimeUnit.MILLISECONDS
     ): Int {
         val command: MutableList<String> = ArrayList()
         val exe = File(executable)

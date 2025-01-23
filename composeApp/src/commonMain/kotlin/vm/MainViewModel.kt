@@ -64,7 +64,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.security.KeyStore
 import java.security.cert.X509Certificate
-import java.util.concurrent.TimeUnit
 
 /**
  * @Author      : LazyIonEs
@@ -276,7 +275,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 .setV1SigningEnabled(v1SigningEnabled).setV2SigningEnabled(v2SigningEnabled)
                 .setV3SigningEnabled(v3SigningEnabled).setAlignmentPreserved(!isAlignFileSize).build()
             apkSigner.sign()
-            val snackbarVisualsData = SnackbarVisualsData(message = "APK签名成功，点击跳转至已签名文件",
+            val snackbarVisualsData = SnackbarVisualsData(
+                message = "APK签名成功，点击跳转至已签名文件",
                 actionLabel = "跳转",
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
@@ -318,7 +318,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             val exitValue = withContext(Dispatchers.IO) {
                 ExternalCommand(aapt.absolutePath).execute(
                     listOf("dump", "badging", input),
-                    stdinStream, stdoutStream, stderrStream, 3000L, TimeUnit.MILLISECONDS
+                    stdinStream, stdoutStream, stderrStream
                 )
             }
 
@@ -398,7 +398,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 destStoreSize
             )
             if (result) {
-                val snackbarVisualsData = SnackbarVisualsData(message = "创建签名成功，点击跳转至签名文件",
+                val snackbarVisualsData = SnackbarVisualsData(
+                    message = "创建签名成功，点击跳转至签名文件",
                     actionLabel = "跳转",
                     withDismissAction = true,
                     duration = SnackbarDuration.Short,
@@ -539,11 +540,10 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             val androidJunkGenerator =
                 AndroidJunkGenerator(dir, output, appPackageName, packageCount, activityCountPerPackage, resPrefix)
             val file = androidJunkGenerator.startGenerate()
-            val snackbarVisualsData = SnackbarVisualsData(message = "构建结束：成功，文件大小：${
-                formatFileSize(
-                    file.length(), 2, true
-                )
-            }, 点击跳转至构建文件",
+            val snackbarVisualsData = SnackbarVisualsData(
+                message = "构建结束：成功，文件大小：${
+                    file.length().formatFileSize()
+                }, 点击跳转至构建文件",
                 actionLabel = "跳转",
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
@@ -649,7 +649,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         updateIconFactoryInfo(iconFactoryInfoState.copy(result = result))
         _iconFactoryUIState.update { UIState.WAIT }
         if (isSuccess) {
-            val snackbarVisualsData = SnackbarVisualsData(message = "图标生成完成。点击跳转至输出目录",
+            val snackbarVisualsData = SnackbarVisualsData(
+                message = "图标生成完成。点击跳转至输出目录",
                 actionLabel = "跳转",
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
