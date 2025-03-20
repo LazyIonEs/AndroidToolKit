@@ -8,8 +8,8 @@
 <a href="https://github.com/LazyIonEs/AndroidToolKit/actions"><img src="https://img.shields.io/github/actions/workflow/status/LazyIonEs/AndroidToolKit/build-release.yml"/></a>
 <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest"><img src="https://img.shields.io/github/downloads/LazyIonEs/AndroidToolKit/total?color=orange"/></a>
 <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest"><img src="https://img.shields.io/github/v/release/LazyIonEs/AndroidToolKit"/></a>
-<a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/kotlin-2.1.0-7a54f6"/></a>
-<a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.84.0-black"/></a>
+<a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/kotlin-2.1.10-7a54f6"/></a>
+<a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.85.0-black"/></a>
 </p>
 
 
