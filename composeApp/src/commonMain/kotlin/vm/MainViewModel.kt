@@ -3,6 +3,7 @@ package vm
 import Page
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -30,6 +31,8 @@ import model.IconFactoryData
 import model.IconFactoryInfo
 import model.JunkCodeInfo
 import model.KeyStoreInfo
+import model.PendingDeletionFile
+import model.PendingDeletionSummary
 import model.SignaturePolicy
 import model.SnackbarVisualsData
 import model.UserData
@@ -50,6 +53,7 @@ import utils.extractIcon
 import utils.extractValue
 import utils.extractVersion
 import utils.formatFileSize
+import utils.getFileLength
 import utils.getVerifier
 import utils.isJPEG
 import utils.isJPG
@@ -145,6 +149,19 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     private val _iconFactoryUIState = mutableStateOf<UIState>(UIState.WAIT)
     val iconFactoryUIState by _iconFactoryUIState
 
+    // 扫描的文件列表
+    private val _pendingDeletionFileList = mutableStateListOf<PendingDeletionFile>()
+    val pendingDeletionFileList: List<PendingDeletionFile> = _pendingDeletionFileList
+
+    // 扫描的文件列表摘要
+    private val _pendingDeletionSummary = mutableStateOf<PendingDeletionSummary?>(null)
+    val pendingDeletionSummary by _pendingDeletionSummary
+
+    // 文件清理UI状态
+    private val _fileClearUIState = mutableStateOf<UIState>(UIState.WAIT)
+    val fileClearUIState by _fileClearUIState
+
+    // 通知
     private val _snackbarVisuals = MutableStateFlow(SnackbarVisualsData())
     val snackbarVisuals = _snackbarVisuals.asStateFlow()
 
@@ -708,6 +725,50 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             fileInputStream?.close()
         }
         return false
+    }
+
+    /**
+     * 扫描自定义文件夹
+     */
+    fun scanPendingDeletionFileList(directory: File) {
+        viewModelScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
+                _fileClearUIState.update { UIState.Loading }
+                _pendingDeletionSummary.update { null }
+            }
+            _pendingDeletionFileList.clear()
+            // 文件总大小
+            var totalLength = 0L
+            directory.walk().maxDepth(10)
+                .filter { file -> file.isDirectory == true && file.nameWithoutExtension == "build" }
+                .forEachIndexed { index, file ->
+                    val length = file.getFileLength()
+                    withContext(Dispatchers.Main) {
+                        _pendingDeletionFileList.add(
+                            PendingDeletionFile(
+                                directory = directory,
+                                directoryPath = directory.absolutePath,
+                                file = file,
+                                filePath = file.absolutePath,
+                                fileLastModified = file.lastModified(),
+                                fileLength = length
+                            )
+                        )
+                        totalLength += length
+                        _pendingDeletionSummary.update {
+                            PendingDeletionSummary(_pendingDeletionFileList.size, totalLength)
+                        }
+                        _pendingDeletionFileList.sortByDescending { it.fileLength }
+                    }
+                }
+            withContext(Dispatchers.Main) {
+                _fileClearUIState.update { UIState.WAIT }
+            }
+        }
+    }
+
+    fun changeFileChecked(pendingDeletionFile: PendingDeletionFile, check: Boolean) {
+        _pendingDeletionFileList.find { file -> file.file == pendingDeletionFile.file }?.checked = check
     }
 }
 
