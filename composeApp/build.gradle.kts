@@ -61,19 +61,20 @@ kotlin {
             implementation(libs.lifecycle.viewmodel.compose)
             runtimeOnly(libs.kotlinx.coroutines.swing)
             implementation(libs.jna)
-            implementation("com.android.tools:sdk-common:31.7.2") {
+            implementation("com.android.tools:sdk-common:31.9.0") {
                 exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
                 exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
                 exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
             }
             implementation(libs.filekit.core)
-            implementation(libs.filekit.compose)
+            implementation(libs.filekit.dialogs)
+            implementation(libs.filekit.dialogs.compose)
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.settings.coroutines)
             implementation(libs.multiplatform.settings.serialization)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.binary.resources)
-            implementation("com.jetbrains.intellij.platform:util:243.21565.208") {
+            implementation("com.jetbrains.intellij.platform:util:243.26053.20") {
                 exclude(group = "com.fasterxml", module = "aalto-xml")
                 exclude(group = "com.github.ben-manes.caffeine", module = "caffeine")
                 exclude(group = "com.intellij.platform", module = "kotlinx-coroutines-core-jvm")
@@ -93,6 +94,8 @@ kotlin {
                 exclude(group = "org.slf4j", module = "log4j-over-slf4j")
                 exclude(group = "oro", module = "oro")
             }
+            implementation(libs.kotlinx.datetime)
+            implementation(libs.compottie)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

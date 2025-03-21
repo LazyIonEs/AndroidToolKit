@@ -1,6 +1,9 @@
 -ignorewarnings
 -verbose
 
+-dontwarn java.awt.*
+-dontwarn java.nio.*
+-dontwarn java.util.*
 -keep class org.lwjgl.** { *; }
 -keep class org.bouncycastle.** { *; }
 -keep class com.android.apksig.** { *; }
@@ -12,6 +15,7 @@
 -keep class androidx.datastore.** { *; }
 -keep class com.sun.jna.** { *; }
 -keep class * implements com.sun.jna.** { *; }
+-keepclassmembers class * extends com.sun.jna.* { public *; }
 -dontnote com.sun.**
 -keepclassmembers class androidx.datastore.** { *; }
 -keep class androidx.datastore.preferences.protobuf.** { *;}
