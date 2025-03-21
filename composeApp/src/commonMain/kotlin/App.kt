@@ -13,6 +13,7 @@ import androidx.compose.material.icons.rounded.Description
 import androidx.compose.material.icons.rounded.DonutLarge
 import androidx.compose.material.icons.rounded.Factory
 import androidx.compose.material.icons.rounded.Key
+import androidx.compose.material.icons.rounded.LayersClear
 import androidx.compose.material.icons.rounded.Pin
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -65,6 +66,7 @@ import platform.createFlowSettings
 import theme.AppTheme
 import ui.ApkInformation
 import ui.ApkSignature
+import ui.ClearBuild
 import ui.IconFactory
 import ui.JunkCode
 import ui.SetUp
@@ -150,6 +152,7 @@ fun MainContentScreen(viewModel: MainViewModel) {
                         Page.SIGNATURE_GENERATION -> SignatureGeneration(viewModel)
                         Page.JUNK_CODE -> JunkCode(viewModel)
                         Page.ICON_FACTORY -> IconFactory(viewModel)
+                        Page.CLEAR_BUILD -> ClearBuild(viewModel)
                         Page.SET_UP -> SetUp(viewModel)
                     }
                 }
@@ -183,15 +186,13 @@ suspend fun collectOutputPath(viewModel: MainViewModel) {
 }
 
 enum class Page(val title: StringResource, val icon: ImageVector) {
-    SIGNATURE_INFORMATION(Res.string.签名信息, Icons.Rounded.Description), APK_INFORMATION(
-        Res.string.APK信息, Icons.Rounded.Android
-    ),
-    APK_SIGNATURE(Res.string.APK签名, Icons.Rounded.Pin), SIGNATURE_GENERATION(
-        Res.string.签名生成, Icons.Rounded.Key
-    ),
-    JUNK_CODE(Res.string.垃圾代码, Icons.Rounded.DonutLarge), ICON_FACTORY(
-        Res.string.图标工厂, Icons.Rounded.Factory
-    ),
+    SIGNATURE_INFORMATION(Res.string.签名信息, Icons.Rounded.Description),
+    APK_INFORMATION(Res.string.APK信息, Icons.Rounded.Android),
+    APK_SIGNATURE(Res.string.APK签名, Icons.Rounded.Pin),
+    SIGNATURE_GENERATION(Res.string.签名生成, Icons.Rounded.Key),
+    JUNK_CODE(Res.string.垃圾代码, Icons.Rounded.DonutLarge),
+    ICON_FACTORY(Res.string.图标工厂, Icons.Rounded.Factory),
+    CLEAR_BUILD(Res.string.图标工厂, Icons.Rounded.LayersClear),
     SET_UP(Res.string.设置, Icons.Rounded.Settings)
 }
 

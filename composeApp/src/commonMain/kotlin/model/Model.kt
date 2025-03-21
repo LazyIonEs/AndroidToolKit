@@ -2,6 +2,9 @@ package model
 
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarVisuals
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import java.io.File
 
@@ -208,4 +211,21 @@ data class SnackbarVisualsData(
         timestamp = System.currentTimeMillis()
         return this
     }
+}
+
+data class PendingDeletionSummary(
+    val totalCount: Int,
+    val totalSize: Long
+)
+
+class PendingDeletionFile(
+    val directory: File,
+    val directoryPath: String,
+    val file: File,
+    val filePath: String,
+    val fileLength: Long,
+    val fileLastModified: Long,
+    initialChecked: Boolean = true,
+) {
+    var checked by mutableStateOf(initialChecked)
 }
