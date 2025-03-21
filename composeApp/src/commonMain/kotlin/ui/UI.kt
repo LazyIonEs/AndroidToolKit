@@ -41,10 +41,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import io.github.vinceglb.filekit.compose.rememberDirectoryPickerLauncher
-import io.github.vinceglb.filekit.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.core.PickerMode
-import io.github.vinceglb.filekit.core.PickerType
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.path
 import kotlinx.coroutines.CoroutineScope
 import model.DarkThemeConfig
 import model.FileSelectorType
@@ -81,11 +82,11 @@ fun FileButton(
     onFileSelector: (String) -> Unit
 ) {
     val launcher = rememberFilePickerLauncher(
-        type = PickerType.File(fileSelectorType.toFileExtensions()),
-        mode = PickerMode.Single
+        type = FileKitType.File(fileSelectorType.toFileExtensions()),
+        mode = FileKitMode.Single
     ) { file ->
         if (fileSelectorType.checkFile(file?.path ?: return@rememberFilePickerLauncher)) {
-            onFileSelector(file.path ?: return@rememberFilePickerLauncher)
+            onFileSelector(file.path)
         }
     }
     ExtendedFloatingActionButton(
@@ -162,11 +163,11 @@ fun FileInput(
     onValueChange: (String) -> Unit,
 ) {
     val launcher = rememberFilePickerLauncher(
-        type = PickerType.File(fileSelectorType.toFileExtensions()),
-        mode = PickerMode.Single
+        type = FileKitType.File(fileSelectorType.toFileExtensions()),
+        mode = FileKitMode.Single
     ) { file ->
         if (fileSelectorType.checkFile(file?.path ?: return@rememberFilePickerLauncher)) {
-            onValueChange(file.path ?: return@rememberFilePickerLauncher)
+            onValueChange(file.path)
         }
     }
     Row(
