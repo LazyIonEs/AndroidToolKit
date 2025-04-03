@@ -266,7 +266,7 @@ private val appInternalResourcesDir: String
     }
 
 private enum class FileSizeType(val unit: String) {
-    SIZE_TYPE_B("B"), SIZE_TYPE_KB("KB"), SIZE_TYPE_MB("M"), SIZE_TYPE_GB("GB"), SIZE_TYPE_TB("TB")
+    SIZE_TYPE_B("B"), SIZE_TYPE_KB("KB"), SIZE_TYPE_MB("MB"), SIZE_TYPE_GB("GB"), SIZE_TYPE_TB("TB")
 }
 
 fun File.getFileLength(): Long {
@@ -277,6 +277,30 @@ fun File.getFileLength(): Long {
         return sum
     } else {
         return this.length()
+    }
+}
+
+fun File.getFileLengthAndStatisticallyDistributed(): Pair<Long, HashMap<String, Long>> {
+    if (this.isDirectory) {
+        var sum = 0L
+        val map: HashMap<String, Long> = HashMap()
+        this.walk()
+            .forEach { file ->
+                val length = file.length()
+                sum += length
+                val extension = file.extension
+                if (extension.isBlank()) return@forEach
+                var extensionSum = map[extension]
+                if (extensionSum != null) {
+                    extensionSum += length
+                    map[extension] = extensionSum
+                } else {
+                    map[extension] = length
+                }
+            }
+        return Pair(sum, map)
+    } else {
+        return Pair(this.length(), HashMap())
     }
 }
 
@@ -307,6 +331,32 @@ fun Long.formatFileSize(scale: Int = 2, withUnit: Boolean = true): String {
         return "${gigaByte.toPlainString()} ${if (withUnit) FileSizeType.SIZE_TYPE_GB.unit else ""}"
     } //TB
     return "${teraBytes.toPlainString()} ${if (withUnit) FileSizeType.SIZE_TYPE_TB.unit else ""}"
+}
+
+fun Long.formatFileUnit(): String {
+    val divisor = if (isMac) { //ROUND_DOWN 1023 -> 1023B ; ROUND_HALF_UP  1023 -> 1KB
+        1000L
+    } else {
+        1024L
+    }
+    val kiloByte: BigDecimal =
+        formatSizeByTypeWithDivisor(BigDecimal.valueOf(this), 2, FileSizeType.SIZE_TYPE_B, divisor)
+    if (kiloByte.toDouble() < 1) {
+        return FileSizeType.SIZE_TYPE_B.unit
+    } //KB
+    val megaByte = formatSizeByTypeWithDivisor(kiloByte, 2, FileSizeType.SIZE_TYPE_KB, divisor)
+    if (megaByte.toDouble() < 1) {
+        return FileSizeType.SIZE_TYPE_KB.unit
+    } //M
+    val gigaByte = formatSizeByTypeWithDivisor(megaByte, 2, FileSizeType.SIZE_TYPE_MB, divisor)
+    if (gigaByte.toDouble() < 1) {
+        return FileSizeType.SIZE_TYPE_MB.unit
+    } //GB
+    val teraBytes = formatSizeByTypeWithDivisor(gigaByte, 2, FileSizeType.SIZE_TYPE_GB, divisor)
+    if (teraBytes.toDouble() < 1) {
+        return FileSizeType.SIZE_TYPE_GB.unit
+    } //TB
+    return FileSizeType.SIZE_TYPE_TB.unit
 }
 
 private fun formatSizeByTypeWithDivisor(

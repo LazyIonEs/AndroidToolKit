@@ -213,11 +213,6 @@ data class SnackbarVisualsData(
     }
 }
 
-data class PendingDeletionSummary(
-    val totalCount: Int,
-    val totalSize: Long
-)
-
 class PendingDeletionFile(
     val directory: File,
     val directoryPath: String,

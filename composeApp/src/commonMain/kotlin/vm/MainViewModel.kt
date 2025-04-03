@@ -32,7 +32,6 @@ import model.IconFactoryInfo
 import model.JunkCodeInfo
 import model.KeyStoreInfo
 import model.PendingDeletionFile
-import model.PendingDeletionSummary
 import model.SignaturePolicy
 import model.SnackbarVisualsData
 import model.UserData
@@ -152,10 +151,6 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     // 扫描的文件列表
     private val _pendingDeletionFileList = mutableStateListOf<PendingDeletionFile>()
     val pendingDeletionFileList: List<PendingDeletionFile> = _pendingDeletionFileList
-
-    // 扫描的文件列表摘要
-    private val _pendingDeletionSummary = mutableStateOf<PendingDeletionSummary?>(null)
-    val pendingDeletionSummary by _pendingDeletionSummary
 
     // 文件清理UI状态
     private val _fileClearUIState = mutableStateOf<UIState>(UIState.WAIT)
@@ -734,7 +729,6 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         viewModelScope.launch(Dispatchers.IO) {
             withContext(Dispatchers.Main) {
                 _fileClearUIState.update { UIState.Loading }
-                _pendingDeletionSummary.update { null }
             }
             _pendingDeletionFileList.clear()
             // 文件总大小
@@ -755,9 +749,6 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                             )
                         )
                         totalLength += length
-                        _pendingDeletionSummary.update {
-                            PendingDeletionSummary(_pendingDeletionFileList.size, totalLength)
-                        }
                         _pendingDeletionFileList.sortByDescending { it.fileLength }
                     }
                 }
@@ -769,6 +760,24 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
 
     fun changeFileChecked(pendingDeletionFile: PendingDeletionFile, check: Boolean) {
         _pendingDeletionFileList.find { file -> file.file == pendingDeletionFile.file }?.checked = check
+    }
+
+    /**
+     * 关闭文件选择
+     */
+    fun closeFileCheck() {
+        _pendingDeletionFileList.clear()
+    }
+
+    /**
+     * 全选或取消全选
+     */
+    fun changeFileAllChecked() {
+        val isAllCheck = _pendingDeletionFileList.none { file -> !file.checked }
+        _pendingDeletionFileList.forEach { file ->
+            if (file.checked == !isAllCheck) return@forEach
+            changeFileChecked(file, !isAllCheck)
+        }
     }
 }
 
