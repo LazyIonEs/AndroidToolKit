@@ -51,9 +51,10 @@ import java.io.File
  */
 @Composable
 fun SetUp(viewModel: MainViewModel) {
-    Box(modifier = Modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp)) {
+    Box(modifier = Modifier.padding(end = 14.dp)) {
         LazyColumn {
             item {
+                Spacer(Modifier.size(20.dp))
                 Conventional(viewModel)
             }
             item {
@@ -67,6 +68,7 @@ fun SetUp(viewModel: MainViewModel) {
             item {
                 Spacer(Modifier.size(16.dp))
                 About()
+                Spacer(Modifier.size(20.dp))
             }
         }
     }
