@@ -247,7 +247,7 @@ private fun SignatureList(
                         SignatureListBottom(verifier, viewModel)
                     }
                 }
-                item { Spacer(Modifier.size(30.dp)) }
+                item { Spacer(Modifier.size(40.dp)) }
             }
         }
     }

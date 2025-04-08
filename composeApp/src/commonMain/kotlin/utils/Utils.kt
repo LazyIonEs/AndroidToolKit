@@ -367,6 +367,9 @@ private fun formatSizeByTypeWithDivisor(
     if (sizeType == FileSizeType.SIZE_TYPE_B) RoundingMode.DOWN else RoundingMode.HALF_UP
 )
 
+/**
+ * 在文件夹中打开
+ */
 fun browseFileDirectory(file: File) {
     if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
         Desktop.getDesktop().browseFileDirectory(file)
