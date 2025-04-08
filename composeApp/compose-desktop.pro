@@ -1,25 +1,37 @@
 -ignorewarnings
--verbose
+# -verbose
+
+-dontnote java.awt.*
+-dontnote java.nio.*
+-dontnote java.util.*
+-dontnote com.intellij.**
+-dontnote org.jdom.**
+-dontnote com.google.**
+-dontnote org.apache.**
+-dontnote com.sun.**
 
 -dontwarn java.awt.*
 -dontwarn java.nio.*
 -dontwarn java.util.*
+-dontwarn com.intellij.**
+-dontwarn org.jdom.**
+-dontwarn com.google.**
+-dontwarn org.apache.**
+
+-keep class com.android.ddmlib.** { *; }
 -keep class org.lwjgl.** { *; }
 -keep class org.bouncycastle.** { *; }
 -keep class com.android.apksig.** { *; }
 -keep class org.sqlite.** { *; }
 -keep class org.slf4j.** { *; }
--keep class java.nio.** { *; }
--keep class java.util.concurrent.** { *; }
+#-keep class java.nio.** { *; }
+#-keep class java.util.concurrent.** { *; }
 -keep class uniffi.toolkit.** { *; }
 -keep class androidx.datastore.** { *; }
 -keep class com.sun.jna.** { *; }
 -keep class * implements com.sun.jna.** { *; }
 -keepclassmembers class * extends com.sun.jna.* { public *; }
--dontnote com.sun.**
 -keepclassmembers class androidx.datastore.** { *; }
 -keep class androidx.datastore.preferences.protobuf.** { *;}
 -keepclassmembers class androidx.datastore.preferences.protobuf.** { *; }
--keep class kotlinx.coroutines.internal.MainDispatcherFactory { *; }
--keep class kotlinx.coroutines.swing.SwingDispatcherFactory { *; }
 -keepattributes Signature,LineNumberTable,RuntimeVisibleAnnotations,AnnotationDefault,*Annotation*,InnerClasses
