@@ -18,7 +18,7 @@ val linuxX64Target = "x86_64-unknown-linux-gnu"
 
 val kitVersion by extra("1.5.3")
 val kitPackageName = "AndroidToolKit"
-val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
+val kitDescription = "适用于安卓开发的桌面工具，支持 Windows、Mac 和 Linux"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
 val kitVendor = "LazyIonEs"
 val kitLicenseFile = project.rootProject.file("LICENSE")
@@ -30,6 +30,13 @@ val rustGeneratedSource = "${layout.buildDirectory.get()}/generated/source/uniff
 
 group = "org.tool.kit"
 version = kitVersion
+
+configurations.commonMainApi {
+    // com.android.tools:sdk-common
+    exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
+    exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
+    exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
+}
 
 kotlin {
     jvmToolchain {
@@ -56,16 +63,12 @@ kotlin {
             implementation(libs.slf4j.api)
             implementation(libs.slf4j.simple)
             implementation(libs.android.apksig)
+            implementation(libs.android.sdk.common)
+            implementation(libs.android.binary.resources)
             implementation(libs.commons.codec)
             implementation(libs.asm)
             implementation(libs.lifecycle.viewmodel.compose)
-            runtimeOnly(libs.kotlinx.coroutines.swing)
             implementation(libs.jna)
-            implementation("com.android.tools:sdk-common:31.9.0") {
-                exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
-                exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
-                exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
-            }
             implementation(libs.filekit.core)
             implementation(libs.filekit.dialogs)
             implementation(libs.filekit.dialogs.compose)
@@ -73,7 +76,7 @@ kotlin {
             implementation(libs.multiplatform.settings.coroutines)
             implementation(libs.multiplatform.settings.serialization)
             implementation(libs.kotlinx.serialization.json)
-            implementation(libs.binary.resources)
+            implementation(libs.kotlinx.datetime)
             implementation("com.jetbrains.intellij.platform:util:243.26053.20") {
                 exclude(group = "com.fasterxml", module = "aalto-xml")
                 exclude(group = "com.github.ben-manes.caffeine", module = "caffeine")
@@ -94,8 +97,7 @@ kotlin {
                 exclude(group = "org.slf4j", module = "log4j-over-slf4j")
                 exclude(group = "oro", module = "oro")
             }
-            implementation(libs.kotlinx.datetime)
-            implementation(libs.compottie)
+            runtimeOnly(libs.kotlinx.coroutines.swing)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -231,7 +233,7 @@ fun currentOs(): OS {
 }
 
 fun buildRust() {
-    exec {
+    providers.exec {
         println("Build rs called")
         val binary = if (currentOs() == OS.LINUX && useCross) {
             "cross"
@@ -253,7 +255,7 @@ fun buildRust() {
 
         workingDir = File(rootDir, "rs")
         commandLine = params
-    }
+    }.result.get()
 }
 
 fun copyRustBuild() {
@@ -294,7 +296,7 @@ fun copyRustBuild() {
 }
 
 fun generateKotlinFromUdl() {
-    exec {
+    providers.exec {
         workingDir = File(rootDir, "rs")
         commandLine = listOf(
             "cargo", "run", "--features=uniffi/cli",
@@ -302,5 +304,5 @@ fun generateKotlinFromUdl() {
             "--language", "kotlin",
             "--out-dir", rustGeneratedSource
         )
-    }
+    }.result.get()
 }
