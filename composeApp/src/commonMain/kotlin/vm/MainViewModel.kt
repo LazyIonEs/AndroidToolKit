@@ -32,6 +32,7 @@ import model.IconFactoryInfo
 import model.JunkCodeInfo
 import model.KeyStoreInfo
 import model.PendingDeletionFile
+import model.Sequence
 import model.SignaturePolicy
 import model.SnackbarVisualsData
 import model.UserData
@@ -155,6 +156,10 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     // 文件清理UI状态
     private val _fileClearUIState = mutableStateOf<UIState>(UIState.WAIT)
     val fileClearUIState by _fileClearUIState
+
+    // 文件列表排序
+    private var _currentFileSequence = mutableStateOf<Sequence>(Sequence.SIZE_LARGE_TO_SMALL)
+    val currentFileSequence by _currentFileSequence
 
     // 通知
     private val _snackbarVisuals = MutableStateFlow(SnackbarVisualsData())
@@ -733,9 +738,12 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             _pendingDeletionFileList.clear()
             // 文件总大小
             var totalLength = 0L
-            directory.walk().maxDepth(10)
+            directory.walk()
+                .maxDepth(10)
+                // 如果父目录是缓存目录，不再继续遍历此目录下的文件
+                .onEnter { file -> file.parentFile?.nameWithoutExtension != "build" }
                 .filter { file -> file.isDirectory == true && file.nameWithoutExtension == "build" }
-                .forEachIndexed { index, file ->
+                .forEach { file ->
                     val length = file.getFileLength()
                     withContext(Dispatchers.Main) {
                         _pendingDeletionFileList.add(
@@ -749,7 +757,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                             )
                         )
                         totalLength += length
-                        _pendingDeletionFileList.sortByDescending { it.fileLength }
+                        updateFileSort()
                     }
                 }
             withContext(Dispatchers.Main) {
@@ -758,6 +766,41 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         }
     }
 
+    /**
+     * 更改文件排序方式
+     */
+    fun updateFileSort(sequence: Sequence = currentFileSequence) {
+        _currentFileSequence.update { sequence }
+        when (currentFileSequence) {
+            Sequence.DATE_NEW_TO_OLD -> {
+                _pendingDeletionFileList.sortByDescending { it.fileLastModified }
+            }
+
+            Sequence.DATE_OLD_TO_NEW -> {
+                _pendingDeletionFileList.sortBy { it.fileLastModified }
+            }
+
+            Sequence.SIZE_LARGE_TO_SMALL -> {
+                _pendingDeletionFileList.sortByDescending { it.fileLength }
+            }
+
+            Sequence.SIZE_SMALL_TO_LARGE -> {
+                _pendingDeletionFileList.sortBy { it.fileLength }
+            }
+
+            Sequence.NAME_A_TO_Z -> {
+                _pendingDeletionFileList.sortBy { it.filePath }
+            }
+
+            Sequence.NAME_Z_TO_A -> {
+                _pendingDeletionFileList.sortByDescending { it.filePath }
+            }
+        }
+    }
+
+    /**
+     * 改变文件选中状态
+     */
     fun changeFileChecked(pendingDeletionFile: PendingDeletionFile, check: Boolean) {
         _pendingDeletionFileList.find { file -> file.file == pendingDeletionFile.file }?.checked = check
     }
@@ -779,6 +822,30 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             changeFileChecked(file, !isAllCheck)
         }
     }
+
+    /**
+     * 移除选中的文件
+     */
+    fun removeFileChecked() {
+        viewModelScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
+                _fileClearUIState.update { UIState.Loading }
+            }
+            val fileIterator = _pendingDeletionFileList.iterator()
+            while (fileIterator.hasNext()) {
+                val pendingDeletionFile = fileIterator.next()
+                if (pendingDeletionFile.checked) {
+                    pendingDeletionFile.file.deleteRecursively()
+                    fileIterator.remove()
+                }
+            }
+        }
+    }
+
+    /**
+     * 当前是否没有选中文件
+     */
+    fun isAllFileUnchecked(): Boolean = _pendingDeletionFileList.none { file -> file.checked }
 }
 
 sealed interface UIState {

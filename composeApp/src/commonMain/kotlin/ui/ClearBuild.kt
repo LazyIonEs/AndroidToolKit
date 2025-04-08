@@ -21,10 +21,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Sort
 import androidx.compose.material.icons.outlined.Close
@@ -35,28 +34,40 @@ import androidx.compose.material.icons.outlined.DriveFolderUpload
 import androidx.compose.material.icons.outlined.FolderOpen
 import androidx.compose.material.icons.outlined.SelectAll
 import androidx.compose.material.icons.outlined.Topic
+import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.DeleteSweep
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
+import model.Sequence
 import utils.formatFileSize
 import utils.formatFileUnit
 import vm.MainViewModel
@@ -67,20 +78,7 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 fun ClearBuild(viewModel: MainViewModel) {
-    Scaffold(
-        bottomBar = {
-            AnimatedVisibility(
-                visible = viewModel.fileClearUIState == UIState.WAIT && viewModel.pendingDeletionFileList.isNotEmpty(),
-                enter = fadeIn() + expandVertically(),
-                exit = shrinkVertically() + fadeOut()
-            ) {
-                ClearBuildBottom(viewModel)
-            }
-        }) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            ClearMain(viewModel)
-        }
-    }
+    ClearMain(viewModel)
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -120,74 +118,12 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
     // 已使用空间
     var usedSpace = totalSpace - usableSpace
     Column(modifier = Modifier.fillMaxWidth()) {
-        AnimatedVisibility(viewModel.pendingDeletionFileList.isNotEmpty()) {
-            val checkedList = viewModel.pendingDeletionFileList.filter { it.checked }
-            val checkedCount = checkedList.size
-            val checkedTotalLength = checkedList.sumOf { it.fileLength }
-            ElevatedCard(modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 8.dp)) {
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier.padding(start = 16.dp, top = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Outlined.Topic,
-                            contentDescription = "已选择文件夹",
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Text(
-                            "已选择文件夹",
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier.padding(start = 6.dp)
-                        )
-                    }
-                    Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp)) {
-                        Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
-                            Text(
-                                "$checkedCount",
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-                            Spacer(Modifier.size(3.dp))
-                            Text("个文件夹", style = MaterialTheme.typography.bodySmall)
-                        }
-                        Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
-                            Text(
-                                checkedTotalLength.formatFileSize(scale = 1, withUnit = false),
-                                style = MaterialTheme.typography.headlineSmall
-                            )
-                            Spacer(Modifier.size(3.dp))
-                            Text(
-                                checkedTotalLength.formatFileUnit(),
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                        Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
-                            val percentage = checkedTotalLength.toBigDecimal().multiply(100.toBigDecimal())
-                                .divide(totalSpace.toBigDecimal(), 1, RoundingMode.HALF_UP)
-                            Text("${percentage.toPlainString()}%", style = MaterialTheme.typography.headlineSmall)
-                            Spacer(Modifier.size(3.dp))
-                            Text("占总存储空间", style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
-                }
-            }
-        }
-        AnimatedVisibility(
-            visible = viewModel.fileClearUIState == UIState.Loading,
-            enter = fadeIn() + expandVertically(),
-            exit = shrinkVertically() + fadeOut()
-        ) {
-            LinearProgressIndicator(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-        AnimatedVisibility(
-            visible = viewModel.fileClearUIState == UIState.WAIT && viewModel.pendingDeletionFileList.isEmpty(),
-            enter = fadeIn() + expandVertically(),
-            exit = shrinkVertically() + fadeOut()
-        ) {
-            ElevatedCard(modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 12.dp)) {
+        ElevatedCard(modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 8.dp)) {
+            AnimatedVisibility(
+                visible = viewModel.fileClearUIState == UIState.WAIT && viewModel.pendingDeletionFileList.isEmpty(),
+                enter = fadeIn() + expandVertically(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.weight(1f).padding(16.dp)) {
@@ -214,6 +150,68 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                     )
                 }
             }
+            AnimatedVisibility(
+                visible = viewModel.pendingDeletionFileList.isNotEmpty(),
+                enter = fadeIn() + expandVertically(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                val checkedList = viewModel.pendingDeletionFileList.filter { it.checked }
+                val checkedCount = checkedList.size
+                val checkedTotalLength = checkedList.sumOf { it.fileLength }
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.padding(start = 16.dp, top = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Outlined.Topic,
+                            contentDescription = "已选择文件夹",
+                            modifier = Modifier.size(18.dp),
+                        )
+                        Text(
+                            "已选择文件夹",
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier.padding(start = 6.dp)
+                        )
+                    }
+                    Row(modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp)) {
+                        Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
+                            Text(
+                                "$checkedCount", style = MaterialTheme.typography.headlineSmall
+                            )
+                            Spacer(Modifier.size(3.dp))
+                            Text("个文件夹", style = MaterialTheme.typography.bodySmall)
+                        }
+                        Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
+                            Text(
+                                checkedTotalLength.formatFileSize(scale = 1, withUnit = false),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                            Spacer(Modifier.size(3.dp))
+                            Text(
+                                checkedTotalLength.formatFileUnit(), style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
+                            val percentage = checkedTotalLength.toBigDecimal().multiply(100.toBigDecimal())
+                                .divide(totalSpace.toBigDecimal(), 1, RoundingMode.HALF_UP)
+                            Text("${percentage.toPlainString()}%", style = MaterialTheme.typography.headlineSmall)
+                            Spacer(Modifier.size(3.dp))
+                            Text("占总存储空间", style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+            }
+        }
+        AnimatedVisibility(
+            visible = viewModel.fileClearUIState == UIState.Loading,
+            enter = fadeIn() + expandVertically(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
@@ -226,9 +224,9 @@ private fun ClearBuildList(viewModel: MainViewModel) {
             state = state,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            items(
+            itemsIndexed(
                 items = viewModel.pendingDeletionFileList,
-                key = { file -> file.file.absolutePath }) { pendingDeletionFile ->
+                key = { _, item -> item.file.absolutePath }) { index, pendingDeletionFile ->
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.fillMaxWidth().height(56.dp), verticalAlignment = Alignment.CenterVertically
@@ -268,13 +266,12 @@ private fun ClearBuildList(viewModel: MainViewModel) {
                             modifier = Modifier.padding(horizontal = 16.dp),
                         )
                     }
-                    // 最后一项是否需要分割线 待定
-//                    if (index != viewModel.scanFileList.lastIndex) {
-                    Divider(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
-                    )
-//                    }
+                    // 最后一项不需要分割线
+                    if (index != viewModel.pendingDeletionFileList.lastIndex) {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
                 }
             }
         }
@@ -286,7 +283,9 @@ private fun ClearBuildList(viewModel: MainViewModel) {
 }
 
 @Composable
-private fun ClearBuildBottom(viewModel: MainViewModel) {
+fun ClearBuildBottom(viewModel: MainViewModel) {
+    var sequenceExpanded by remember { mutableStateOf(false) }
+    var deletionAlert by remember { mutableStateOf(false) }
     val launcher = rememberDirectoryPickerLauncher { directory ->
         viewModel.scanPendingDeletionFileList(directory?.file ?: return@rememberDirectoryPickerLauncher)
     }
@@ -294,7 +293,7 @@ private fun ClearBuildBottom(viewModel: MainViewModel) {
         IconButton(onClick = { viewModel.closeFileCheck() }) {
             Icon(Icons.Outlined.Close, contentDescription = "Localized description")
         }
-        IconButton(onClick = { /* do something */ }) {
+        IconButton(onClick = { sequenceExpanded = !sequenceExpanded }) {
             Icon(
                 Icons.AutoMirrored.Outlined.Sort,
                 contentDescription = "Localized description",
@@ -315,11 +314,79 @@ private fun ClearBuildBottom(viewModel: MainViewModel) {
         }
     }, floatingActionButton = {
         FloatingActionButton(
-            onClick = { /* do something */ },
+            onClick = {
+                if (viewModel.isAllFileUnchecked()) {
+                    viewModel.updateSnackbarVisuals("请先选择需要删除的目录")
+                } else {
+                    deletionAlert = !deletionAlert
+                }
+            },
             containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
             elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
         ) {
             Icon(Icons.Outlined.Delete, "Localized description")
+        }
+    })
+    val onDismissRequest = { sequenceExpanded = false }
+    DropdownMenu(expanded = sequenceExpanded, offset = DpOffset(64.dp, 24.dp), onDismissRequest = onDismissRequest) {
+        SequenceDropdownMenu("日期（从新到旧）", Sequence.DATE_NEW_TO_OLD, onDismissRequest, viewModel)
+        SequenceDropdownMenu("日期（从旧到新）", Sequence.DATE_OLD_TO_NEW, onDismissRequest, viewModel)
+        SequenceDropdownMenu("大小（从大到小）", Sequence.SIZE_LARGE_TO_SMALL, onDismissRequest, viewModel)
+        SequenceDropdownMenu("大小（从小到大）", Sequence.SIZE_SMALL_TO_LARGE, onDismissRequest, viewModel)
+        SequenceDropdownMenu("名称（从 A 到 Z）", Sequence.NAME_A_TO_Z, onDismissRequest, viewModel)
+        SequenceDropdownMenu("名称（从 Z 到 A）", Sequence.NAME_Z_TO_A, onDismissRequest, viewModel)
+    }
+    if (deletionAlert) {
+        DeleteAlertDialog(
+            onConfirm = {
+                deletionAlert = false
+                viewModel.removeFileChecked()
+            },
+            onDismiss = {
+                deletionAlert = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun SequenceDropdownMenu(
+    text: String, sequence: Sequence, onDismissRequest: () -> Unit, viewModel: MainViewModel
+) {
+    DropdownMenuItem(
+        text = {
+            Text(text, style = MaterialTheme.typography.labelLarge)
+        }, leadingIcon = if (viewModel.currentFileSequence == sequence) {
+            { Icon(Icons.Rounded.Check, "当前文件排序模式选中") }
+        } else {
+            null
+        }, onClick = {
+            viewModel.updateFileSort(sequence)
+            onDismissRequest.invoke()
+        })
+}
+
+@Composable
+private fun DeleteAlertDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(icon = {
+        Icon(Icons.Rounded.DeleteSweep, contentDescription = "DeleteSweep")
+    }, title = {
+        Text("确认删除缓存？")
+    }, text = {
+        Text("此操作将永久清除该目录下的所有文件，删除后数据将无法恢复，且可能导致下次构建时间延长。请确保您已备份所有重要数据。")
+    }, onDismissRequest = {
+        onDismiss.invoke()
+    }, confirmButton = {
+        TextButton(onClick = {
+            onConfirm.invoke()
+        }) {
+            Text("确认删除")
+        }
+    }, dismissButton = {
+        TextButton(onClick = {
+            onDismiss.invoke()
+        }) {
+            Text("取消")
         }
     })
 }

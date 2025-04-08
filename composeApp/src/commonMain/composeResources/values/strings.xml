@@ -3,7 +3,8 @@
     <string name="APK信息">APK信息</string>
     <string name="APK签名">APK签名</string>
     <string name="签名生成">签名生成</string>
-    <string name="图标工厂">图标工厂</string>
+    <string name="图标生成">图标生成</string>
     <string name="垃圾代码">垃圾代码</string>
+    <string name="缓存清理">缓存清理</string>
     <string name="设置">设置</string>
 </resources>
