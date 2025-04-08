@@ -10,12 +10,15 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.onClick
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.DriveFolderUpload
@@ -322,6 +325,7 @@ fun UploadAnimate(dragging: Boolean, scope: CoroutineScope) {
  * @param visible 是否显示
  * @param scope 协程作用域
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LoadingAnimate(visible: Boolean, viewModel: MainViewModel, scope: CoroutineScope) {
     AnimatedVisibility(
@@ -330,7 +334,10 @@ fun LoadingAnimate(visible: Boolean, viewModel: MainViewModel, scope: CoroutineS
         exit = scaleOut() + fadeOut(),
     ) {
         Box(
-            modifier = Modifier.padding(top = 16.dp, bottom = 16.dp, end = 80.dp), contentAlignment = Alignment.Center
+            modifier = Modifier
+                .fillMaxSize()
+                .onClick { } // 拦截点击事件
+            , contentAlignment = Alignment.Center
         ) {
             val useDarkTheme = when (viewModel.themeConfig.value) {
                 DarkThemeConfig.LIGHT -> false

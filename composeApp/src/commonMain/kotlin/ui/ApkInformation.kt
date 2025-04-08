@@ -29,10 +29,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import model.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
 import model.ApkInformation
 import model.DarkThemeConfig
+import model.FileSelectorType
 import utils.LottieAnimation
 import utils.copy
 import utils.formatFileSize
@@ -54,7 +54,6 @@ fun ApkInformation(viewModel: MainViewModel) {
         ApkInformationLottie(viewModel, scope)
     }
     ApkInformationBox(viewModel)
-    LoadingAnimate(viewModel.apkInformationState == UIState.Loading, viewModel, scope)
     ApkDraggingBox(viewModel, scope)
 }
 

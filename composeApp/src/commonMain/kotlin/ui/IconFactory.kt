@@ -5,9 +5,11 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
@@ -25,7 +27,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.material.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Start
@@ -39,6 +40,7 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
@@ -72,10 +74,10 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import constant.ConfigConstant
-import model.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import model.DarkThemeConfig
+import model.FileSelectorType
 import model.IconFactoryData
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.Font
@@ -102,7 +104,6 @@ fun IconFactory(viewModel: MainViewModel) {
     val scope = rememberCoroutineScope()
     val showBottomSheet = remember { mutableStateOf(false) }
     IconFactoryPreview(viewModel, showBottomSheet, scope)
-    LoadingAnimate(viewModel.iconFactoryUIState == UIState.Loading, viewModel, scope)
     IconFactorySheet(viewModel, showBottomSheet, scope)
 }
 
@@ -334,14 +335,16 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
                 visible = viewModel.iconFactoryInfoState.icon != null,
                 modifier = Modifier.padding(bottom = 16.dp, end = 16.dp).align(Alignment.End)
             ) {
-                ExtendedFloatingActionButton(onClick = { showBottomSheet.update { true } },
+                ExtendedFloatingActionButton(
+                    onClick = { showBottomSheet.update { true } },
                     expanded = true,
                     icon = { Icon(Icons.Rounded.Tune, "更多设置") },
                     text = { Text("更多设置") })
             }
         }
         if (showBottomSheet.value) {
-            ModalBottomSheet(modifier = Modifier.fillMaxHeight().align(Alignment.BottomEnd),
+            ModalBottomSheet(
+                modifier = Modifier.fillMaxHeight().align(Alignment.BottomEnd),
                 sheetState = sheetState,
                 onDismissRequest = { showBottomSheet.update { false } }) {
                 IconFactorySetting(viewModel, sheetState)
@@ -355,12 +358,13 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
 private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState) {
     val scope = rememberCoroutineScope()
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(bottom = 20.dp, end = 14.dp),
+        modifier = Modifier.fillMaxSize().padding(end = 14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {
             Spacer(Modifier.size(8.dp))
-            FolderInput(value = viewModel.iconFactoryInfoState.outputPath,
+            FolderInput(
+                value = viewModel.iconFactoryInfoState.outputPath,
                 label = "图标输出路径",
                 isError = false,
                 onValueChange = { path ->
@@ -374,7 +378,8 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
         item {
             Spacer(Modifier.size(8.dp))
             Box(modifier = Modifier.fillMaxWidth()) {
-                StringInput(value = viewModel.iconFactoryInfoState.iconName,
+                StringInput(
+                    value = viewModel.iconFactoryInfoState.iconName,
                     label = "图标名称",
                     isError = viewModel.iconFactoryInfoState.iconName.isBlank(),
                     onValueChange = { iconName ->
@@ -414,14 +419,15 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
         item {
             Spacer(Modifier.size(12.dp))
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text("压缩自定义项", style = MaterialTheme.typography.titleSmall)
-                Divider(thickness = 2.dp, startIndent = 18.dp)
+                HorizontalDivider(modifier = Modifier.padding(start = 8.dp), thickness = 2.dp)
             }
             Spacer(Modifier.size(12.dp))
             Compression(viewModel)
+            Spacer(Modifier.size(20.dp))
         }
     }
 }
@@ -443,7 +449,11 @@ fun Compression(viewModel: MainViewModel) {
         }
     }
 
-    AnimatedVisibility(!iconFactoryData.lossless) {
+    AnimatedVisibility(
+        visible = !iconFactoryData.lossless,
+        enter = fadeIn() + expandVertically(),
+        exit = shrinkVertically() + fadeOut()
+    ) {
         CompressRangeSliders(viewModel, iconFactoryData)
     }
 
@@ -526,7 +536,8 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
         )
         var expanded by remember { mutableStateOf(false) }
         val options = ConfigConstant.ANDROID_ICON_DIR_LIST
-        ExposedDropdownMenuBox(modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+        ExposedDropdownMenuBox(
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
             expanded = expanded,
             onExpandedChange = { expanded = it }) {
             OutlinedTextField(

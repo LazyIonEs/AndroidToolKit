@@ -13,12 +13,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import vm.MainViewModel
-import vm.UIState
 import java.io.File
 
 /**
@@ -28,16 +26,12 @@ import java.io.File
  * @Version     : 1.0
  */
 @Composable
-fun JunkCode(
-    viewModel: MainViewModel
-) {
-    val scope = rememberCoroutineScope()
+fun JunkCode(viewModel: MainViewModel) {
     JunkCodeBox(viewModel)
-    LoadingAnimate(viewModel.junkCodeUIState == UIState.Loading, viewModel, scope)
 }
 
 @Composable
-fun JunkCodeBox(viewModel: MainViewModel) {
+private fun JunkCodeBox(viewModel: MainViewModel) {
     Card(
         modifier = Modifier.fillMaxSize().padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
     ) {
@@ -48,7 +42,8 @@ fun JunkCodeBox(viewModel: MainViewModel) {
         ) {
             item {
                 Spacer(Modifier.size(16.dp))
-                FolderInput(value = viewModel.junkCodeInfoState.outputPath,
+                FolderInput(
+                    value = viewModel.junkCodeInfoState.outputPath,
                     label = "AAR输出路径",
                     isError = outputPathError,
                     onValueChange = { path ->
@@ -57,7 +52,8 @@ fun JunkCodeBox(viewModel: MainViewModel) {
             }
             item {
                 Spacer(Modifier.size(8.dp))
-                StringInput(value = viewModel.junkCodeInfoState.aarName,
+                StringInput(
+                    value = viewModel.junkCodeInfoState.aarName,
                     label = "AAR 名称",
                     isError = false,
                     realOnly = true,
@@ -69,7 +65,8 @@ fun JunkCodeBox(viewModel: MainViewModel) {
             }
             item {
                 Spacer(Modifier.size(8.dp))
-                IntInput(value = viewModel.junkCodeInfoState.packageCount,
+                IntInput(
+                    value = viewModel.junkCodeInfoState.packageCount,
                     label = "包的数量",
                     isError = viewModel.junkCodeInfoState.packageCount.isBlank(),
                     onValueChange = { packageCount ->
@@ -78,7 +75,8 @@ fun JunkCodeBox(viewModel: MainViewModel) {
             }
             item {
                 Spacer(Modifier.size(8.dp))
-                IntInput(value = viewModel.junkCodeInfoState.activityCountPerPackage,
+                IntInput(
+                    value = viewModel.junkCodeInfoState.activityCountPerPackage,
                     label = "每个包里 activity 的数量",
                     isError = viewModel.junkCodeInfoState.activityCountPerPackage.isBlank(),
                     onValueChange = { activityCountPerPackage ->
@@ -87,7 +85,8 @@ fun JunkCodeBox(viewModel: MainViewModel) {
             }
             item {
                 Spacer(Modifier.size(8.dp))
-                StringInput(value = viewModel.junkCodeInfoState.resPrefix,
+                StringInput(
+                    value = viewModel.junkCodeInfoState.resPrefix,
                     label = "资源前缀",
                     isError = viewModel.junkCodeInfoState.resPrefix.isBlank(),
                     onValueChange = { resPrefix ->
@@ -106,7 +105,7 @@ fun JunkCodeBox(viewModel: MainViewModel) {
 }
 
 @Composable
-fun PackageName(viewModel: MainViewModel) {
+private fun PackageName(viewModel: MainViewModel) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 64.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -144,7 +143,7 @@ fun PackageName(viewModel: MainViewModel) {
 }
 
 @Composable
-fun Generate(
+private fun Generate(
     viewModel: MainViewModel, outputPathError: Boolean
 ) {
     Button(onClick = {

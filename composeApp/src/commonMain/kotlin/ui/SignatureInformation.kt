@@ -92,7 +92,6 @@ fun SignatureInformation(
     }
     SignatureList(viewModel)
     SignatureBox(viewModel, signaturePath, scope)
-    LoadingAnimate(viewModel.verifierState == UIState.Loading, viewModel, scope)
     SignatureDialog(viewModel, signaturePath)
 }
 

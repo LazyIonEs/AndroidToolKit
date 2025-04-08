@@ -8,14 +8,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Divider
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -23,7 +22,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import utils.isKey
 import vm.MainViewModel
-import vm.UIState
 import java.io.File
 
 /**
@@ -36,9 +34,7 @@ import java.io.File
 fun SignatureGeneration(
     viewModel: MainViewModel
 ) {
-    val scope = rememberCoroutineScope()
     GenerationBox(viewModel)
-    LoadingAnimate(viewModel.keyStoreInfoUIState == UIState.Loading, viewModel, scope)
 }
 
 /**
@@ -91,7 +87,7 @@ private fun GenerationBox(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("Key", style = MaterialTheme.typography.titleSmall)
-                    Divider(thickness = 2.dp, startIndent = 18.dp)
+                    HorizontalDivider(modifier = Modifier.padding(start = 8.dp), thickness = 2.dp)
                 }
                 Spacer(Modifier.size(12.dp))
                 StringInput(
@@ -121,7 +117,7 @@ private fun GenerationBox(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text("Certificate", style = MaterialTheme.typography.titleSmall)
-                    Divider(thickness = 2.dp, startIndent = 18.dp)
+                    HorizontalDivider(modifier = Modifier.padding(start = 8.dp), thickness = 2.dp)
                 }
                 Spacer(Modifier.size(12.dp))
                 StringInput(
