@@ -178,31 +178,6 @@ data class SnackbarVisualsData(
     var action: (() -> Unit)? = null
 ) : SnackbarVisuals {
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-
-        other as SnackbarVisualsData
-
-        if (message != other.message) return false
-        if (actionLabel != other.actionLabel) return false
-        if (withDismissAction != other.withDismissAction) return false
-        if (duration != other.duration) return false
-        if (timestamp != other.timestamp) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = message.hashCode()
-        result = 31 * result + actionLabel.hashCode()
-        result = 31 * result + withDismissAction.hashCode()
-        result = 31 * result + duration.hashCode()
-        result = 31 * result + timestamp.hashCode()
-        result = 31 * result + action.hashCode()
-        return result
-    }
-
     fun reset(): SnackbarVisualsData {
         actionLabel = null
         withDismissAction = false

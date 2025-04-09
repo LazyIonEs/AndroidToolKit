@@ -43,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -89,7 +90,6 @@ import ui.SignatureGeneration
 import ui.SignatureInformation
 import vm.MainViewModel
 import vm.UIState
-import kotlin.math.abs
 
 @OptIn(ExperimentalSettingsApi::class)
 @Composable
@@ -185,14 +185,12 @@ fun MainContentScreen(viewModel: MainViewModel) {
         }
     }
     val snackbarVisuals by viewModel.snackbarVisuals.collectAsState()
-    snackbarVisuals.apply {
-        if (message.isBlank() || abs(timestamp - System.currentTimeMillis()) > 50) return@apply
-        scope.launch(Dispatchers.Main) {
-            val snackbarResult = snackbarHostState.showSnackbar(this@apply)
-            when (snackbarResult) {
-                SnackbarResult.ActionPerformed -> action?.invoke()
-                SnackbarResult.Dismissed -> Unit
-            }
+    LaunchedEffect(snackbarVisuals) {
+        if (snackbarVisuals.message.isBlank()) return@LaunchedEffect
+        val snackbarResult = snackbarHostState.showSnackbar(snackbarVisuals)
+        when (snackbarResult) {
+            SnackbarResult.ActionPerformed -> snackbarVisuals.action?.invoke()
+            SnackbarResult.Dismissed -> Unit
         }
     }
     LoadingAnimate(isShowLoading(viewModel), viewModel, scope)
