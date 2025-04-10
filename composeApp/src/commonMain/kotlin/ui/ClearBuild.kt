@@ -9,6 +9,7 @@ import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.defaultScrollbarStyle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,6 +60,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -68,6 +70,7 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
 import model.Sequence
+import utils.browseFileDirectory
 import utils.formatFileSize
 import utils.formatFileUnit
 import vm.MainViewModel
@@ -117,8 +120,9 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
     }
     // 已使用空间
     var usedSpace = totalSpace - usableSpace
+//    val scope = rememberCoroutineScope()
     Column(modifier = Modifier.fillMaxWidth()) {
-        ElevatedCard(modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 8.dp)) {
+        ElevatedCard(modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 12.dp)) {
             AnimatedVisibility(
                 visible = viewModel.fileClearUIState == UIState.WAIT && viewModel.pendingDeletionFileList.isEmpty(),
                 enter = fadeIn() + expandVertically(),
@@ -129,17 +133,17 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                         Column(modifier = Modifier.weight(1f).padding(16.dp)) {
                             Text("总存储空间", style = MaterialTheme.typography.bodySmall)
                             Spacer(Modifier.size(3.dp))
-                            Text(totalSpace.formatFileSize(scale = 0), style = MaterialTheme.typography.headlineSmall)
+                            Text(totalSpace.formatFileSize(scale = 0, withInterval = true), style = MaterialTheme.typography.headlineSmall)
                         }
                         Column(modifier = Modifier.weight(1f).padding(16.dp)) {
                             Text("已使用空间", style = MaterialTheme.typography.bodySmall)
                             Spacer(Modifier.size(3.dp))
-                            Text(usedSpace.formatFileSize(scale = 1), style = MaterialTheme.typography.headlineSmall)
+                            Text(usedSpace.formatFileSize(scale = 1, withInterval = true), style = MaterialTheme.typography.headlineSmall)
                         }
                         Column(modifier = Modifier.weight(1f).padding(16.dp)) {
                             Text("可用空间", style = MaterialTheme.typography.bodySmall)
                             Spacer(Modifier.size(3.dp))
-                            Text(usableSpace.formatFileSize(scale = 1), style = MaterialTheme.typography.headlineSmall)
+                            Text(usableSpace.formatFileSize(scale = 1, withInterval = true), style = MaterialTheme.typography.headlineSmall)
                         }
                     }
                     LinearProgressIndicator(
@@ -151,7 +155,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                 }
             }
             AnimatedVisibility(
-                visible = viewModel.pendingDeletionFileList.isNotEmpty(),
+                visible = viewModel.fileClearUIState == UIState.Loading || viewModel.pendingDeletionFileList.isNotEmpty(),
                 enter = fadeIn() + expandVertically(),
                 exit = shrinkVertically() + fadeOut()
             ) {
@@ -169,7 +173,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                             modifier = Modifier.size(18.dp),
                         )
                         Text(
-                            "已选择文件夹",
+                            if (viewModel.fileClearUIState == UIState.Loading) "已扫描文件夹" else "已选择文件夹",
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(start = 6.dp)
                         )
@@ -213,6 +217,9 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                 color = MaterialTheme.colorScheme.primary
             )
         }
+//        Box(modifier = Modifier.fillMaxWidth()) {
+//            LottieAnimation(scope, "files/lottie_main_4.json")
+//        }
     }
 }
 
@@ -225,19 +232,19 @@ private fun ClearBuildList(viewModel: MainViewModel) {
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             itemsIndexed(
-                items = viewModel.pendingDeletionFileList,
-                key = { _, item -> item.file.absolutePath }) { index, pendingDeletionFile ->
+                items = viewModel.pendingDeletionFileList
+            ) { index, pendingDeletionFile ->
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.fillMaxWidth().height(56.dp), verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (pendingDeletionFile.file.isDirectory) Icon(
-                            Icons.Outlined.FolderOpen, "文件夹", modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-                        else Icon(
-                            Icons.Outlined.Description, "文件", modifier = Modifier.padding(horizontal = 16.dp)
-                        )
-
+                        IconButton(
+                            onClick = { browseFileDirectory(pendingDeletionFile.file) },
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        ) {
+                            if (pendingDeletionFile.file.isDirectory) Icon(Icons.Outlined.FolderOpen, "文件夹")
+                            else Icon(Icons.Outlined.Description, "文件")
+                        }
                         val instant = Instant.fromEpochMilliseconds(pendingDeletionFile.fileLastModified)
                         val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
                         val formatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日")
@@ -250,10 +257,15 @@ private fun ClearBuildList(viewModel: MainViewModel) {
                                 path,
                                 style = MaterialTheme.typography.bodyLarge,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                overflow = TextOverflow.Ellipsis,
+                                color = if (pendingDeletionFile.exception) {
+                                    MaterialTheme.colorScheme.error
+                                } else {
+                                    Color.Unspecified
+                                },
                             )
                             Text(
-                                "${pendingDeletionFile.fileLength.formatFileSize()}，${
+                                "${pendingDeletionFile.fileLength.formatFileSize(withInterval = true)}，${
                                     localDateTime.toJavaLocalDateTime().format(formatter)
                                 }", style = MaterialTheme.typography.bodyMedium
                             )
@@ -275,9 +287,14 @@ private fun ClearBuildList(viewModel: MainViewModel) {
                 }
             }
         }
+        val customLocalScrollbarStyle = defaultScrollbarStyle().copy(
+                unhoverColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                hoverColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.50f)
+            )
         VerticalScrollbar(
             adapter = rememberScrollbarAdapter(state),
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+            style = customLocalScrollbarStyle
         )
     }
 }
@@ -337,15 +354,12 @@ fun ClearBuildBottom(viewModel: MainViewModel) {
         SequenceDropdownMenu("名称（从 Z 到 A）", Sequence.NAME_Z_TO_A, onDismissRequest, viewModel)
     }
     if (deletionAlert) {
-        DeleteAlertDialog(
-            onConfirm = {
-                deletionAlert = false
-                viewModel.removeFileChecked()
-            },
-            onDismiss = {
-                deletionAlert = false
-            }
-        )
+        DeleteAlertDialog(onConfirm = {
+            deletionAlert = false
+            viewModel.removeFileChecked()
+        }, onDismiss = {
+            deletionAlert = false
+        })
     }
 }
 
@@ -355,38 +369,36 @@ private fun SequenceDropdownMenu(
 ) {
     DropdownMenuItem(
         text = {
-            Text(text, style = MaterialTheme.typography.labelLarge)
-        }, leadingIcon = if (viewModel.currentFileSequence == sequence) {
-            { Icon(Icons.Rounded.Check, "当前文件排序模式选中") }
-        } else {
-            null
-        }, onClick = {
-            viewModel.updateFileSort(sequence)
-            onDismissRequest.invoke()
-        })
+        Text(text, style = MaterialTheme.typography.labelLarge)
+    }, leadingIcon = if (viewModel.currentFileSequence == sequence) {
+        { Icon(Icons.Rounded.Check, "当前文件排序模式选中") }
+    } else {
+        null
+    }, onClick = {
+        viewModel.updateFileSort(sequence)
+        onDismissRequest.invoke()
+    })
 }
 
 @Composable
 private fun DeleteAlertDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
-    AlertDialog(icon = {
-        Icon(Icons.Rounded.DeleteSweep, contentDescription = "DeleteSweep")
-    }, title = {
-        Text("确认删除缓存？")
-    }, text = {
-        Text("此操作将永久清除该目录下的所有文件，删除后数据将无法恢复，且可能导致下次构建时间延长。请确保您已备份所有重要数据。")
-    }, onDismissRequest = {
-        onDismiss.invoke()
-    }, confirmButton = {
-        TextButton(onClick = {
-            onConfirm.invoke()
-        }) {
-            Text("确认删除")
-        }
-    }, dismissButton = {
-        TextButton(onClick = {
-            onDismiss.invoke()
-        }) {
-            Text("取消")
-        }
-    })
+    AlertDialog(
+        icon = { Icon(Icons.Rounded.DeleteSweep, contentDescription = "DeleteSweep") },
+        title = { Text("确认删除缓存？") },
+        text = { Text("此操作将永久清除该目录下的所有文件，删除后数据将无法恢复，且可能导致下次构建时间延长。请确保您已备份所有重要数据。") },
+        onDismissRequest = { onDismiss.invoke() },
+        confirmButton = {
+            TextButton(onClick = {
+                onConfirm.invoke()
+            }) {
+                Text("确认删除")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = {
+                onDismiss.invoke()
+            }) {
+                Text("取消")
+            }
+        })
 }

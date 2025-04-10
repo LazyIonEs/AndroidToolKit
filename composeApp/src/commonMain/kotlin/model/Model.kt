@@ -189,13 +189,14 @@ data class SnackbarVisualsData(
 }
 
 class PendingDeletionFile(
-    val directory: File,
     val directoryPath: String,
     val file: File,
     val filePath: String,
     val fileLength: Long,
     val fileLastModified: Long,
+    deleteExceptions: Boolean = false,
     initialChecked: Boolean = true,
 ) {
     var checked by mutableStateOf(initialChecked)
+    var exception by mutableStateOf(deleteExceptions)
 }

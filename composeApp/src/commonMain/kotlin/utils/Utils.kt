@@ -280,34 +280,10 @@ fun File.getFileLength(): Long {
     }
 }
 
-fun File.getFileLengthAndStatisticallyDistributed(): Pair<Long, HashMap<String, Long>> {
-    if (this.isDirectory) {
-        var sum = 0L
-        val map: HashMap<String, Long> = HashMap()
-        this.walk()
-            .forEach { file ->
-                val length = file.length()
-                sum += length
-                val extension = file.extension
-                if (extension.isBlank()) return@forEach
-                var extensionSum = map[extension]
-                if (extensionSum != null) {
-                    extensionSum += length
-                    map[extension] = extensionSum
-                } else {
-                    map[extension] = length
-                }
-            }
-        return Pair(sum, map)
-    } else {
-        return Pair(this.length(), HashMap())
-    }
-}
-
 /**
  * @param scale 精确到小数点以后几位 (Accurate to a few decimal places)
  */
-fun Long.formatFileSize(scale: Int = 2, withUnit: Boolean = true): String {
+fun Long.formatFileSize(scale: Int = 2, withUnit: Boolean = true, withInterval: Boolean = false): String {
     val divisor = if (isMac) { //ROUND_DOWN 1023 -> 1023B ; ROUND_HALF_UP  1023 -> 1KB
         1000L
     } else {
@@ -315,22 +291,23 @@ fun Long.formatFileSize(scale: Int = 2, withUnit: Boolean = true): String {
     }
     val kiloByte: BigDecimal =
         formatSizeByTypeWithDivisor(BigDecimal.valueOf(this), scale, FileSizeType.SIZE_TYPE_B, divisor)
+    val interval = if (withInterval) " " else ""
     if (kiloByte.toDouble() < 1) {
-        return "${kiloByte.toPlainString()} ${if (withUnit) FileSizeType.SIZE_TYPE_B.unit else ""}"
+        return "${kiloByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_B.unit else ""}"
     } //KB
     val megaByte = formatSizeByTypeWithDivisor(kiloByte, scale, FileSizeType.SIZE_TYPE_KB, divisor)
     if (megaByte.toDouble() < 1) {
-        return "${kiloByte.toPlainString()} ${if (withUnit) FileSizeType.SIZE_TYPE_KB.unit else ""}"
+        return "${kiloByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_KB.unit else ""}"
     } //M
     val gigaByte = formatSizeByTypeWithDivisor(megaByte, scale, FileSizeType.SIZE_TYPE_MB, divisor)
     if (gigaByte.toDouble() < 1) {
-        return "${megaByte.toPlainString()} ${if (withUnit) FileSizeType.SIZE_TYPE_MB.unit else ""}"
+        return "${megaByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_MB.unit else ""}"
     } //GB
     val teraBytes = formatSizeByTypeWithDivisor(gigaByte, scale, FileSizeType.SIZE_TYPE_GB, divisor)
     if (teraBytes.toDouble() < 1) {
-        return "${gigaByte.toPlainString()} ${if (withUnit) FileSizeType.SIZE_TYPE_GB.unit else ""}"
+        return "${gigaByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_GB.unit else ""}"
     } //TB
-    return "${teraBytes.toPlainString()} ${if (withUnit) FileSizeType.SIZE_TYPE_TB.unit else ""}"
+    return "${teraBytes.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_TB.unit else ""}"
 }
 
 fun Long.formatFileUnit(): String {

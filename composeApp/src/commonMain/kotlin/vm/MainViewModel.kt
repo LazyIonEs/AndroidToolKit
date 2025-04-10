@@ -748,7 +748,6 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                     withContext(Dispatchers.Main) {
                         _pendingDeletionFileList.add(
                             PendingDeletionFile(
-                                directory = directory,
                                 directoryPath = directory.absolutePath,
                                 file = file,
                                 filePath = file.absolutePath,
@@ -831,13 +830,35 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             withContext(Dispatchers.Main) {
                 _fileClearUIState.update { UIState.Loading }
             }
+            val resultList = mutableListOf<Boolean>()
             val fileIterator = _pendingDeletionFileList.iterator()
+            var clearLength = 0L
             while (fileIterator.hasNext()) {
                 val pendingDeletionFile = fileIterator.next()
                 if (pendingDeletionFile.checked) {
-                    pendingDeletionFile.file.deleteRecursively()
-                    fileIterator.remove()
+                    val result = pendingDeletionFile.file.deleteRecursively()
+                    if (result) {
+                        clearLength += pendingDeletionFile.fileLength
+                        withContext(Dispatchers.Main) {
+                            fileIterator.remove()
+                        }
+                    } else {
+                        pendingDeletionFile.exception = true
+                    }
+                    resultList.add(result)
                 }
+            }
+            val successCount = resultList.filter { it }.size
+            val errorCount = resultList.size - successCount
+            withContext(Dispatchers.Main) {
+                _fileClearUIState.update { UIState.WAIT }
+                val message = if (errorCount == 0) {
+                    // 全部删除成功
+                    "清理完成，已为您清理${clearLength.formatFileSize()}"
+                } else {
+                    "${errorCount}个文件删除异常"
+                }
+                updateSnackbarVisuals(message)
             }
         }
     }
