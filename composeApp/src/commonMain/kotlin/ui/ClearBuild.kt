@@ -10,6 +10,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.defaultScrollbarStyle
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,13 +55,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -69,7 +74,12 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
+import model.DarkThemeConfig
 import model.Sequence
+import org.jetbrains.compose.resources.Font
+import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.ZCOOLKuaiLe_Regular
+import utils.LottieAnimation
 import utils.browseFileDirectory
 import utils.formatFileSize
 import utils.formatFileUnit
@@ -120,7 +130,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
     }
     // 已使用空间
     var usedSpace = totalSpace - usableSpace
-//    val scope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
     Column(modifier = Modifier.fillMaxWidth()) {
         ElevatedCard(modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 12.dp)) {
             AnimatedVisibility(
@@ -133,17 +143,26 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                         Column(modifier = Modifier.weight(1f).padding(16.dp)) {
                             Text("总存储空间", style = MaterialTheme.typography.bodySmall)
                             Spacer(Modifier.size(3.dp))
-                            Text(totalSpace.formatFileSize(scale = 0, withInterval = true), style = MaterialTheme.typography.headlineSmall)
+                            Text(
+                                totalSpace.formatFileSize(scale = 0, withInterval = true),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
                         }
                         Column(modifier = Modifier.weight(1f).padding(16.dp)) {
                             Text("已使用空间", style = MaterialTheme.typography.bodySmall)
                             Spacer(Modifier.size(3.dp))
-                            Text(usedSpace.formatFileSize(scale = 1, withInterval = true), style = MaterialTheme.typography.headlineSmall)
+                            Text(
+                                usedSpace.formatFileSize(scale = 1, withInterval = true),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
                         }
                         Column(modifier = Modifier.weight(1f).padding(16.dp)) {
                             Text("可用空间", style = MaterialTheme.typography.bodySmall)
                             Spacer(Modifier.size(3.dp))
-                            Text(usableSpace.formatFileSize(scale = 1, withInterval = true), style = MaterialTheme.typography.headlineSmall)
+                            Text(
+                                usableSpace.formatFileSize(scale = 1, withInterval = true),
+                                style = MaterialTheme.typography.headlineSmall
+                            )
                         }
                     }
                     LinearProgressIndicator(
@@ -217,9 +236,47 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                 color = MaterialTheme.colorScheme.primary
             )
         }
-//        Box(modifier = Modifier.fillMaxWidth()) {
-//            LottieAnimation(scope, "files/lottie_main_4.json")
-//        }
+        AnimatedVisibility(
+            visible = viewModel.fileClearUIState == UIState.WAIT && viewModel.pendingDeletionFileList.isEmpty(),
+            enter = fadeIn() + expandVertically(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Row(modifier = Modifier.fillMaxSize()) {
+                Column(modifier = Modifier.weight(1f).align(Alignment.CenterVertically)) {
+                    val themeConfig by viewModel.themeConfig.collectAsState()
+                    val useDarkTheme = when (themeConfig) {
+                        DarkThemeConfig.LIGHT -> false
+                        DarkThemeConfig.DARK -> true
+                        DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
+                    }
+                    val modifier = Modifier.weight(2f)
+                        .graphicsLayer { // 将动画放大1.5倍
+                            scaleX = 1.5f
+                            scaleY = 1.5f
+                        }
+                    if (useDarkTheme) {
+                        LottieAnimation(scope, "files/lottie_main_4_dark.json", modifier)
+                    } else {
+                        LottieAnimation(scope, "files/lottie_main_4_light.json", modifier)
+                    }
+                    Box(modifier = Modifier.weight(1f))
+                }
+                Column(modifier = Modifier.weight(1f).align(Alignment.CenterVertically)) {
+                    val fontRegular = FontFamily(Font(Res.font.ZCOOLKuaiLe_Regular))
+                    Text(
+                        text = "快速清理缓存目录",
+                        style = MaterialTheme.typography.displayMedium,
+                        fontFamily = fontRegular
+                    )
+                    Spacer(Modifier.size(24.dp))
+                    Text(
+                        text = "选择 Android 项目或更外层目录\n快速、深度扫描Build缓存目录\n一键删除，释放存储空间",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(Modifier.size(48.dp))
+                }
+            }
+        }
     }
 }
 
@@ -288,9 +345,9 @@ private fun ClearBuildList(viewModel: MainViewModel) {
             }
         }
         val customLocalScrollbarStyle = defaultScrollbarStyle().copy(
-                unhoverColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-                hoverColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.50f)
-            )
+            unhoverColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+            hoverColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.50f)
+        )
         VerticalScrollbar(
             adapter = rememberScrollbarAdapter(state),
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
@@ -369,15 +426,15 @@ private fun SequenceDropdownMenu(
 ) {
     DropdownMenuItem(
         text = {
-        Text(text, style = MaterialTheme.typography.labelLarge)
-    }, leadingIcon = if (viewModel.currentFileSequence == sequence) {
-        { Icon(Icons.Rounded.Check, "当前文件排序模式选中") }
-    } else {
-        null
-    }, onClick = {
-        viewModel.updateFileSort(sequence)
-        onDismissRequest.invoke()
-    })
+            Text(text, style = MaterialTheme.typography.labelLarge)
+        }, leadingIcon = if (viewModel.currentFileSequence == sequence) {
+            { Icon(Icons.Rounded.Check, "当前文件排序模式选中") }
+        } else {
+            null
+        }, onClick = {
+            viewModel.updateFileSort(sequence)
+            onDismissRequest.invoke()
+        })
 }
 
 @Composable

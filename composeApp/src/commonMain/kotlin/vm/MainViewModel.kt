@@ -761,6 +761,9 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 }
             withContext(Dispatchers.Main) {
                 _fileClearUIState.update { UIState.WAIT }
+                if (_pendingDeletionFileList.isEmpty()) {
+                    updateSnackbarVisuals("未扫描到缓存目录")
+                }
             }
         }
     }
