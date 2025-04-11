@@ -270,7 +270,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                     )
                     Spacer(Modifier.size(24.dp))
                     Text(
-                        text = "选择 Android 项目或更外层目录\n快速、深度扫描Build缓存目录\n一键删除，释放存储空间",
+                        text = "快速、深度扫描 Android 项目构建缓存目录\n批量删除构建缓存，释放磁盘空间\n选择 Android 项目或更上层目录",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(Modifier.size(48.dp))
