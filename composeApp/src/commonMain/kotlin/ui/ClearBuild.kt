@@ -227,7 +227,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
             }
         }
         AnimatedVisibility(
-            visible = viewModel.fileClearUIState == UIState.Loading,
+            visible = (viewModel.fileClearUIState == UIState.Loading && !viewModel.isClearing),
             enter = fadeIn() + expandVertically(),
             exit = shrinkVertically() + fadeOut()
         ) {

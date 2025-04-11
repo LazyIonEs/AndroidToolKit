@@ -163,6 +163,9 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     private val _fileClearUIState = mutableStateOf<UIState>(UIState.WAIT)
     val fileClearUIState by _fileClearUIState
 
+    // 是否在清理中
+    var isClearing = false
+
     // 文件列表排序
     private var _currentFileSequence = mutableStateOf<Sequence>(Sequence.SIZE_LARGE_TO_SMALL)
     val currentFileSequence by _currentFileSequence
@@ -846,6 +849,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     fun removeFileChecked() {
         viewModelScope.launch(Dispatchers.IO) {
             withContext(Dispatchers.Main) {
+                isClearing = true
                 _fileClearUIState.update { UIState.Loading }
             }
             val resultList = mutableListOf<Boolean>()
@@ -869,6 +873,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             val successCount = resultList.filter { it }.size
             val errorCount = resultList.size - successCount
             withContext(Dispatchers.Main) {
+                isClearing = false
                 _fileClearUIState.update { UIState.WAIT }
                 val message = if (errorCount == 0) {
                     // 全部删除成功

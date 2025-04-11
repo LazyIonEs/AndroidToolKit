@@ -203,6 +203,7 @@ private fun isShowLoading(viewModel: MainViewModel) =
     viewModel.junkCodeUIState == UIState.Loading || viewModel.iconFactoryUIState == UIState.Loading
             || viewModel.apkSignatureUIState == UIState.Loading || viewModel.apkInformationState == UIState.Loading
             || viewModel.keyStoreInfoUIState == UIState.Loading || viewModel.verifierState == UIState.Loading
+            || (viewModel.fileClearUIState == UIState.Loading && viewModel.isClearing)
 
 suspend fun collectOutputPath(viewModel: MainViewModel) {
     val userData = viewModel.userData.drop(0).first()
