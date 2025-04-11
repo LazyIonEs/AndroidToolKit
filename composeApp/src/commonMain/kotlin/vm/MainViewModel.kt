@@ -99,7 +99,13 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     )
 
     // 偏好设置
-    val junkCode = preferences.junkCode
+    val junkCode = preferences.junkCode.stateIn(
+        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
+    )
+
+    val developerMode = preferences.developerMode.stateIn(
+        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
+    )
 
     // 主页选中下标
     private val _uiPageIndex = mutableStateOf(Page.SIGNATURE_INFORMATION)
@@ -186,7 +192,16 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     fun saveJunkCode(show: Boolean) {
         viewModelScope.launch {
             preferences.saveJunkCode(show)
-            updateSnackbarVisuals("重启后生效")
+        }
+    }
+
+    fun saveDeveloperMode(show: Boolean) {
+        if (show == developerMode.value) return
+        viewModelScope.launch {
+            preferences.saveDeveloperMode(show)
+            if (show) {
+                updateSnackbarVisuals("已开启ToolKit扩展模式")
+            }
         }
     }
 

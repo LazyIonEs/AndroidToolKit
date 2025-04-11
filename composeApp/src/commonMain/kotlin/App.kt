@@ -133,8 +133,11 @@ fun MainContentScreen(viewModel: MainViewModel) {
         Row(
             modifier = Modifier.fillMaxSize().padding(innerPadding), verticalAlignment = Alignment.CenterVertically
         ) {
-            val pages = Page.entries.toMutableList().apply {
-                if (!viewModel.junkCode) remove(Page.JUNK_CODE)
+            val junkCode by viewModel.junkCode.collectAsState()
+            val pages = if (junkCode) {
+                Page.entries.toMutableList()
+            } else {
+                Page.entries.toMutableList().also { list -> list.remove(Page.JUNK_CODE) }
             }
             // 导航栏
             AnimatedVisibility(viewModel.pendingDeletionFileList.isEmpty()) {
