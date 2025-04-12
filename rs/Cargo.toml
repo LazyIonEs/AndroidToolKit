@@ -8,7 +8,7 @@ crate-type = ["cdylib"]
 name = "toolkit_rs"
 
 [dependencies]
-uniffi = "0.29.1"
+uniffi = { version = "0.29.1", features = [ "cli" ] }
 image = "0.25.6"
 imagequant = "4.3.4"
 thiserror = "2.0.12"
