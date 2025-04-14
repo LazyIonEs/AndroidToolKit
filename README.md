@@ -55,11 +55,9 @@
 | <img src="./screenshots/screenshot_signature_information_1.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_signature_information_2.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_signature_information_3.png" alt="" style="zoom:33%;" /> |
 |                                            APK信息                                            |                                            APK签名                                            |                                            签名生成                                             |
 |    <img src="./screenshots/screenshot_apk_information_1.png" alt="" style="zoom:32%;" />    |     <img src="./screenshots/screenshot_apk_signature_1.png" alt="" style="zoom:33%;" />     | <img src="./screenshots/screenshot_signature_generation_1.png" alt="" style="zoom:33%;" />  |
-
-|                                        图标生成                                        |                                       缓存清理                                        |                                   黑白主题                                    |
-|:----------------------------------------------------------------------------------:|:---------------------------------------------------------------------------------:|:-------------------------------------------------------------------------:|
-| <img src="./screenshots/screenshot_icon_factory_1.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_cache_clear_0.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_light.png" alt="" style="zoom:33%;" /> |
-| <img src="./screenshots/screenshot_icon_factory_2.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_cache_clear_1.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_dark.png" alt="" style="zoom:33%;" />  |
+|                                            图标生成                                             |                                            缓存清理                                             |                                            黑白主题                                             |
+|     <img src="./screenshots/screenshot_icon_factory_1.png" alt="" style="zoom:33%;" />      |      <img src="./screenshots/screenshot_cache_clear_0.png" alt="" style="zoom:33%;" />      |          <img src="./screenshots/screenshot_light.png" alt="" style="zoom:33%;" />          |
+|     <img src="./screenshots/screenshot_icon_factory_2.png" alt="" style="zoom:33%;" />      |      <img src="./screenshots/screenshot_cache_clear_1.png" alt="" style="zoom:33%;" />      |          <img src="./screenshots/screenshot_dark.png" alt="" style="zoom:33%;" />           |
 
 ## 技术栈
 
