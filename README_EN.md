@@ -60,6 +60,7 @@ Desktop tools applicable to Android development, supporting Windows, Mac and Lin
 |    <img src="./screenshots/screenshot_apk_information_1.png" alt="" style="zoom:32%;" />    |     <img src="./screenshots/screenshot_apk_signature_1.png" alt="" style="zoom:33%;" />     | <img src="./screenshots/screenshot_signature_generation_1.png" alt="" style="zoom:33%;" />  |
 |                                       Icon Generation                                       |                                        Cache Cleaner                                        |                                    Black and white theme                                    |
 |     <img src="./screenshots/screenshot_icon_factory_1.png" alt="" style="zoom:33%;" />      |      <img src="./screenshots/screenshot_cache_clear_0.png" alt="" style="zoom:33%;" />      |          <img src="./screenshots/screenshot_light.png" alt="" style="zoom:33%;" />          |
+|                                       Icon Generation                                       |                                        Cache Cleaner                                        |                                    Black and white theme                                    |
 |     <img src="./screenshots/screenshot_icon_factory_2.png" alt="" style="zoom:33%;" />      |      <img src="./screenshots/screenshot_cache_clear_1.png" alt="" style="zoom:33%;" />      |          <img src="./screenshots/screenshot_dark.png" alt="" style="zoom:33%;" />           |
 
 ## Technology Stack
