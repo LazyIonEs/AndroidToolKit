@@ -9,6 +9,9 @@
 -dontnote com.google.**
 -dontnote org.apache.**
 -dontnote com.sun.**
+-dontnote javax.activation.**
+-dontnote org.intellij.**
+-dontnote org.jetbrains.**
 
 -dontwarn java.awt.*
 -dontwarn java.nio.*
