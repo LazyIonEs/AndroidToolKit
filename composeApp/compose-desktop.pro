@@ -34,4 +34,6 @@
 -keepclassmembers class androidx.datastore.** { *; }
 -keep class androidx.datastore.preferences.protobuf.** { *;}
 -keepclassmembers class androidx.datastore.preferences.protobuf.** { *; }
+-keep class kotlinx.coroutines.internal.MainDispatcherFactory { *; }
+-keep class kotlinx.coroutines.swing.SwingDispatcherFactory { *; }
 -keepattributes Signature,LineNumberTable,RuntimeVisibleAnnotations,AnnotationDefault,*Annotation*,InnerClasses
