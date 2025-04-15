@@ -18,7 +18,7 @@ val linuxX64Target = "x86_64-unknown-linux-gnu"
 
 val kitVersion by extra("1.5.4")
 val kitPackageName = "AndroidToolKit"
-val kitDescription = "适用于安卓开发的桌面工具，支持 Windows、Mac 和 Linux"
+val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
 val kitVendor = "LazyIonEs"
 val kitLicenseFile = project.rootProject.file("LICENSE")
