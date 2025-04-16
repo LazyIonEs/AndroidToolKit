@@ -140,10 +140,11 @@ compose.desktop {
                 "java.instrument",
                 "java.naming",
                 "java.prefs",
+                "java.rmi",
                 "java.sql",
                 "jdk.management",
-                "jdk.unsupported",
-                "jdk.security.auth"
+                "jdk.security.auth",
+                "jdk.unsupported"
             )
 
             outputBaseDir.set(project.layout.projectDirectory.dir("output"))
