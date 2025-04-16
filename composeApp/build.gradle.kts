@@ -120,6 +120,8 @@ compose.desktop {
     application {
         mainClass = "MainKt"
 
+        jvmArgs += listOf("-Dapple.awt.application.appearance=system")
+
         this@application.dependsOn("rustTasks")
 
         sourceSets.forEach {
