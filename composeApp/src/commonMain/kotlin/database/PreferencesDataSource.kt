@@ -54,6 +54,7 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
             quality = 85f
         )
         private const val JUNK_CODE = "junk_code"
+        private const val DEVELOPER_MODE = "developer_mode"
     }
 
     private val _userData = MutableStateFlow(DEFAULT_USER_DATA)
@@ -94,9 +95,15 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
         _iconFactoryData.value = iconFactoryData
     }
 
-    val junkCode = blockingSettings.getBoolean(JUNK_CODE, false)
+    val junkCode = settings.getBooleanOrNullFlow(JUNK_CODE).map { mode -> mode == true }
 
-    fun saveJunkCode(show: Boolean) {
-        blockingSettings.putBoolean(JUNK_CODE, show)
+    suspend fun saveJunkCode(show: Boolean) {
+        settings.putBoolean(JUNK_CODE, show)
+    }
+
+    val developerMode = settings.getBooleanOrNullFlow(DEVELOPER_MODE).map { mode -> mode == true }
+
+    suspend fun saveDeveloperMode(show: Boolean) {
+        settings.putBoolean(DEVELOPER_MODE, show)
     }
 }

@@ -16,7 +16,7 @@ val javaLanguageVersion = JavaLanguageVersion.of(17)
 val linuxArmTarget = "aarch64-unknown-linux-gnu"
 val linuxX64Target = "x86_64-unknown-linux-gnu"
 
-val kitVersion by extra("1.5.3")
+val kitVersion by extra("1.5.4")
 val kitPackageName = "AndroidToolKit"
 val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
@@ -30,6 +30,13 @@ val rustGeneratedSource = "${layout.buildDirectory.get()}/generated/source/uniff
 
 group = "org.tool.kit"
 version = kitVersion
+
+configurations.commonMainApi {
+    // com.android.tools:sdk-common
+    exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
+    exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
+    exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
+}
 
 kotlin {
     jvmToolchain {
@@ -56,24 +63,21 @@ kotlin {
             implementation(libs.slf4j.api)
             implementation(libs.slf4j.simple)
             implementation(libs.android.apksig)
+            implementation(libs.android.sdk.common)
+            implementation(libs.android.binary.resources)
             implementation(libs.commons.codec)
             implementation(libs.asm)
             implementation(libs.lifecycle.viewmodel.compose)
-            runtimeOnly(libs.kotlinx.coroutines.swing)
             implementation(libs.jna)
-            implementation("com.android.tools:sdk-common:31.7.2") {
-                exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
-                exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
-                exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
-            }
             implementation(libs.filekit.core)
-            implementation(libs.filekit.compose)
+            implementation(libs.filekit.dialogs)
+            implementation(libs.filekit.dialogs.compose)
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.settings.coroutines)
             implementation(libs.multiplatform.settings.serialization)
             implementation(libs.kotlinx.serialization.json)
-            implementation(libs.binary.resources)
-            implementation("com.jetbrains.intellij.platform:util:243.21565.208") {
+            implementation(libs.kotlinx.datetime)
+            implementation("com.jetbrains.intellij.platform:util:243.26053.20") {
                 exclude(group = "com.fasterxml", module = "aalto-xml")
                 exclude(group = "com.github.ben-manes.caffeine", module = "caffeine")
                 exclude(group = "com.intellij.platform", module = "kotlinx-coroutines-core-jvm")
@@ -93,6 +97,7 @@ kotlin {
                 exclude(group = "org.slf4j", module = "log4j-over-slf4j")
                 exclude(group = "oro", module = "oro")
             }
+            runtimeOnly(libs.kotlinx.coroutines.swing)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -135,10 +140,11 @@ compose.desktop {
                 "java.instrument",
                 "java.naming",
                 "java.prefs",
+                "java.rmi",
                 "java.sql",
                 "jdk.management",
-                "jdk.unsupported",
-                "jdk.security.auth"
+                "jdk.security.auth",
+                "jdk.unsupported"
             )
 
             outputBaseDir.set(project.layout.projectDirectory.dir("output"))
@@ -228,7 +234,7 @@ fun currentOs(): OS {
 }
 
 fun buildRust() {
-    exec {
+    providers.exec {
         println("Build rs called")
         val binary = if (currentOs() == OS.LINUX && useCross) {
             "cross"
@@ -250,7 +256,7 @@ fun buildRust() {
 
         workingDir = File(rootDir, "rs")
         commandLine = params
-    }
+    }.result.get()
 }
 
 fun copyRustBuild() {
@@ -291,7 +297,7 @@ fun copyRustBuild() {
 }
 
 fun generateKotlinFromUdl() {
-    exec {
+    providers.exec {
         workingDir = File(rootDir, "rs")
         commandLine = listOf(
             "cargo", "run", "--features=uniffi/cli",
@@ -299,5 +305,5 @@ fun generateKotlinFromUdl() {
             "--language", "kotlin",
             "--out-dir", rustGeneratedSource
         )
-    }
+    }.result.get()
 }

@@ -6,6 +6,9 @@ import com.google.devrel.gmscore.tools.apk.arsc.ArscBlamer
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
+import io.github.vinceglb.filekit.FileKit
+import io.github.vinceglb.filekit.downloadDir
+import io.github.vinceglb.filekit.path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import model.FileSelectorType
@@ -33,17 +36,7 @@ import java.util.zip.ZipFile
 /**
  * 获取下载目录
  */
-fun getDownloadDirectory(): String {
-    val osName = System.getProperty("os.name")
-    return when {
-        osName.contains("Windows") -> System.getProperty("user.home") + "\\Downloads"
-        osName.contains("Mac") -> System.getProperty("user.home") + "/Downloads"
-        else -> {
-            // Linux or other platforms
-            System.getProperty("user.home") + "/Downloads"
-        }
-    }
-}
+fun getDownloadDirectory() = FileKit.downloadDir.path
 
 val isWindows = System.getProperty("os.name").startsWith("Win")
 
@@ -273,7 +266,7 @@ private val appInternalResourcesDir: String
     }
 
 private enum class FileSizeType(val unit: String) {
-    SIZE_TYPE_B("B"), SIZE_TYPE_KB("KB"), SIZE_TYPE_MB("M"), SIZE_TYPE_GB("GB"), SIZE_TYPE_TB("TB")
+    SIZE_TYPE_B("B"), SIZE_TYPE_KB("KB"), SIZE_TYPE_MB("MB"), SIZE_TYPE_GB("GB"), SIZE_TYPE_TB("TB")
 }
 
 fun File.getFileLength(): Long {
@@ -290,7 +283,7 @@ fun File.getFileLength(): Long {
 /**
  * @param scale 精确到小数点以后几位 (Accurate to a few decimal places)
  */
-fun Long.formatFileSize(scale: Int = 2, withUnit: Boolean = true): String {
+fun Long.formatFileSize(scale: Int = 2, withUnit: Boolean = true, withInterval: Boolean = false): String {
     val divisor = if (isMac) { //ROUND_DOWN 1023 -> 1023B ; ROUND_HALF_UP  1023 -> 1KB
         1000L
     } else {
@@ -298,22 +291,49 @@ fun Long.formatFileSize(scale: Int = 2, withUnit: Boolean = true): String {
     }
     val kiloByte: BigDecimal =
         formatSizeByTypeWithDivisor(BigDecimal.valueOf(this), scale, FileSizeType.SIZE_TYPE_B, divisor)
+    val interval = if (withInterval) " " else ""
     if (kiloByte.toDouble() < 1) {
-        return "${kiloByte.toPlainString()}${if (withUnit) FileSizeType.SIZE_TYPE_B.unit else ""}"
+        return "${kiloByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_B.unit else ""}"
     } //KB
     val megaByte = formatSizeByTypeWithDivisor(kiloByte, scale, FileSizeType.SIZE_TYPE_KB, divisor)
     if (megaByte.toDouble() < 1) {
-        return "${kiloByte.toPlainString()}${if (withUnit) FileSizeType.SIZE_TYPE_KB.unit else ""}"
+        return "${kiloByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_KB.unit else ""}"
     } //M
     val gigaByte = formatSizeByTypeWithDivisor(megaByte, scale, FileSizeType.SIZE_TYPE_MB, divisor)
     if (gigaByte.toDouble() < 1) {
-        return "${megaByte.toPlainString()}${if (withUnit) FileSizeType.SIZE_TYPE_MB.unit else ""}"
+        return "${megaByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_MB.unit else ""}"
     } //GB
     val teraBytes = formatSizeByTypeWithDivisor(gigaByte, scale, FileSizeType.SIZE_TYPE_GB, divisor)
     if (teraBytes.toDouble() < 1) {
-        return "${gigaByte.toPlainString()}${if (withUnit) FileSizeType.SIZE_TYPE_GB.unit else ""}"
+        return "${gigaByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_GB.unit else ""}"
     } //TB
-    return "${teraBytes.toPlainString()}${if (withUnit) FileSizeType.SIZE_TYPE_TB.unit else ""}"
+    return "${teraBytes.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_TB.unit else ""}"
+}
+
+fun Long.formatFileUnit(): String {
+    val divisor = if (isMac) { //ROUND_DOWN 1023 -> 1023B ; ROUND_HALF_UP  1023 -> 1KB
+        1000L
+    } else {
+        1024L
+    }
+    val kiloByte: BigDecimal =
+        formatSizeByTypeWithDivisor(BigDecimal.valueOf(this), 2, FileSizeType.SIZE_TYPE_B, divisor)
+    if (kiloByte.toDouble() < 1) {
+        return FileSizeType.SIZE_TYPE_B.unit
+    } //KB
+    val megaByte = formatSizeByTypeWithDivisor(kiloByte, 2, FileSizeType.SIZE_TYPE_KB, divisor)
+    if (megaByte.toDouble() < 1) {
+        return FileSizeType.SIZE_TYPE_KB.unit
+    } //M
+    val gigaByte = formatSizeByTypeWithDivisor(megaByte, 2, FileSizeType.SIZE_TYPE_MB, divisor)
+    if (gigaByte.toDouble() < 1) {
+        return FileSizeType.SIZE_TYPE_MB.unit
+    } //GB
+    val teraBytes = formatSizeByTypeWithDivisor(gigaByte, 2, FileSizeType.SIZE_TYPE_GB, divisor)
+    if (teraBytes.toDouble() < 1) {
+        return FileSizeType.SIZE_TYPE_GB.unit
+    } //TB
+    return FileSizeType.SIZE_TYPE_TB.unit
 }
 
 private fun formatSizeByTypeWithDivisor(
@@ -324,6 +344,9 @@ private fun formatSizeByTypeWithDivisor(
     if (sizeType == FileSizeType.SIZE_TYPE_B) RoundingMode.DOWN else RoundingMode.HALF_UP
 )
 
+/**
+ * 在文件夹中打开
+ */
 fun browseFileDirectory(file: File) {
     if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
         Desktop.getDesktop().browseFileDirectory(file)

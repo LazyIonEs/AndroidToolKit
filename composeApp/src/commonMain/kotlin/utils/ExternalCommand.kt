@@ -17,7 +17,7 @@ class ExternalCommand(private val executable: String) {
         stdin: InputStream,
         stdout: OutputStream,
         stderr: OutputStream,
-        timeout: Long = 30000L,
+        timeout: Long = 60000L,
         unit: TimeUnit = TimeUnit.MILLISECONDS
     ): Int {
         val command: MutableList<String> = ArrayList()

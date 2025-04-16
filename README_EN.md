@@ -8,8 +8,8 @@
 <a href="https://github.com/LazyIonEs/AndroidToolKit/actions"><img src="https://img.shields.io/github/actions/workflow/status/LazyIonEs/AndroidToolKit/build-release.yml"/></a>
 <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest"><img src="https://img.shields.io/github/downloads/LazyIonEs/AndroidToolKit/total?color=orange"/></a>
 <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest"><img src="https://img.shields.io/github/v/release/LazyIonEs/AndroidToolKit"/></a>
-<a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/kotlin-2.1.10-7a54f6"/></a>
-<a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.85.0-black"/></a>
+<a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/kotlin-2.1.20-7a54f6"/></a>
+<a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.85.1-black"/></a>
 </p>
 
 
@@ -32,19 +32,19 @@ Desktop tools applicable to Android development, supporting Windows, Mac and Lin
 - [x] APK Signature - Sign your APK
 - [x] Signature Generation - Generate a signed certificate
 - [x] Icon Generation - Generate icons of multiple sizes with one click
-- [ ] ~~Image Compression - Compress images~~
+- [x] Cache Cleaner - Cleans the Android project cache directory
 
 > Supports APK signature verification; single signature verification (signature password required); file dragging; apk
 > signature file alignment; generate signatures with specified key type and key size; appearance light and dark modes.
 
 ## Download - [Releases](https://github.com/LazyIonEs/AndroidToolKit/releases/latest)
 
-| device  |   chip    |                                                                                                                               download                                                                                                                                |
-|:-------:|:---------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-|  macos  |   apple   |                                                                    [`macos-arm64.dmg`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-1.5.3-macos-arm64.dmg)                                                                     |
-|  macos  |   intel   |                                                                      [`macos-x64.dmg`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-1.5.3-macos-x64.dmg)                                                                       |
-| windows | intel/amd |  [`windows-x64.msi`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-1.5.3-windows-x64.msi) **/** [`windows-x64.exe`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-1.5.3-windows-x64.exe)  |
-|  linux  |     -     | [`linux-amd64.deb`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-1.5.3-linux-amd64.deb) **/** [`linux-x86_64.rpm`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-1.5.3-linux-x86_64.rpm) |
+| device  |    chip     |                                                                                                                         download                                                                                                                          |
+|:-------:|:-----------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|  macos  |    apple    |                                                                 [`macos-arm64.dmg`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-macos-arm64.dmg)                                                                  |
+|  macos  |    intel    |                                                                   [`macos-x64.dmg`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-macos-x64.dmg)                                                                    |
+| windows | intel / amd |  [`windows-x64.msi`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-windows-x64.msi) **/** [`windows-x64.exe`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-windows-x64.exe)  |
+|  linux  |      -      | [`linux-amd64.deb`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-linux-amd64.deb) **/** [`linux-x86_64.rpm`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-linux-x86_64.rpm) |
 
 > [!CAUTION]
 > It is not recommended to install the Windows version to the C drive (the default installation path is the C drive :
@@ -58,11 +58,10 @@ Desktop tools applicable to Android development, supporting Windows, Mac and Lin
 | <img src="./screenshots/screenshot_signature_information_1.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_signature_information_2.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_signature_information_3.png" alt="" style="zoom:33%;" /> |
 |                                       APK Information                                       |                                        APK Signature                                        |                                    Signature generation                                     |
 |    <img src="./screenshots/screenshot_apk_information_1.png" alt="" style="zoom:32%;" />    |     <img src="./screenshots/screenshot_apk_signature_1.png" alt="" style="zoom:33%;" />     | <img src="./screenshots/screenshot_signature_generation_1.png" alt="" style="zoom:33%;" />  |
-
-|                                  Icon Generation                                   |                           Black and white theme                           |
-|:----------------------------------------------------------------------------------:|:-------------------------------------------------------------------------:|
-| <img src="./screenshots/screenshot_icon_factory_1.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_light.png" alt="" style="zoom:33%;" /> |
-| <img src="./screenshots/screenshot_icon_factory_2.png" alt="" style="zoom:33%;" /> | <img src="./screenshots/screenshot_dark.png" alt="" style="zoom:33%;" />  |
+|                                       Icon Generation                                       |                                        Cache Cleaner                                        |                                    Black and white theme                                    |
+|     <img src="./screenshots/screenshot_icon_factory_1.png" alt="" style="zoom:33%;" />      |      <img src="./screenshots/screenshot_cache_clear_0.png" alt="" style="zoom:33%;" />      |          <img src="./screenshots/screenshot_light.png" alt="" style="zoom:33%;" />          |
+|                                       Icon Generation                                       |                                        Cache Cleaner                                        |                                    Black and white theme                                    |
+|     <img src="./screenshots/screenshot_icon_factory_2.png" alt="" style="zoom:33%;" />      |      <img src="./screenshots/screenshot_cache_clear_1.png" alt="" style="zoom:33%;" />      |          <img src="./screenshots/screenshot_dark.png" alt="" style="zoom:33%;" />           |
 
 ## Technology Stack
 

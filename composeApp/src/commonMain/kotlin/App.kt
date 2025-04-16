@@ -1,20 +1,33 @@
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Android
-import androidx.compose.material.icons.rounded.Description
-import androidx.compose.material.icons.rounded.DonutLarge
-import androidx.compose.material.icons.rounded.Factory
-import androidx.compose.material.icons.rounded.Key
-import androidx.compose.material.icons.rounded.Pin
+import androidx.compose.material.icons.automirrored.outlined.Article
+import androidx.compose.material.icons.automirrored.rounded.Article
+import androidx.compose.material.icons.outlined.Assessment
+import androidx.compose.material.icons.outlined.Cookie
+import androidx.compose.material.icons.outlined.DesignServices
+import androidx.compose.material.icons.outlined.FolderDelete
+import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.outlined.Verified
+import androidx.compose.material.icons.outlined.VpnKey
+import androidx.compose.material.icons.rounded.Assessment
+import androidx.compose.material.icons.rounded.Cookie
+import androidx.compose.material.icons.rounded.DesignServices
+import androidx.compose.material.icons.rounded.FolderDelete
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.Verified
+import androidx.compose.material.icons.rounded.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -56,22 +70,26 @@ import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.composeapp.generated.resources.APK信息
 import org.tool.kit.composeapp.generated.resources.APK签名
 import org.tool.kit.composeapp.generated.resources.Res
-import org.tool.kit.composeapp.generated.resources.图标工厂
+import org.tool.kit.composeapp.generated.resources.图标生成
 import org.tool.kit.composeapp.generated.resources.垃圾代码
 import org.tool.kit.composeapp.generated.resources.签名信息
 import org.tool.kit.composeapp.generated.resources.签名生成
+import org.tool.kit.composeapp.generated.resources.缓存清理
 import org.tool.kit.composeapp.generated.resources.设置
 import platform.createFlowSettings
 import theme.AppTheme
 import ui.ApkInformation
 import ui.ApkSignature
+import ui.ClearBuild
+import ui.ClearBuildBottom
 import ui.IconFactory
 import ui.JunkCode
+import ui.LoadingAnimate
 import ui.SetUp
 import ui.SignatureGeneration
 import ui.SignatureInformation
 import vm.MainViewModel
-import kotlin.math.abs
+import vm.UIState
 
 @OptIn(ExperimentalSettingsApi::class)
 @Composable
@@ -98,22 +116,31 @@ fun App() {
 fun MainContentScreen(viewModel: MainViewModel) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    scope.launch {
+    scope.launch(Dispatchers.IO) {
         collectOutputPath(viewModel)
     }
-    Scaffold(snackbarHost = {
+    Scaffold(bottomBar = {
+        AnimatedVisibility(
+            visible = viewModel.uiPageIndex == Page.CLEAR_BUILD && viewModel.fileClearUIState == UIState.WAIT && viewModel.pendingDeletionFileList.isNotEmpty(),
+            enter = fadeIn() + expandVertically(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            ClearBuildBottom(viewModel)
+        }
+    }, snackbarHost = {
         SnackbarHost(hostState = snackbarHostState)
     }) { innerPadding ->
-        Box(
-            modifier = Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.TopCenter
+        Row(
+            modifier = Modifier.fillMaxSize().padding(innerPadding), verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically
-            ) {
-                val pages = Page.entries.toMutableList().apply {
-                    if (!viewModel.junkCode) remove(Page.JUNK_CODE)
-                }
-                // 导航栏
+            val junkCode by viewModel.junkCode.collectAsState()
+            val pages = if (junkCode) {
+                Page.entries.toMutableList()
+            } else {
+                Page.entries.toMutableList().also { list -> list.remove(Page.JUNK_CODE) }
+            }
+            // 导航栏
+            AnimatedVisibility(viewModel.pendingDeletionFileList.isEmpty()) {
                 NavigationRail(Modifier.fillMaxHeight()) {
                     Column(
                         modifier = Modifier.fillMaxHeight(),
@@ -130,9 +157,10 @@ fun MainContentScreen(viewModel: MainViewModel) {
                                     }
                                 }, state = rememberTooltipState(), enableUserInput = viewModel.uiPageIndex != page
                             ) {
+                                val icon = if (viewModel.uiPageIndex == page) page.selectedIcon else page.unSelectedIcon
                                 NavigationRailItem(
                                     label = { Text(stringResource(page.title)) },
-                                    icon = { Icon(page.icon, contentDescription = stringResource(page.title)) },
+                                    icon = { Icon(icon, contentDescription = stringResource(page.title)) },
                                     selected = viewModel.uiPageIndex == page,
                                     onClick = { viewModel.updateUiState(page) },
                                     alwaysShowLabel = false,
@@ -141,35 +169,41 @@ fun MainContentScreen(viewModel: MainViewModel) {
                         }
                     }
                 }
-                // 主界面
-                val content: @Composable (Page) -> Unit = { page ->
-                    when (page) {
-                        Page.SIGNATURE_INFORMATION -> SignatureInformation(viewModel)
-                        Page.APK_INFORMATION -> ApkInformation(viewModel)
-                        Page.APK_SIGNATURE -> ApkSignature(viewModel)
-                        Page.SIGNATURE_GENERATION -> SignatureGeneration(viewModel)
-                        Page.JUNK_CODE -> JunkCode(viewModel)
-                        Page.ICON_FACTORY -> IconFactory(viewModel)
-                        Page.SET_UP -> SetUp(viewModel)
-                    }
-                }
-                // 淡入淡出切换页面
-                Crossfade(targetState = viewModel.uiPageIndex, modifier = Modifier.fillMaxSize(), content = content)
             }
+            // 主界面
+            val content: @Composable (Page) -> Unit = { page ->
+                when (page) {
+                    Page.SIGNATURE_INFORMATION -> SignatureInformation(viewModel)
+                    Page.APK_INFORMATION -> ApkInformation(viewModel)
+                    Page.APK_SIGNATURE -> ApkSignature(viewModel)
+                    Page.SIGNATURE_GENERATION -> SignatureGeneration(viewModel)
+                    Page.JUNK_CODE -> JunkCode(viewModel)
+                    Page.ICON_FACTORY -> IconFactory(viewModel)
+                    Page.CLEAR_BUILD -> ClearBuild(viewModel)
+                    Page.SET_UP -> SetUp(viewModel)
+                }
+            }
+            // 淡入淡出切换页面
+            Crossfade(targetState = viewModel.uiPageIndex, modifier = Modifier.fillMaxSize(), content = content)
         }
     }
     val snackbarVisuals by viewModel.snackbarVisuals.collectAsState()
-    snackbarVisuals.apply {
-        if (message.isBlank() || abs(timestamp - System.currentTimeMillis()) > 50) return@apply
-        scope.launch(Dispatchers.Main) {
-            val snackbarResult = snackbarHostState.showSnackbar(this@apply)
-            when (snackbarResult) {
-                SnackbarResult.ActionPerformed -> action?.invoke()
-                SnackbarResult.Dismissed -> Unit
-            }
+    LaunchedEffect(snackbarVisuals) {
+        if (snackbarVisuals.message.isBlank()) return@LaunchedEffect
+        val snackbarResult = snackbarHostState.showSnackbar(snackbarVisuals)
+        when (snackbarResult) {
+            SnackbarResult.ActionPerformed -> snackbarVisuals.action?.invoke()
+            SnackbarResult.Dismissed -> Unit
         }
     }
+    LoadingAnimate(isShowLoading(viewModel), viewModel, scope)
 }
+
+private fun isShowLoading(viewModel: MainViewModel) =
+    viewModel.junkCodeUIState == UIState.Loading || viewModel.iconFactoryUIState == UIState.Loading
+            || viewModel.apkSignatureUIState == UIState.Loading || viewModel.apkInformationState == UIState.Loading
+            || viewModel.keyStoreInfoUIState == UIState.Loading || viewModel.verifierState == UIState.Loading
+            || (viewModel.fileClearUIState == UIState.Loading && viewModel.isClearing)
 
 suspend fun collectOutputPath(viewModel: MainViewModel) {
     val userData = viewModel.userData.drop(0).first()
@@ -182,17 +216,15 @@ suspend fun collectOutputPath(viewModel: MainViewModel) {
     }
 }
 
-enum class Page(val title: StringResource, val icon: ImageVector) {
-    SIGNATURE_INFORMATION(Res.string.签名信息, Icons.Rounded.Description), APK_INFORMATION(
-        Res.string.APK信息, Icons.Rounded.Android
-    ),
-    APK_SIGNATURE(Res.string.APK签名, Icons.Rounded.Pin), SIGNATURE_GENERATION(
-        Res.string.签名生成, Icons.Rounded.Key
-    ),
-    JUNK_CODE(Res.string.垃圾代码, Icons.Rounded.DonutLarge), ICON_FACTORY(
-        Res.string.图标工厂, Icons.Rounded.Factory
-    ),
-    SET_UP(Res.string.设置, Icons.Rounded.Settings)
+enum class Page(val title: StringResource, val selectedIcon: ImageVector, val unSelectedIcon: ImageVector) {
+    SIGNATURE_INFORMATION(Res.string.签名信息, Icons.AutoMirrored.Rounded.Article, Icons.AutoMirrored.Outlined.Article),
+    APK_INFORMATION(Res.string.APK信息, Icons.Rounded.Assessment, Icons.Outlined.Assessment),
+    APK_SIGNATURE(Res.string.APK签名, Icons.Rounded.VpnKey, Icons.Outlined.VpnKey),
+    SIGNATURE_GENERATION(Res.string.签名生成, Icons.Rounded.Verified, Icons.Outlined.Verified),
+    JUNK_CODE(Res.string.垃圾代码, Icons.Rounded.Cookie, Icons.Outlined.Cookie),
+    ICON_FACTORY(Res.string.图标生成, Icons.Rounded.DesignServices, Icons.Outlined.DesignServices),
+    CLEAR_BUILD(Res.string.缓存清理, Icons.Rounded.FolderDelete, Icons.Outlined.FolderDelete),
+    SET_UP(Res.string.设置, Icons.Rounded.Settings, Icons.Outlined.Settings)
 }
 
 @Composable
@@ -204,11 +236,8 @@ private fun rememberRichTooltipPositionProvider(): PopupPositionProvider {
                 anchorBounds: IntRect, windowSize: IntSize, layoutDirection: LayoutDirection, popupContentSize: IntSize
             ): IntOffset {
                 var x = anchorBounds.right
-                // Try to shift it to the left of the anchor
-                // if the tooltip would collide with the right side of the screen
                 if (x + popupContentSize.width > windowSize.width) {
                     x = anchorBounds.left - popupContentSize.width
-                    // Center if it'll also collide with the left side of the screen
                     if (x < 0) x = anchorBounds.left + (anchorBounds.width - popupContentSize.width) / 2
                 }
                 x -= tooltipAnchorSpacing

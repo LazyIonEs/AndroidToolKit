@@ -41,30 +41,51 @@ jobs:
         name: Rename File
         run: |
           $ErrorActionPreference = "Stop"
-          mv D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\msi\AndroidToolKit-${{ inputs.tag_version }}.msi D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\msi\AndroidToolKit-${{ inputs.tag_version }}-windows-x64.msi
-          mv D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\exe\AndroidToolKit-${{ inputs.tag_version }}.exe D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\exe\AndroidToolKit-${{ inputs.tag_version }}-windows-x64.exe
+          mv D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\msi\AndroidToolKit-${{ inputs.tag_version }}.msi D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\msi\AndroidToolKit-windows-x64.msi
+          mv D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\exe\AndroidToolKit-${{ inputs.tag_version }}.exe D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\exe\AndroidToolKit-windows-x64.exe
 
       - if: matrix.os == 'ubuntu-latest'
         name: Rename File
         run: |
-          mv /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/deb/androidtoolkit_${{ inputs.tag_version }}-1_amd64.deb  /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/deb/AndroidToolKit-${{ inputs.tag_version }}-linux-amd64.deb
-          mv /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/rpm/androidtoolkit-${{ inputs.tag_version }}-1.x86_64.rpm  /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/rpm/AndroidToolKit-${{ inputs.tag_version }}-linux-x86_64.rpm
+          mv /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/deb/androidtoolkit_${{ inputs.tag_version }}-1_amd64.deb  /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/deb/AndroidToolKit-linux-amd64.deb
+          mv /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/rpm/androidtoolkit-${{ inputs.tag_version }}-1.x86_64.rpm  /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/rpm/AndroidToolKit-linux-x86_64.rpm
 
       - if: matrix.os == 'macos-13'
         name: Rename File
         run: |
-          mv /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ inputs.tag_version }}.dmg  /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ inputs.tag_version }}-macos-x64.dmg
+          mv /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ inputs.tag_version }}.dmg  /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-macos-x64.dmg
 
       - if: matrix.os == 'macos-14'
         name: Rename File
         run: |
-          mv /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ inputs.tag_version }}.dmg /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ inputs.tag_version }}-macos-arm64.dmg
+          mv /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ inputs.tag_version }}.dmg /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-macos-arm64.dmg
 
-      - name: Draft Release
+      - if: matrix.os == 'windows-latest'
+        name: Draft Release
         uses: ncipollo/release-action@v1
         with:
           draft: true
           allowUpdates: true
           tag: "v${{ inputs.tag_version }}"
-          artifacts: "composeApp/output/main-release/dmg/*,composeApp/output/main-release/msi/*,composeApp/output/main-release/exe/*,composeApp/output/main-release/deb/*,composeApp/output/main-release/rpm/*"
+          artifacts: "composeApp/output/main-release/msi/*,composeApp/output/main-release/exe/*"
+          token: ${{ secrets.GH_TOKEN }}
+
+      - if: matrix.os == 'ubuntu-latest'
+        name: Draft Release
+        uses: ncipollo/release-action@v1
+        with:
+          draft: true
+          allowUpdates: true
+          tag: "v${{ inputs.tag_version }}"
+          artifacts: "composeApp/output/main-release/deb/*,composeApp/output/main-release/rpm/*"
+          token: ${{ secrets.GH_TOKEN }}
+
+      - if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
+        name: Draft Release
+        uses: ncipollo/release-action@v1
+        with:
+          draft: true
+          allowUpdates: true
+          tag: "v${{ inputs.tag_version }}"
+          artifacts: "composeApp/output/main-release/dmg/*"
           token: ${{ secrets.GH_TOKEN }}

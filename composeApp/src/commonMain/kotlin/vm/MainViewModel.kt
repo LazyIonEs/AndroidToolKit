@@ -3,6 +3,7 @@ package vm
 import Page
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -30,6 +31,8 @@ import model.IconFactoryData
 import model.IconFactoryInfo
 import model.JunkCodeInfo
 import model.KeyStoreInfo
+import model.PendingDeletionFile
+import model.Sequence
 import model.SignaturePolicy
 import model.SnackbarVisualsData
 import model.UserData
@@ -50,6 +53,7 @@ import utils.extractIcon
 import utils.extractValue
 import utils.extractVersion
 import utils.formatFileSize
+import utils.getFileLength
 import utils.getVerifier
 import utils.isJPEG
 import utils.isJPG
@@ -95,7 +99,13 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     )
 
     // 偏好设置
-    val junkCode = preferences.junkCode
+    val junkCode = preferences.junkCode.stateIn(
+        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
+    )
+
+    val developerMode = preferences.developerMode.stateIn(
+        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
+    )
 
     // 主页选中下标
     private val _uiPageIndex = mutableStateOf(Page.SIGNATURE_INFORMATION)
@@ -145,6 +155,22 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     private val _iconFactoryUIState = mutableStateOf<UIState>(UIState.WAIT)
     val iconFactoryUIState by _iconFactoryUIState
 
+    // 扫描的文件列表
+    private val _pendingDeletionFileList = mutableStateListOf<PendingDeletionFile>()
+    val pendingDeletionFileList: List<PendingDeletionFile> = _pendingDeletionFileList
+
+    // 文件清理UI状态
+    private val _fileClearUIState = mutableStateOf<UIState>(UIState.WAIT)
+    val fileClearUIState by _fileClearUIState
+
+    // 是否在清理中
+    var isClearing = false
+
+    // 文件列表排序
+    private var _currentFileSequence = mutableStateOf<Sequence>(Sequence.SIZE_LARGE_TO_SMALL)
+    val currentFileSequence by _currentFileSequence
+
+    // 通知
     private val _snackbarVisuals = MutableStateFlow(SnackbarVisualsData())
     val snackbarVisuals = _snackbarVisuals.asStateFlow()
 
@@ -169,7 +195,16 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     fun saveJunkCode(show: Boolean) {
         viewModelScope.launch {
             preferences.saveJunkCode(show)
-            updateSnackbarVisuals("重启后生效")
+        }
+    }
+
+    fun saveDeveloperMode(show: Boolean) {
+        if (show == developerMode.value) return
+        viewModelScope.launch {
+            preferences.saveDeveloperMode(show)
+            if (show) {
+                updateSnackbarVisuals("已开启ToolKit扩展模式")
+            }
         }
     }
 
@@ -709,6 +744,152 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         }
         return false
     }
+
+    /**
+     * 扫描自定义文件夹
+     */
+    fun scanPendingDeletionFileList(directory: File) {
+        viewModelScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
+                _fileClearUIState.update { UIState.Loading }
+            }
+            _pendingDeletionFileList.clear()
+            // 文件总大小
+            var totalLength = 0L
+            directory.walk()
+                .maxDepth(10)
+                // 如果父目录是缓存目录，不再继续遍历此目录下的文件
+                .onEnter { file -> file.parentFile?.nameWithoutExtension != "build" }
+                .filter { file -> file.isDirectory == true && file.nameWithoutExtension == "build" }
+                .forEach { file ->
+                    val length = file.getFileLength()
+                    withContext(Dispatchers.Main) {
+                        _pendingDeletionFileList.add(
+                            PendingDeletionFile(
+                                directoryPath = directory.absolutePath,
+                                file = file,
+                                filePath = file.absolutePath,
+                                fileLastModified = file.lastModified(),
+                                fileLength = length
+                            )
+                        )
+                        totalLength += length
+                        updateFileSort()
+                    }
+                }
+            withContext(Dispatchers.Main) {
+                _fileClearUIState.update { UIState.WAIT }
+                if (_pendingDeletionFileList.isEmpty()) {
+                    updateSnackbarVisuals("未扫描到缓存目录")
+                }
+            }
+        }
+    }
+
+    /**
+     * 更改文件排序方式
+     */
+    fun updateFileSort(sequence: Sequence = currentFileSequence) {
+        _currentFileSequence.update { sequence }
+        when (currentFileSequence) {
+            Sequence.DATE_NEW_TO_OLD -> {
+                _pendingDeletionFileList.sortByDescending { it.fileLastModified }
+            }
+
+            Sequence.DATE_OLD_TO_NEW -> {
+                _pendingDeletionFileList.sortBy { it.fileLastModified }
+            }
+
+            Sequence.SIZE_LARGE_TO_SMALL -> {
+                _pendingDeletionFileList.sortByDescending { it.fileLength }
+            }
+
+            Sequence.SIZE_SMALL_TO_LARGE -> {
+                _pendingDeletionFileList.sortBy { it.fileLength }
+            }
+
+            Sequence.NAME_A_TO_Z -> {
+                _pendingDeletionFileList.sortBy { it.filePath }
+            }
+
+            Sequence.NAME_Z_TO_A -> {
+                _pendingDeletionFileList.sortByDescending { it.filePath }
+            }
+        }
+    }
+
+    /**
+     * 改变文件选中状态
+     */
+    fun changeFileChecked(pendingDeletionFile: PendingDeletionFile, check: Boolean) {
+        _pendingDeletionFileList.find { file -> file.file == pendingDeletionFile.file }?.checked = check
+    }
+
+    /**
+     * 关闭文件选择
+     */
+    fun closeFileCheck() {
+        _pendingDeletionFileList.clear()
+    }
+
+    /**
+     * 全选或取消全选
+     */
+    fun changeFileAllChecked() {
+        val isAllCheck = _pendingDeletionFileList.none { file -> !file.checked }
+        _pendingDeletionFileList.forEach { file ->
+            if (file.checked == !isAllCheck) return@forEach
+            changeFileChecked(file, !isAllCheck)
+        }
+    }
+
+    /**
+     * 移除选中的文件
+     */
+    fun removeFileChecked() {
+        viewModelScope.launch(Dispatchers.IO) {
+            withContext(Dispatchers.Main) {
+                isClearing = true
+                _fileClearUIState.update { UIState.Loading }
+            }
+            val resultList = mutableListOf<Boolean>()
+            val fileIterator = _pendingDeletionFileList.iterator()
+            var clearLength = 0L
+            while (fileIterator.hasNext()) {
+                val pendingDeletionFile = fileIterator.next()
+                if (pendingDeletionFile.checked) {
+                    val result = pendingDeletionFile.file.deleteRecursively()
+                    if (result) {
+                        clearLength += pendingDeletionFile.fileLength
+                        withContext(Dispatchers.Main) {
+                            fileIterator.remove()
+                        }
+                    } else {
+                        pendingDeletionFile.exception = true
+                    }
+                    resultList.add(result)
+                }
+            }
+            val successCount = resultList.filter { it }.size
+            val errorCount = resultList.size - successCount
+            withContext(Dispatchers.Main) {
+                isClearing = false
+                _fileClearUIState.update { UIState.WAIT }
+                val message = if (errorCount == 0) {
+                    // 全部删除成功
+                    "清理完成，已为您清理${clearLength.formatFileSize()}"
+                } else {
+                    "${errorCount}个文件删除异常"
+                }
+                updateSnackbarVisuals(message)
+            }
+        }
+    }
+
+    /**
+     * 当前是否没有选中文件
+     */
+    fun isAllFileUnchecked(): Boolean = _pendingDeletionFileList.none { file -> file.checked }
 }
 
 sealed interface UIState {

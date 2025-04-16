@@ -38,13 +38,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import constant.ConfigConstant
-import model.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
+import model.FileSelectorType
 import model.SignaturePolicy
 import utils.isApk
 import utils.isKey
 import vm.MainViewModel
-import vm.UIState
 import java.io.File
 import kotlin.io.path.pathString
 
@@ -59,7 +58,6 @@ fun ApkSignature(viewModel: MainViewModel) {
     val scope = rememberCoroutineScope()
     SignatureCard(viewModel)
     SignatureBox(viewModel, scope)
-    LoadingAnimate(viewModel.apkSignatureUIState == UIState.Loading, viewModel, scope)
 }
 
 /**
@@ -207,7 +205,8 @@ private fun SignatureCard(viewModel: MainViewModel) {
 private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
     var expanded by remember { mutableStateOf(false) }
     val options = ConfigConstant.unsignedApkList
-    ExposedDropdownMenuBox(modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
+    ExposedDropdownMenuBox(
+        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
         expanded = expanded,
         onExpandedChange = { expanded = it }) {
         FileInput(
@@ -262,7 +261,8 @@ private fun SignaturePolicy(
             modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)
         ) {
             policyList.forEach { signaturePolicy ->
-                ElevatedFilterChip(modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                ElevatedFilterChip(
+                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
                     selected = viewModel.apkSignatureState.keyStorePolicy == signaturePolicy,
                     onClick = {
                         if (signaturePolicy == SignaturePolicy.V2Only) {
@@ -302,7 +302,8 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
     var expanded by remember { mutableStateOf(false) }
     val options = viewModel.apkSignatureState.keyStoreAlisaList
     val selectedOptionText = options?.getOrNull(viewModel.apkSignatureState.keyStoreAlisaIndex) ?: ""
-    ExposedDropdownMenuBox(modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 72.dp, bottom = 3.dp),
+    ExposedDropdownMenuBox(
+        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 72.dp, bottom = 3.dp),
         expanded = expanded,
         onExpandedChange = { expanded = it }) {
         OutlinedTextField(

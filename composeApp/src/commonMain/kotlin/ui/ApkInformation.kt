@@ -29,10 +29,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import model.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
 import model.ApkInformation
 import model.DarkThemeConfig
+import model.FileSelectorType
 import utils.LottieAnimation
 import utils.copy
 import utils.formatFileSize
@@ -54,7 +54,6 @@ fun ApkInformation(viewModel: MainViewModel) {
         ApkInformationLottie(viewModel, scope)
     }
     ApkInformationBox(viewModel)
-    LoadingAnimate(viewModel.apkInformationState == UIState.Loading, viewModel, scope)
     ApkDraggingBox(viewModel, scope)
 }
 
@@ -162,7 +161,7 @@ private fun ApkInformationBox(
                             AppInfoItem("文件MD5：", apkInformation.md5, viewModel)
                         }
                         item {
-                            AppInfoItem("大小：", apkInformation.size.formatFileSize(1), viewModel)
+                            AppInfoItem("大小：", apkInformation.size.formatFileSize(scale = 1, withInterval = true), viewModel)
                         }
                         item {
                             PermissionsList(apkInformation.usesPermissionList)

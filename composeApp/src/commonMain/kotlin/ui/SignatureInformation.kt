@@ -62,9 +62,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import model.FileSelectorType
 import kotlinx.coroutines.CoroutineScope
 import model.DarkThemeConfig
+import model.FileSelectorType
 import model.Verifier
 import model.VerifierResult
 import utils.LottieAnimation
@@ -92,7 +92,6 @@ fun SignatureInformation(
     }
     SignatureList(viewModel)
     SignatureBox(viewModel, signaturePath, scope)
-    LoadingAnimate(viewModel.verifierState == UIState.Loading, viewModel, scope)
     SignatureDialog(viewModel, signaturePath)
 }
 
@@ -215,11 +214,12 @@ private fun SignatureList(
         visible = uiState is UIState.Success, enter = fadeIn(), exit = fadeOut()
     ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(top = 6.dp, bottom = 6.dp, end = 14.dp),
+            modifier = Modifier.fillMaxSize().padding(end = 14.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (uiState is UIState.Success) {
+                item { Spacer(Modifier.size(6.dp)) }
                 items((uiState.result as VerifierResult).data) { verifier ->
                     Column(Modifier.padding(vertical = 8.dp)) {
                         Card(
@@ -247,7 +247,7 @@ private fun SignatureList(
                         SignatureListBottom(verifier, viewModel)
                     }
                 }
-                item { Spacer(Modifier.size(24.dp)) }
+                item { Spacer(Modifier.size(40.dp)) }
             }
         }
     }

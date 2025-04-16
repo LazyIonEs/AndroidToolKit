@@ -1,6 +1,11 @@
 package ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.onClick
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material3.Button
@@ -28,13 +34,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import constant.ConfigConstant
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import model.DarkThemeConfig
 import model.DestStoreSize
 import model.DestStoreType
@@ -51,9 +60,11 @@ import java.io.File
  */
 @Composable
 fun SetUp(viewModel: MainViewModel) {
-    Box(modifier = Modifier.padding(top = 20.dp, bottom = 20.dp, end = 14.dp)) {
+    val developerMode by viewModel.developerMode.collectAsState()
+    Box(modifier = Modifier.padding(end = 14.dp)) {
         LazyColumn {
             item {
+                Spacer(Modifier.size(20.dp))
                 Conventional(viewModel)
             }
             item {
@@ -65,8 +76,21 @@ fun SetUp(viewModel: MainViewModel) {
                 KeyStore(viewModel)
             }
             item {
+                AnimatedVisibility(
+                    visible = developerMode,
+                    enter = fadeIn() + expandVertically(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Column {
+                        Spacer(Modifier.size(16.dp))
+                        DeveloperMode(viewModel)
+                    }
+                }
+            }
+            item {
                 Spacer(Modifier.size(16.dp))
-                About()
+                About(viewModel)
+                Spacer(Modifier.size(20.dp))
             }
         }
     }
@@ -91,7 +115,8 @@ private fun ApkSignatureSetUp(
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.size(20.dp))
-            StringInput(value = signerSuffix,
+            StringInput(
+                value = signerSuffix,
                 label = "签名后缀",
                 isError = userData.defaultSignerSuffix.isBlank(),
                 onValueChange = { suffix ->
@@ -118,7 +143,8 @@ private fun ApkSignatureSetUp(
                         )
                     }
                 }
-                Switch(checked = userData.duplicateFileRemoval,
+                Switch(
+                    checked = userData.duplicateFileRemoval,
                     onCheckedChange = { viewModel.saveUserData(userData.copy(duplicateFileRemoval = it)) })
             }
             Row(
@@ -135,7 +161,8 @@ private fun ApkSignatureSetUp(
                         )
                     }
                 }
-                Switch(checked = userData.alignFileSize,
+                Switch(
+                    checked = userData.alignFileSize,
                     onCheckedChange = { viewModel.saveUserData(userData.copy(alignFileSize = it)) })
             }
         }
@@ -260,11 +287,6 @@ private fun Conventional(
                     updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = outputPath))
                     updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = outputPath))
                 }
-                if (path == "${ConfigConstant.SHOW_JUNK} 1") {
-                    viewModel.saveJunkCode(true)
-                } else if (path == "${ConfigConstant.SHOW_JUNK} 0") {
-                    viewModel.saveJunkCode(false)
-                }
             })
             Spacer(Modifier.size(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -276,7 +298,8 @@ private fun Conventional(
                 ) {
                     val modeList = listOf(DarkThemeConfig.FOLLOW_SYSTEM, DarkThemeConfig.LIGHT, DarkThemeConfig.DARK)
                     modeList.forEach { theme ->
-                        ElevatedFilterChip(modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                        ElevatedFilterChip(
+                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
                             selected = themeConfig == theme,
                             onClick = { viewModel.saveThemeConfig(theme) },
                             label = {
@@ -305,7 +328,44 @@ private fun Conventional(
 }
 
 @Composable
-private fun About() {
+private fun DeveloperMode(viewModel: MainViewModel) {
+    val developerMode by viewModel.developerMode.collectAsState()
+    val junkCode by viewModel.junkCode.collectAsState()
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp)) {
+            Spacer(Modifier.size(4.dp))
+            Text(
+                "ToolKit拓展",
+                modifier = Modifier.padding(horizontal = 16.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("启用拓展选项", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                Switch(
+                    checked = developerMode,
+                    onCheckedChange = { viewModel.saveDeveloperMode(!developerMode) }
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("启用垃圾代码生成选项", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                Switch(
+                    checked = junkCode,
+                    onCheckedChange = { viewModel.saveJunkCode(!junkCode) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun About(viewModel: MainViewModel) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -323,15 +383,9 @@ private fun About() {
                 Text("应用名称", style = MaterialTheme.typography.bodyLarge)
                 Text(BuildConfig.APP_NAME, style = MaterialTheme.typography.bodyMedium)
             }
-            Spacer(Modifier.size(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("应用版本", style = MaterialTheme.typography.bodyLarge)
-                Text(BuildConfig.APP_VERSION, style = MaterialTheme.typography.bodyMedium)
+            VersionInfo {
+                viewModel.saveDeveloperMode(true)
             }
-            Spacer(Modifier.size(4.dp))
             Row(
                 modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
@@ -384,5 +438,43 @@ private fun About() {
                 }
             }
         }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun VersionInfo(
+    tapThreshold: Int = 2,
+    tapTimeoutMillis: Long = 1000,
+    onActivateDeveloperMode: () -> Unit
+) {
+    var tapCount by remember { mutableStateOf(0) }
+    var lastTapTime by remember { mutableStateOf(0L) }
+    val coroutineScope = rememberCoroutineScope()
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
+            .onClick {
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastTapTime > tapTimeoutMillis) {
+                    tapCount = 0
+                }
+                lastTapTime = currentTime
+                tapCount++
+                if (tapCount >= tapThreshold) {
+                    onActivateDeveloperMode()
+                    tapCount = 0
+                } else {
+                    coroutineScope.launch {
+                        delay(tapTimeoutMillis)
+                        tapCount = 0
+                    }
+                }
+            },
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text("应用版本", style = MaterialTheme.typography.bodyLarge)
+        Text(BuildConfig.APP_VERSION, style = MaterialTheme.typography.bodyMedium)
     }
 }
