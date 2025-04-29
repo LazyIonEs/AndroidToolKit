@@ -1,4 +1,7 @@
 -ignorewarnings
+-mergeinterfacesaggressively
+-overloadaggressively
+-repackageclasses
 # -verbose
 
 -dontnote java.awt.*
@@ -36,6 +39,7 @@
 -keep class * implements com.sun.jna.** { *; }
 -keepclassmembers class * extends com.sun.jna.* { public *; }
 -keepclassmembers class androidx.datastore.** { *; }
+-keep class kotlinx.coroutines.swing.SwingDispatcherFactory
 -keep class androidx.datastore.preferences.protobuf.** { *;}
 -keepclassmembers class androidx.datastore.preferences.protobuf.** { *; }
 -keepattributes Signature,LineNumberTable,RuntimeVisibleAnnotations,AnnotationDefault,*Annotation*,InnerClasses
