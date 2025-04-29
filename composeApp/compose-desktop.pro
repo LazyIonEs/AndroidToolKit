@@ -1,7 +1,4 @@
 -ignorewarnings
--mergeinterfacesaggressively
--overloadaggressively
--repackageclasses
 # -verbose
 
 -dontnote java.awt.*
