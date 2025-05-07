@@ -11,7 +11,6 @@ import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -253,7 +252,7 @@ fun StringInput(
  */
 @Composable
 fun IntInput(value: String, label: String, isError: Boolean, onValueChange: (String) -> Unit) {
-    val pattern = remember { Regex("^\\d+\$") }
+    val pattern = remember { Regex("^\\d+$") }
     OutlinedTextField(
         modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 72.dp, bottom = 3.dp),
         value = value,

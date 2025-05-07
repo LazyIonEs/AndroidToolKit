@@ -53,6 +53,4 @@ object ConfigConstant {
         JpegAlgorithm.Gaussian,
         JpegAlgorithm.Lanczos3,
     )
-
-    const val SHOW_JUNK = "show_junk"
 }

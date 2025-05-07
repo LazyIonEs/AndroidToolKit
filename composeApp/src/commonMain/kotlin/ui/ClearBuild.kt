@@ -129,7 +129,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
         usableSpace += fileRoot.usableSpace
     }
     // 已使用空间
-    var usedSpace = totalSpace - usableSpace
+    val usedSpace = totalSpace - usableSpace
     val scope = rememberCoroutineScope()
     Column(modifier = Modifier.fillMaxWidth()) {
         ElevatedCard(modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 12.dp)) {
