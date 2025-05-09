@@ -6,11 +6,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -41,13 +43,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.rememberWindowState
+import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
+import com.mikepenz.aboutlibraries.ui.compose.rememberLibraries
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import model.DarkThemeConfig
 import model.DestStoreSize
 import model.DestStoreType
+import org.jetbrains.compose.resources.painterResource
 import org.tool.kit.BuildConfig
+import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.icon
+import theme.AppTheme
 import vm.MainViewModel
 import java.awt.Desktop
 import java.io.File
@@ -366,6 +377,30 @@ private fun DeveloperMode(viewModel: MainViewModel) {
 
 @Composable
 private fun About(viewModel: MainViewModel) {
+    var isOpen by remember { mutableStateOf(false) }
+    if (isOpen) {
+        val windowState = rememberWindowState(size = DpSize(600.dp, 600.dp))
+        Window(
+            onCloseRequest = { isOpen = false },
+            state = windowState,
+            title = "Third-Party Software Used by AndroidToolKit",
+            icon = painterResource(Res.drawable.icon),
+            alwaysOnTop = true
+        ) {
+            val themeConfig by viewModel.themeConfig.collectAsState()
+            val useDarkTheme = when (themeConfig) {
+                DarkThemeConfig.LIGHT -> false
+                DarkThemeConfig.DARK -> true
+                DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
+            }
+            val libraries by rememberLibraries {
+                Res.readBytes("files/aboutlibraries.json").decodeToString()
+            }
+            AppTheme(useDarkTheme) {
+                LibrariesContainer(libraries, Modifier.fillMaxSize())
+            }
+        }
+    }
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))

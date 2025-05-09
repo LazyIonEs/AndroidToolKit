@@ -1,0 +1,78 @@
+<resources>
+    <string name="signature_information_rail">签名信息</string>
+    <string name="apk_information_rail">APK信息</string>
+    <string name="apk_signature_rail">APK签名</string>
+    <string name="signature_generation_rail">签名生成</string>
+    <string name="icon_generation_rail">图标生成</string>
+    <string name="garbage_code_rail">垃圾代码</string>
+    <string name="cache_cleanup_rail">缓存清理</string>
+    <string name="setting_rail">设置</string>
+
+    <string name="signature_information_tooltip">签名信息</string>
+    <string name="apk_information_tooltip">APK信息</string>
+    <string name="apk_signature_tooltip">APK签名</string>
+    <string name="signature_generation_tooltip">签名生成</string>
+    <string name="icon_generation_tooltip">图标生成</string>
+    <string name="garbage_code_tooltip">垃圾代码</string>
+    <string name="cache_cleanup_tooltip">缓存清理</string>
+    <string name="setting_tooltip">设置</string>
+
+    <string name="size_and_time">%1$s，%2$s</string>
+
+    <string name="let_go">愣着干嘛，还不松手</string>
+    <string name="upload_apk">上传APK</string>
+
+    <string name="app_name">应用名称：</string>
+    <string name="version">版本：</string>
+    <string name="version_code">版本号：</string>
+    <string name="package_name">包名：</string>
+    <string name="compile_sdk_version">编译SDK版本：</string>
+    <string name="minimum_sdk_version">最小SDK版本：</string>
+    <string name="target_sdk_version">目标SDK版本：</string>
+    <string name="ABIs">ABIs：</string>
+    <string name="file_md5">文件MD5：</string>
+    <string name="size">大小：</string>
+    <string name="permissions">应用权限列表：</string>
+
+    <string name="output_path">输出路径</string>
+    <string name="key_store_file">密钥文件路径</string>
+    <string name="key_store_password">密钥库密码</string>
+    <string name="key_alias">密钥别名</string>
+    <string name="key_password">密钥密码</string>
+    <string name="apk_file">APK文件</string>
+    <string name="signature_strategy">签名策略：</string>
+    <string name="v2_tips">使用 V2 Only 签名的APK包仅支持Android 7及更高版本的系统安装和使用，请注意</string>
+    <string name="start_signing">开始签名</string>
+    <string name="apk_signature_v1">APK Signature Scheme V1</string>
+    <string name="apk_signature_v2">APK Signature Scheme V2，包含V1</string>
+    <string name="apk_signature_v2_only">APK Signature Scheme V2，不包含V1</string>
+    <string name="apk_signature_v3">APK Signature Scheme V3，包含V1和V2</string>
+
+    <string name="check_error">请检查Error项</string>
+
+    <string name="select_folder">选择文件夹</string>
+    <string name="total_storage_space">总存储空间</string>
+    <string name="used_space">已使用空间</string>
+    <string name="available_space">可用空间</string>
+    <string name="scanned_folders">已扫描文件夹</string>
+    <string name="selected_folders">已选择文件夹</string>
+    <string name="folders">个文件夹</string>
+    <string name="percentage_of_total_storage_space">占总存储空间</string>
+    <string name="cache_title">快速清理缓存目录</string>
+    <string name="cache_describe">快速、深度扫描 Android 项目构建缓存目录\n批量删除构建缓存，释放磁盘空间\n选择 Android 项目或更上层目录</string>
+    <string name="time_format">yyyy年MM月dd日</string>
+    <string name="select_delete_director">请先选择需要删除的目录</string>
+    <string name="newest_date_first">日期（从新到旧）</string>
+    <string name="oldest_date_first">日期（从旧到新）</string>
+    <string name="largest_first">大小（从大到小）</string>
+    <string name="smallest_first">大小（从小到大）</string>
+    <string name="name_a_z">名称（从 A 到 Z）</string>
+    <string name="name_z_a">名称（从 Z 到 A）</string>
+    <string name="delete_cache_dialog_title">确认删除缓存目录？</string>
+    <string name="delete_cache_dialog_describe">此操作将永久清除该目录下的所有文件，删除后数据将无法恢复，且可能导致下次构建时间延长。请确保您已备份所有重要数据。</string>
+    <string name="confirm_deletion">确认删除</string>
+    <string name="cancel">取消</string>
+
+    <string name="icon_factory_title">一键生成应用图标</string>
+    <string name="icon_factory_describe">支持png、jpg、jpeg文件\n上传 1024 x 1024 像素的图片以获得最佳效果</string>
+</resources>

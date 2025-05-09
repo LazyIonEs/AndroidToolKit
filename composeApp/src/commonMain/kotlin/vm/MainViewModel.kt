@@ -39,6 +39,8 @@ import model.UserData
 import model.Verifier
 import model.VerifierResult
 import org.apache.commons.codec.digest.DigestUtils
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
 import platform.RustException
 import platform.mozJpeg
 import platform.oxipng
@@ -232,6 +234,18 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     fun updateSnackbarVisuals(value: String) {
         _snackbarVisuals.update { currentState ->
             currentState.copy(message = value).reset()
+        }
+    }
+
+    /**
+     * 显示快捷信息栏
+     */
+    fun updateSnackbarVisuals(resource: StringResource) {
+        viewModelScope.launch(Dispatchers.Main) {
+            val string = getString(resource)
+            _snackbarVisuals.update { currentState ->
+                currentState.copy(message = string).reset()
+            }
         }
     }
 

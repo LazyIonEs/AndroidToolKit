@@ -33,6 +33,21 @@ import kotlinx.coroutines.CoroutineScope
 import model.ApkInformation
 import model.DarkThemeConfig
 import model.FileSelectorType
+import org.jetbrains.compose.resources.stringResource
+import org.tool.kit.composeapp.generated.resources.ABIs
+import org.tool.kit.composeapp.generated.resources.permissions
+import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.app_name
+import org.tool.kit.composeapp.generated.resources.compile_sdk_version
+import org.tool.kit.composeapp.generated.resources.file_md5
+import org.tool.kit.composeapp.generated.resources.let_go
+import org.tool.kit.composeapp.generated.resources.minimum_sdk_version
+import org.tool.kit.composeapp.generated.resources.package_name
+import org.tool.kit.composeapp.generated.resources.size
+import org.tool.kit.composeapp.generated.resources.target_sdk_version
+import org.tool.kit.composeapp.generated.resources.upload_apk
+import org.tool.kit.composeapp.generated.resources.version
+import org.tool.kit.composeapp.generated.resources.version_code
 import utils.LottieAnimation
 import utils.copy
 import utils.formatFileSize
@@ -104,9 +119,9 @@ private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
         ) {
             FileButton(
                 value = if (dragging) {
-                    "愣着干嘛，还不松手"
+                    stringResource(Res.string.let_go)
                 } else {
-                    "点击选择或拖拽上传APK"
+                    stringResource(Res.string.upload_apk)
                 }, expanded = viewModel.apkInformationState == UIState.WAIT, FileSelectorType.APK
             ) { path ->
                 viewModel.apkInformation(path)
@@ -134,34 +149,34 @@ private fun ApkInformationBox(
                     val apkInformation = uiState.result as ApkInformation
                     LazyColumn {
                         item {
-                            AppInfoItem("应用名称：", apkInformation.label, viewModel)
+                            AppInfoItem(stringResource(Res.string.app_name), apkInformation.label, viewModel)
                         }
                         item {
-                            AppInfoItem("版本：", apkInformation.versionName, viewModel)
+                            AppInfoItem(stringResource(Res.string.version), apkInformation.versionName, viewModel)
                         }
                         item {
-                            AppInfoItem("版本号：", apkInformation.versionCode, viewModel)
+                            AppInfoItem(stringResource(Res.string.version_code), apkInformation.versionCode, viewModel)
                         }
                         item {
-                            AppInfoItem("包名：", apkInformation.packageName, viewModel)
+                            AppInfoItem(stringResource(Res.string.package_name), apkInformation.packageName, viewModel)
                         }
                         item {
-                            AppInfoItem("编译SDK版本：", apkInformation.compileSdkVersion, viewModel)
+                            AppInfoItem(stringResource(Res.string.compile_sdk_version), apkInformation.compileSdkVersion, viewModel)
                         }
                         item {
-                            AppInfoItem("最小SDK版本：", apkInformation.minSdkVersion, viewModel)
+                            AppInfoItem(stringResource(Res.string.minimum_sdk_version), apkInformation.minSdkVersion, viewModel)
                         }
                         item {
-                            AppInfoItem("目标SDK版本：", apkInformation.targetSdkVersion, viewModel)
+                            AppInfoItem(stringResource(Res.string.target_sdk_version), apkInformation.targetSdkVersion, viewModel)
                         }
                         item {
-                            AppInfoItem("ABIs：", apkInformation.nativeCode, viewModel)
+                            AppInfoItem(stringResource(Res.string.ABIs), apkInformation.nativeCode, viewModel)
                         }
                         item {
-                            AppInfoItem("文件MD5：", apkInformation.md5, viewModel)
+                            AppInfoItem(stringResource(Res.string.file_md5), apkInformation.md5, viewModel)
                         }
                         item {
-                            AppInfoItem("大小：", apkInformation.size.formatFileSize(scale = 1, withInterval = true), viewModel)
+                            AppInfoItem(stringResource(Res.string.size), apkInformation.size.formatFileSize(scale = 1, withInterval = true), viewModel)
                         }
                         item {
                             PermissionsList(apkInformation.usesPermissionList)
@@ -191,7 +206,7 @@ private fun AppInfoItem(title: String, value: String, viewModel: MainViewModel) 
             Text(
                 title,
                 style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1f).align(Alignment.CenterVertically)
+                modifier = Modifier.weight(1.2f).align(Alignment.CenterVertically)
             )
             Text(
                 value,
@@ -212,7 +227,7 @@ private fun PermissionsList(permissions: ArrayList<String>?) {
                 modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp)
             ) {
                 Text(
-                    "应用权限列表：", modifier = Modifier.weight(1f), style = MaterialTheme.typography.titleMedium
+                    stringResource(Res.string.permissions), modifier = Modifier.weight(1.2f), style = MaterialTheme.typography.titleMedium
                 )
                 Column(
                     modifier = Modifier.weight(4f)

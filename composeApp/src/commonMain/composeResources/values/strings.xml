@@ -1,10 +1,78 @@
 <resources>
-    <string name="签名信息">签名信息</string>
-    <string name="APK信息">APK信息</string>
-    <string name="APK签名">APK签名</string>
-    <string name="签名生成">签名生成</string>
-    <string name="图标生成">图标生成</string>
-    <string name="垃圾代码">垃圾代码</string>
-    <string name="缓存清理">缓存清理</string>
-    <string name="设置">设置</string>
+    <string name="signature_information_rail">Signature</string>
+    <string name="apk_information_rail">APK</string>
+    <string name="apk_signature_rail">Sign</string>
+    <string name="signature_generation_rail">KeyStore</string>
+    <string name="icon_generation_rail">Icon</string>
+    <string name="garbage_code_rail">Garbage</string>
+    <string name="cache_cleanup_rail">Cache</string>
+    <string name="setting_rail">Setting</string>
+
+    <string name="signature_information_tooltip">Signature Information</string>
+    <string name="apk_information_tooltip">APK Information</string>
+    <string name="apk_signature_tooltip">APK Signature</string>
+    <string name="signature_generation_tooltip">Signature Generation</string>
+    <string name="icon_generation_tooltip">Icon Generation</string>
+    <string name="garbage_code_tooltip">Garbage Code</string>
+    <string name="cache_cleanup_tooltip">Cache Cleanup</string>
+    <string name="setting_tooltip">Setting</string>
+
+    <string name="size_and_time">%1$s, %2$s</string>
+
+    <string name="let_go">LetGo</string>
+    <string name="upload_apk">Upload APK</string>
+
+    <string name="app_name">App Name:</string>
+    <string name="version">Version:</string>
+    <string name="version_code">Version Code:</string>
+    <string name="package_name">Package Name:</string>
+    <string name="compile_sdk_version">Compile SDK:</string>
+    <string name="minimum_sdk_version">Minimum SDK:</string>
+    <string name="target_sdk_version">Target SDK:</string>
+    <string name="ABIs">ABIs:</string>
+    <string name="file_md5">File MD5:</string>
+    <string name="size">Size:</string>
+    <string name="permissions">Permissions:</string>
+
+    <string name="output_path">Output Path</string>
+    <string name="key_store_file">Key Store File Path</string>
+    <string name="key_store_password">Key Store Password</string>
+    <string name="key_alias">Key Alias</string>
+    <string name="key_password">Key Password</string>
+    <string name="apk_file">APK File</string>
+    <string name="signature_strategy">Signature Strategy: </string>
+    <string name="v2_tips">The APK package signed with V2 Only supports Android 7 and higher system installation and use. Please note</string>
+    <string name="start_signing">Start Signing</string>
+    <string name="apk_signature_v1">APK Signature Scheme V1</string>
+    <string name="apk_signature_v2">APK Signature Scheme V2, including V1</string>
+    <string name="apk_signature_v2_only">APK Signature Scheme V2, not including V1</string>
+    <string name="apk_signature_v3">APK Signature Scheme V3, including V1 and V2</string>
+
+    <string name="check_error">Please check the Error item</string>
+
+    <string name="select_folder">SELECT A FOLDER</string>
+    <string name="total_storage_space">Total Storage Space</string>
+    <string name="used_space">Used Space</string>
+    <string name="available_space">Available Space</string>
+    <string name="scanned_folders">Scanned Folders</string>
+    <string name="selected_folders">Selected Folders</string>
+    <string name="folders">Folders</string>
+    <string name="percentage_of_total_storage_space">Percentage of total storage space</string>
+    <string name="cache_title">Quickly clear cache directories</string>
+    <string name="cache_describe">Quickly and thoroughly scan the build‑cache directories of an Android project.\nBatch‑delete build caches to free up disk space.\nSelect an Android project or a higher‑level directory.</string>
+    <string name="time_format">MMM dd, yyyy</string>
+    <string name="select_delete_director">Please first select the directory to delete</string>
+    <string name="newest_date_first">Newest date first</string>
+    <string name="oldest_date_first">Oldest date first</string>
+    <string name="largest_first">Largest first</string>
+    <string name="smallest_first">Smallest first</string>
+    <string name="name_a_z">Name A -> Z</string>
+    <string name="name_z_a">Name Z -> A</string>
+    <string name="delete_cache_dialog_title">Delete selected folders?</string>
+    <string name="delete_cache_dialog_describe">This operation will permanently delete all files in the selected directory. Once removed, the data cannot be recovered and subsequent build times may be longer. Please ensure you have backed up all important data.</string>
+    <string name="confirm_deletion">Confirm deletion</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="icon_factory_title">One‑Click App Icon Generation</string>
+    <string name="icon_factory_describe">Supports PNG, JPG, and JPEG files. \nUpload a 1024 × 1024 pixel image for best results.</string>
 </resources>

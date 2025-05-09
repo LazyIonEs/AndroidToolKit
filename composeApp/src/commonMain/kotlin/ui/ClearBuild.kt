@@ -77,8 +77,33 @@ import kotlinx.datetime.toLocalDateTime
 import model.DarkThemeConfig
 import model.Sequence
 import org.jetbrains.compose.resources.Font
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.ZCOOLKuaiLe_Regular
+import org.tool.kit.composeapp.generated.resources.available_space
+import org.tool.kit.composeapp.generated.resources.cache_describe
+import org.tool.kit.composeapp.generated.resources.cache_title
+import org.tool.kit.composeapp.generated.resources.cancel
+import org.tool.kit.composeapp.generated.resources.confirm_deletion
+import org.tool.kit.composeapp.generated.resources.delete_cache_dialog_describe
+import org.tool.kit.composeapp.generated.resources.delete_cache_dialog_title
+import org.tool.kit.composeapp.generated.resources.folders
+import org.tool.kit.composeapp.generated.resources.newest_date_first
+import org.tool.kit.composeapp.generated.resources.oldest_date_first
+import org.tool.kit.composeapp.generated.resources.largest_first
+import org.tool.kit.composeapp.generated.resources.smallest_first
+import org.tool.kit.composeapp.generated.resources.name_a_z
+import org.tool.kit.composeapp.generated.resources.name_z_a
+import org.tool.kit.composeapp.generated.resources.percentage_of_total_storage_space
+import org.tool.kit.composeapp.generated.resources.scanned_folders
+import org.tool.kit.composeapp.generated.resources.select_delete_director
+import org.tool.kit.composeapp.generated.resources.select_folder
+import org.tool.kit.composeapp.generated.resources.selected_folders
+import org.tool.kit.composeapp.generated.resources.size_and_time
+import org.tool.kit.composeapp.generated.resources.time_format
+import org.tool.kit.composeapp.generated.resources.total_storage_space
+import org.tool.kit.composeapp.generated.resources.used_space
 import utils.LottieAnimation
 import utils.browseFileDirectory
 import utils.formatFileSize
@@ -109,7 +134,7 @@ private fun ClearMain(viewModel: MainViewModel) {
             exit = shrinkHorizontally() + fadeOut()
         ) {
             DirectoryButton(
-                value = "点击选择文件夹",
+                value = stringResource(Res.string.select_folder),
                 expanded = viewModel.verifierState !is UIState.Success,
             ) { directory ->
                 viewModel.scanPendingDeletionFileList(directory)
@@ -141,7 +166,10 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         Column(modifier = Modifier.weight(1f).padding(16.dp)) {
-                            Text("总存储空间", style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                text = stringResource(Res.string.total_storage_space),
+                                style = MaterialTheme.typography.bodySmall
+                            )
                             Spacer(Modifier.size(3.dp))
                             Text(
                                 totalSpace.formatFileSize(scale = 0, withInterval = true),
@@ -149,7 +177,9 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                             )
                         }
                         Column(modifier = Modifier.weight(1f).padding(16.dp)) {
-                            Text("已使用空间", style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                text = stringResource(Res.string.used_space), style = MaterialTheme.typography.bodySmall
+                            )
                             Spacer(Modifier.size(3.dp))
                             Text(
                                 usedSpace.formatFileSize(scale = 1, withInterval = true),
@@ -157,7 +187,10 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                             )
                         }
                         Column(modifier = Modifier.weight(1f).padding(16.dp)) {
-                            Text("可用空间", style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                text = stringResource(Res.string.available_space),
+                                style = MaterialTheme.typography.bodySmall
+                            )
                             Spacer(Modifier.size(3.dp))
                             Text(
                                 usableSpace.formatFileSize(scale = 1, withInterval = true),
@@ -188,11 +221,14 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                     ) {
                         Icon(
                             Icons.Outlined.Topic,
-                            contentDescription = "已选择文件夹",
+                            contentDescription = "Topic",
                             modifier = Modifier.size(18.dp),
                         )
+                        val text =
+                            if (viewModel.fileClearUIState == UIState.Loading) stringResource(Res.string.scanned_folders)
+                            else stringResource(Res.string.selected_folders)
                         Text(
-                            if (viewModel.fileClearUIState == UIState.Loading) "已扫描文件夹" else "已选择文件夹",
+                            text = text,
                             style = MaterialTheme.typography.labelMedium,
                             modifier = Modifier.padding(start = 6.dp)
                         )
@@ -203,7 +239,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                                 "$checkedCount", style = MaterialTheme.typography.headlineSmall
                             )
                             Spacer(Modifier.size(3.dp))
-                            Text("个文件夹", style = MaterialTheme.typography.bodySmall)
+                            Text(text = stringResource(Res.string.folders), style = MaterialTheme.typography.bodySmall)
                         }
                         Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
                             Text(
@@ -220,7 +256,10 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                                 .divide(totalSpace.toBigDecimal(), 1, RoundingMode.HALF_UP)
                             Text("${percentage.toPlainString()}%", style = MaterialTheme.typography.headlineSmall)
                             Spacer(Modifier.size(3.dp))
-                            Text("占总存储空间", style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                text = stringResource(Res.string.percentage_of_total_storage_space),
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
                     }
                 }
@@ -241,7 +280,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
             enter = fadeIn() + expandVertically(),
             exit = shrinkVertically() + fadeOut()
         ) {
-            Row(modifier = Modifier.fillMaxSize()) {
+            Row(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
                 Column(modifier = Modifier.weight(1f).align(Alignment.CenterVertically)) {
                     val themeConfig by viewModel.themeConfig.collectAsState()
                     val useDarkTheme = when (themeConfig) {
@@ -249,11 +288,10 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                         DarkThemeConfig.DARK -> true
                         DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
                     }
-                    val modifier = Modifier.weight(2f)
-                        .graphicsLayer { // 将动画放大1.5倍
-                            scaleX = 1.5f
-                            scaleY = 1.5f
-                        }
+                    val modifier = Modifier.weight(2f).graphicsLayer { // 将动画放大1.5倍
+                        scaleX = 1.7f
+                        scaleY = 1.7f
+                    }
                     if (useDarkTheme) {
                         LottieAnimation(scope, "files/lottie_main_4_dark.json", modifier)
                     } else {
@@ -261,17 +299,16 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                     }
                     Box(modifier = Modifier.weight(1f))
                 }
-                Column(modifier = Modifier.weight(1f).align(Alignment.CenterVertically)) {
+                Column(modifier = Modifier.weight(1.5f).align(Alignment.CenterVertically)) {
                     val fontRegular = FontFamily(Font(Res.font.ZCOOLKuaiLe_Regular))
                     Text(
-                        text = "快速清理缓存目录",
+                        text = stringResource(Res.string.cache_title),
                         style = MaterialTheme.typography.displayMedium,
                         fontFamily = fontRegular
                     )
                     Spacer(Modifier.size(24.dp))
                     Text(
-                        text = "快速、深度扫描 Android 项目构建缓存目录\n批量删除构建缓存，释放磁盘空间\n选择 Android 项目或更上层目录",
-                        style = MaterialTheme.typography.bodyMedium
+                        text = stringResource(Res.string.cache_describe), style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(Modifier.size(48.dp))
                 }
@@ -299,19 +336,20 @@ private fun ClearBuildList(viewModel: MainViewModel) {
                             onClick = { browseFileDirectory(pendingDeletionFile.file) },
                             modifier = Modifier.padding(horizontal = 16.dp)
                         ) {
-                            if (pendingDeletionFile.file.isDirectory) Icon(Icons.Outlined.FolderOpen, "文件夹")
-                            else Icon(Icons.Outlined.Description, "文件")
+                            if (pendingDeletionFile.file.isDirectory) Icon(Icons.Outlined.FolderOpen, "FolderOpen")
+                            else Icon(Icons.Outlined.Description, "Description")
                         }
                         val instant = Instant.fromEpochMilliseconds(pendingDeletionFile.fileLastModified)
                         val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-                        val formatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日")
+                        val pattern = stringResource(Res.string.time_format)
+                        val formatter = DateTimeFormatter.ofPattern(pattern)
 
                         Column(modifier = Modifier.weight(1f)) {
                             val path = pendingDeletionFile.filePath.replace(
                                 pendingDeletionFile.directoryPath + File.separatorChar, ""
                             )
                             Text(
-                                path,
+                                text = path,
                                 style = MaterialTheme.typography.bodyLarge,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
@@ -321,10 +359,11 @@ private fun ClearBuildList(viewModel: MainViewModel) {
                                     Color.Unspecified
                                 },
                             )
+                            val size = pendingDeletionFile.fileLength.formatFileSize(withInterval = true)
+                            val time = localDateTime.toJavaLocalDateTime().format(formatter)
                             Text(
-                                "${pendingDeletionFile.fileLength.formatFileSize(withInterval = true)}，${
-                                    localDateTime.toJavaLocalDateTime().format(formatter)
-                                }", style = MaterialTheme.typography.bodyMedium
+                                text = stringResource(Res.string.size_and_time, size, time),
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                         Checkbox(
@@ -390,7 +429,7 @@ fun ClearBuildBottom(viewModel: MainViewModel) {
         FloatingActionButton(
             onClick = {
                 if (viewModel.isAllFileUnchecked()) {
-                    viewModel.updateSnackbarVisuals("请先选择需要删除的目录")
+                    viewModel.updateSnackbarVisuals(Res.string.select_delete_director)
                 } else {
                     deletionAlert = !deletionAlert
                 }
@@ -403,12 +442,12 @@ fun ClearBuildBottom(viewModel: MainViewModel) {
     })
     val onDismissRequest = { sequenceExpanded = false }
     DropdownMenu(expanded = sequenceExpanded, offset = DpOffset(64.dp, 24.dp), onDismissRequest = onDismissRequest) {
-        SequenceDropdownMenu("日期（从新到旧）", Sequence.DATE_NEW_TO_OLD, onDismissRequest, viewModel)
-        SequenceDropdownMenu("日期（从旧到新）", Sequence.DATE_OLD_TO_NEW, onDismissRequest, viewModel)
-        SequenceDropdownMenu("大小（从大到小）", Sequence.SIZE_LARGE_TO_SMALL, onDismissRequest, viewModel)
-        SequenceDropdownMenu("大小（从小到大）", Sequence.SIZE_SMALL_TO_LARGE, onDismissRequest, viewModel)
-        SequenceDropdownMenu("名称（从 A 到 Z）", Sequence.NAME_A_TO_Z, onDismissRequest, viewModel)
-        SequenceDropdownMenu("名称（从 Z 到 A）", Sequence.NAME_Z_TO_A, onDismissRequest, viewModel)
+        SequenceDropdownMenu(Res.string.newest_date_first, Sequence.DATE_NEW_TO_OLD, onDismissRequest, viewModel)
+        SequenceDropdownMenu(Res.string.oldest_date_first, Sequence.DATE_OLD_TO_NEW, onDismissRequest, viewModel)
+        SequenceDropdownMenu(Res.string.largest_first, Sequence.SIZE_LARGE_TO_SMALL, onDismissRequest, viewModel)
+        SequenceDropdownMenu(Res.string.smallest_first, Sequence.SIZE_SMALL_TO_LARGE, onDismissRequest, viewModel)
+        SequenceDropdownMenu(Res.string.name_a_z, Sequence.NAME_A_TO_Z, onDismissRequest, viewModel)
+        SequenceDropdownMenu(Res.string.name_z_a, Sequence.NAME_Z_TO_A, onDismissRequest, viewModel)
     }
     if (deletionAlert) {
         DeleteAlertDialog(onConfirm = {
@@ -422,13 +461,13 @@ fun ClearBuildBottom(viewModel: MainViewModel) {
 
 @Composable
 private fun SequenceDropdownMenu(
-    text: String, sequence: Sequence, onDismissRequest: () -> Unit, viewModel: MainViewModel
+    resource: StringResource, sequence: Sequence, onDismissRequest: () -> Unit, viewModel: MainViewModel
 ) {
     DropdownMenuItem(
         text = {
-            Text(text, style = MaterialTheme.typography.labelLarge)
+            Text(text = stringResource(resource), style = MaterialTheme.typography.labelLarge)
         }, leadingIcon = if (viewModel.currentFileSequence == sequence) {
-            { Icon(Icons.Rounded.Check, "当前文件排序模式选中") }
+            { Icon(Icons.Rounded.Check, "Check") }
         } else {
             null
         }, onClick = {
@@ -441,21 +480,21 @@ private fun SequenceDropdownMenu(
 private fun DeleteAlertDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         icon = { Icon(Icons.Rounded.DeleteSweep, contentDescription = "DeleteSweep") },
-        title = { Text("确认删除缓存？") },
-        text = { Text("此操作将永久清除该目录下的所有文件，删除后数据将无法恢复，且可能导致下次构建时间延长。请确保您已备份所有重要数据。") },
+        title = { Text(stringResource(Res.string.delete_cache_dialog_title)) },
+        text = { Text(stringResource(Res.string.delete_cache_dialog_describe)) },
         onDismissRequest = { onDismiss.invoke() },
         confirmButton = {
             TextButton(onClick = {
                 onConfirm.invoke()
             }) {
-                Text("确认删除")
+                Text(stringResource(Res.string.confirm_deletion))
             }
         },
         dismissButton = {
             TextButton(onClick = {
                 onDismiss.invoke()
             }) {
-                Text("取消")
+                Text(stringResource(Res.string.cancel))
             }
         })
 }

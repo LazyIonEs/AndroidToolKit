@@ -41,6 +41,18 @@ import constant.ConfigConstant
 import kotlinx.coroutines.CoroutineScope
 import model.FileSelectorType
 import model.SignaturePolicy
+import org.jetbrains.compose.resources.stringResource
+import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.apk_file
+import org.tool.kit.composeapp.generated.resources.check_error
+import org.tool.kit.composeapp.generated.resources.key_alias
+import org.tool.kit.composeapp.generated.resources.key_store_file
+import org.tool.kit.composeapp.generated.resources.key_password
+import org.tool.kit.composeapp.generated.resources.key_store_password
+import org.tool.kit.composeapp.generated.resources.output_path
+import org.tool.kit.composeapp.generated.resources.signature_strategy
+import org.tool.kit.composeapp.generated.resources.start_signing
+import org.tool.kit.composeapp.generated.resources.v2_tips
 import utils.isApk
 import utils.isKey
 import vm.MainViewModel
@@ -123,7 +135,9 @@ private fun SignatureCard(viewModel: MainViewModel) {
             item {
                 Spacer(Modifier.size(6.dp))
                 FolderInput(
-                    value = viewModel.apkSignatureState.outputPath, label = "输出路径", isError = outputError
+                    value = viewModel.apkSignatureState.outputPath,
+                    label = stringResource(Res.string.output_path),
+                    isError = outputError
                 ) { outputPath ->
                     viewModel.updateApkSignature(viewModel.apkSignatureState.copy(outputPath = outputPath))
                 }
@@ -137,7 +151,7 @@ private fun SignatureCard(viewModel: MainViewModel) {
                 Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
                     FileInput(
                         value = viewModel.apkSignatureState.keyStorePath,
-                        label = "密钥文件",
+                        label = stringResource(Res.string.key_store_file),
                         isError = signatureError,
                         FileSelectorType.KEY
                     ) { keyStorePath ->
@@ -151,7 +165,7 @@ private fun SignatureCard(viewModel: MainViewModel) {
                 Spacer(Modifier.size(6.dp))
                 PasswordInput(
                     value = viewModel.apkSignatureState.keyStorePassword,
-                    label = "密钥密码",
+                    label = stringResource(Res.string.key_store_password),
                     isError = signaturePasswordError
                 ) { password ->
                     viewModel.updateApkSignature(viewModel.apkSignatureState.copy(keyStorePassword = password))
@@ -175,7 +189,7 @@ private fun SignatureCard(viewModel: MainViewModel) {
                 Spacer(Modifier.size(6.dp))
                 PasswordInput(
                     value = viewModel.apkSignatureState.keyStoreAlisaPassword,
-                    label = "密钥别名密码",
+                    label = stringResource(Res.string.key_password),
                     isError = signatureAlisaPasswordError
                 ) { password ->
                     viewModel.updateApkSignature(viewModel.apkSignatureState.copy(keyStoreAlisaPassword = password))
@@ -211,7 +225,7 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
         onExpandedChange = { expanded = it }) {
         FileInput(
             value = viewModel.apkSignatureState.apkPath,
-            label = "APK文件",
+            label = stringResource(Res.string.apk_file),
             isError = apkError,
             modifier = Modifier.padding(end = 8.dp, bottom = 3.dp).menuAnchor(MenuAnchorType.PrimaryEditable),
             trailingIcon = { TrailingIcon(expanded = expanded) },
@@ -250,10 +264,12 @@ private fun SignaturePolicy(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                "签名策略：", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 24.dp)
+                stringResource(Res.string.signature_strategy),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(start = 24.dp)
             )
             Text(
-                viewModel.apkSignatureState.keyStorePolicy.value, style = MaterialTheme.typography.bodyMedium
+                text = stringResource(viewModel.apkSignatureState.keyStorePolicy.value), style = MaterialTheme.typography.bodyMedium
             )
         }
         Spacer(Modifier.size(2.dp))
@@ -266,7 +282,7 @@ private fun SignaturePolicy(
                     selected = viewModel.apkSignatureState.keyStorePolicy == signaturePolicy,
                     onClick = {
                         if (signaturePolicy == SignaturePolicy.V2Only) {
-                            viewModel.updateSnackbarVisuals("使用 V2 Only 签名的APK包仅支持Android 7及更高版本的系统安装和使用，请注意")
+                            viewModel.updateSnackbarVisuals(Res.string.v2_tips)
                         }
                         viewModel.updateApkSignature(viewModel.apkSignatureState.copy(keyStorePolicy = signaturePolicy))
                     },
@@ -311,7 +327,7 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
             value = selectedOptionText,
             readOnly = true,
             onValueChange = { },
-            label = { Text("密钥别名", style = MaterialTheme.typography.labelLarge) },
+            label = { Text(stringResource(Res.string.key_alias), style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
             trailingIcon = { TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.textFieldColors()
@@ -352,13 +368,15 @@ private fun Signature(
 ) {
     Button(onClick = {
         if (apkError || outputError || signatureError || signaturePasswordError || signatureAlisaPasswordError) {
-            viewModel.updateSnackbarVisuals("请检查Error项")
+            viewModel.updateSnackbarVisuals(Res.string.check_error)
             return@Button
         }
         signatureApk(viewModel)
     }) {
         Text(
-            "开始签名", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 48.dp)
+            text = stringResource(Res.string.start_signing),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(horizontal = 48.dp)
         )
     }
 }
@@ -367,7 +385,7 @@ private fun signatureApk(
     viewModel: MainViewModel
 ) {
     if (viewModel.apkSignatureState.apkPath.isBlank() || viewModel.apkSignatureState.outputPath.isBlank() || viewModel.apkSignatureState.keyStorePath.isBlank() || viewModel.apkSignatureState.keyStorePassword.isBlank() || viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty() || viewModel.apkSignatureState.keyStoreAlisaPassword.isBlank()) {
-        viewModel.updateSnackbarVisuals("请检查空项")
+        viewModel.updateSnackbarVisuals(Res.string.check_error)
         return
     }
     viewModel.apkSigner()
