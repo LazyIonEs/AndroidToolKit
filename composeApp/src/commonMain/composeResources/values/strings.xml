@@ -75,4 +75,23 @@
 
     <string name="icon_factory_title">One‑Click App Icon Generation</string>
     <string name="icon_factory_describe">Supports PNG, JPG, and JPEG files. \nUpload a 1024 × 1024 pixel image for best results.</string>
+    <string name="more_settings">More Settings</string>
+    <string name="icon_output_path">Icon Output Path</string>
+    <string name="icon_name">Icon Name</string>
+    <string name="close">Close</string>
+    <string name="expand">Expand</string>
+    <string name="compress_custom">Compress Custom</string>
+    <string name="lossless_compression">Lossless Compression</string>
+    <string name="lossy_compression">Lossy Compression</string>
+    <string name="compression_speed">Compression Speed</string>
+    <string name="fast">Fast</string>
+    <string name="crazy">Crazy</string>
+    <string name="external_directory_name">External Directory Name</string>
+    <string name="android_directory">Android Directory</string>
+    <string name="png_quality">PNG Quality</string>
+    <string name="jpeg_quality">JPEG Quality</string>
+    <string name="minimum">Minimum: %1$d</string>
+    <string name="target">Target: %1$d</string>
+    <string name="png_scaling_algorithm">PNG scaling Algorithm</string>
+    <string name="jpeg_scaling_algorithm">JPEG scaling Algorithm</string>
 </resources>
