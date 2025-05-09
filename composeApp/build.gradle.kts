@@ -1,4 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.reload.ComposeHotRun
+import org.jetbrains.kotlin.compose.compiler.gradle.ComposeFeatureFlag
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileOutputStream
@@ -10,6 +12,8 @@ plugins {
     alias(libs.plugins.githubBuildconfig)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.about.libraries)
+    alias(libs.plugins.hot.reload)
 }
 
 val javaLanguageVersion = JavaLanguageVersion.of(17)
@@ -44,6 +48,7 @@ kotlin {
     }
 
     jvm("desktop")
+    jvmToolchain(17)
 
     sourceSets {
         val desktopMain by getting
@@ -98,6 +103,8 @@ kotlin {
                 exclude(group = "oro", module = "oro")
             }
             runtimeOnly(libs.kotlinx.coroutines.swing)
+            implementation(libs.about.libraries.core)
+            implementation(libs.about.libraries.compose.m3)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -192,16 +199,11 @@ compose.desktop {
 }
 
 task("rustTasks") {
-    buildRust()
-    copyRustBuild()
-    generateKotlinFromUdl()
+    runBuildRust()
 }
 
 tasks.getByName("compileKotlinDesktop").doLast {
-    println("compileKotlinDesktop called")
-    buildRust()
-    copyRustBuild()
-    generateKotlinFromUdl()
+    runBuildRust()
 }
 
 buildConfig {
@@ -235,6 +237,18 @@ fun currentOs(): OS {
     }
 }
 
+fun runBuildRust() {
+    val destinyLibFile = getRustDestinyLibFile()
+    val destinyKtFile = getRustDestinyKtFile()
+    if (destinyLibFile.exists() && destinyKtFile.exists()) {
+        // 已存在，不重新编译
+        return
+    }
+    buildRust()
+    copyRustBuild()
+    generateKotlinFromUdl()
+}
+
 fun buildRust() {
     providers.exec {
         println("Build rs called")
@@ -262,8 +276,6 @@ fun buildRust() {
 }
 
 fun copyRustBuild() {
-    val outputDir = "${layout.buildDirectory.asFile.get().absolutePath}/classes/kotlin/desktop/main"
-
     val workingDirPath = if (currentOs() == OS.LINUX && useCross) {
         if (isLinuxAarch64) {
             "rs/target/$linuxArmTarget/release"
@@ -276,27 +288,33 @@ fun copyRustBuild() {
 
     val workingDir = File(rootDir, workingDirPath)
 
-    val directory = File(outputDir)
-    directory.mkdirs()
-
     val originLib = when (currentOs()) {
         OS.LINUX -> "libtoolkit_rs.so"
         OS.WINDOWS -> "toolkit_rs.dll"
         OS.MAC -> "libtoolkit_rs.dylib"
     }
 
+    val originFile = File(workingDir, originLib)
+    val destinyFile = getRustDestinyLibFile()
+
+    Files.copy(originFile.toPath(), FileOutputStream(destinyFile))
+    println("Copy rs build completed")
+}
+
+fun getRustDestinyLibFile(): File {
+    val outputDir = "${layout.buildDirectory.asFile.get().absolutePath}/classes/kotlin/desktop/main"
+    val directory = File(outputDir)
+    directory.mkdirs()
     val destinyLib = when (currentOs()) {
         OS.LINUX -> "libuniffi_toolkit.so"
         OS.WINDOWS -> "uniffi_toolkit.dll"
         OS.MAC -> "libuniffi_toolkit.dylib"
     }
-
-    val originFile = File(workingDir, originLib)
     val destinyFile = File(directory, destinyLib)
-
-    Files.copy(originFile.toPath(), FileOutputStream(destinyFile))
-    println("Copy rs build completed")
+    return destinyFile
 }
+
+fun getRustDestinyKtFile() = File(rustGeneratedSource + File.separator + "uniffi" + File.separator + "toolkit", "toolkit.kt")
 
 fun generateKotlinFromUdl() {
     providers.exec {
@@ -308,4 +326,21 @@ fun generateKotlinFromUdl() {
             "--out-dir", rustGeneratedSource
         )
     }.result.get()
+}
+
+aboutLibraries {
+    android {
+        registerAndroidTasks = true
+    }
+    export {
+        outputFile = file("src/commonMain/composeResources/files/aboutlibraries.json")
+    }
+}
+
+tasks.withType<ComposeHotRun>().configureEach {
+    mainClass.set("MainKt")
+}
+
+composeCompiler {
+    featureFlags.add(ComposeFeatureFlag.OptimizeNonSkippingGroups)
 }
