@@ -49,6 +49,7 @@
     <string name="apk_signature_v3">APK Signature Scheme V3, including V1 and V2</string>
 
     <string name="check_error">Please check the Error item</string>
+    <string name="check_empty">Please check for empty items</string>
 
     <string name="select_folder">SELECT A FOLDER</string>
     <string name="total_storage_space">Total Storage Space</string>
@@ -94,4 +95,14 @@
     <string name="target">Target: %1$d</string>
     <string name="png_scaling_algorithm">PNG scaling Algorithm</string>
     <string name="jpeg_scaling_algorithm">JPEG scaling Algorithm</string>
+    <string name="upload_image">Upload Image</string>
+
+    <string name="aar_output_path">AAR Output Path</string>
+    <string name="aar_name">AAR Name</string>
+    <string name="number_of_packages">Number of packages</string>
+    <string name="number_of_activities">The Number Of Activities In Each Package</string>
+    <string name="resource_prefix">Resource Prefix</string>
+    <string name="junk_package_name">Package Name</string>
+    <string name="suffix">Suffix</string>
+    <string name="start_generating">Start Generating</string>
 </resources>

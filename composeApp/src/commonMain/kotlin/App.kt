@@ -252,14 +252,14 @@ enum class Page(
         Icons.Outlined.Verified
     ),
     JUNK_CODE(
-        Res.string.icon_generation_rail,
-        Res.string.icon_generation_tooltip,
+        Res.string.garbage_code_rail,
+        Res.string.garbage_code_tooltip,
         Icons.Rounded.Cookie,
         Icons.Outlined.Cookie
     ),
     ICON_FACTORY(
-        Res.string.garbage_code_rail,
-        Res.string.garbage_code_tooltip,
+        Res.string.icon_generation_rail,
+        Res.string.icon_generation_tooltip,
         Icons.Rounded.DesignServices,
         Icons.Outlined.DesignServices
     ),

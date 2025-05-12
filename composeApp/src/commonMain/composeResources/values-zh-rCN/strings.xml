@@ -49,6 +49,7 @@
     <string name="apk_signature_v3">APK Signature Scheme V3，包含V1和V2</string>
 
     <string name="check_error">请检查Error项</string>
+    <string name="check_empty">请检查空项</string>
 
     <string name="select_folder">选择文件夹</string>
     <string name="total_storage_space">总存储空间</string>
@@ -94,4 +95,15 @@
     <string name="target">目标：%1$d</string>
     <string name="png_scaling_algorithm">PNG 缩放算法</string>
     <string name="jpeg_scaling_algorithm">JPEG 缩放算法</string>
+    <string name="upload_image">上传图片</string>
+
+    <string name="aar_output_path">AAR输出路径</string>
+    <string name="aar_name">AAR 名称</string>
+    <string name="number_of_packages">包的数量</string>
+    <string name="number_of_activities">每个包里 activity 的数量</string>
+    <string name="resource_prefix">资源前缀</string>
+    <string name="junk_package_name">包名</string>
+    <string name="suffix">后缀</string>
+    <string name="start_generating">开始生成</string>
+
 </resources>

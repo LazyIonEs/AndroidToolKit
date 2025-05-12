@@ -16,6 +16,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
+import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.aar_name
+import org.tool.kit.composeapp.generated.resources.aar_output_path
+import org.tool.kit.composeapp.generated.resources.check_empty
+import org.tool.kit.composeapp.generated.resources.check_error
+import org.tool.kit.composeapp.generated.resources.junk_package_name
+import org.tool.kit.composeapp.generated.resources.number_of_activities
+import org.tool.kit.composeapp.generated.resources.number_of_packages
+import org.tool.kit.composeapp.generated.resources.resource_prefix
+import org.tool.kit.composeapp.generated.resources.start_generating
+import org.tool.kit.composeapp.generated.resources.suffix
 import vm.MainViewModel
 import java.io.File
 
@@ -44,7 +56,7 @@ private fun JunkCodeBox(viewModel: MainViewModel) {
                 Spacer(Modifier.size(16.dp))
                 FolderInput(
                     value = viewModel.junkCodeInfoState.outputPath,
-                    label = "AAR输出路径",
+                    label = stringResource(Res.string.aar_output_path),
                     isError = outputPathError,
                     onValueChange = { path ->
                         viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = path))
@@ -54,7 +66,7 @@ private fun JunkCodeBox(viewModel: MainViewModel) {
                 Spacer(Modifier.size(8.dp))
                 StringInput(
                     value = viewModel.junkCodeInfoState.aarName,
-                    label = "AAR 名称",
+                    label = stringResource(Res.string.aar_name),
                     isError = false,
                     realOnly = true,
                     onValueChange = { })
@@ -67,7 +79,7 @@ private fun JunkCodeBox(viewModel: MainViewModel) {
                 Spacer(Modifier.size(8.dp))
                 IntInput(
                     value = viewModel.junkCodeInfoState.packageCount,
-                    label = "包的数量",
+                    label = stringResource(Res.string.number_of_packages),
                     isError = viewModel.junkCodeInfoState.packageCount.isBlank(),
                     onValueChange = { packageCount ->
                         viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(packageCount = packageCount))
@@ -77,7 +89,7 @@ private fun JunkCodeBox(viewModel: MainViewModel) {
                 Spacer(Modifier.size(8.dp))
                 IntInput(
                     value = viewModel.junkCodeInfoState.activityCountPerPackage,
-                    label = "每个包里 activity 的数量",
+                    label = stringResource(Res.string.number_of_activities),
                     isError = viewModel.junkCodeInfoState.activityCountPerPackage.isBlank(),
                     onValueChange = { activityCountPerPackage ->
                         viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(activityCountPerPackage = activityCountPerPackage))
@@ -87,7 +99,7 @@ private fun JunkCodeBox(viewModel: MainViewModel) {
                 Spacer(Modifier.size(8.dp))
                 StringInput(
                     value = viewModel.junkCodeInfoState.resPrefix,
-                    label = "资源前缀",
+                    label = stringResource(Res.string.resource_prefix),
                     isError = viewModel.junkCodeInfoState.resPrefix.isBlank(),
                     onValueChange = { resPrefix ->
                         viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(resPrefix = resPrefix))
@@ -118,7 +130,7 @@ private fun PackageName(viewModel: MainViewModel) {
                 junkCodeInfo.packageName = packageName
                 viewModel.updateJunkCodeInfo(junkCodeInfo)
             },
-            label = { Text("包名", style = MaterialTheme.typography.labelLarge) },
+            label = { Text(text = stringResource(Res.string.junk_package_name), style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
             isError = viewModel.junkCodeInfoState.packageName.isBlank()
         )
@@ -135,7 +147,7 @@ private fun PackageName(viewModel: MainViewModel) {
                 junkCodeInfo.suffix = suffix
                 viewModel.updateJunkCodeInfo(junkCodeInfo)
             },
-            label = { Text("后缀", style = MaterialTheme.typography.labelLarge) },
+            label = { Text(text = stringResource(Res.string.suffix), style = MaterialTheme.typography.labelLarge) },
             singleLine = true,
             isError = viewModel.junkCodeInfoState.suffix.isBlank()
         )
@@ -148,17 +160,19 @@ private fun Generate(
 ) {
     Button(onClick = {
         if (outputPathError) {
-            viewModel.updateSnackbarVisuals("请检查Error项")
+            viewModel.updateSnackbarVisuals(Res.string.check_error)
             return@Button
         }
         if (viewModel.junkCodeInfoState.outputPath.isBlank() || viewModel.junkCodeInfoState.packageName.isBlank() || viewModel.junkCodeInfoState.suffix.isBlank() || viewModel.junkCodeInfoState.packageCount.isBlank() || viewModel.junkCodeInfoState.activityCountPerPackage.isEmpty() || viewModel.junkCodeInfoState.resPrefix.isBlank()) {
-            viewModel.updateSnackbarVisuals("请检查空项")
+            viewModel.updateSnackbarVisuals(Res.string.check_empty)
             return@Button
         }
         viewModel.generateJunkCode()
     }) {
         Text(
-            "开始生成", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 48.dp)
+            text = stringResource(Res.string.start_generating),
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(horizontal = 48.dp)
         )
     }
 }

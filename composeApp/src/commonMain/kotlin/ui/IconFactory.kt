@@ -89,7 +89,7 @@ import org.tool.kit.composeapp.generated.resources.check_error
 import org.tool.kit.composeapp.generated.resources.icon_factory_describe
 import org.tool.kit.composeapp.generated.resources.icon_factory_title
 import org.tool.kit.composeapp.generated.resources.let_go
-import org.tool.kit.composeapp.generated.resources.upload_apk
+import org.tool.kit.composeapp.generated.resources.upload_image
 import org.tool.kit.composeapp.generated.resources.more_settings
 import org.tool.kit.composeapp.generated.resources.icon_output_path
 import org.tool.kit.composeapp.generated.resources.icon_name
@@ -328,7 +328,7 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
                     value = if (dragging) {
                         stringResource(Res.string.let_go)
                     } else {
-                        stringResource(Res.string.upload_apk)
+                        stringResource(Res.string.upload_image)
                     }, expanded = viewModel.iconFactoryInfoState.icon == null, FileSelectorType.IMAGE
                 ) { path ->
                     if (path.isImage) {
