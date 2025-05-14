@@ -106,4 +106,39 @@
     <string name="suffix">后缀</string>
     <string name="start_generating">开始生成</string>
 
+    <string name="apk_signature">APK签名</string>
+    <string name="signature_suffix">签名后缀</string>
+    <string name="signature_suffix_tips">签名后缀： Apk签名后输出名称（比如：输入Apk名称为apk_unsign.apk，则输入Apk名称为apk_unsign%1$s.apk</string>
+    <string name="delete_repeat_file">是否删除重名输出文件</string>
+    <string name="delete_repeat_file_tips">注意：输出文件重名后无法成功签名，会提示输出文件已存在</string>
+    <string name="enable_file_alignment">启用文件对齐</string>
+    <string name="enable_file_alignment_tips">注意：目标 R+（版本 30 及更高版本）要求已安装 APK 内的文件未压缩存储并在 4 字节边界上对齐</string>
+
+    <string name="signature_generation">签名生成</string>
+    <string name="target_key_type">目标密钥类型</string>
+    <string name="target_key_type_tips">注意：JKS 密钥库使用专用格式。建议使用行业标准格式 PKCS12。</string>
+    <string name="target_key_size">目标密钥大小</string>
+    <string name="target_key_size_tips">注意：生成的证书 使用的 1024 位 RSA 密钥 被视为存在安全风险。此密钥大小将在未来的更新中被禁用。</string>
+
+    <string name="conventional">常规</string>
+    <string name="default_output_path">默认输出路径</string>
+    <string name="appearance">外观</string>
+    <string name="follow_the_system">跟随系统</string>
+    <string name="light_mode">亮色模式</string>
+    <string name="dark_mode">暗色模式</string>
+
+    <string name="toolkit_expand">ToolKit拓展</string>
+    <string name="enable_extended_options">启用拓展选项</string>
+    <string name="enable_garbage_code_generation_option">启用垃圾代码生成选项</string>
+
+    <string name="about">关于</string>
+    <string name="application_name">应用名称</string>
+    <string name="application_version">应用版本</string>
+    <string name="application_description">应用描述</string>
+    <string name="application_copyright">应用版权</string>
+    <string name="application_author">应用作者</string>
+    <string name="open_source_agreement">开源协议</string>
+    <string name="github">GitHub</string>
+    <string name="author">Author</string>
+    <string name="license">License</string>
 </resources>

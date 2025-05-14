@@ -55,9 +55,35 @@ import model.DarkThemeConfig
 import model.DestStoreSize
 import model.DestStoreType
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.BuildConfig
 import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.about
+import org.tool.kit.composeapp.generated.resources.apk_signature
+import org.tool.kit.composeapp.generated.resources.appearance
+import org.tool.kit.composeapp.generated.resources.application_author
+import org.tool.kit.composeapp.generated.resources.application_copyright
+import org.tool.kit.composeapp.generated.resources.application_description
+import org.tool.kit.composeapp.generated.resources.application_name
+import org.tool.kit.composeapp.generated.resources.application_version
+import org.tool.kit.composeapp.generated.resources.author
+import org.tool.kit.composeapp.generated.resources.conventional
+import org.tool.kit.composeapp.generated.resources.default_output_path
+import org.tool.kit.composeapp.generated.resources.delete_repeat_file
+import org.tool.kit.composeapp.generated.resources.delete_repeat_file_tips
+import org.tool.kit.composeapp.generated.resources.enable_file_alignment
+import org.tool.kit.composeapp.generated.resources.enable_file_alignment_tips
+import org.tool.kit.composeapp.generated.resources.github
 import org.tool.kit.composeapp.generated.resources.icon
+import org.tool.kit.composeapp.generated.resources.license
+import org.tool.kit.composeapp.generated.resources.open_source_agreement
+import org.tool.kit.composeapp.generated.resources.signature_generation
+import org.tool.kit.composeapp.generated.resources.signature_suffix
+import org.tool.kit.composeapp.generated.resources.signature_suffix_tips
+import org.tool.kit.composeapp.generated.resources.target_key_size
+import org.tool.kit.composeapp.generated.resources.target_key_size_tips
+import org.tool.kit.composeapp.generated.resources.target_key_type
+import org.tool.kit.composeapp.generated.resources.target_key_type_tips
 import theme.AppTheme
 import vm.MainViewModel
 import java.awt.Desktop
@@ -120,7 +146,7 @@ private fun ApkSignatureSetUp(
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
             Text(
-                "APK签名",
+                text = stringResource(Res.string.apk_signature),
                 modifier = Modifier.padding(horizontal = 16.dp),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium
@@ -128,7 +154,7 @@ private fun ApkSignatureSetUp(
             Spacer(Modifier.size(20.dp))
             StringInput(
                 value = signerSuffix,
-                label = "签名后缀",
+                label = stringResource(Res.string.signature_suffix),
                 isError = userData.defaultSignerSuffix.isBlank(),
                 onValueChange = { suffix ->
                     signerSuffix = suffix
@@ -136,7 +162,7 @@ private fun ApkSignatureSetUp(
                 })
             Spacer(Modifier.size(3.dp))
             Text(
-                "签名后缀： Apk签名后输出名称（比如：输入Apk名称为apk_unsign.apk，则输入Apk名称为apk_unsign${userData.defaultSignerSuffix}.apk）",
+                text = stringResource(Res.string.signature_suffix_tips, userData.defaultSignerSuffix),
                 modifier = Modifier.padding(horizontal = 24.dp),
                 style = MaterialTheme.typography.labelSmall
             )
@@ -145,10 +171,12 @@ private fun ApkSignatureSetUp(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("输出文件重复是否删除重复文件", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = stringResource(Res.string.delete_repeat_file), style = MaterialTheme.typography.bodyLarge
+                    )
                     AnimatedVisibility(!userData.duplicateFileRemoval) {
                         Text(
-                            "注意：输出文件重复后无法成功签名，会提示输出文件已存在",
+                            text = stringResource(Res.string.delete_repeat_file_tips),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.labelSmall
                         )
@@ -163,10 +191,13 @@ private fun ApkSignatureSetUp(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("启用文件对齐", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = stringResource(Res.string.enable_file_alignment),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                     AnimatedVisibility(!userData.alignFileSize) {
                         Text(
-                            "注意：目标 R+（版本 30 及更高版本）要求已安装 APK 内的文件未压缩存储并在 4 字节边界上对齐",
+                            text = stringResource(Res.string.enable_file_alignment_tips),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.labelSmall
                         )
@@ -190,7 +221,7 @@ private fun KeyStore(viewModel: MainViewModel) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
             Text(
-                "签名生成",
+                text = stringResource(Res.string.signature_generation),
                 modifier = Modifier.padding(horizontal = 16.dp),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium
@@ -202,10 +233,13 @@ private fun KeyStore(viewModel: MainViewModel) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1.6f)) {
-                    Text("目标密钥类型", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = stringResource(Res.string.target_key_type),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                     AnimatedVisibility(userData.destStoreType == DestStoreType.JKS) {
                         Text(
-                            text = "注意：JKS 密钥库使用专用格式。建议使用行业标准格式 PKCS12。",
+                            text = stringResource(Res.string.target_key_type_tips),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.labelSmall,
                         )
@@ -236,10 +270,13 @@ private fun KeyStore(viewModel: MainViewModel) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1.6f)) {
-                    Text("目标密钥大小", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        text = stringResource(Res.string.target_key_size),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                     AnimatedVisibility(userData.destStoreSize == DestStoreSize.ONE_THOUSAND_TWENTY_FOUR) {
                         Text(
-                            text = "注意：生成的证书 使用的 1024 位 RSA 密钥 被视为存在安全风险。此密钥大小将在未来的更新中被禁用。",
+                            text = stringResource(Res.string.target_key_size_tips),
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.labelSmall,
                         )
@@ -283,26 +320,32 @@ private fun Conventional(
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
             Text(
-                "常规",
+                text = stringResource(Res.string.conventional),
                 modifier = Modifier.padding(horizontal = 16.dp),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.size(12.dp))
-            FolderInput(value = outputPath, label = "默认输出路径", isError = outPutError, onValueChange = { path ->
-                outputPath = path
-                viewModel.apply {
-                    saveUserData(userData.copy(defaultOutputPath = path))
-                    updateApkSignature(viewModel.apkSignatureState.copy(outputPath = outputPath))
-                    updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePath = outputPath))
-                    updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = outputPath))
-                    updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = outputPath))
-                }
-            })
+            FolderInput(
+                value = outputPath,
+                label = stringResource(Res.string.default_output_path),
+                isError = outPutError,
+                onValueChange = { path ->
+                    outputPath = path
+                    viewModel.apply {
+                        saveUserData(userData.copy(defaultOutputPath = path))
+                        updateApkSignature(viewModel.apkSignatureState.copy(outputPath = outputPath))
+                        updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePath = outputPath))
+                        updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = outputPath))
+                        updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = outputPath))
+                    }
+                })
             Spacer(Modifier.size(18.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    "外观", modifier = Modifier.padding(start = 24.dp), style = MaterialTheme.typography.bodyLarge
+                    text = stringResource(Res.string.appearance),
+                    modifier = Modifier.padding(start = 24.dp),
+                    style = MaterialTheme.typography.bodyLarge
                 )
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)
@@ -315,7 +358,7 @@ private fun Conventional(
                             onClick = { viewModel.saveThemeConfig(theme) },
                             label = {
                                 Text(
-                                    theme.value,
+                                    text = stringResource(theme.resource),
                                     textAlign = TextAlign.End,
                                     modifier = Modifier.fillMaxWidth().padding(8.dp)
                                 )
@@ -357,9 +400,7 @@ private fun DeveloperMode(viewModel: MainViewModel) {
             ) {
                 Text("启用拓展选项", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                 Switch(
-                    checked = developerMode,
-                    onCheckedChange = { viewModel.saveDeveloperMode(!developerMode) }
-                )
+                    checked = developerMode, onCheckedChange = { viewModel.saveDeveloperMode(!developerMode) })
             }
             Row(
                 modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 4.dp),
@@ -367,9 +408,7 @@ private fun DeveloperMode(viewModel: MainViewModel) {
             ) {
                 Text("启用垃圾代码生成选项", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                 Switch(
-                    checked = junkCode,
-                    onCheckedChange = { viewModel.saveJunkCode(!junkCode) }
-                )
+                    checked = junkCode, onCheckedChange = { viewModel.saveJunkCode(!junkCode) })
             }
         }
     }
@@ -405,52 +444,85 @@ private fun About(viewModel: MainViewModel) {
         Column(Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
             Text(
-                "关于",
+                text = stringResource(Res.string.about),
                 modifier = Modifier.padding(horizontal = 16.dp),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.size(12.dp))
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("应用名称", style = MaterialTheme.typography.bodyLarge)
-                Text(BuildConfig.APP_NAME, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = stringResource(Res.string.application_name), style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
+                Text(
+                    text = BuildConfig.APP_NAME, style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
             }
             VersionInfo {
                 viewModel.saveDeveloperMode(true)
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("应用描述", style = MaterialTheme.typography.bodyLarge)
-                Text(BuildConfig.APP_DESCRIPTION, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = stringResource(Res.string.application_description),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
+                Text(
+                    text = BuildConfig.APP_DESCRIPTION, style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
             }
             Spacer(Modifier.size(4.dp))
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("应用版权", style = MaterialTheme.typography.bodyLarge)
-                Text(BuildConfig.APP_COPYRIGHT, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = stringResource(Res.string.application_copyright),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
+                Text(
+                    text = BuildConfig.APP_COPYRIGHT, style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
             }
             Spacer(Modifier.size(4.dp))
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("应用作者", style = MaterialTheme.typography.bodyLarge)
-                Text(BuildConfig.APP_VENDOR, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = stringResource(Res.string.application_author), style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
+                Text(
+                    text = BuildConfig.APP_VENDOR, style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
             }
             Spacer(Modifier.size(4.dp))
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("开源协议", style = MaterialTheme.typography.bodyLarge)
-                Text(BuildConfig.APP_LICENSE, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = stringResource(Res.string.open_source_agreement),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
+                Text(
+                    text = BuildConfig.APP_LICENSE, style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 8.dp),
+                )
             }
             Row(
                 modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 12.dp),
@@ -459,17 +531,17 @@ private fun About(viewModel: MainViewModel) {
                 Button(
                     onClick = { Desktop.getDesktop().browse(BuildConfig.APP_GITHUB_URI) },
                 ) {
-                    Text("GitHub")
+                    Text(text = stringResource(Res.string.github))
                 }
                 Button(
                     onClick = { Desktop.getDesktop().browse(BuildConfig.AUTHOR_GITHUB_URI) },
                 ) {
-                    Text("Author")
+                    Text(text = stringResource(Res.string.author))
                 }
                 Button(
                     onClick = { Desktop.getDesktop().browse(BuildConfig.APP_LICENSE_URI) },
                 ) {
-                    Text("License")
+                    Text(text = stringResource(Res.string.license))
                 }
             }
         }
@@ -479,37 +551,39 @@ private fun About(viewModel: MainViewModel) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun VersionInfo(
-    tapThreshold: Int = 2,
-    tapTimeoutMillis: Long = 1000,
-    onActivateDeveloperMode: () -> Unit
+    tapThreshold: Int = 2, tapTimeoutMillis: Long = 1000, onActivateDeveloperMode: () -> Unit
 ) {
     var tapCount by remember { mutableStateOf(0) }
     var lastTapTime by remember { mutableStateOf(0L) }
     val coroutineScope = rememberCoroutineScope()
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 24.dp, end = 16.dp, top = 4.dp, bottom = 4.dp)
-            .onClick {
-                val currentTime = System.currentTimeMillis()
-                if (currentTime - lastTapTime > tapTimeoutMillis) {
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp).onClick {
+            val currentTime = System.currentTimeMillis()
+            if (currentTime - lastTapTime > tapTimeoutMillis) {
+                tapCount = 0
+            }
+            lastTapTime = currentTime
+            tapCount++
+            if (tapCount >= tapThreshold) {
+                onActivateDeveloperMode()
+                tapCount = 0
+            } else {
+                coroutineScope.launch {
+                    delay(tapTimeoutMillis)
                     tapCount = 0
                 }
-                lastTapTime = currentTime
-                tapCount++
-                if (tapCount >= tapThreshold) {
-                    onActivateDeveloperMode()
-                    tapCount = 0
-                } else {
-                    coroutineScope.launch {
-                        delay(tapTimeoutMillis)
-                        tapCount = 0
-                    }
-                }
-            },
-        horizontalArrangement = Arrangement.SpaceBetween
+            }
+        }, horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text("应用版本", style = MaterialTheme.typography.bodyLarge)
-        Text(BuildConfig.APP_VERSION, style = MaterialTheme.typography.bodyMedium)
+        Text(
+            text = stringResource(Res.string.application_version),
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(horizontal = 8.dp),
+        )
+        Text(
+            text = BuildConfig.APP_VERSION,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 8.dp),
+        )
     }
 }

@@ -1,6 +1,11 @@
 package model
 
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.StringResource
+import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.dark_mode
+import org.tool.kit.composeapp.generated.resources.follow_the_system
+import org.tool.kit.composeapp.generated.resources.light_mode
 
 @Serializable
 data class UserData(
@@ -12,8 +17,10 @@ data class UserData(
     val destStoreSize: DestStoreSize, // 目标密钥大小
 )
 
-enum class DarkThemeConfig(val value: String) {
-    FOLLOW_SYSTEM("跟随系统"), LIGHT("亮色模式"), DARK("暗色模式"),
+enum class DarkThemeConfig(val resource: StringResource) {
+    FOLLOW_SYSTEM(Res.string.follow_the_system),
+    LIGHT(Res.string.light_mode),
+    DARK(Res.string.dark_mode)
 }
 
 enum class DestStoreSize(val size: Int) {

@@ -105,4 +105,40 @@
     <string name="junk_package_name">Package Name</string>
     <string name="suffix">Suffix</string>
     <string name="start_generating">Start Generating</string>
+
+    <string name="apk_signature">APK Signature</string>
+    <string name="signature_suffix">Signature Suffix</string>
+    <string name="signature_suffix_tips">Signature Suffix: The output name of the Apk after signing (for example, if the input Apk name is apk_unsign.apk, then the input Apk name is apk_unsign%1$s.apk</string>
+    <string name="delete_repeat_file">Whether to delete output files with duplicate names</string>
+    <string name="delete_repeat_file_tips">Note: If the output file has the same name, it cannot be signed successfully, and the system will prompt that the output file already exists.</string>
+    <string name="enable_file_alignment">Enable File Alignment</string>
+    <string name="enable_file_alignment_tips">Note: Target R+ (version 30 and higher) requires that files within the installed APK be stored uncompressed and aligned on 4-byte boundaries.</string>
+
+    <string name="signature_generation">Signature Generation</string>
+    <string name="target_key_type">Target Key Type</string>
+    <string name="target_key_type_tips">Note: JKS keystores use a proprietary format. The industry standard format PKCS12 is recommended.</string>
+    <string name="target_key_size">Target Key Size</string>
+    <string name="target_key_size_tips">Note: The generated certificates use 1024-bit RSA keys which are considered a security risk. This key size will be disabled in a future update.</string>
+
+    <string name="conventional">Conventional</string>
+    <string name="default_output_path">Default Output Path</string>
+    <string name="appearance">Appearance</string>
+    <string name="follow_the_system">Auto</string>
+    <string name="light_mode">Light</string>
+    <string name="dark_mode">Dark</string>
+
+    <string name="toolkit_expand">ToolKit Expand</string>
+    <string name="enable_extended_options">Enable Extended Options</string>
+    <string name="enable_garbage_code_generation_option">Enable garbage code generation option</string>
+
+    <string name="about">About</string>
+    <string name="application_name">Application Name</string>
+    <string name="application_version">Application Version</string>
+    <string name="application_description">Application Description</string>
+    <string name="application_copyright">Application Copyright</string>
+    <string name="application_author">App Author</string>
+    <string name="open_source_agreement">Open Source Agreement</string>
+    <string name="github">GitHub</string>
+    <string name="author">Author</string>
+    <string name="license">License</string>
 </resources>
