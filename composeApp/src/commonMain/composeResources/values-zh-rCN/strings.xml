@@ -156,4 +156,30 @@
     <string name="key_alias_password">别名密码</string>
     <string name="create_key_store">创建密钥库</string>
     <string name="confirm_password">确认密码</string>
+
+    <string name="upload_apk_signature_file">上传(APK/签名)文件</string>
+    <string name="copy_md5">复制MD5、SHA1和SHA-256</string>
+    <string name="quick_copy">快捷复制</string>
+    <string name="password_verification">密钥库密码验证</string>
+    <string name="wrong_key_store_password">密钥库密码错误</string>
+    <string name="confirm">确认</string>
+
+    <string name="toolkit_extension_mode_is_enabled">已开启ToolKit扩展模式</string>
+    <string name="output_file_already_exists">输出文件已存在：%1$s</string>
+    <string name="apk_is_signed_successfully">APK签名成功，点击跳转至已签名文件</string>
+    <string name="jump">跳转</string>
+    <string name="signature_failed">签名失败，请联系开发者排查问题</string>
+    <string name="exec_command_error">执行命令出现错误</string>
+    <string name="apk_parsing_failed">APK解析失败</string>
+    <string name="create_signature_successfully">创建签名成功，点击跳转至签名文件</string>
+    <string name="signature_creation_failed">签名制作失败，请检查输入项是否合法。</string>
+    <string name="signature_verification_failed">签名验证失败</string>
+    <string name="apk_signature_verification_failed">APK签名验证失败</string>
+    <string name="build_end">构建结束：成功，文件大小：%1$s，点击跳转至构建文件</string>
+    <string name="build_failure">构建失败</string>
+    <string name="icon_creation_failed">图标制作失败</string>
+    <string name="icon_generation_completed">图标生成完成。点击跳转至输出目录</string>
+    <string name="scanning_anomalies">未扫描到缓存目录</string>
+    <string name="cleanup_complete">清理完成，已为您清理%1$s</string>
+    <string name="file_deletion_exception">%1$d个文件删除异常</string>
 </resources>

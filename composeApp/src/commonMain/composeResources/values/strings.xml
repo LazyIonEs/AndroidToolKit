@@ -156,4 +156,30 @@
     <string name="key_alias_password">Alias Password</string>
     <string name="create_key_store">Create Key Store</string>
     <string name="confirm_password">Confirm Password</string>
+
+    <string name="upload_apk_signature_file">Upload APK/Signature File</string>
+    <string name="copy_md5">Copy MD5, SHA1, and SHA-256</string>
+    <string name="quick_copy">Quick Copy</string>
+    <string name="password_verification">Password Verification</string>
+    <string name="wrong_key_store_password">Wrong key store password</string>
+    <string name="confirm">Confirm</string>
+
+    <string name="toolkit_extension_mode_is_enabled">ToolKit extension mode is enabled</string>
+    <string name="output_file_already_exists">Output file already exists: %1$s</string>
+    <string name="apk_is_signed_successfully">APK is signed successfully, click to jump to the signed file</string>
+    <string name="jump">Jump</string>
+    <string name="signature_failed">Signing failed, please contact the developer to troubleshoot the problem</string>
+    <string name="exec_command_error">An error occurred while executing the command</string>
+    <string name="apk_parsing_failed">APK parsing failed</string>
+    <string name="create_signature_successfully">The signature is created successfully, click to jump to the signature file</string>
+    <string name="signature_creation_failed">Signature creation failed, please check whether the input items are legal.</string>
+    <string name="signature_verification_failed">Signature verification failed</string>
+    <string name="apk_signature_verification_failed">APK signature verification failed</string>
+    <string name="build_end">Build completed: Success, file size: %1$s, click to jump to the build file</string>
+    <string name="build_failure">Build failure</string>
+    <string name="icon_creation_failed">Icon creation failed</string>
+    <string name="icon_generation_completed">The icon generation is complete. Click to jump to the output directory</string>
+    <string name="scanning_anomalies">The cache directory was not scanned.</string>
+    <string name="cleanup_complete">Cleaning completed, %1$s has been cleaned for you</string>
+    <string name="file_deletion_exception">%1$d files deleted abnormally</string>
 </resources>
