@@ -185,7 +185,7 @@ fun FileInput(
             onValueChange = onValueChange,
         )
         SmallFloatingActionButton(onClick = { launcher.launch() }) {
-            Icon(Icons.Rounded.FolderOpen, "选择文件")
+            Icon(Icons.Rounded.FolderOpen, "FolderOpen")
         }
     }
 }
@@ -213,7 +213,7 @@ fun FolderInput(value: String, label: String, isError: Boolean, onValueChange: (
             onValueChange(directory?.path ?: return@rememberDirectoryPickerLauncher)
         }
         SmallFloatingActionButton(onClick = { launcher.launch() }) {
-            Icon(Icons.Rounded.FolderOpen, "选择文件夹")
+            Icon(Icons.Rounded.FolderOpen, "FolderOpen")
         }
     }
 }

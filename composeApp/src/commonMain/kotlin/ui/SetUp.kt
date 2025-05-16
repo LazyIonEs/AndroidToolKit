@@ -71,8 +71,10 @@ import org.tool.kit.composeapp.generated.resources.conventional
 import org.tool.kit.composeapp.generated.resources.default_output_path
 import org.tool.kit.composeapp.generated.resources.delete_repeat_file
 import org.tool.kit.composeapp.generated.resources.delete_repeat_file_tips
+import org.tool.kit.composeapp.generated.resources.enable_extended_options
 import org.tool.kit.composeapp.generated.resources.enable_file_alignment
 import org.tool.kit.composeapp.generated.resources.enable_file_alignment_tips
+import org.tool.kit.composeapp.generated.resources.enable_garbage_code_generation_option
 import org.tool.kit.composeapp.generated.resources.github
 import org.tool.kit.composeapp.generated.resources.icon
 import org.tool.kit.composeapp.generated.resources.license
@@ -84,6 +86,7 @@ import org.tool.kit.composeapp.generated.resources.target_key_size
 import org.tool.kit.composeapp.generated.resources.target_key_size_tips
 import org.tool.kit.composeapp.generated.resources.target_key_type
 import org.tool.kit.composeapp.generated.resources.target_key_type_tips
+import org.tool.kit.composeapp.generated.resources.toolkit_expand
 import theme.AppTheme
 import vm.MainViewModel
 import java.awt.Desktop
@@ -234,8 +237,7 @@ private fun KeyStore(viewModel: MainViewModel) {
             ) {
                 Column(modifier = Modifier.weight(1.6f)) {
                     Text(
-                        text = stringResource(Res.string.target_key_type),
-                        style = MaterialTheme.typography.bodyLarge
+                        text = stringResource(Res.string.target_key_type), style = MaterialTheme.typography.bodyLarge
                     )
                     AnimatedVisibility(userData.destStoreType == DestStoreType.JKS) {
                         Text(
@@ -271,8 +273,7 @@ private fun KeyStore(viewModel: MainViewModel) {
             ) {
                 Column(modifier = Modifier.weight(1.6f)) {
                     Text(
-                        text = stringResource(Res.string.target_key_size),
-                        style = MaterialTheme.typography.bodyLarge
+                        text = stringResource(Res.string.target_key_size), style = MaterialTheme.typography.bodyLarge
                     )
                     AnimatedVisibility(userData.destStoreSize == DestStoreSize.ONE_THOUSAND_TWENTY_FOUR) {
                         Text(
@@ -389,7 +390,7 @@ private fun DeveloperMode(viewModel: MainViewModel) {
         Column(Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
             Text(
-                "ToolKit拓展",
+                text = stringResource(Res.string.toolkit_expand),
                 modifier = Modifier.padding(horizontal = 16.dp),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium
@@ -398,7 +399,11 @@ private fun DeveloperMode(viewModel: MainViewModel) {
                 modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("启用拓展选项", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                Text(
+                    text = stringResource(Res.string.enable_extended_options),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f)
+                )
                 Switch(
                     checked = developerMode, onCheckedChange = { viewModel.saveDeveloperMode(!developerMode) })
             }
@@ -406,7 +411,11 @@ private fun DeveloperMode(viewModel: MainViewModel) {
                 modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 4.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("启用垃圾代码生成选项", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                Text(
+                    text = stringResource(Res.string.enable_garbage_code_generation_option),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f)
+                )
                 Switch(
                     checked = junkCode, onCheckedChange = { viewModel.saveJunkCode(!junkCode) })
             }

@@ -141,4 +141,19 @@
     <string name="github">GitHub</string>
     <string name="author">Author</string>
     <string name="license">License</string>
+
+    <string name="key_output_path">Key Output Path</string>
+    <string name="key_file_name">Key File Name</string>
+    <string name="key">Key</string>
+    <string name="validity_period_unit_year">Validity (years)</string>
+    <string name="certificate">证书</string>
+    <string name="first_and_last_name">First and Last Name</string>
+    <string name="organizational_unit">Organizational Unit</string>
+    <string name="organization">Organization</string>
+    <string name="city_or_locality">City or Locality</string>
+    <string name="state_or_province">State or Province</string>
+    <string name="country_code">Country Code (XX)</string>
+    <string name="key_alias_password">Alias Password</string>
+    <string name="create_key_store">Create Key Store</string>
+    <string name="confirm_password">Confirm Password</string>
 </resources>
