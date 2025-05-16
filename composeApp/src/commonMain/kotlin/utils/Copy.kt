@@ -1,5 +1,7 @@
 package utils
 
+import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.copied_to_clipboard
 import vm.MainViewModel
 import java.awt.Toolkit
 import java.awt.datatransfer.Clipboard
@@ -14,7 +16,7 @@ import java.awt.datatransfer.StringSelection
 
 fun copy(value: String, viewModel: MainViewModel) {
     copy(value)
-    viewModel.updateSnackbarVisuals("已复制到剪切板")
+    viewModel.updateSnackbarVisuals(Res.string.copied_to_clipboard)
 }
 
 /**

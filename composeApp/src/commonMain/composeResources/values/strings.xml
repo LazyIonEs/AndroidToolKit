@@ -182,4 +182,5 @@
     <string name="scanning_anomalies">The cache directory was not scanned.</string>
     <string name="cleanup_complete">Cleaning completed, %1$s has been cleaned for you</string>
     <string name="file_deletion_exception">%1$d files deleted abnormally</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
 </resources>

@@ -182,4 +182,5 @@
     <string name="scanning_anomalies">未扫描到缓存目录</string>
     <string name="cleanup_complete">清理完成，已为您清理%1$s</string>
     <string name="file_deletion_exception">%1$d个文件删除异常</string>
+    <string name="copied_to_clipboard">已复制到剪切板</string>
 </resources>
