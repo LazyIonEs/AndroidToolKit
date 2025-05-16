@@ -96,6 +96,7 @@
     <string name="png_scaling_algorithm">PNG scaling Algorithm</string>
     <string name="jpeg_scaling_algorithm">JPEG scaling Algorithm</string>
     <string name="upload_image">Upload Image</string>
+    <string name="start_making">Start Making</string>
 
     <string name="aar_output_path">AAR Output Path</string>
     <string name="aar_name">AAR Name</string>

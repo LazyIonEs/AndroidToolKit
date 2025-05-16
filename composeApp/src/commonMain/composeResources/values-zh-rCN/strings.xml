@@ -96,6 +96,7 @@
     <string name="png_scaling_algorithm">PNG 缩放算法</string>
     <string name="jpeg_scaling_algorithm">JPEG 缩放算法</string>
     <string name="upload_image">上传图片</string>
+    <string name="start_making">开始制作</string>
 
     <string name="aar_output_path">AAR输出路径</string>
     <string name="aar_name">AAR 名称</string>

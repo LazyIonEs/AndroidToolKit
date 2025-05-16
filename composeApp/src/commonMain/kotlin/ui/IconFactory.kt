@@ -85,30 +85,31 @@ import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.ZCOOLKuaiLe_Regular
+import org.tool.kit.composeapp.generated.resources.android_directory
 import org.tool.kit.composeapp.generated.resources.check_error
+import org.tool.kit.composeapp.generated.resources.close
+import org.tool.kit.composeapp.generated.resources.compress_custom
+import org.tool.kit.composeapp.generated.resources.compression_speed
+import org.tool.kit.composeapp.generated.resources.crazy
+import org.tool.kit.composeapp.generated.resources.expand
+import org.tool.kit.composeapp.generated.resources.external_directory_name
+import org.tool.kit.composeapp.generated.resources.fast
 import org.tool.kit.composeapp.generated.resources.icon_factory_describe
 import org.tool.kit.composeapp.generated.resources.icon_factory_title
-import org.tool.kit.composeapp.generated.resources.let_go
-import org.tool.kit.composeapp.generated.resources.upload_image
-import org.tool.kit.composeapp.generated.resources.more_settings
-import org.tool.kit.composeapp.generated.resources.icon_output_path
 import org.tool.kit.composeapp.generated.resources.icon_name
-import org.tool.kit.composeapp.generated.resources.close
-import org.tool.kit.composeapp.generated.resources.expand
-import org.tool.kit.composeapp.generated.resources.compress_custom
+import org.tool.kit.composeapp.generated.resources.icon_output_path
+import org.tool.kit.composeapp.generated.resources.jpeg_quality
+import org.tool.kit.composeapp.generated.resources.jpeg_scaling_algorithm
+import org.tool.kit.composeapp.generated.resources.let_go
 import org.tool.kit.composeapp.generated.resources.lossless_compression
 import org.tool.kit.composeapp.generated.resources.lossy_compression
-import org.tool.kit.composeapp.generated.resources.compression_speed
-import org.tool.kit.composeapp.generated.resources.fast
-import org.tool.kit.composeapp.generated.resources.crazy
-import org.tool.kit.composeapp.generated.resources.external_directory_name
-import org.tool.kit.composeapp.generated.resources.android_directory
-import org.tool.kit.composeapp.generated.resources.png_quality
 import org.tool.kit.composeapp.generated.resources.minimum
-import org.tool.kit.composeapp.generated.resources.target
-import org.tool.kit.composeapp.generated.resources.jpeg_quality
+import org.tool.kit.composeapp.generated.resources.more_settings
+import org.tool.kit.composeapp.generated.resources.png_quality
 import org.tool.kit.composeapp.generated.resources.png_scaling_algorithm
-import org.tool.kit.composeapp.generated.resources.jpeg_scaling_algorithm
+import org.tool.kit.composeapp.generated.resources.start_making
+import org.tool.kit.composeapp.generated.resources.target
+import org.tool.kit.composeapp.generated.resources.upload_image
 import utils.LottieAnimation
 import utils.isImage
 import utils.update
@@ -230,7 +231,7 @@ private fun IconFactoryPreview(
                     }
                     viewModel.iconGeneration(icon?.absolutePath ?: return@Button)
                 }) {
-                    Text("开始制作")
+                    Text(text = stringResource(Res.string.start_making))
                 }
             }
         }
