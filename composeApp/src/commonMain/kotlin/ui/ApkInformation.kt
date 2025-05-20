@@ -5,7 +5,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -16,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.onClick
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,29 +28,39 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asSkiaBitmap
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.rememberWindowState
+import coil3.compose.AsyncImage
+import com.github.panpf.zoomimage.CoilZoomAsyncImage
 import kotlinx.coroutines.CoroutineScope
 import model.ApkInformation
 import model.DarkThemeConfig
 import model.FileSelectorType
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.composeapp.generated.resources.ABIs
-import org.tool.kit.composeapp.generated.resources.permissions
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.app_name
 import org.tool.kit.composeapp.generated.resources.compile_sdk_version
 import org.tool.kit.composeapp.generated.resources.file_md5
+import org.tool.kit.composeapp.generated.resources.icon
 import org.tool.kit.composeapp.generated.resources.let_go
 import org.tool.kit.composeapp.generated.resources.minimum_sdk_version
 import org.tool.kit.composeapp.generated.resources.package_name
+import org.tool.kit.composeapp.generated.resources.permissions
 import org.tool.kit.composeapp.generated.resources.size
 import org.tool.kit.composeapp.generated.resources.target_sdk_version
 import org.tool.kit.composeapp.generated.resources.upload_apk
 import org.tool.kit.composeapp.generated.resources.version
 import org.tool.kit.composeapp.generated.resources.version_code
+import theme.AppTheme
 import utils.LottieAnimation
 import utils.copy
 import utils.formatFileSize
+import utils.getImageRequest
 import utils.isApk
 import vm.MainViewModel
 import vm.UIState
@@ -130,6 +140,7 @@ private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ApkInformationBox(
     viewModel: MainViewModel
@@ -182,11 +193,35 @@ private fun ApkInformationBox(
                             PermissionsList(apkInformation.usesPermissionList)
                         }
                     }
-                    apkInformation.icon?.let { imageBitmap ->
-                        Image(
-                            bitmap = imageBitmap,
-                            contentDescription = "Apk Icon",
-                            modifier = Modifier.padding(top = 6.dp, end = 18.dp).align(Alignment.TopEnd).size(128.dp)
+                    apkInformation.icon?.let { image ->
+                        var isOpenImage by remember { mutableStateOf(false) }
+                        if (isOpenImage) {
+                            val windowState = rememberWindowState(size = DpSize(450.dp, 450.dp))
+                            Window(
+                                onCloseRequest = { isOpenImage = false },
+                                state = windowState,
+                                title = "Zoom Image",
+                                icon = painterResource(Res.drawable.icon),
+                                alwaysOnTop = true
+                            ) {
+                                AppTheme(isSystemInDarkTheme()) {
+                                    CoilZoomAsyncImage(
+                                        model = getImageRequest(image.asSkiaBitmap()),
+                                        contentDescription = "zoom image",
+                                        modifier = Modifier.fillMaxSize(),
+                                    )
+                                }
+                            }
+                        }
+                        AsyncImage(
+                            model = getImageRequest(image.asSkiaBitmap()),
+                            contentDescription = "app icon",
+                            modifier = Modifier.align(Alignment.TopEnd)
+                                .padding(top = 6.dp, end = 18.dp)
+                                .size(128.dp)
+                                .onClick {
+                                    isOpenImage = !isOpenImage
+                                }
                         )
                     }
                 }

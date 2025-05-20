@@ -21,6 +21,8 @@ kotlinx-datetime = "0.6.2"
 about-libraries = "12.1.2"
 hot-reload = "1.0.0-alpha10"
 foojay = "0.10.0"
+coil = "3.2.0"
+zoomimage = "1.2.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -68,6 +70,10 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 # https://github.com/mikepenz/AboutLibraries
 about-libraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "about-libraries" }
 about-libraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "about-libraries" }
+# https://github.com/coil-kt/coil
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+# https://github.com/panpf/zoomimage
+zoomimage-compose-coil3 = { module = "io.github.panpf.zoomimage:zoomimage-compose-coil3", version.ref = "zoomimage" }
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

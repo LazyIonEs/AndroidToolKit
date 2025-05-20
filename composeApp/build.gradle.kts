@@ -105,6 +105,8 @@ kotlin {
             runtimeOnly(libs.kotlinx.coroutines.swing)
             implementation(libs.about.libraries.core)
             implementation(libs.about.libraries.compose.m3)
+            implementation(libs.coil.compose)
+            implementation(libs.zoomimage.compose.coil3)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)

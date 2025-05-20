@@ -12,7 +12,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -73,6 +72,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import constant.ConfigConstant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -81,7 +81,6 @@ import model.FileSelectorType
 import model.IconFactoryData
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.Font
-import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.ZCOOLKuaiLe_Regular
@@ -111,6 +110,7 @@ import org.tool.kit.composeapp.generated.resources.start_making
 import org.tool.kit.composeapp.generated.resources.target
 import org.tool.kit.composeapp.generated.resources.upload_image
 import utils.LottieAnimation
+import utils.getImageRequest
 import utils.isImage
 import utils.update
 import vm.MainViewModel
@@ -176,8 +176,11 @@ private fun IconFactoryPreview(
             Crossfade(targetState = icon, modifier = Modifier.weight(1.5f), content = { icon ->
                 icon?.let {
                     Box(modifier = Modifier.size(256.dp), contentAlignment = Alignment.Center) {
-                        val bitmap = icon.inputStream().readAllBytes().decodeToImageBitmap()
-                        Image(bitmap = bitmap, contentDescription = "预览图标", modifier = Modifier.size(192.dp))
+                        AsyncImage(
+                            model = getImageRequest(icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(192.dp)
+                        )
                     }
                 } ?: let {
                     val themeConfig by viewModel.themeConfig.collectAsState()
@@ -282,9 +285,10 @@ private fun IconFactoryResult(viewModel: MainViewModel) {
 private fun IconFactoryResultPlaceholder(resultFile: File?, title: String, size: Int) {
     Crossfade(targetState = resultFile) { file ->
         if (file != null && file.exists()) {
-            val bitmap = file.inputStream().readAllBytes().decodeToImageBitmap()
-            Image(
-                bitmap = bitmap, contentDescription = "Icon", modifier = Modifier.size(size.dp)
+            AsyncImage(
+                model = getImageRequest(file),
+                contentDescription = null,
+                modifier = Modifier.size(size.dp)
             )
         } else {
             Card(modifier = Modifier.size(size.dp)) {
