@@ -14,17 +14,19 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.onClick
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Done
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SegmentedButton
@@ -79,6 +81,7 @@ import org.tool.kit.composeapp.generated.resources.github
 import org.tool.kit.composeapp.generated.resources.icon
 import org.tool.kit.composeapp.generated.resources.license
 import org.tool.kit.composeapp.generated.resources.open_source_agreement
+import org.tool.kit.composeapp.generated.resources.open_source_licenses
 import org.tool.kit.composeapp.generated.resources.signature_generation
 import org.tool.kit.composeapp.generated.resources.signature_suffix
 import org.tool.kit.composeapp.generated.resources.signature_suffix_tips
@@ -425,13 +428,13 @@ private fun DeveloperMode(viewModel: MainViewModel) {
 
 @Composable
 private fun About(viewModel: MainViewModel) {
-    var isOpen by remember { mutableStateOf(false) }
-    if (isOpen) {
+    var isOpenLibraries by remember { mutableStateOf(false) }
+    if (isOpenLibraries) {
         val windowState = rememberWindowState(size = DpSize(600.dp, 600.dp))
         Window(
-            onCloseRequest = { isOpen = false },
+            onCloseRequest = { isOpenLibraries = false },
             state = windowState,
-            title = "Third-Party Software Used by AndroidToolKit",
+            title = "Open Source Licenses",
             icon = painterResource(Res.drawable.icon),
             alwaysOnTop = true
         ) {
@@ -458,100 +461,27 @@ private fun About(viewModel: MainViewModel) {
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium
             )
-            Spacer(Modifier.size(12.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(Res.string.application_name), style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
-                Text(
-                    text = BuildConfig.APP_NAME, style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
-            }
+            Spacer(Modifier.size(8.dp))
+            TextAbout(title = stringResource(Res.string.application_name), value = BuildConfig.APP_NAME)
             VersionInfo {
                 viewModel.saveDeveloperMode(true)
             }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(Res.string.application_description),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
-                Text(
-                    text = BuildConfig.APP_DESCRIPTION, style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
+            TextAbout(title = stringResource(Res.string.application_description), value = BuildConfig.APP_DESCRIPTION)
+            TextAbout(title = stringResource(Res.string.application_copyright), value = BuildConfig.APP_COPYRIGHT)
+            TextAbout(title = stringResource(Res.string.application_author), value = BuildConfig.APP_VENDOR)
+            TextAbout(title = stringResource(Res.string.open_source_agreement), value = BuildConfig.APP_LICENSE)
+            HorizontalDivider(modifier = Modifier.padding(start = 16.dp, end = 16.dp,top = 8.dp, bottom = 8.dp), thickness = 2.dp)
+            ClickABout(text = stringResource(Res.string.github)) {
+                Desktop.getDesktop().browse(BuildConfig.APP_GITHUB_URI)
             }
-            Spacer(Modifier.size(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(Res.string.application_copyright),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
-                Text(
-                    text = BuildConfig.APP_COPYRIGHT, style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
+            ClickABout(text = stringResource(Res.string.author)) {
+                Desktop.getDesktop().browse(BuildConfig.AUTHOR_GITHUB_URI)
             }
-            Spacer(Modifier.size(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(Res.string.application_author), style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
-                Text(
-                    text = BuildConfig.APP_VENDOR, style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
+            ClickABout(text = stringResource(Res.string.license)) {
+                Desktop.getDesktop().browse(BuildConfig.APP_LICENSE_URI)
             }
-            Spacer(Modifier.size(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = stringResource(Res.string.open_source_agreement),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
-                Text(
-                    text = BuildConfig.APP_LICENSE, style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 8.dp),
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Button(
-                    onClick = { Desktop.getDesktop().browse(BuildConfig.APP_GITHUB_URI) },
-                ) {
-                    Text(text = stringResource(Res.string.github))
-                }
-                Button(
-                    onClick = { Desktop.getDesktop().browse(BuildConfig.AUTHOR_GITHUB_URI) },
-                ) {
-                    Text(text = stringResource(Res.string.author))
-                }
-                Button(
-                    onClick = { Desktop.getDesktop().browse(BuildConfig.APP_LICENSE_URI) },
-                ) {
-                    Text(text = stringResource(Res.string.license))
-                }
+            ClickABout(text = stringResource(Res.string.open_source_licenses)) {
+                isOpenLibraries = !isOpenLibraries
             }
         }
     }
@@ -566,7 +496,7 @@ fun VersionInfo(
     var lastTapTime by remember { mutableStateOf(0L) }
     val coroutineScope = rememberCoroutineScope()
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp).onClick {
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp).onClick {
             val currentTime = System.currentTimeMillis()
             if (currentTime - lastTapTime > tapTimeoutMillis) {
                 tapCount = 0
@@ -586,13 +516,58 @@ fun VersionInfo(
     ) {
         Text(
             text = stringResource(Res.string.application_version),
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.padding(horizontal = 8.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
         )
         Text(
             text = BuildConfig.APP_VERSION,
             style = MaterialTheme.typography.bodyMedium,
             modifier = Modifier.padding(horizontal = 8.dp),
         )
+    }
+}
+
+@Composable
+private fun TextAbout(title: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.End,
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp),
+        )
+    }
+}
+
+@Composable
+private fun ClickABout(text: String, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth().height(36.dp).padding(start = 16.dp, end = 8.dp, top = 3.dp, bottom = 3.dp),
+        onClick = onClick
+    ) {
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(horizontal = 8.dp),
+            )
+            Icon(
+                imageVector = Icons.Rounded.ChevronRight,
+                contentDescription = "ChevronRight",
+            )
+        }
     }
 }

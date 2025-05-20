@@ -142,6 +142,7 @@
     <string name="github">GitHub</string>
     <string name="author">Author</string>
     <string name="license">License</string>
+    <string name="open_source_licenses">Open Source Licenses</string>
 
     <string name="key_output_path">密钥输出路径</string>
     <string name="key_file_name">密钥文件名称</string>
