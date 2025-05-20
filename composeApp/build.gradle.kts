@@ -32,6 +32,8 @@ val isLinuxAarch64 = (properties.getOrDefault("isLinuxAarch64", "false") as Stri
 
 val rustGeneratedSource = "${layout.buildDirectory.get()}/generated/source/uniffi/main/org/tool/kit/kotlin"
 
+val aboutLibrariesSource = "src/commonMain/composeResources/files/aboutlibraries.json"
+
 group = "org.tool.kit"
 version = kitVersion
 
@@ -204,9 +206,10 @@ task("rustTasks") {
     runBuildRust()
 }
 
-tasks.getByName("compileKotlinDesktop").doLast {
-    runBuildRust()
-}
+tasks.getByName("compileKotlinDesktop").doLast { runBuildRust() }
+
+// 执行导出收集依赖项详细信息json文件
+tasks.getByName("copyNonXmlValueResourcesForCommonMain").dependsOn("exportLibraryDefinitions")
 
 buildConfig {
     className("BuildConfig")
@@ -316,7 +319,8 @@ fun getRustDestinyLibFile(): File {
     return destinyFile
 }
 
-fun getRustDestinyKtFile() = File(rustGeneratedSource + File.separator + "uniffi" + File.separator + "toolkit", "toolkit.kt")
+fun getRustDestinyKtFile() =
+    File(rustGeneratedSource + File.separator + "uniffi" + File.separator + "toolkit", "toolkit.kt")
 
 fun generateKotlinFromUdl() {
     providers.exec {
@@ -331,11 +335,8 @@ fun generateKotlinFromUdl() {
 }
 
 aboutLibraries {
-    android {
-        registerAndroidTasks = true
-    }
     export {
-        outputFile = file("src/commonMain/composeResources/files/aboutlibraries.json")
+        outputFile = file(aboutLibrariesSource)
     }
 }
 
