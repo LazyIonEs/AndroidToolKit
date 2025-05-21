@@ -545,7 +545,7 @@ private fun TextAbout(title: String, value: String) {
 @Composable
 private fun ClickABout(text: String, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 3.dp, bottom = 3.dp).height(36.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 1.dp, bottom = 1.dp).height(36.dp),
         onClick = onClick
     ) {
         Row(
