@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.onClick
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -172,13 +173,25 @@ private fun ApkInformationBox(
                             AppInfoItem(stringResource(Res.string.package_name), apkInformation.packageName, viewModel)
                         }
                         item {
-                            AppInfoItem(stringResource(Res.string.compile_sdk_version), apkInformation.compileSdkVersion, viewModel)
+                            AppInfoItem(
+                                stringResource(Res.string.compile_sdk_version),
+                                apkInformation.compileSdkVersion,
+                                viewModel
+                            )
                         }
                         item {
-                            AppInfoItem(stringResource(Res.string.minimum_sdk_version), apkInformation.minSdkVersion, viewModel)
+                            AppInfoItem(
+                                stringResource(Res.string.minimum_sdk_version),
+                                apkInformation.minSdkVersion,
+                                viewModel
+                            )
                         }
                         item {
-                            AppInfoItem(stringResource(Res.string.target_sdk_version), apkInformation.targetSdkVersion, viewModel)
+                            AppInfoItem(
+                                stringResource(Res.string.target_sdk_version),
+                                apkInformation.targetSdkVersion,
+                                viewModel
+                            )
                         }
                         item {
                             AppInfoItem(stringResource(Res.string.ABIs), apkInformation.nativeCode, viewModel)
@@ -187,7 +200,11 @@ private fun ApkInformationBox(
                             AppInfoItem(stringResource(Res.string.file_md5), apkInformation.md5, viewModel)
                         }
                         item {
-                            AppInfoItem(stringResource(Res.string.size), apkInformation.size.formatFileSize(scale = 1, withInterval = true), viewModel)
+                            AppInfoItem(
+                                stringResource(Res.string.size),
+                                apkInformation.size.formatFileSize(scale = 1, withInterval = true),
+                                viewModel
+                            )
                         }
                         item {
                             PermissionsList(apkInformation.usesPermissionList)
@@ -204,12 +221,20 @@ private fun ApkInformationBox(
                                 icon = painterResource(Res.drawable.icon),
                                 alwaysOnTop = true
                             ) {
-                                AppTheme(isSystemInDarkTheme()) {
-                                    CoilZoomAsyncImage(
-                                        model = getImageRequest(image.asSkiaBitmap()),
-                                        contentDescription = "zoom image",
-                                        modifier = Modifier.fillMaxSize(),
-                                    )
+                                val themeConfig by viewModel.themeConfig.collectAsState()
+                                val useDarkTheme = when (themeConfig) {
+                                    DarkThemeConfig.LIGHT -> false
+                                    DarkThemeConfig.DARK -> true
+                                    DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
+                                }
+                                AppTheme(useDarkTheme) {
+                                    Surface(color = MaterialTheme.colorScheme.background) {
+                                        CoilZoomAsyncImage(
+                                            model = getImageRequest(image.asSkiaBitmap()),
+                                            contentDescription = "zoom image",
+                                            modifier = Modifier.fillMaxSize(),
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -262,7 +287,9 @@ private fun PermissionsList(permissions: ArrayList<String>?) {
                 modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp)
             ) {
                 Text(
-                    stringResource(Res.string.permissions), modifier = Modifier.weight(1.2f), style = MaterialTheme.typography.titleMedium
+                    stringResource(Res.string.permissions),
+                    modifier = Modifier.weight(1.2f),
+                    style = MaterialTheme.typography.titleMedium
                 )
                 Column(
                     modifier = Modifier.weight(4f)

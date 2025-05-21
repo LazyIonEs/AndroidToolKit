@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -25,15 +26,19 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedFilterChip
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -49,8 +54,10 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.rememberWindowState
+import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.rememberLibraries
+import com.mikepenz.aboutlibraries.ui.compose.util.htmlReadyLicenseContent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import model.DarkThemeConfig
@@ -77,7 +84,6 @@ import org.tool.kit.composeapp.generated.resources.enable_extended_options
 import org.tool.kit.composeapp.generated.resources.enable_file_alignment
 import org.tool.kit.composeapp.generated.resources.enable_file_alignment_tips
 import org.tool.kit.composeapp.generated.resources.enable_garbage_code_generation_option
-import org.tool.kit.composeapp.generated.resources.github
 import org.tool.kit.composeapp.generated.resources.icon
 import org.tool.kit.composeapp.generated.resources.license
 import org.tool.kit.composeapp.generated.resources.open_source_agreement
@@ -85,6 +91,7 @@ import org.tool.kit.composeapp.generated.resources.open_source_licenses
 import org.tool.kit.composeapp.generated.resources.signature_generation
 import org.tool.kit.composeapp.generated.resources.signature_suffix
 import org.tool.kit.composeapp.generated.resources.signature_suffix_tips
+import org.tool.kit.composeapp.generated.resources.source_code
 import org.tool.kit.composeapp.generated.resources.target_key_size
 import org.tool.kit.composeapp.generated.resources.target_key_size_tips
 import org.tool.kit.composeapp.generated.resources.target_key_type
@@ -94,6 +101,7 @@ import theme.AppTheme
 import vm.MainViewModel
 import java.awt.Desktop
 import java.io.File
+import java.net.URI
 
 /**
  * @Author      : LazyIonEs
@@ -426,30 +434,13 @@ private fun DeveloperMode(viewModel: MainViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun About(viewModel: MainViewModel) {
     var isOpenLibraries by remember { mutableStateOf(false) }
     if (isOpenLibraries) {
-        val windowState = rememberWindowState(size = DpSize(600.dp, 600.dp))
-        Window(
-            onCloseRequest = { isOpenLibraries = false },
-            state = windowState,
-            title = "Open Source Licenses",
-            icon = painterResource(Res.drawable.icon),
-            alwaysOnTop = true
-        ) {
-            val themeConfig by viewModel.themeConfig.collectAsState()
-            val useDarkTheme = when (themeConfig) {
-                DarkThemeConfig.LIGHT -> false
-                DarkThemeConfig.DARK -> true
-                DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
-            }
-            val libraries by rememberLibraries {
-                Res.readBytes("files/aboutlibraries.json").decodeToString()
-            }
-            AppTheme(useDarkTheme) {
-                LibrariesContainer(libraries, Modifier.fillMaxSize())
-            }
+        AboutLibrariesWindow(viewModel) {
+            isOpenLibraries = false
         }
     }
     Card(Modifier.fillMaxWidth()) {
@@ -470,8 +461,11 @@ private fun About(viewModel: MainViewModel) {
             TextAbout(title = stringResource(Res.string.application_copyright), value = BuildConfig.APP_COPYRIGHT)
             TextAbout(title = stringResource(Res.string.application_author), value = BuildConfig.APP_VENDOR)
             TextAbout(title = stringResource(Res.string.open_source_agreement), value = BuildConfig.APP_LICENSE)
-            HorizontalDivider(modifier = Modifier.padding(start = 16.dp, end = 16.dp,top = 8.dp, bottom = 8.dp), thickness = 2.dp)
-            ClickABout(text = stringResource(Res.string.github)) {
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                thickness = 2.dp
+            )
+            ClickABout(text = stringResource(Res.string.source_code)) {
                 Desktop.getDesktop().browse(BuildConfig.APP_GITHUB_URI)
             }
             ClickABout(text = stringResource(Res.string.author)) {
@@ -551,7 +545,7 @@ private fun TextAbout(title: String, value: String) {
 @Composable
 private fun ClickABout(text: String, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().height(36.dp).padding(start = 16.dp, end = 8.dp, top = 3.dp, bottom = 3.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 3.dp, bottom = 3.dp).height(36.dp),
         onClick = onClick
     ) {
         Row(
@@ -568,6 +562,78 @@ private fun ClickABout(text: String, onClick: () -> Unit) {
                 imageVector = Icons.Rounded.ChevronRight,
                 contentDescription = "ChevronRight",
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AboutLibrariesWindow(viewModel: MainViewModel, onCloseRequest: () -> Unit) {
+    val windowState = rememberWindowState(size = DpSize(800.dp, 600.dp))
+    Window(
+        onCloseRequest = onCloseRequest,
+        state = windowState,
+        title = "Open Source Licenses",
+        icon = painterResource(Res.drawable.icon),
+        alwaysOnTop = true
+    ) {
+        val themeConfig by viewModel.themeConfig.collectAsState()
+        val useDarkTheme = when (themeConfig) {
+            DarkThemeConfig.LIGHT -> false
+            DarkThemeConfig.DARK -> true
+            DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
+        }
+        val libraries by rememberLibraries {
+            Res.readBytes("files/aboutlibraries.json").decodeToString()
+        }
+        AppTheme(useDarkTheme) {
+            Surface(color = MaterialTheme.colorScheme.background) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    var selectLibrary by remember { mutableStateOf<Library?>(null) }
+                    LibrariesContainer(
+                        libraries = libraries,
+                        modifier = Modifier.fillMaxWidth(),
+                        showAuthor = false,
+                        showDescription = true,
+                        onLibraryClick = { library ->
+                            val license = library.licenses.firstOrNull()
+                            if (!license?.htmlReadyLicenseContent.isNullOrBlank()) {
+                                selectLibrary = library
+                            } else if (!license?.url.isNullOrBlank()) {
+                                license.url?.also {
+                                    Desktop.getDesktop().browse(URI.create(it))
+                                }
+                            }
+                        }
+                    )
+                    selectLibrary?.let { library ->
+                        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                        ModalBottomSheet(
+                            modifier = Modifier.fillMaxHeight().align(Alignment.BottomEnd),
+                            sheetState = sheetState,
+                            onDismissRequest = { selectLibrary = null }
+                        ) {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(horizontal = 16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                item {
+                                    Text(text = library.name, style = MaterialTheme.typography.titleMedium)
+                                }
+                                item {
+                                    Spacer(Modifier.size(8.dp))
+                                    val license = library.licenses.firstOrNull()
+                                    license?.licenseContent?.let { content ->
+                                        Text(text = content, style = MaterialTheme.typography.bodyMedium)
+                                    }
+                                    Spacer(Modifier.size(16.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
