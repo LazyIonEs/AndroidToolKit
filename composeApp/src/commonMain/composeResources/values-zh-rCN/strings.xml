@@ -139,10 +139,10 @@
     <string name="application_copyright">应用版权</string>
     <string name="application_author">应用作者</string>
     <string name="open_source_agreement">开源协议</string>
-    <string name="github">GitHub</string>
-    <string name="author">Author</string>
-    <string name="license">License</string>
-    <string name="open_source_licenses">Open Source Licenses</string>
+    <string name="source_code">源代码</string>
+    <string name="author">作者</string>
+    <string name="license">许可证</string>
+    <string name="open_source_licenses">开源许可证</string>
 
     <string name="key_output_path">密钥输出路径</string>
     <string name="key_file_name">密钥文件名称</string>
