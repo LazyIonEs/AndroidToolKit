@@ -2,7 +2,6 @@ package ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.expandVertically
@@ -10,8 +9,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -23,10 +23,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Start
@@ -73,6 +72,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
 import constant.ConfigConstant
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -81,10 +81,36 @@ import model.FileSelectorType
 import model.IconFactoryData
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.Font
-import org.jetbrains.compose.resources.decodeToImageBitmap
+import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.ZCOOLKuaiLe_Regular
+import org.tool.kit.composeapp.generated.resources.android_directory
+import org.tool.kit.composeapp.generated.resources.check_error
+import org.tool.kit.composeapp.generated.resources.close
+import org.tool.kit.composeapp.generated.resources.compress_custom
+import org.tool.kit.composeapp.generated.resources.compression_speed
+import org.tool.kit.composeapp.generated.resources.crazy
+import org.tool.kit.composeapp.generated.resources.expand
+import org.tool.kit.composeapp.generated.resources.external_directory_name
+import org.tool.kit.composeapp.generated.resources.fast
+import org.tool.kit.composeapp.generated.resources.icon_factory_describe
+import org.tool.kit.composeapp.generated.resources.icon_factory_title
+import org.tool.kit.composeapp.generated.resources.icon_name
+import org.tool.kit.composeapp.generated.resources.icon_output_path
+import org.tool.kit.composeapp.generated.resources.jpeg_quality
+import org.tool.kit.composeapp.generated.resources.jpeg_scaling_algorithm
+import org.tool.kit.composeapp.generated.resources.let_go
+import org.tool.kit.composeapp.generated.resources.lossless_compression
+import org.tool.kit.composeapp.generated.resources.lossy_compression
+import org.tool.kit.composeapp.generated.resources.minimum
+import org.tool.kit.composeapp.generated.resources.more_settings
+import org.tool.kit.composeapp.generated.resources.png_quality
+import org.tool.kit.composeapp.generated.resources.png_scaling_algorithm
+import org.tool.kit.composeapp.generated.resources.start_making
+import org.tool.kit.composeapp.generated.resources.target
+import org.tool.kit.composeapp.generated.resources.upload_image
 import utils.LottieAnimation
+import utils.getImageRequest
 import utils.isImage
 import utils.update
 import vm.MainViewModel
@@ -115,109 +141,100 @@ fun IconFactory(viewModel: MainViewModel) {
 private fun IconFactoryPreview(
     viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>, scope: CoroutineScope
 ) {
-    Box(
-        modifier = Modifier.fillMaxSize()
+    val icon = viewModel.iconFactoryInfoState.icon
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        val icon = viewModel.iconFactoryInfoState.icon
-        var animationEnds by remember { mutableStateOf(icon != null) }
-        Column(
-            modifier = Modifier.align(Alignment.Center), horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+            AnimatedVisibility(
+                visible = icon == null, enter = fadeIn() + expandHorizontally(), exit = fadeOut() + shrinkHorizontally()
             ) {
-                item {
-                    Row(
-                        modifier = Modifier.animateItem(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        AnimatedVisibility(
-                            visible = icon == null,
-                            enter = fadeIn() + expandHorizontally(),
-                            exit = fadeOut() + shrinkHorizontally()
-                        ) {
-                            Column {
-                                val fontRegular = FontFamily(Font(Res.font.ZCOOLKuaiLe_Regular))
-                                Text(
-                                    text = "一键生成应用图标",
-                                    style = MaterialTheme.typography.displayMedium,
-                                    fontFamily = fontRegular
-                                )
-                                Spacer(Modifier.size(24.dp))
-                                Text(
-                                    "支持png、jpg、jpeg文件\n上传 1024 x 1024 像素的图片以获得最佳效果",
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                                Spacer(Modifier.size(48.dp))
-                            }
-                        }
-                    }
-                }
-                item {
-                    Box(
-                        modifier = Modifier.animateContentSize(finishedListener = { _, _ ->
-                            animationEnds = true
-                        }).size(if (icon != null) 192.dp else 256.dp).animateItem()
-                    ) {
-                        icon?.let {
-                            if (icon.exists()) {
-                                val bitmap = icon.inputStream().readAllBytes().decodeToImageBitmap()
-                                Image(
-                                    bitmap = bitmap, contentDescription = "预览图标", modifier = Modifier.fillMaxSize()
-                                )
-                            } else {
-                                viewModel.updateIconFactoryInfo(
-                                    viewModel.iconFactoryInfoState.copy(
-                                        icon = null, result = null
-                                    )
-                                )
-                            }
-                        } ?: let {
-                            val themeConfig by viewModel.themeConfig.collectAsState()
-                            val useDarkTheme = when (themeConfig) {
-                                DarkThemeConfig.LIGHT -> false
-                                DarkThemeConfig.DARK -> true
-                                DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
-                            }
-                            if (useDarkTheme) {
-                                LottieAnimation(scope, "files/lottie_main_3_dark.json")
-                            } else {
-                                LottieAnimation(scope, "files/lottie_main_3_light.json")
-                            }
-                        }
-                    }
-                }
-                if (icon != null) {
-                    item {
-                        Icon(
-                            imageVector = Icons.Rounded.Start,
-                            contentDescription = "向右",
-                            modifier = Modifier.size(48.dp).animateItem()
-                        )
-                    }
-                    item {
-                        Box(modifier = Modifier.animateItem()) {
-                            IconFactoryResult(viewModel)
-                        }
-                    }
+                Column(
+                    modifier = Modifier.fillMaxWidth(.6f).padding(start = 16.dp)
+                ) {
+                    val fontFamily = FontFamily(Font(Res.font.ZCOOLKuaiLe_Regular))
+                    Text(
+                        text = stringResource(Res.string.icon_factory_title),
+                        style = MaterialTheme.typography.displayMedium,
+                        fontFamily = fontFamily,
+                    )
+                    Spacer(Modifier.size(24.dp))
+                    Text(
+                        text = stringResource(Res.string.icon_factory_describe),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(Modifier.size(48.dp))
                 }
             }
-            AnimatedVisibility(animationEnds) {
-                Spacer(Modifier.size(24.dp))
+
+            Crossfade(targetState = icon, modifier = Modifier.weight(1.5f), content = { icon ->
+                icon?.let {
+                    Box(modifier = Modifier.size(256.dp), contentAlignment = Alignment.Center) {
+                        AsyncImage(
+                            model = getImageRequest(icon),
+                            contentDescription = null,
+                            modifier = Modifier.size(192.dp)
+                        )
+                    }
+                } ?: let {
+                    val themeConfig by viewModel.themeConfig.collectAsState()
+                    val useDarkTheme = when (themeConfig) {
+                        DarkThemeConfig.LIGHT -> false
+                        DarkThemeConfig.DARK -> true
+                        DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
+                    }
+                    if (useDarkTheme) {
+                        LottieAnimation(
+                            scope, "files/lottie_main_3_dark.json", modifier = Modifier.requiredSize(256.dp)
+                        )
+                    } else {
+                        LottieAnimation(
+                            scope, "files/lottie_main_3_light.json", modifier = Modifier.requiredSize(256.dp)
+                        )
+                    }
+                }
+            })
+
+            AnimatedVisibility(
+                visible = icon != null,
+                modifier = Modifier.weight(.5f),
+                enter = fadeIn() + slideInHorizontally(),
+                exit = fadeOut() + slideOutHorizontally()
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Start, contentDescription = "Start", modifier = Modifier.size(48.dp)
+                )
+            }
+
+            AnimatedVisibility(
+                visible = icon != null,
+                modifier = Modifier.weight(3f),
+                enter = fadeIn() + slideInHorizontally(),
+                exit = fadeOut() + slideOutHorizontally()
+            ) {
+                IconFactoryResult(viewModel)
+            }
+        }
+        AnimatedVisibility(icon != null) {
+            Column {
+                Spacer(Modifier.size(12.dp))
                 Button({
                     viewModel.iconFactoryInfoState.apply {
                         if (outputPath.isBlank() || fileDir.isBlank() || iconName.isBlank()) {
                             if (!showBottomSheet.value) showBottomSheet.update { true }
-                            viewModel.updateSnackbarVisuals("请检查空项")
+                            viewModel.updateSnackbarVisuals(Res.string.check_error)
                             return@Button
                         }
                     }
                     viewModel.iconGeneration(icon?.absolutePath ?: return@Button)
                 }) {
-                    Text("开始制作")
+                    Text(text = stringResource(Res.string.start_making))
                 }
             }
         }
@@ -227,13 +244,11 @@ private fun IconFactoryPreview(
 @Composable
 private fun IconFactoryResult(viewModel: MainViewModel) {
     Column(
-        modifier = Modifier.width(384.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconFactoryResultPlaceholder(
@@ -251,7 +266,7 @@ private fun IconFactoryResult(viewModel: MainViewModel) {
         Spacer(Modifier.size(24.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconFactoryResultPlaceholder(
@@ -270,9 +285,10 @@ private fun IconFactoryResult(viewModel: MainViewModel) {
 private fun IconFactoryResultPlaceholder(resultFile: File?, title: String, size: Int) {
     Crossfade(targetState = resultFile) { file ->
         if (file != null && file.exists()) {
-            val bitmap = file.inputStream().readAllBytes().decodeToImageBitmap()
-            Image(
-                bitmap = bitmap, contentDescription = "预览图标", modifier = Modifier.size(size.dp)
+            AsyncImage(
+                model = getImageRequest(file),
+                contentDescription = null,
+                modifier = Modifier.size(size.dp)
             )
         } else {
             Card(modifier = Modifier.size(size.dp)) {
@@ -291,24 +307,23 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
     var dragging by remember { mutableStateOf(false) }
     UploadAnimate(dragging, scope)
     Box(
-        modifier = Modifier.fillMaxSize()
-            .dragAndDropTarget(shouldStartDragAndDrop = accept@{ true }, target = dragAndDropTarget(dragging = {
-                dragging = it
-            }, onFinish = { result ->
+        modifier = Modifier.fillMaxSize().dragAndDropTarget(
+            shouldStartDragAndDrop = accept@{ true },
+            target = dragAndDropTarget(dragging = { dragging = it }, onFinish = { result ->
                 result.onSuccess { fileList ->
                     fileList.firstOrNull()?.let {
                         val path = it.toAbsolutePath().pathString
                         if (path.isImage) {
                             viewModel.updateIconFactoryInfo(
                                 viewModel.iconFactoryInfoState.copy(
-                                    icon = File(path),
-                                    result = null
+                                    icon = File(path), result = null
                                 )
                             )
                         }
                     }
                 }
-            }))
+            })
+        )
     ) {
         Column(modifier = Modifier.align(Alignment.BottomEnd)) {
             AnimatedVisibility(
@@ -316,9 +331,9 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
             ) {
                 FileButton(
                     value = if (dragging) {
-                        "愣着干嘛，还不松手"
+                        stringResource(Res.string.let_go)
                     } else {
-                        "点击选择或拖拽上传图片"
+                        stringResource(Res.string.upload_image)
                     }, expanded = viewModel.iconFactoryInfoState.icon == null, FileSelectorType.IMAGE
                 ) { path ->
                     if (path.isImage) {
@@ -338,8 +353,8 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
                 ExtendedFloatingActionButton(
                     onClick = { showBottomSheet.update { true } },
                     expanded = true,
-                    icon = { Icon(Icons.Rounded.Tune, "更多设置") },
-                    text = { Text("更多设置") })
+                    icon = { Icon(Icons.Rounded.Tune, "Tune") },
+                    text = { Text(stringResource(Res.string.more_settings)) })
             }
         }
         if (showBottomSheet.value) {
@@ -358,14 +373,13 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
 private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState) {
     val scope = rememberCoroutineScope()
     LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(end = 14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier.fillMaxSize().padding(end = 14.dp), horizontalAlignment = Alignment.CenterHorizontally
     ) {
         item {
             Spacer(Modifier.size(8.dp))
             FolderInput(
                 value = viewModel.iconFactoryInfoState.outputPath,
-                label = "图标输出路径",
+                label = stringResource(Res.string.icon_output_path),
                 isError = false,
                 onValueChange = { path ->
                     viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = path))
@@ -380,7 +394,7 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
             Box(modifier = Modifier.fillMaxWidth()) {
                 StringInput(
                     value = viewModel.iconFactoryInfoState.iconName,
-                    label = "图标名称",
+                    label = stringResource(Res.string.icon_name),
                     isError = viewModel.iconFactoryInfoState.iconName.isBlank(),
                     onValueChange = { iconName ->
                         viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(iconName = iconName))
@@ -390,7 +404,10 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
                         positionProvider = rememberPlainTooltipPositionProvider(), tooltip = {
                             PlainTooltip {
                                 Text(
-                                    if (sheetState.currentValue == SheetValue.Expanded) "收起" else "展开更多自定义项",
+                                    if (sheetState.currentValue == SheetValue.Expanded)
+                                        stringResource(Res.string.close)
+                                    else
+                                        stringResource(Res.string.expand),
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             }
@@ -408,7 +425,7 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
                             val rotate by animateFloatAsState(if (sheetState.currentValue == SheetValue.Expanded) 180f else 0f)
                             Icon(
                                 imageVector = Icons.Rounded.KeyboardArrowUp,
-                                contentDescription = "展开更多",
+                                contentDescription = "KeyboardArrowUp",
                                 modifier = Modifier.rotate(rotate)
                             )
                         }
@@ -422,7 +439,7 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
                 modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("压缩自定义项", style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(Res.string.compress_custom), style = MaterialTheme.typography.titleSmall)
                 HorizontalDivider(modifier = Modifier.padding(start = 8.dp), thickness = 2.dp)
             }
             Spacer(Modifier.size(12.dp))
@@ -436,7 +453,8 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
 @Composable
 fun Compression(viewModel: MainViewModel) {
     val iconFactoryData by viewModel.iconFactoryData.collectAsState()
-    val compressionOptions = listOf("无损压缩", "有损压缩")
+    val compressionOptions =
+        listOf(stringResource(Res.string.lossless_compression), stringResource(Res.string.lossy_compression))
     SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
         compressionOptions.forEachIndexed { index, label ->
             SegmentedButton(
@@ -466,15 +484,15 @@ fun Compression(viewModel: MainViewModel) {
             Row(
                 modifier = Modifier.align(Alignment.CenterStart), verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "压缩速度", style = MaterialTheme.typography.bodyMedium)
+                Text(text = stringResource(Res.string.compression_speed), style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    text = "快速",
+                    text = stringResource(Res.string.fast),
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.padding(start = 12.dp)
                 )
             }
             Text(
-                text = "疯狂",
+                text = stringResource(Res.string.crazy),
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.align(Alignment.CenterEnd)
             )
@@ -530,7 +548,12 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
             onValueChange = { fileDir ->
                 viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(fileDir = fileDir))
             },
-            label = { Text("外部目录名称", style = MaterialTheme.typography.labelLarge) },
+            label = {
+                Text(
+                    stringResource(Res.string.external_directory_name),
+                    style = MaterialTheme.typography.labelLarge
+                )
+            },
             singleLine = true,
             isError = viewModel.iconFactoryInfoState.fileDir.isBlank(),
         )
@@ -546,7 +569,12 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
                 onValueChange = { iconDir ->
                     viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(iconDir = iconDir))
                 },
-                label = { Text("Android目录", style = MaterialTheme.typography.labelLarge) },
+                label = {
+                    Text(
+                        text = stringResource(Res.string.android_directory),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                },
                 isError = viewModel.iconFactoryInfoState.iconDir.isBlank(),
                 singleLine = true,
                 readOnly = true,
@@ -582,15 +610,15 @@ private fun CompressRangeSliders(viewModel: MainViewModel, iconFactoryData: Icon
             Row(
                 modifier = Modifier.align(Alignment.CenterStart), verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "PNG质量", style = MaterialTheme.typography.bodyMedium)
+                Text(text = stringResource(Res.string.png_quality), style = MaterialTheme.typography.bodyMedium)
                 Text(
-                    text = "最低限度：$rangeStart",
+                    text = stringResource(Res.string.minimum, rangeStart),
                     style = MaterialTheme.typography.labelMedium,
                     modifier = Modifier.padding(start = 12.dp)
                 )
             }
             Text(
-                text = "目标：$rangeEnd",
+                text = stringResource(Res.string.target, rangeEnd),
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.align(Alignment.CenterEnd)
             )
@@ -613,12 +641,12 @@ private fun CompressRangeSliders(viewModel: MainViewModel, iconFactoryData: Icon
         var jpegQuality by remember { mutableFloatStateOf(iconFactoryData.quality) }
         Box(modifier = Modifier.fillMaxWidth()) {
             Text(
-                text = "JPEG质量",
+                text = stringResource(Res.string.jpeg_quality),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.align(Alignment.CenterStart)
             )
             Text(
-                text = "目标：${jpegQuality.roundToInt()}",
+                text = stringResource(Res.string.target, jpegQuality.roundToInt()),
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.align(Alignment.CenterEnd)
             )
@@ -646,7 +674,11 @@ private fun <T> Algorithm(modifier: Modifier, options: List<T>, isPng: Boolean, 
             onValueChange = {},
             label = {
                 Text(
-                    text = if (isPng) "PNG 缩放算法" else "JPEG 缩放算法", style = MaterialTheme.typography.labelLarge
+                    text = if (isPng)
+                        stringResource(Res.string.png_scaling_algorithm)
+                    else
+                        stringResource(Res.string.jpeg_scaling_algorithm),
+                    style = MaterialTheme.typography.labelLarge
                 )
             },
             singleLine = true,

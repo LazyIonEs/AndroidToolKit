@@ -1,4 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.reload.ComposeHotRun
+import org.jetbrains.kotlin.compose.compiler.gradle.ComposeFeatureFlag
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileOutputStream
@@ -10,15 +12,17 @@ plugins {
     alias(libs.plugins.githubBuildconfig)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.about.libraries)
+    alias(libs.plugins.hot.reload)
 }
 
 val javaLanguageVersion = JavaLanguageVersion.of(17)
 val linuxArmTarget = "aarch64-unknown-linux-gnu"
 val linuxX64Target = "x86_64-unknown-linux-gnu"
 
-val kitVersion by extra("1.5.4")
+val kitVersion by extra("1.5.5")
 val kitPackageName = "AndroidToolKit"
-val kitDescription = "Desktop tools for Android development, supports Windows and Mac"
+val kitDescription = "Desktop tools applicable to Android development, supporting Windows, Mac and Linux"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
 val kitVendor = "LazyIonEs"
 val kitLicenseFile = project.rootProject.file("LICENSE")
@@ -27,6 +31,8 @@ val useCross = (properties.getOrDefault("useCross", "false") as String).toBoolea
 val isLinuxAarch64 = (properties.getOrDefault("isLinuxAarch64", "false") as String).toBoolean()
 
 val rustGeneratedSource = "${layout.buildDirectory.get()}/generated/source/uniffi/main/org/tool/kit/kotlin"
+
+val aboutLibrariesSource = "src/commonMain/composeResources/files/aboutlibraries.json"
 
 group = "org.tool.kit"
 version = kitVersion
@@ -44,6 +50,7 @@ kotlin {
     }
 
     jvm("desktop")
+    jvmToolchain(17)
 
     sourceSets {
         val desktopMain by getting
@@ -98,6 +105,10 @@ kotlin {
                 exclude(group = "oro", module = "oro")
             }
             runtimeOnly(libs.kotlinx.coroutines.swing)
+            implementation(libs.about.libraries.core)
+            implementation(libs.about.libraries.compose.m3)
+            implementation(libs.coil.compose)
+            implementation(libs.zoomimage.compose.coil3)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -119,6 +130,8 @@ tasks.withType<JavaExec> {
 compose.desktop {
     application {
         mainClass = "MainKt"
+
+        jvmArgs += listOf("-Dapple.awt.application.appearance=system")
 
         this@application.dependsOn("rustTasks")
 
@@ -190,17 +203,13 @@ compose.desktop {
 }
 
 task("rustTasks") {
-    buildRust()
-    copyRustBuild()
-    generateKotlinFromUdl()
+    runBuildRust()
 }
 
-tasks.getByName("compileKotlinDesktop").doLast {
-    println("compileKotlinDesktop called")
-    buildRust()
-    copyRustBuild()
-    generateKotlinFromUdl()
-}
+tasks.getByName("compileKotlinDesktop").doLast { runBuildRust() }
+
+// 执行导出收集依赖项详细信息json文件
+tasks.getByName("copyNonXmlValueResourcesForCommonMain").dependsOn("exportLibraryDefinitions")
 
 buildConfig {
     className("BuildConfig")
@@ -233,6 +242,18 @@ fun currentOs(): OS {
     }
 }
 
+fun runBuildRust() {
+    val destinyLibFile = getRustDestinyLibFile()
+    val destinyKtFile = getRustDestinyKtFile()
+    if (destinyLibFile.exists() && destinyKtFile.exists()) {
+        // 已存在，不重新编译
+        return
+    }
+    buildRust()
+    copyRustBuild()
+    generateKotlinFromUdl()
+}
+
 fun buildRust() {
     providers.exec {
         println("Build rs called")
@@ -260,8 +281,6 @@ fun buildRust() {
 }
 
 fun copyRustBuild() {
-    val outputDir = "${layout.buildDirectory.asFile.get().absolutePath}/classes/kotlin/desktop/main"
-
     val workingDirPath = if (currentOs() == OS.LINUX && useCross) {
         if (isLinuxAarch64) {
             "rs/target/$linuxArmTarget/release"
@@ -274,27 +293,34 @@ fun copyRustBuild() {
 
     val workingDir = File(rootDir, workingDirPath)
 
-    val directory = File(outputDir)
-    directory.mkdirs()
-
     val originLib = when (currentOs()) {
         OS.LINUX -> "libtoolkit_rs.so"
         OS.WINDOWS -> "toolkit_rs.dll"
         OS.MAC -> "libtoolkit_rs.dylib"
     }
 
+    val originFile = File(workingDir, originLib)
+    val destinyFile = getRustDestinyLibFile()
+
+    Files.copy(originFile.toPath(), FileOutputStream(destinyFile))
+    println("Copy rs build completed")
+}
+
+fun getRustDestinyLibFile(): File {
+    val outputDir = "${layout.buildDirectory.asFile.get().absolutePath}/classes/kotlin/desktop/main"
+    val directory = File(outputDir)
+    directory.mkdirs()
     val destinyLib = when (currentOs()) {
         OS.LINUX -> "libuniffi_toolkit.so"
         OS.WINDOWS -> "uniffi_toolkit.dll"
         OS.MAC -> "libuniffi_toolkit.dylib"
     }
-
-    val originFile = File(workingDir, originLib)
     val destinyFile = File(directory, destinyLib)
-
-    Files.copy(originFile.toPath(), FileOutputStream(destinyFile))
-    println("Copy rs build completed")
+    return destinyFile
 }
+
+fun getRustDestinyKtFile() =
+    File(rustGeneratedSource + File.separator + "uniffi" + File.separator + "toolkit", "toolkit.kt")
 
 fun generateKotlinFromUdl() {
     providers.exec {
@@ -306,4 +332,18 @@ fun generateKotlinFromUdl() {
             "--out-dir", rustGeneratedSource
         )
     }.result.get()
+}
+
+aboutLibraries {
+    export {
+        outputFile = file(aboutLibrariesSource)
+    }
+}
+
+tasks.withType<ComposeHotRun>().configureEach {
+    mainClass.set("MainKt")
+}
+
+composeCompiler {
+    featureFlags.add(ComposeFeatureFlag.OptimizeNonSkippingGroups)
 }

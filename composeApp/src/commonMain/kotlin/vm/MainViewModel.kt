@@ -39,6 +39,27 @@ import model.UserData
 import model.Verifier
 import model.VerifierResult
 import org.apache.commons.codec.digest.DigestUtils
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
+import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.apk_is_signed_successfully
+import org.tool.kit.composeapp.generated.resources.apk_parsing_failed
+import org.tool.kit.composeapp.generated.resources.apk_signature_verification_failed
+import org.tool.kit.composeapp.generated.resources.build_end
+import org.tool.kit.composeapp.generated.resources.build_failure
+import org.tool.kit.composeapp.generated.resources.cleanup_complete
+import org.tool.kit.composeapp.generated.resources.create_signature_successfully
+import org.tool.kit.composeapp.generated.resources.exec_command_error
+import org.tool.kit.composeapp.generated.resources.file_deletion_exception
+import org.tool.kit.composeapp.generated.resources.icon_creation_failed
+import org.tool.kit.composeapp.generated.resources.icon_generation_completed
+import org.tool.kit.composeapp.generated.resources.jump
+import org.tool.kit.composeapp.generated.resources.output_file_already_exists
+import org.tool.kit.composeapp.generated.resources.scanning_anomalies
+import org.tool.kit.composeapp.generated.resources.signature_creation_failed
+import org.tool.kit.composeapp.generated.resources.signature_failed
+import org.tool.kit.composeapp.generated.resources.signature_verification_failed
+import org.tool.kit.composeapp.generated.resources.toolkit_extension_mode_is_enabled
 import platform.RustException
 import platform.mozJpeg
 import platform.oxipng
@@ -203,7 +224,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         viewModelScope.launch {
             preferences.saveDeveloperMode(show)
             if (show) {
-                updateSnackbarVisuals("已开启ToolKit扩展模式")
+                updateSnackbarVisuals(Res.string.toolkit_extension_mode_is_enabled)
             }
         }
     }
@@ -232,6 +253,18 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     fun updateSnackbarVisuals(value: String) {
         _snackbarVisuals.update { currentState ->
             currentState.copy(message = value).reset()
+        }
+    }
+
+    /**
+     * 显示快捷信息栏
+     */
+    fun updateSnackbarVisuals(resource: StringResource) {
+        viewModelScope.launch(Dispatchers.Main) {
+            val string = getString(resource)
+            _snackbarVisuals.update { currentState ->
+                currentState.copy(message = string).reset()
+            }
         }
     }
 
@@ -288,7 +321,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 if (flagDelete) {
                     outputApk.delete()
                 } else {
-                    throw Exception("输出文件已存在：${outputApk.name}")
+                    val message = getString(Res.string.output_file_already_exists, outputApk.name)
+                    throw Exception(message)
                 }
             }
             val key = File(apkSignatureState.keyStorePath)
@@ -311,8 +345,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 .setV3SigningEnabled(v3SigningEnabled).setAlignmentPreserved(!isAlignFileSize).build()
             apkSigner.sign()
             val snackbarVisualsData = SnackbarVisualsData(
-                message = "APK签名成功，点击跳转至已签名文件",
-                actionLabel = "跳转",
+                message = getString(Res.string.apk_is_signed_successfully),
+                actionLabel = getString(Res.string.jump),
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
                 action = {
@@ -321,7 +355,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             updateSnackbarVisuals(snackbarVisualsData)
         } catch (e: Exception) {
             e.printStackTrace()
-            updateSnackbarVisuals(e.message ?: "签名失败，请联系开发者排查问题")
+            updateSnackbarVisuals(e.message ?: getString(Res.string.signature_failed))
         }
         _apkSignatureUIState.update { UIState.WAIT }
     }
@@ -359,7 +393,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
 
             if (exitValue != 0) {
                 // 执行命令出现错误
-                throw InterruptedException("执行命令出现错误")
+                throw InterruptedException(getString(Res.string.exec_command_error))
             }
 
             val converted = StringUtil.convertLineSeparators(stdoutStream.toString("UTF-8"))
@@ -401,14 +435,14 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             }
 
             if (apkInformation.isBlank()) {
-                updateSnackbarVisuals("APK解析失败")
+                updateSnackbarVisuals(Res.string.apk_parsing_failed)
                 _apkInformationState.update { UIState.WAIT }
             } else {
                 _apkInformationState.update { UIState.Success(apkInformation) }
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            updateSnackbarVisuals(e.message ?: "APK解析失败")
+            updateSnackbarVisuals(e.message ?: getString(Res.string.apk_parsing_failed))
             _apkInformationState.update { UIState.WAIT }
         }
     }
@@ -434,8 +468,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             )
             if (result) {
                 val snackbarVisualsData = SnackbarVisualsData(
-                    message = "创建签名成功，点击跳转至签名文件",
-                    actionLabel = "跳转",
+                    message = getString(Res.string.create_signature_successfully),
+                    actionLabel = getString(Res.string.jump),
                     withDismissAction = true,
                     duration = SnackbarDuration.Short,
                     action = {
@@ -443,11 +477,11 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                     })
                 updateSnackbarVisuals(snackbarVisualsData)
             } else {
-                updateSnackbarVisuals("签名制作失败，请检查输入项是否合法。")
+                updateSnackbarVisuals(Res.string.signature_creation_failed)
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            updateSnackbarVisuals(e.message ?: "签名制作失败，请检查输入项是否合法。")
+            updateSnackbarVisuals(e.message ?: getString(Res.string.signature_creation_failed))
         }
         _keyStoreInfoUIState.update { UIState.WAIT }
     }
@@ -480,7 +514,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            updateSnackbarVisuals(e.message ?: "签名验证失败")
+            updateSnackbarVisuals(e.message ?: getString(Res.string.signature_verification_failed))
             _verifierState.update { UIState.WAIT }
         } finally {
             fileInputStream?.close()
@@ -548,14 +582,14 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 _verifierState.update { UIState.Success(apkVerifierResult) }
             } else {
                 if (error.isBlank()) {
-                    error = "APK签名验证失败"
+                    error = getString(Res.string.apk_signature_verification_failed)
                 }
                 updateSnackbarVisuals(error)
                 _verifierState.update { UIState.WAIT }
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            updateSnackbarVisuals(e.message ?: "APK签名验证失败")
+            updateSnackbarVisuals(e.message ?: getString(Res.string.apk_signature_verification_failed))
             _verifierState.update { UIState.WAIT }
         }
     }
@@ -576,10 +610,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 AndroidJunkGenerator(dir, output, appPackageName, packageCount, activityCountPerPackage, resPrefix)
             val file = androidJunkGenerator.startGenerate()
             val snackbarVisualsData = SnackbarVisualsData(
-                message = "构建结束：成功，文件大小：${
-                    file.length().formatFileSize()
-                }, 点击跳转至构建文件",
-                actionLabel = "跳转",
+                message = getString(Res.string.build_end, file.length().formatFileSize()),
+                actionLabel = getString(Res.string.jump),
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
                 action = {
@@ -588,7 +620,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             updateSnackbarVisuals(snackbarVisualsData)
         } catch (e: Exception) {
             e.printStackTrace()
-            updateSnackbarVisuals(e.message ?: "构建失败")
+            updateSnackbarVisuals(e.message ?: getString(Res.string.build_failure))
         }
         _junkCodeUIState.update { UIState.WAIT }
     }
@@ -671,12 +703,12 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 result.add(outputFile)
             } catch (e: RustException) {
                 isSuccess = false
-                error = e.message ?: "图标制作失败"
+                error = e.message ?: getString(Res.string.icon_creation_failed)
                 break
             } catch (e: Exception) {
                 e.printStackTrace()
                 isSuccess = false
-                error = e.message ?: "图标制作失败"
+                error = e.message ?: getString(Res.string.icon_creation_failed)
                 break
             }
             outputSizeFile.delete()
@@ -685,8 +717,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         _iconFactoryUIState.update { UIState.WAIT }
         if (isSuccess) {
             val snackbarVisualsData = SnackbarVisualsData(
-                message = "图标生成完成。点击跳转至输出目录",
-                actionLabel = "跳转",
+                message = getString(Res.string.icon_generation_completed),
+                actionLabel = getString(Res.string.jump),
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
                 action = {
@@ -780,7 +812,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             withContext(Dispatchers.Main) {
                 _fileClearUIState.update { UIState.WAIT }
                 if (_pendingDeletionFileList.isEmpty()) {
-                    updateSnackbarVisuals("未扫描到缓存目录")
+                    updateSnackbarVisuals(Res.string.scanning_anomalies)
                 }
             }
         }
@@ -877,9 +909,9 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 _fileClearUIState.update { UIState.WAIT }
                 val message = if (errorCount == 0) {
                     // 全部删除成功
-                    "清理完成，已为您清理${clearLength.formatFileSize()}"
+                    getString(Res.string.cleanup_complete, clearLength.formatFileSize())
                 } else {
-                    "${errorCount}个文件删除异常"
+                    getString(Res.string.file_deletion_exception, errorCount)
                 }
                 updateSnackbarVisuals(message)
             }

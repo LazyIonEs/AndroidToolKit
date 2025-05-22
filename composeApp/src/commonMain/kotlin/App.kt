@@ -38,7 +38,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.rememberTooltipState
@@ -67,15 +66,23 @@ import kotlinx.coroutines.launch
 import model.DarkThemeConfig
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import org.tool.kit.composeapp.generated.resources.APK信息
-import org.tool.kit.composeapp.generated.resources.APK签名
 import org.tool.kit.composeapp.generated.resources.Res
-import org.tool.kit.composeapp.generated.resources.图标生成
-import org.tool.kit.composeapp.generated.resources.垃圾代码
-import org.tool.kit.composeapp.generated.resources.签名信息
-import org.tool.kit.composeapp.generated.resources.签名生成
-import org.tool.kit.composeapp.generated.resources.缓存清理
-import org.tool.kit.composeapp.generated.resources.设置
+import org.tool.kit.composeapp.generated.resources.apk_information_rail
+import org.tool.kit.composeapp.generated.resources.apk_information_tooltip
+import org.tool.kit.composeapp.generated.resources.apk_signature_rail
+import org.tool.kit.composeapp.generated.resources.apk_signature_tooltip
+import org.tool.kit.composeapp.generated.resources.cache_cleanup_rail
+import org.tool.kit.composeapp.generated.resources.cache_cleanup_tooltip
+import org.tool.kit.composeapp.generated.resources.garbage_code_rail
+import org.tool.kit.composeapp.generated.resources.garbage_code_tooltip
+import org.tool.kit.composeapp.generated.resources.icon_generation_rail
+import org.tool.kit.composeapp.generated.resources.icon_generation_tooltip
+import org.tool.kit.composeapp.generated.resources.setting_rail
+import org.tool.kit.composeapp.generated.resources.setting_tooltip
+import org.tool.kit.composeapp.generated.resources.signature_generation_rail
+import org.tool.kit.composeapp.generated.resources.signature_generation_tooltip
+import org.tool.kit.composeapp.generated.resources.signature_information_rail
+import org.tool.kit.composeapp.generated.resources.signature_information_tooltip
 import platform.createFlowSettings
 import theme.AppTheme
 import ui.ApkInformation
@@ -102,9 +109,7 @@ fun App() {
         DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
     }
     AppTheme(useDarkTheme) {
-        Surface {
-            MainContentScreen(viewModel)
-        }
+        MainContentScreen(viewModel)
     }
 }
 
@@ -152,7 +157,7 @@ fun MainContentScreen(viewModel: MainViewModel) {
                                 positionProvider = rememberRichTooltipPositionProvider(), tooltip = {
                                     PlainTooltip {
                                         Text(
-                                            stringResource(page.title), style = MaterialTheme.typography.bodySmall
+                                            stringResource(page.tooltip), style = MaterialTheme.typography.bodySmall
                                         )
                                     }
                                 }, state = rememberTooltipState(), enableUserInput = viewModel.uiPageIndex != page
@@ -216,15 +221,60 @@ suspend fun collectOutputPath(viewModel: MainViewModel) {
     }
 }
 
-enum class Page(val title: StringResource, val selectedIcon: ImageVector, val unSelectedIcon: ImageVector) {
-    SIGNATURE_INFORMATION(Res.string.签名信息, Icons.AutoMirrored.Rounded.Article, Icons.AutoMirrored.Outlined.Article),
-    APK_INFORMATION(Res.string.APK信息, Icons.Rounded.Assessment, Icons.Outlined.Assessment),
-    APK_SIGNATURE(Res.string.APK签名, Icons.Rounded.VpnKey, Icons.Outlined.VpnKey),
-    SIGNATURE_GENERATION(Res.string.签名生成, Icons.Rounded.Verified, Icons.Outlined.Verified),
-    JUNK_CODE(Res.string.垃圾代码, Icons.Rounded.Cookie, Icons.Outlined.Cookie),
-    ICON_FACTORY(Res.string.图标生成, Icons.Rounded.DesignServices, Icons.Outlined.DesignServices),
-    CLEAR_BUILD(Res.string.缓存清理, Icons.Rounded.FolderDelete, Icons.Outlined.FolderDelete),
-    SET_UP(Res.string.设置, Icons.Rounded.Settings, Icons.Outlined.Settings)
+enum class Page(
+    val title: StringResource,
+    val tooltip: StringResource,
+    val selectedIcon: ImageVector,
+    val unSelectedIcon: ImageVector
+) {
+    SIGNATURE_INFORMATION(
+        Res.string.signature_information_rail,
+        Res.string.signature_information_tooltip,
+        Icons.AutoMirrored.Rounded.Article,
+        Icons.AutoMirrored.Outlined.Article
+    ),
+    APK_INFORMATION(
+        Res.string.apk_information_rail,
+        Res.string.apk_information_tooltip,
+        Icons.Rounded.Assessment,
+        Icons.Outlined.Assessment
+    ),
+    APK_SIGNATURE(
+        Res.string.apk_signature_rail,
+        Res.string.apk_signature_tooltip,
+        Icons.Rounded.VpnKey,
+        Icons.Outlined.VpnKey
+    ),
+    SIGNATURE_GENERATION(
+        Res.string.signature_generation_rail,
+        Res.string.signature_generation_tooltip,
+        Icons.Rounded.Verified,
+        Icons.Outlined.Verified
+    ),
+    JUNK_CODE(
+        Res.string.garbage_code_rail,
+        Res.string.garbage_code_tooltip,
+        Icons.Rounded.Cookie,
+        Icons.Outlined.Cookie
+    ),
+    ICON_FACTORY(
+        Res.string.icon_generation_rail,
+        Res.string.icon_generation_tooltip,
+        Icons.Rounded.DesignServices,
+        Icons.Outlined.DesignServices
+    ),
+    CLEAR_BUILD(
+        Res.string.cache_cleanup_rail,
+        Res.string.cache_cleanup_tooltip,
+        Icons.Rounded.FolderDelete,
+        Icons.Outlined.FolderDelete
+    ),
+    SET_UP(
+        Res.string.setting_rail,
+        Res.string.setting_tooltip,
+        Icons.Rounded.Settings,
+        Icons.Outlined.Settings
+    )
 }
 
 @Composable

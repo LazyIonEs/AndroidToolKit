@@ -5,4 +5,6 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform) apply false
     alias(libs.plugins.githubBuildconfig) apply false
     alias(libs.plugins.compose.compiler) apply false
+    alias(libs.plugins.about.libraries) apply false
+    alias(libs.plugins.hot.reload) apply false
 }

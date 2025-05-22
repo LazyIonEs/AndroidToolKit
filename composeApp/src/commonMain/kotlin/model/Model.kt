@@ -6,6 +6,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
+import org.jetbrains.compose.resources.StringResource
+import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.apk_signature_v1
+import org.tool.kit.composeapp.generated.resources.apk_signature_v2
+import org.tool.kit.composeapp.generated.resources.apk_signature_v2_only
+import org.tool.kit.composeapp.generated.resources.apk_signature_v3
 import java.io.File
 
 /**
@@ -70,12 +76,11 @@ data class ApkSignature(
 /**
  * APK签名策略
  */
-enum class SignaturePolicy(val title: String, val value: String) {
-    V1("V1", "APK Signature Scheme V1"), V2("V2", "APK Signature Scheme V2，包含V1"), V2Only(
-        "V2 Only",
-        "APK Signature Scheme V2，不包含V1"
-    ),
-    V3("V3", "APK Signature Scheme V3，包含V1和V2")
+enum class SignaturePolicy(val title: String, val value: StringResource) {
+    V1("V1", Res.string.apk_signature_v1),
+    V2("V2", Res.string.apk_signature_v2),
+    V2Only("V2 Only", Res.string.apk_signature_v2_only),
+    V3("V3", Res.string.apk_signature_v3)
 }
 
 /**

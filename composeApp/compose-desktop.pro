@@ -21,6 +21,7 @@
 -dontwarn com.google.**
 -dontwarn org.apache.**
 
+-keep enum org.jetbrains.nav_cupcake.** { *; }
 -keep class com.android.ddmlib.** { *; }
 -keep class org.lwjgl.** { *; }
 -keep class org.bouncycastle.** { *; }
@@ -35,8 +36,11 @@
 -keep class * implements com.sun.jna.** { *; }
 -keepclassmembers class * extends com.sun.jna.* { public *; }
 -keepclassmembers class androidx.datastore.** { *; }
--keep class androidx.datastore.preferences.protobuf.** { *;}
+-keep class kotlinx.coroutines.swing.SwingDispatcherFactory
+-keep class androidx.datastore.preferences.protobuf.** { *; }
 -keepclassmembers class androidx.datastore.preferences.protobuf.** { *; }
--keep class kotlinx.coroutines.internal.MainDispatcherFactory { *; }
--keep class kotlinx.coroutines.swing.SwingDispatcherFactory { *; }
 -keepattributes Signature,LineNumberTable,RuntimeVisibleAnnotations,AnnotationDefault,*Annotation*,InnerClasses
+
+# coil3
+-keep class * extends coil3.util.DecoderServiceLoaderTarget { *; }
+-keep class * extends coil3.util.FetcherServiceLoaderTarget { *; }

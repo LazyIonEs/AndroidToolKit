@@ -67,6 +67,18 @@ import model.DarkThemeConfig
 import model.FileSelectorType
 import model.Verifier
 import model.VerifierResult
+import org.jetbrains.compose.resources.stringResource
+import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.cancel
+import org.tool.kit.composeapp.generated.resources.confirm
+import org.tool.kit.composeapp.generated.resources.copy_md5
+import org.tool.kit.composeapp.generated.resources.key_alias
+import org.tool.kit.composeapp.generated.resources.key_store_password
+import org.tool.kit.composeapp.generated.resources.let_go
+import org.tool.kit.composeapp.generated.resources.password_verification
+import org.tool.kit.composeapp.generated.resources.quick_copy
+import org.tool.kit.composeapp.generated.resources.upload_apk_signature_file
+import org.tool.kit.composeapp.generated.resources.wrong_key_store_password
 import utils.LottieAnimation
 import utils.copy
 import utils.isApk
@@ -127,22 +139,24 @@ private fun SignatureBox(
 ) {
     var dragging by remember { mutableStateOf(false) }
     UploadAnimate(dragging, scope)
-    Box(modifier = Modifier.fillMaxSize()
-        .dragAndDropTarget(shouldStartDragAndDrop = accept@{ true }, target = dragAndDropTarget(dragging = {
-            dragging = it
-        }, onFinish = { result ->
-            result.onSuccess { fileList ->
-                fileList.firstOrNull()?.let {
-                    val path = it.toAbsolutePath().pathString
-                    if (path.isApk) {
-                        viewModel.apkVerifier(path)
-                    } else if (path.isKey) {
-                        signaturePath.value = path
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .dragAndDropTarget(
+                shouldStartDragAndDrop = accept@{ true }, target = dragAndDropTarget(dragging = {
+                    dragging = it
+                }, onFinish = { result ->
+                    result.onSuccess { fileList ->
+                        fileList.firstOrNull()?.let {
+                            val path = it.toAbsolutePath().pathString
+                            if (path.isApk) {
+                                viewModel.apkVerifier(path)
+                            } else if (path.isKey) {
+                                signaturePath.value = path
+                            }
+                        }
                     }
-                }
-            }
-        })
-        ), contentAlignment = Alignment.TopCenter
+                })
+            ), contentAlignment = Alignment.TopCenter
     ) {
         Column(modifier = Modifier.align(Alignment.BottomEnd)) {
             AnimatedVisibility(
@@ -150,9 +164,9 @@ private fun SignatureBox(
             ) {
                 FileButton(
                     value = if (dragging) {
-                        "愣着干嘛，还不松手"
+                        stringResource(Res.string.let_go)
                     } else {
-                        "点击选择或拖拽上传(APK/签名)文件"
+                        stringResource(Res.string.upload_apk_signature_file)
                     },
                     expanded = viewModel.verifierState !is UIState.Success,
                     FileSelectorType.KEY,
@@ -173,29 +187,31 @@ private fun SignatureBox(
                     positionProvider = rememberPlainTooltipPositionProvider(), tooltip = {
                         PlainTooltip {
                             Text(
-                                "复制MD5、SHA1和SHA-256", style = MaterialTheme.typography.bodySmall
+                                text = stringResource(Res.string.copy_md5), style = MaterialTheme.typography.bodySmall
                             )
                         }
                     }, state = rememberTooltipState()
                 ) {
-                    ExtendedFloatingActionButton(onClick = {
-                        ((viewModel.verifierState as UIState.Success).result as? VerifierResult)?.let { result ->
-                            if (result.isSuccess) {
-                                result.data.getOrNull(0)?.let { verifier ->
-                                    val stringBuilder = StringBuilder()
-                                    stringBuilder.append("MD5: ${verifier.md5}")
-                                    stringBuilder.append(System.lineSeparator())
-                                    stringBuilder.append("SHA1: ${verifier.sha1}")
-                                    stringBuilder.append(System.lineSeparator())
-                                    stringBuilder.append("SHA-256: ${verifier.sha256}")
-                                    copy(stringBuilder.toString(), viewModel)
+                    ExtendedFloatingActionButton(
+                        onClick = {
+                            ((viewModel.verifierState as UIState.Success).result as? VerifierResult)?.let { result ->
+                                if (result.isSuccess) {
+                                    result.data.getOrNull(0)?.let { verifier ->
+                                        val stringBuilder = StringBuilder()
+                                        stringBuilder.append("MD5: ${verifier.md5}")
+                                        stringBuilder.append(System.lineSeparator())
+                                        stringBuilder.append("SHA1: ${verifier.sha1}")
+                                        stringBuilder.append(System.lineSeparator())
+                                        stringBuilder.append("SHA-256: ${verifier.sha256}")
+                                        copy(stringBuilder.toString(), viewModel)
+                                    }
                                 }
                             }
-                        }
-                    },
+                        },
                         expanded = true,
-                        icon = { Icon(Icons.Rounded.ContentCopy, "一键复制") },
-                        text = { Text("一键复制") })
+                        icon = { Icon(Icons.Rounded.ContentCopy, "ContentCopy") },
+                        text = { Text(text = stringResource(Res.string.quick_copy)) },
+                    )
                 }
             }
         }
@@ -268,10 +284,13 @@ private fun SignatureDialog(
         AlertDialog(icon = {
             Icon(Icons.Rounded.Password, contentDescription = "Password")
         }, title = {
-            Text(text = "请输入密钥密码")
+            Text(text = stringResource(Res.string.password_verification))
         }, text = {
             var expanded by remember { mutableStateOf(false) }
-            Column {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 OutlinedTextField(
                     modifier = Modifier.padding(vertical = 4.dp),
                     value = password.value,
@@ -284,13 +303,19 @@ private fun SignatureDialog(
                             ""
                         }
                     },
-                    label = { Text("密钥密码", style = MaterialTheme.typography.labelLarge) },
+                    label = {
+                        Text(
+                            text = stringResource(Res.string.key_store_password),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    },
                     isError = alisa.isBlank(),
                     singleLine = true,
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                 )
-                ExposedDropdownMenuBox(modifier = Modifier.padding(vertical = 6.dp),
+                ExposedDropdownMenuBox(
+                    modifier = Modifier.padding(vertical = 6.dp),
                     expanded = expanded,
                     onExpandedChange = { expanded = it }) {
                     OutlinedTextField(
@@ -298,7 +323,12 @@ private fun SignatureDialog(
                         value = alisa,
                         readOnly = true,
                         onValueChange = { },
-                        label = { Text("密钥别名", style = MaterialTheme.typography.labelLarge) },
+                        label = {
+                            Text(
+                                text = stringResource(Res.string.key_alias),
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        },
                         singleLine = true,
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                         colors = ExposedDropdownMenuDefaults.textFieldColors()
@@ -330,16 +360,16 @@ private fun SignatureDialog(
                     )
                     signaturePath.value = ""
                 } else {
-                    viewModel.updateSnackbarVisuals("密钥密码错误")
+                    viewModel.updateSnackbarVisuals(Res.string.wrong_key_store_password)
                 }
             }) {
-                Text("确认")
+                Text(text = stringResource(Res.string.confirm))
             }
         }, dismissButton = {
             TextButton(onClick = {
                 signaturePath.value = ""
             }) {
-                Text("取消")
+                Text(text = stringResource(Res.string.cancel))
             }
         })
     }
