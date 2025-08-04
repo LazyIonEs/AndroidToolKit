@@ -1,5 +1,4 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.compose.reload.ComposeHotRun
 import org.jetbrains.kotlin.compose.compiler.gradle.ComposeFeatureFlag
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -20,7 +19,7 @@ val javaLanguageVersion = JavaLanguageVersion.of(17)
 val linuxArmTarget = "aarch64-unknown-linux-gnu"
 val linuxX64Target = "x86_64-unknown-linux-gnu"
 
-val kitVersion by extra("1.5.5")
+val kitVersion by extra("1.6.0")
 val kitPackageName = "AndroidToolKit"
 val kitDescription = "Desktop tools applicable to Android development, supporting Windows, Mac and Linux"
 val kitCopyright = "Copyright (c) 2024 LazyIonEs"
@@ -42,6 +41,7 @@ configurations.commonMainApi {
     exclude(group = "org.bouncycastle", module = "bcpkix-jdk18on")
     exclude(group = "org.bouncycastle", module = "bcprov-jdk18on")
     exclude(group = "org.bouncycastle", module = "bcutil-jdk18on")
+    exclude(group = "net.sf.kxml", module = "kxml2")
 }
 
 kotlin {
@@ -109,6 +109,7 @@ kotlin {
             implementation(libs.about.libraries.compose.m3)
             implementation(libs.coil.compose)
             implementation(libs.zoomimage.compose.coil3)
+            implementation(libs.apktool.lib)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -246,6 +247,7 @@ fun runBuildRust() {
     val destinyLibFile = getRustDestinyLibFile()
     val destinyKtFile = getRustDestinyKtFile()
     if (destinyLibFile.exists() && destinyKtFile.exists()) {
+        println("rs cache exists")
         // 已存在，不重新编译
         return
     }
@@ -340,7 +342,7 @@ aboutLibraries {
     }
 }
 
-tasks.withType<ComposeHotRun>().configureEach {
+tasks.withType<org.jetbrains.compose.reload.gradle.ComposeHotRun>().configureEach {
     mainClass.set("MainKt")
 }
 

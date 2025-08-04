@@ -2,24 +2,23 @@ package constant
 
 import model.JpegAlgorithm
 import model.PngAlgorithm
-import model.UnsignedApk
 import utils.resourcesDirWithCommon
 import java.io.File
 
 
 object ConfigConstant {
 
-    /**
-     * 未签名APK列表
-     */
-    val unsignedApkList = listOf(
-        UnsignedApk("oppo", File(resourcesDirWithCommon, "oppo_unsigned.apk").absolutePath),
-        UnsignedApk("vivo", File(resourcesDirWithCommon, "vivo_unsigned.apk").absolutePath),
-        UnsignedApk("huawei", File(resourcesDirWithCommon, "huawei_unsigned.apk").absolutePath),
-        UnsignedApk("xiaomi", File(resourcesDirWithCommon, "xiaomi_unsigned.apk").absolutePath),
-        UnsignedApk("qq", File(resourcesDirWithCommon, "qq_unsigned.apk").absolutePath),
-        UnsignedApk("honor", File(resourcesDirWithCommon, "honor_unsigned.apk").absolutePath)
-    )
+    enum class APK(val title: String, val path: String) {
+        Oppo("oppo", File(resourcesDirWithCommon, "oppo.apk").absolutePath),
+        Vivo("vivo", File(resourcesDirWithCommon, "vivo.apk").absolutePath),
+        Huawei("huawei", File(resourcesDirWithCommon, "huawei.apk").absolutePath),
+        Xiaomi("xiaomi", File(resourcesDirWithCommon, "xiaomi.apk").absolutePath),
+        QQ("qq", File(resourcesDirWithCommon, "qq.apk").absolutePath),
+        Honor("honor", File(resourcesDirWithCommon, "honor.apk").absolutePath),
+        All("All", "All"),
+    }
+
+    val APKTOOL_FILE = File(resourcesDirWithCommon, "apktool.apk")
 
     /**
      * Android 图标目录

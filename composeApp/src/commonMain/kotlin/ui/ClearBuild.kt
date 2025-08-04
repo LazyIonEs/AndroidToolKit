@@ -70,7 +70,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
@@ -89,18 +88,18 @@ import org.tool.kit.composeapp.generated.resources.confirm_deletion
 import org.tool.kit.composeapp.generated.resources.delete_cache_dialog_describe
 import org.tool.kit.composeapp.generated.resources.delete_cache_dialog_title
 import org.tool.kit.composeapp.generated.resources.folders
-import org.tool.kit.composeapp.generated.resources.newest_date_first
-import org.tool.kit.composeapp.generated.resources.oldest_date_first
 import org.tool.kit.composeapp.generated.resources.largest_first
-import org.tool.kit.composeapp.generated.resources.smallest_first
 import org.tool.kit.composeapp.generated.resources.name_a_z
 import org.tool.kit.composeapp.generated.resources.name_z_a
+import org.tool.kit.composeapp.generated.resources.newest_date_first
+import org.tool.kit.composeapp.generated.resources.oldest_date_first
 import org.tool.kit.composeapp.generated.resources.percentage_of_total_storage_space
 import org.tool.kit.composeapp.generated.resources.scanned_folders
 import org.tool.kit.composeapp.generated.resources.select_delete_director
 import org.tool.kit.composeapp.generated.resources.select_folder
 import org.tool.kit.composeapp.generated.resources.selected_folders
 import org.tool.kit.composeapp.generated.resources.size_and_time
+import org.tool.kit.composeapp.generated.resources.smallest_first
 import org.tool.kit.composeapp.generated.resources.time_format
 import org.tool.kit.composeapp.generated.resources.total_storage_space
 import org.tool.kit.composeapp.generated.resources.used_space
@@ -113,6 +112,8 @@ import vm.UIState
 import java.io.File
 import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @Composable
 fun ClearBuild(viewModel: MainViewModel) {
@@ -317,6 +318,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
     }
 }
 
+@OptIn(ExperimentalTime::class)
 @Composable
 private fun ClearBuildList(viewModel: MainViewModel) {
     val state = rememberLazyListState()

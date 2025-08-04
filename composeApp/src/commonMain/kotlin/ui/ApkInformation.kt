@@ -45,6 +45,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.composeapp.generated.resources.ABIs
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.app_name
+import org.tool.kit.composeapp.generated.resources.channel
 import org.tool.kit.composeapp.generated.resources.compile_sdk_version
 import org.tool.kit.composeapp.generated.resources.file_md5
 import org.tool.kit.composeapp.generated.resources.icon
@@ -206,10 +207,16 @@ private fun ApkInformationBox(
                                 viewModel
                             )
                         }
+                        apkInformation.channel?.let { channel ->
+                            item {
+                                AppInfoItem(stringResource(Res.string.channel), channel, viewModel)
+                            }
+                        }
                         item {
                             PermissionsList(apkInformation.usesPermissionList)
                         }
                     }
+
                     apkInformation.icon?.let { image ->
                         var isOpenImage by remember { mutableStateOf(false) }
                         if (isOpenImage) {

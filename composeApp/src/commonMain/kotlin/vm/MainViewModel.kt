@@ -7,6 +7,11 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import brut.androlib.ApkBuilder
+import brut.androlib.ApkDecoder
+import brut.androlib.Config
+import brut.androlib.res.xml.ResXmlUtils
+import brut.directory.ExtFile
 import com.android.apksig.ApkSigner
 import com.android.apksig.ApkVerifier
 import com.android.apksig.KeyConfig
@@ -17,15 +22,19 @@ import com.russhwolf.settings.coroutines.FlowSettings
 import constant.ConfigConstant
 import database.PreferencesDataSource
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import model.ApkInformation
 import model.ApkSignature
+import model.ApkToolInfo
 import model.DarkThemeConfig
 import model.IconFactoryData
 import model.IconFactoryInfo
@@ -70,6 +79,8 @@ import utils.AndroidJunkGenerator
 import utils.ExternalCommand
 import utils.WhileUiSubscribed
 import utils.browseFileDirectory
+import utils.extractAndroidManifest
+import utils.extractChannel
 import utils.extractIcon
 import utils.extractValue
 import utils.extractVersion
@@ -81,6 +92,8 @@ import utils.isJPG
 import utils.isMac
 import utils.isPng
 import utils.isWindows
+import utils.renameManifestPackage
+import utils.renameValueAppName
 import utils.resourcesDir
 import utils.resourcesDirWithOs
 import utils.update
@@ -89,6 +102,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.security.KeyStore
 import java.security.cert.X509Certificate
+import kotlin.coroutines.resume
 
 /**
  * @Author      : LazyIonEs
@@ -120,11 +134,35 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     )
 
     // 偏好设置
-    val junkCode = preferences.junkCode.stateIn(
+    val isShowJunkCode = preferences.isShowJunkCode.stateIn(
         scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
     )
 
-    val developerMode = preferences.developerMode.stateIn(
+    val isHuaweiAlignFileSize = preferences.isHuaweiAlignFileSize.stateIn(
+        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
+    )
+
+    val isAlwaysShowLabel = preferences.isAlwaysShowLabel.stateIn(
+        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
+    )
+
+    val isShowSignatureGeneration = preferences.isShowSignatureGeneration.stateIn(
+        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
+    )
+
+    val isShowApktool = preferences.isShowApktool.stateIn(
+        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
+    )
+
+    val isShowIconFactory = preferences.isShowIconFactory.stateIn(
+        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
+    )
+
+    val isShowClearBuild = preferences.isShowClearBuild.stateIn(
+        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
+    )
+
+    val isEnableDeveloperMode = preferences.isEnableDeveloperMode.stateIn(
         scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
     )
 
@@ -191,6 +229,14 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     private var _currentFileSequence = mutableStateOf<Sequence>(Sequence.SIZE_LARGE_TO_SMALL)
     val currentFileSequence by _currentFileSequence
 
+    // 空包生成信息
+    private val _apkToolInfoState = mutableStateOf(ApkToolInfo())
+    val apkToolInfoState by _apkToolInfoState
+
+    // 空包生成UI状态
+    private val _apkToolInfoUIState = mutableStateOf<UIState>(UIState.WAIT)
+    val apkToolInfoUIState by _apkToolInfoUIState
+
     // 通知
     private val _snackbarVisuals = MutableStateFlow(SnackbarVisualsData())
     val snackbarVisuals = _snackbarVisuals.asStateFlow()
@@ -219,8 +265,44 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         }
     }
 
+    fun saveApkTool(show: Boolean) {
+        viewModelScope.launch {
+            preferences.saveApkTool(show)
+        }
+    }
+
+    fun saveSignatureGeneration(show: Boolean) {
+        viewModelScope.launch {
+            preferences.saveSignatureGeneration(show)
+        }
+    }
+
+    fun saveIsAlwaysShowLabel(show: Boolean) {
+        viewModelScope.launch {
+            preferences.saveIsAlwaysShowLabel(show)
+        }
+    }
+
+    fun saveIsHuaweiAlignFileSize(show: Boolean) {
+        viewModelScope.launch {
+            preferences.saveIsHuaweiAlignFileSize(show)
+        }
+    }
+
+    fun saveIconFactory(show: Boolean) {
+        viewModelScope.launch {
+            preferences.saveIconFactory(show)
+        }
+    }
+
+    fun saveClearBuild(show: Boolean) {
+        viewModelScope.launch {
+            preferences.saveClearBuild(show)
+        }
+    }
+
     fun saveDeveloperMode(show: Boolean) {
-        if (show == developerMode.value) return
+        if (show == isEnableDeveloperMode.value) return
         viewModelScope.launch {
             preferences.saveDeveloperMode(show)
             if (show) {
@@ -305,60 +387,138 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     }
 
     /**
+     * 修改ApkToolInfo
+     * @param apkToolInfo ApkToolInfo
+     * @see model.ApkToolInfo
+     */
+    fun updateApkToolInfo(apkToolInfo: ApkToolInfo) {
+        _apkToolInfoState.update { apkToolInfo }
+    }
+
+    /**
      * APK签名
      */
-    fun apkSigner() = viewModelScope.launch(Dispatchers.IO) {
-        try {
-            val signerSuffix = userData.value.defaultSignerSuffix
-            val flagDelete = userData.value.duplicateFileRemoval
-            val isAlignFileSize = userData.value.alignFileSize
-            _apkSignatureUIState.update { UIState.Loading }
-            val inputApk = File(apkSignatureState.apkPath)
-            val outputApk = File(
-                apkSignatureState.outputPath, "${inputApk.nameWithoutExtension}${signerSuffix}.apk"
-            )
-            if (outputApk.exists()) {
-                if (flagDelete) {
-                    outputApk.delete()
-                } else {
-                    val message = getString(Res.string.output_file_already_exists, outputApk.name)
-                    throw Exception(message)
-                }
+    fun apkSigner() {
+        if (apkSignatureState.apkPath == ConfigConstant.APK.All.path) {
+            apksSigner()
+        } else {
+            viewModelScope.launch(Dispatchers.IO) {
+                suspendApkSigner()
             }
-            val key = File(apkSignatureState.keyStorePath)
-            val v1SigningEnabled =
-                apkSignatureState.keyStorePolicy == SignaturePolicy.V1 || apkSignatureState.keyStorePolicy == SignaturePolicy.V2 || apkSignatureState.keyStorePolicy == SignaturePolicy.V3
-            val v2SigningEnabled =
-                apkSignatureState.keyStorePolicy == SignaturePolicy.V2 || apkSignatureState.keyStorePolicy == SignaturePolicy.V2Only || apkSignatureState.keyStorePolicy == SignaturePolicy.V3
-            val v3SigningEnabled = apkSignatureState.keyStorePolicy == SignaturePolicy.V3
-            val alisa = apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
-            val certificateInfo = KeystoreHelper.getCertificateInfo(
-                "JKS", key, apkSignatureState.keyStorePassword, apkSignatureState.keyStoreAlisaPassword, alisa
-            )
-            val privateKey = certificateInfo.key
-            val certificate = certificateInfo.certificate
-            val keyConfig = KeyConfig.Jca(privateKey)
-            val signerConfig = ApkSigner.SignerConfig.Builder("CERT", keyConfig, listOf(certificate)).build()
-            val signerBuild = ApkSigner.Builder(listOf(signerConfig))
-            val apkSigner = signerBuild.setInputApk(inputApk).setOutputApk(outputApk).setAlignFileSize(isAlignFileSize)
-                .setV1SigningEnabled(v1SigningEnabled).setV2SigningEnabled(v2SigningEnabled)
-                .setV3SigningEnabled(v3SigningEnabled).setAlignmentPreserved(!isAlignFileSize).build()
-            apkSigner.sign()
-            val snackbarVisualsData = SnackbarVisualsData(
-                message = getString(Res.string.apk_is_signed_successfully),
-                actionLabel = getString(Res.string.jump),
-                withDismissAction = true,
-                duration = SnackbarDuration.Short,
-                action = {
-                    browseFileDirectory(outputApk)
-                })
-            updateSnackbarVisuals(snackbarVisualsData)
+        }
+    }
+
+    /**
+     * 多APK签名
+     */
+    private fun apksSigner() = viewModelScope.launch(Dispatchers.IO) {
+        try {
+            val apks = ConfigConstant.APK.entries.filter { it.title != ConfigConstant.APK.All.title }.map { it.path }
+            _apkSignatureUIState.update { UIState.Loading }
+            val result = apks.map { path ->
+                async { suspendApkSigner(path = path, showUiState = false) }
+            }.awaitAll()
+            if (result.none { !it }) {
+                val file = File(apks.last())
+                val signerSuffix = userData.value.defaultSignerSuffix
+                val outputApk = File(
+                    apkSignatureState.outputPath, "${file.nameWithoutExtension}${signerSuffix}.apk"
+                )
+                val snackbarVisualsData = SnackbarVisualsData(
+                    message = getString(Res.string.apk_is_signed_successfully),
+                    actionLabel = getString(Res.string.jump),
+                    withDismissAction = true,
+                    duration = SnackbarDuration.Short,
+                    action = {
+                        browseFileDirectory(outputApk)
+                    })
+                updateSnackbarVisuals(snackbarVisualsData)
+            } else {
+                updateSnackbarVisuals(getString(Res.string.signature_failed))
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             updateSnackbarVisuals(e.message ?: getString(Res.string.signature_failed))
+        } finally {
+            _apkSignatureUIState.update { UIState.WAIT }
         }
-        _apkSignatureUIState.update { UIState.WAIT }
     }
+
+    /**
+     * APK签名
+     */
+    suspend fun suspendApkSigner(path: String = apkSignatureState.apkPath, showUiState: Boolean = true) =
+        suspendCancellableCoroutine { coroutine ->
+            viewModelScope.launch(Dispatchers.IO) {
+                var result = false
+                try {
+                    val signerSuffix = userData.value.defaultSignerSuffix
+                    val flagDelete = userData.value.duplicateFileRemoval
+                    val isAlignFileSize = if (isHuaweiAlignFileSize.value)
+                        userData.value.alignFileSize && path != ConfigConstant.APK.Huawei.path
+                    else
+                        userData.value.alignFileSize
+                    if (showUiState) {
+                        _apkSignatureUIState.update { UIState.Loading }
+                    }
+                    val inputApk = File(path)
+                    val outputApk = File(
+                        apkSignatureState.outputPath, "${inputApk.nameWithoutExtension}${signerSuffix}.apk"
+                    )
+                    if (outputApk.exists()) {
+                        if (flagDelete) {
+                            outputApk.delete()
+                        } else {
+                            val message = getString(Res.string.output_file_already_exists, outputApk.name)
+                            throw Exception(message)
+                        }
+                    }
+                    val key = File(apkSignatureState.keyStorePath)
+                    val v1SigningEnabled =
+                        apkSignatureState.keyStorePolicy == SignaturePolicy.V1 || apkSignatureState.keyStorePolicy == SignaturePolicy.V2 || apkSignatureState.keyStorePolicy == SignaturePolicy.V3
+                    val v2SigningEnabled =
+                        apkSignatureState.keyStorePolicy == SignaturePolicy.V2 || apkSignatureState.keyStorePolicy == SignaturePolicy.V2Only || apkSignatureState.keyStorePolicy == SignaturePolicy.V3
+                    val v3SigningEnabled = apkSignatureState.keyStorePolicy == SignaturePolicy.V3
+                    val alisa = apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
+                    val certificateInfo = KeystoreHelper.getCertificateInfo(
+                        "JKS", key, apkSignatureState.keyStorePassword, apkSignatureState.keyStoreAlisaPassword, alisa
+                    )
+                    val privateKey = certificateInfo.key
+                    val certificate = certificateInfo.certificate
+                    val keyConfig = KeyConfig.Jca(privateKey)
+                    val signerConfig = ApkSigner.SignerConfig.Builder("CERT", keyConfig, listOf(certificate)).build()
+                    val signerBuild = ApkSigner.Builder(listOf(signerConfig))
+                    val apkSigner =
+                        signerBuild.setInputApk(inputApk).setOutputApk(outputApk).setAlignFileSize(isAlignFileSize)
+                            .setV1SigningEnabled(v1SigningEnabled).setV2SigningEnabled(v2SigningEnabled)
+                            .setV3SigningEnabled(v3SigningEnabled).setAlignmentPreserved(!isAlignFileSize).build()
+                    apkSigner.sign()
+                    if (showUiState) {
+                        val snackbarVisualsData = SnackbarVisualsData(
+                            message = getString(Res.string.apk_is_signed_successfully),
+                            actionLabel = getString(Res.string.jump),
+                            withDismissAction = true,
+                            duration = SnackbarDuration.Short,
+                            action = {
+                                browseFileDirectory(outputApk)
+                            })
+                        updateSnackbarVisuals(snackbarVisualsData)
+                    }
+                    result = true
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    if (showUiState) {
+                        updateSnackbarVisuals(e.message ?: getString(Res.string.signature_failed))
+                    }
+                    result = false
+                } finally {
+                    if (showUiState) {
+                        _apkSignatureUIState.update { UIState.WAIT }
+                    }
+                    coroutine.resume(result)
+                }
+            }
+        }
 
     /**
      * APK信息
@@ -366,18 +526,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      */
     fun apkInformation(input: String) = viewModelScope.launch(Dispatchers.IO) {
         try {
-            val aapt = File(
-                resourcesDirWithOs, if (isWindows) {
-                    "aapt2.exe"
-                } else if (isMac) {
-                    "aapt2"
-                } else {
-                    "aapt2"
-                }
-            )
-            if (!aapt.canExecute()) {
-                aapt.setExecutable(true)
-            }
+            val aapt = getAapt2File()
             _apkInformationState.update { UIState.Loading }
 
             val stdinStream = "".byteInputStream()
@@ -404,15 +553,17 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             apkInformation.size = apkFile.length()
             apkInformation.md5 = DigestUtils.md5Hex(FileInputStream(apkFile))
 
+            val androidManifest = extractAndroidManifest(aapt, input)
+
             lines.forEach { line ->
                 if (line.startsWith("application-icon-640:")) {
                     val path = (line.split("application-icon-640:").getOrNull(1) ?: "").trim().replace("'", "")
-                    apkInformation.icon = extractIcon(aapt, input, path)
+                    apkInformation.icon = extractIcon(androidManifest, input, path)
                 } else if (line.startsWith("application:")) {
                     apkInformation.label = extractValue(line, "label")
                     val iconPath = extractValue(line, "icon")
                     if (apkInformation.icon == null && !iconPath.endsWith(".xml")) {
-                        apkInformation.icon = extractIcon(aapt, input, iconPath)
+                        apkInformation.icon = extractIcon(androidManifest, input, iconPath)
                     }
                 } else if (line.startsWith("package:")) {
                     apkInformation.packageName = extractValue(line, "name")
@@ -433,6 +584,9 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                         (line.split("native-code:").getOrNull(1) ?: "").trim().replace("'", "")
                 }
             }
+
+            val channel = extractChannel(androidManifest)
+            apkInformation.channel = channel
 
             if (apkInformation.isBlank()) {
                 updateSnackbarVisuals(Res.string.apk_parsing_failed)
@@ -621,8 +775,85 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         } catch (e: Exception) {
             e.printStackTrace()
             updateSnackbarVisuals(e.message ?: getString(Res.string.build_failure))
+        } finally {
+            _junkCodeUIState.update { UIState.WAIT }
         }
-        _junkCodeUIState.update { UIState.WAIT }
+    }
+
+    /**
+     * 生成自定义空包
+     */
+    fun generateApktool() = viewModelScope.launch(Dispatchers.IO) {
+        _apkToolInfoUIState.update { UIState.Loading }
+        val outApktoolCacheDir = File(resourcesDir, "apktool")
+        try {
+            val outApktoolFile = File(apkToolInfoState.outputPath, ConfigConstant.APKTOOL_FILE.name)
+            val apkIcon = apkToolInfoState.icon
+            val packageName = apkToolInfoState.packageName
+            val targetSdkVersion = apkToolInfoState.targetSdkVersion
+            val minSdkVersion = apkToolInfoState.minSdkVersion
+            val versionCode = apkToolInfoState.versionCode
+            val versionName = apkToolInfoState.versionName
+            val appName = apkToolInfoState.appName
+            val apkFile = ExtFile(ConfigConstant.APKTOOL_FILE)
+            val config = Config()
+            config.isAnalysisMode = true
+            config.isForced = true
+            config.isDebugMode = true
+            // 开始解包
+            val apkDecoder = ApkDecoder(apkFile, config)
+            val apkInfo = apkDecoder.decode(outApktoolCacheDir)
+            // 解包完成
+            val apktoolYmlFile = File(outApktoolCacheDir, "apktool.yml")
+            val androidManifestXmlFile = File(outApktoolCacheDir, "AndroidManifest.xml")
+            // 删除Manifest中versionCode和versionName
+            ResXmlUtils.removeManifestVersions(androidManifestXmlFile)
+            // 替换Manifest中minSdkVersion和targetSdkVersion
+            renameManifestPackage(androidManifestXmlFile, minSdkVersion, targetSdkVersion)
+            // 替换strings中app_name的值
+            val stringsFile = File(outApktoolCacheDir, "res/values/strings.xml")
+            renameValueAppName(stringsFile, appName)
+            // 替换icon
+            if (apkIcon.isNotBlank()) {
+                val apkIconFile = File(apkIcon)
+                val suffix = apkIconFile.extension
+                val densities = ConfigConstant.ICON_FILE_LIST
+                for (density in densities.withIndex()) {
+                    val targetFolderFile = File(outApktoolCacheDir, "res/mipmap-${density.value}")
+                    targetFolderFile.deleteRecursively()
+                    val targetFile = File(targetFolderFile, "ic_launcher.${suffix}")
+                    apkIconFile.copyTo(targetFile, overwrite = true)
+                }
+            }
+            // 替换部分信息到apktool.yml
+            apkInfo.versionInfo.versionCode = versionCode
+            apkInfo.versionInfo.versionName = versionName
+            apkInfo.sdkInfo.minSdkVersion = minSdkVersion
+            apkInfo.sdkInfo.targetSdkVersion = targetSdkVersion
+            apkInfo.packageInfo.renameManifestPackage = packageName
+            apkInfo.save(apktoolYmlFile)
+            // 开始打包
+            println("开始打包")
+            val outApktoolCacheDirExt = ExtFile(outApktoolCacheDir)
+            val apkBuilder = ApkBuilder(outApktoolCacheDirExt, config)
+            apkBuilder.build(outApktoolFile)
+            println("打包完成")
+            val snackbarVisualsData = SnackbarVisualsData(
+                message = getString(Res.string.build_end, outApktoolFile.length().formatFileSize()),
+                actionLabel = getString(Res.string.jump),
+                withDismissAction = true,
+                duration = SnackbarDuration.Short,
+                action = {
+                    browseFileDirectory(outApktoolFile)
+                })
+            updateSnackbarVisuals(snackbarVisualsData)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            updateSnackbarVisuals(e.message ?: getString(Res.string.build_failure))
+        } finally {
+            outApktoolCacheDir.deleteRecursively()
+            _apkToolInfoUIState.update { UIState.WAIT }
+        }
     }
 
     /**
@@ -922,6 +1153,25 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      * 当前是否没有选中文件
      */
     fun isAllFileUnchecked(): Boolean = _pendingDeletionFileList.none { file -> file.checked }
+
+    /**
+     * 获取aapt2文件路径
+     */
+    private fun getAapt2File(): File {
+        val aapt = File(
+            resourcesDirWithOs, if (isWindows) {
+                "aapt2.exe"
+            } else if (isMac) {
+                "aapt2"
+            } else {
+                "aapt2"
+            }
+        )
+        if (!aapt.canExecute()) {
+            aapt.setExecutable(true)
+        }
+        return aapt
+    }
 }
 
 sealed interface UIState {

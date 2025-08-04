@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.automirrored.rounded.Article
 import androidx.compose.material.icons.outlined.Assessment
+import androidx.compose.material.icons.outlined.BrightnessAuto
 import androidx.compose.material.icons.outlined.Cookie
 import androidx.compose.material.icons.outlined.DesignServices
 import androidx.compose.material.icons.outlined.FolderDelete
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material.icons.outlined.VpnKey
 import androidx.compose.material.icons.rounded.Assessment
+import androidx.compose.material.icons.rounded.BrightnessAuto
 import androidx.compose.material.icons.rounded.Cookie
 import androidx.compose.material.icons.rounded.DesignServices
 import androidx.compose.material.icons.rounded.FolderDelete
@@ -71,6 +73,8 @@ import org.tool.kit.composeapp.generated.resources.apk_information_rail
 import org.tool.kit.composeapp.generated.resources.apk_information_tooltip
 import org.tool.kit.composeapp.generated.resources.apk_signature_rail
 import org.tool.kit.composeapp.generated.resources.apk_signature_tooltip
+import org.tool.kit.composeapp.generated.resources.apk_tool_rail
+import org.tool.kit.composeapp.generated.resources.apk_tool_tooltip
 import org.tool.kit.composeapp.generated.resources.cache_cleanup_rail
 import org.tool.kit.composeapp.generated.resources.cache_cleanup_tooltip
 import org.tool.kit.composeapp.generated.resources.garbage_code_rail
@@ -87,6 +91,7 @@ import platform.createFlowSettings
 import theme.AppTheme
 import ui.ApkInformation
 import ui.ApkSignature
+import ui.ApkTool
 import ui.ClearBuild
 import ui.ClearBuildBottom
 import ui.IconFactory
@@ -138,11 +143,28 @@ fun MainContentScreen(viewModel: MainViewModel) {
         Row(
             modifier = Modifier.fillMaxSize().padding(innerPadding), verticalAlignment = Alignment.CenterVertically
         ) {
-            val junkCode by viewModel.junkCode.collectAsState()
-            val pages = if (junkCode) {
-                Page.entries.toMutableList()
-            } else {
-                Page.entries.toMutableList().also { list -> list.remove(Page.JUNK_CODE) }
+            val isAlwaysShowLabel by viewModel.isAlwaysShowLabel.collectAsState()
+            val isShowApktool by viewModel.isShowApktool.collectAsState()
+            val isShowJunkCode by viewModel.isShowJunkCode.collectAsState()
+            val isShowIconFactory by viewModel.isShowIconFactory.collectAsState()
+            val isShowClearBuild by viewModel.isShowClearBuild.collectAsState()
+            val isShowSignatureGeneration by viewModel.isShowSignatureGeneration.collectAsState()
+            val pages = Page.entries.toMutableList().also { list ->
+                if (!isShowApktool) {
+                    list.remove(Page.APK_TOOL)
+                }
+                if (!isShowJunkCode) {
+                    list.remove(Page.JUNK_CODE)
+                }
+                if (!isShowSignatureGeneration) {
+                    list.remove(Page.SIGNATURE_GENERATION)
+                }
+                if (!isShowIconFactory) {
+                    list.remove(Page.ICON_FACTORY)
+                }
+                if (!isShowClearBuild) {
+                    list.remove(Page.CLEAR_BUILD)
+                }
             }
             // 导航栏
             AnimatedVisibility(viewModel.pendingDeletionFileList.isEmpty()) {
@@ -168,7 +190,7 @@ fun MainContentScreen(viewModel: MainViewModel) {
                                     icon = { Icon(icon, contentDescription = stringResource(page.title)) },
                                     selected = viewModel.uiPageIndex == page,
                                     onClick = { viewModel.updateUiState(page) },
-                                    alwaysShowLabel = false,
+                                    alwaysShowLabel = isAlwaysShowLabel,
                                 )
                             }
                         }
@@ -182,6 +204,7 @@ fun MainContentScreen(viewModel: MainViewModel) {
                     Page.APK_INFORMATION -> ApkInformation(viewModel)
                     Page.APK_SIGNATURE -> ApkSignature(viewModel)
                     Page.SIGNATURE_GENERATION -> SignatureGeneration(viewModel)
+                    Page.APK_TOOL -> ApkTool(viewModel)
                     Page.JUNK_CODE -> JunkCode(viewModel)
                     Page.ICON_FACTORY -> IconFactory(viewModel)
                     Page.CLEAR_BUILD -> ClearBuild(viewModel)
@@ -208,7 +231,8 @@ private fun isShowLoading(viewModel: MainViewModel) =
     viewModel.junkCodeUIState == UIState.Loading || viewModel.iconFactoryUIState == UIState.Loading
             || viewModel.apkSignatureUIState == UIState.Loading || viewModel.apkInformationState == UIState.Loading
             || viewModel.keyStoreInfoUIState == UIState.Loading || viewModel.verifierState == UIState.Loading
-            || (viewModel.fileClearUIState == UIState.Loading && viewModel.isClearing)
+            || (viewModel.fileClearUIState == UIState.Loading && viewModel.isClearing
+            || viewModel.apkToolInfoUIState == UIState.Loading)
 
 suspend fun collectOutputPath(viewModel: MainViewModel) {
     val userData = viewModel.userData.drop(0).first()
@@ -218,6 +242,7 @@ suspend fun collectOutputPath(viewModel: MainViewModel) {
         updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePath = outputPath))
         updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = outputPath))
         updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = outputPath))
+        updateApkToolInfo(viewModel.apkToolInfoState.copy(outputPath = outputPath))
     }
 }
 
@@ -250,6 +275,12 @@ enum class Page(
         Res.string.signature_generation_tooltip,
         Icons.Rounded.Verified,
         Icons.Outlined.Verified
+    ),
+    APK_TOOL(
+        Res.string.apk_tool_rail,
+        Res.string.apk_tool_tooltip,
+        Icons.Rounded.BrightnessAuto,
+        Icons.Outlined.BrightnessAuto
     ),
     JUNK_CODE(
         Res.string.garbage_code_rail,
