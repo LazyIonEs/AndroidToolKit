@@ -98,7 +98,8 @@ data class ApkInformation(
     var minSdkVersion: String = "", // 最小版本
     var targetSdkVersion: String = "", // 目标版本
     var usesPermissionList: ArrayList<String>? = null, // 权限列表
-    var nativeCode: String = "" // 架构
+    var nativeCode: String = "", // 架构
+    var channel: String? = null, // 渠道
 ) {
     fun isBlank(): Boolean {
         return label.isBlank() && packageName.isBlank() && versionCode.isBlank() && versionName.isBlank()
@@ -152,12 +153,6 @@ data class JunkCodeInfo(
         }
 }
 
-
-/**
- * 未签名APK
- */
-data class UnsignedApk(val title: String, val path: String)
-
 /**
  * 图标工厂信息，存储页面信息，viewModel中
  */
@@ -205,3 +200,17 @@ class PendingDeletionFile(
     var checked by mutableStateOf(initialChecked)
     var exception by mutableStateOf(deleteExceptions)
 }
+
+/**
+ * 空包生成信息，存储页面信息，viewModel中
+ */
+data class ApkToolInfo(
+    var outputPath: String = "", // 输出路径
+    var icon: String = "", // 图标
+    var packageName: String = "org.apk.tool", // 包名
+    var targetSdkVersion: String = "30", // 目标Sdk版本
+    var minSdkVersion: String = "21", // 最小Sdk版本
+    var versionCode: String = "1", // 版本号
+    var versionName: String = "1.0", // 版本名称
+    var appName: String = "HelloAndroid", // 应用名称
+)

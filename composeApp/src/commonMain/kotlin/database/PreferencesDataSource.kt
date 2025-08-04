@@ -36,7 +36,7 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
         val DEFAULT_USER_DATA = UserData(
             defaultOutputPath = getDownloadDirectory(),
             duplicateFileRemoval = true,
-            defaultSignerSuffix = "_sign",
+            defaultSignerSuffix = "-sign",
             alignFileSize = true,
             destStoreType = DestStoreType.JKS,
             destStoreSize = DestStoreSize.TWO_THOUSAND_FORTY_EIGHT
@@ -55,6 +55,12 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
         )
         private const val JUNK_CODE = "junk_code"
         private const val DEVELOPER_MODE = "developer_mode"
+        private const val APK_TOOL = "apk_tool"
+        private const val ALWAYS_SHOW_LABEL = "always_show_label"
+        private const val HUAWEI_ALIGN_FILE_SIZE = "huawei_align_file_size"
+        private const val SIGNATURE_GENERATION = "signature_generation"
+        private const val ICON_FACTORY = "icon_factory"
+        private const val CLEAR_BUILD = "clear_build"
     }
 
     private val _userData = MutableStateFlow(DEFAULT_USER_DATA)
@@ -95,13 +101,49 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
         _iconFactoryData.value = iconFactoryData
     }
 
-    val junkCode = settings.getBooleanOrNullFlow(JUNK_CODE).map { mode -> mode == true }
+    val isShowJunkCode = settings.getBooleanOrNullFlow(JUNK_CODE).map { mode -> mode == true }
 
     suspend fun saveJunkCode(show: Boolean) {
         settings.putBoolean(JUNK_CODE, show)
     }
 
-    val developerMode = settings.getBooleanOrNullFlow(DEVELOPER_MODE).map { mode -> mode == true }
+    val isShowApktool = settings.getBooleanFlow(APK_TOOL, true).map { it }
+
+    suspend fun saveApkTool(show: Boolean) {
+        settings.putBoolean(APK_TOOL, show)
+    }
+
+    val isShowIconFactory = settings.getBooleanFlow(ICON_FACTORY, true).map { it }
+
+    suspend fun saveIconFactory(show: Boolean) {
+        settings.putBoolean(ICON_FACTORY, show)
+    }
+
+    val isShowSignatureGeneration = settings.getBooleanFlow(SIGNATURE_GENERATION, true).map { it }
+
+    suspend fun saveSignatureGeneration(show: Boolean) {
+        settings.putBoolean(SIGNATURE_GENERATION, show)
+    }
+
+    val isShowClearBuild = settings.getBooleanFlow(CLEAR_BUILD, true).map { it }
+
+    suspend fun saveClearBuild(show: Boolean) {
+        settings.putBoolean(CLEAR_BUILD, show)
+    }
+
+    val isAlwaysShowLabel = settings.getBooleanFlow(ALWAYS_SHOW_LABEL, false).map { it }
+
+    suspend fun saveIsAlwaysShowLabel(show: Boolean) {
+        settings.putBoolean(ALWAYS_SHOW_LABEL, show)
+    }
+
+    val isHuaweiAlignFileSize = settings.getBooleanFlow(HUAWEI_ALIGN_FILE_SIZE, true).map { it }
+
+    suspend fun saveIsHuaweiAlignFileSize(show: Boolean) {
+        settings.putBoolean(HUAWEI_ALIGN_FILE_SIZE, show)
+    }
+
+    val isEnableDeveloperMode = settings.getBooleanOrNullFlow(DEVELOPER_MODE).map { mode -> mode == true }
 
     suspend fun saveDeveloperMode(show: Boolean) {
         settings.putBoolean(DEVELOPER_MODE, show)

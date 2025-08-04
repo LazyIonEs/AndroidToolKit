@@ -113,7 +113,8 @@ private fun SignatureBox(
 
 @Composable
 private fun SignatureCard(viewModel: MainViewModel) {
-    val apkError = viewModel.apkSignatureState.apkPath.isNotBlank() && !File(viewModel.apkSignatureState.apkPath).isFile
+    val isApkError = viewModel.apkSignatureState.apkPath.isNotBlank() && !File(viewModel.apkSignatureState.apkPath).isFile
+    val apkError = isApkError && viewModel.apkSignatureState.apkPath != ConfigConstant.APK.All.path
     val outputError =
         viewModel.apkSignatureState.outputPath.isNotBlank() && !File(viewModel.apkSignatureState.outputPath).isDirectory
     val signatureError =
@@ -218,13 +219,19 @@ private fun SignatureCard(viewModel: MainViewModel) {
 @Composable
 private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
     var expanded by remember { mutableStateOf(false) }
-    val options = ConfigConstant.unsignedApkList
+    val options = ConfigConstant.APK.entries
     ExposedDropdownMenuBox(
         modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
         expanded = expanded,
         onExpandedChange = { expanded = it }) {
+        val apk = options.find { it.path == viewModel.apkSignatureState.apkPath }
+        val value = if (apk != null) {
+            "${apk.title}.apk"
+        } else {
+            viewModel.apkSignatureState.apkPath
+        }
         FileInput(
-            value = viewModel.apkSignatureState.apkPath,
+            value = value,
             label = stringResource(Res.string.apk_file),
             isError = apkError,
             modifier = Modifier.padding(end = 8.dp, bottom = 3.dp).menuAnchor(MenuAnchorType.PrimaryEditable),
@@ -269,7 +276,8 @@ private fun SignaturePolicy(
                 modifier = Modifier.padding(start = 24.dp)
             )
             Text(
-                text = stringResource(viewModel.apkSignatureState.keyStorePolicy.value), style = MaterialTheme.typography.bodyMedium
+                text = stringResource(viewModel.apkSignatureState.keyStorePolicy.value),
+                style = MaterialTheme.typography.bodyMedium
             )
         }
         Spacer(Modifier.size(2.dp))

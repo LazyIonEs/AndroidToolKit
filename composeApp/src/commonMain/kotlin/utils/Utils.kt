@@ -2,6 +2,7 @@ package utils
 
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
+import brut.xml.XmlUtils
 import com.google.devrel.gmscore.tools.apk.arsc.ArscBlamer
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier
@@ -14,6 +15,7 @@ import kotlinx.coroutines.withContext
 import model.FileSelectorType
 import model.Verifier
 import org.jetbrains.skia.Image
+import org.w3c.dom.Node
 import java.awt.Desktop
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -77,6 +79,7 @@ fun <T> Array<out T>.toFileExtensions(): List<String> {
                 list.add("png")
                 list.add("jpg")
                 list.add("jpeg")
+                list.add("webp")
             }
         }
     }
@@ -157,29 +160,48 @@ fun extractVersion(line: String, attribute: String): String {
     return matchResult?.groups?.get(1)?.value ?: ""
 }
 
-suspend fun extractIcon(aapt: File, apkPath: String, iconPath: String): ImageBitmap? = withContext(Dispatchers.IO) {
+suspend fun extractAndroidManifest(aapt: File, apkPath: String): String? = withContext(Dispatchers.IO) {
+    try {
+        val stdinStream = "".byteInputStream()
+        val stdoutStream = ByteArrayOutputStream()
+        val stderrStream = ByteArrayOutputStream()
+
+        val exitValue = withContext(Dispatchers.IO) {
+            ExternalCommand(aapt.absolutePath).execute(
+                listOf("dump", "xmltree", apkPath, "--file", "AndroidManifest.xml"),
+                stdinStream, stdoutStream, stderrStream
+            )
+        }
+        if (exitValue != 0) {
+            // 执行命令出现错误
+            return@withContext null
+        }
+        val result = stdoutStream.toString("UTF-8").trimIndent()
+        return@withContext result
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return@withContext null
+}
+
+fun extractChannel(text: String?): String? {
+    if (text.isNullOrBlank()) return null
+    val regex =
+        """A: http://schemas\.android\.com/apk/res/android:name\(0x[0-9a-fA-F]{8}\)="UMENG_CHANNEL" \(Raw: "UMENG_CHANNEL"\)\s+A: http://schemas\.android\.com/apk/res/android:value\(0x[0-9a-fA-F]{8}\)="([^"]+)"""".toRegex()
+    return regex.find(text)?.groupValues?.getOrNull(1)
+}
+
+suspend fun extractIcon(text: String?, apkPath: String, iconPath: String): ImageBitmap? = withContext(Dispatchers.IO) {
     try {
         if (iconPath.endsWith(".xml")) {
-            val stdinStream = "".byteInputStream()
-            val stdoutStream = ByteArrayOutputStream()
-            val stderrStream = ByteArrayOutputStream()
-
-            val exitValue = withContext(Dispatchers.IO) {
-                ExternalCommand(aapt.absolutePath).execute(
-                    listOf("dump", "xmltree", apkPath, "--file", "AndroidManifest.xml"),
-                    stdinStream, stdoutStream, stderrStream
-                )
-            }
-            if (exitValue != 0) {
-                // 执行命令出现错误
+            if (text == null) {
                 return@withContext null
             }
-            val result = stdoutStream.toString("UTF-8").trimIndent()
             // 正则表达式匹配 "A: http://schemas.android.com/apk/res/android:icon" 后面的十六进制值
             val regex =
                 """A: http://schemas.android.com/apk/res/android:icon\(0x[0-9a-fA-F]+\)=@0x([0-9a-fA-F]+)""".toRegex()
             // 查找匹配
-            regex.find(result)?.let { matchResult ->
+            regex.find(text)?.let { matchResult ->
                 val resourceId = matchResult.groupValues[1].toIntOrNull(16) ?: return@withContext null
                 return@withContext extractBitmapFromResourceTable(apkPath, resourceId)
             }
@@ -378,5 +400,41 @@ private fun runCommand(command: String): Boolean {
         }
     } catch (_: IOException) {
         return false
+    }
+}
+
+fun renameManifestPackage(file: File, minSdkVersion: String, targetSdkVersion: String) {
+    runCatching {
+        val doc = XmlUtils.loadDocument(file)
+        // 查找 uses-sdk 节点
+        val sdkElems = doc.getElementsByTagName("uses-sdk")
+        if (sdkElems.length > 0) {
+            val sdk = sdkElems.item(0)
+            sdk.attributes.getNamedItem("android:minSdkVersion")
+                ?.nodeValue = minSdkVersion
+            sdk.attributes.getNamedItem("android:targetSdkVersion")
+                ?.nodeValue = targetSdkVersion
+        } else {
+            // 若无 uses‑sdk 标签就插入
+            val newSdk = doc.createElement("uses-sdk")
+            newSdk.setAttribute("android:minSdkVersion", minSdkVersion)
+            newSdk.setAttribute("android:targetSdkVersion", targetSdkVersion)
+            doc.documentElement.insertBefore(newSdk, doc.documentElement.firstChild)
+        }
+        XmlUtils.saveDocument(doc, file)
+    }
+}
+
+fun renameValueAppName(file: File, appName: String) {
+    if (!file.isFile()) {
+        return
+    }
+    val key = "app_name"
+    runCatching {
+        val doc = XmlUtils.loadDocument(file)
+        val expression = String.format("/resources/%s[@name='%s']/text()", "string", key)
+        val node = XmlUtils.evaluateXPath(doc, expression, Node::class.java)
+        node.nodeValue = appName
+        XmlUtils.saveDocument(doc, file)
     }
 }

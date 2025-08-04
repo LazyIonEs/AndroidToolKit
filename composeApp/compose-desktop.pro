@@ -39,9 +39,26 @@
 -keep class kotlinx.coroutines.swing.SwingDispatcherFactory
 -keep class androidx.datastore.preferences.protobuf.** { *; }
 -keepclassmembers class androidx.datastore.preferences.protobuf.** { *; }
--keepattributes Signature,LineNumberTable,RuntimeVisibleAnnotations,AnnotationDefault,*Annotation*,InnerClasses
+-keepattributes Signature,LineNumberTable,RuntimeVisibleAnnotations,AnnotationDefault,*Annotation*,InnerClasses,EnclosingMethod
 
 # coil3
 -keep class okio.** { *; }
 -keep class * extends coil3.util.DecoderServiceLoaderTarget { *; }
 -keep class * extends coil3.util.FetcherServiceLoaderTarget { *; }
+
+# apktool
+-keep class brut.apktool.** { *; }
+-keep class brut.androlib.** { *; }
+
+# 保留 YAML 解析库
+-keep class org.yaml.snakeyaml.** { *; }
+
+# 保留枚举的 values()/valueOf()
+-keepclassmembers enum * { public static **[] values(); public static ** valueOf(java.lang.String); }
+
+# 保留 Kotlin 元数据（若使用 Kotlin）
+-keep class kotlin.Metadata { *; }
+
+# 忽略第三方库警告
+-dontwarn com.google.common.**
+-dontwarn javax.xml.xpath.**

@@ -1,28 +1,29 @@
 [versions]
 compose = "1.6.11"
 compose-compiler = "1.5.8"
-compose-plugin = "1.8.1"
+compose-plugin = "1.8.2"
 junit = "4.13.2"
-kotlin = "2.1.21"
-apksig = "8.9.1"
-tools = "31.9.1"
+kotlin = "2.2.0"
+apksig = "8.11.1"
+tools = "31.11.1"
 slf4j = "2.0.17"
-buildconfig = "5.6.2"
-commons-codec = "1.18.0"
+buildconfig = "5.6.7"
+commons-codec = "1.19.0"
 asm = "9.8"
 jna = "5.17.0"
 logging = "7.0.0"
-lifecycle = "2.8.4"
+lifecycle = "2.9.1"
 coroutines = "1.10.2"
-filekit = "0.10.0-beta04"
+filekit = "0.10.0"
 multiplatform-settings = "1.3.0"
-kotlinx-serialization-json = "1.8.1"
-kotlinx-datetime = "0.6.2"
-about-libraries = "12.1.2"
-hot-reload = "1.0.0-alpha10"
+kotlinx-serialization-json = "1.9.0"
+kotlinx-datetime = "0.7.1"
+about-libraries = "12.2.4"
+hot-reload = "1.0.0-beta04"
 foojay = "0.10.0"
-coil = "3.2.0"
+coil = "3.3.0"
 zoomimage = "1.3.0"
+apktool = "2.12.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -74,6 +75,8 @@ about-libraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3"
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 # https://github.com/panpf/zoomimage
 zoomimage-compose-coil3 = { module = "io.github.panpf.zoomimage:zoomimage-compose-coil3", version.ref = "zoomimage" }
+# https://github.com/iBotPeaches/Apktool
+apktool-lib = { module = "org.apktool:apktool-lib", version.ref = "apktool" }
 
 [plugins]
 jetbrainsCompose = { id = "org.jetbrains.compose", version.ref = "compose-plugin" }

@@ -3,6 +3,7 @@
     <string name="apk_information_rail">APK</string>
     <string name="apk_signature_rail">Sign</string>
     <string name="signature_generation_rail">KeyStore</string>
+    <string name="apk_tool_rail">APKTool</string>
     <string name="icon_generation_rail">Icon</string>
     <string name="garbage_code_rail">Garbage</string>
     <string name="cache_cleanup_rail">Cache</string>
@@ -12,6 +13,7 @@
     <string name="apk_information_tooltip">APK Information</string>
     <string name="apk_signature_tooltip">APK Signature</string>
     <string name="signature_generation_tooltip">Signature Generation</string>
+    <string name="apk_tool_tooltip">APK Generation</string>
     <string name="icon_generation_tooltip">Icon Generation</string>
     <string name="garbage_code_tooltip">Garbage Code</string>
     <string name="cache_cleanup_tooltip">Cache Cleanup</string>
@@ -33,6 +35,7 @@
     <string name="file_md5">File MD5:</string>
     <string name="size">Size:</string>
     <string name="permissions">Permissions:</string>
+    <string name="channel">Channel：</string>
 
     <string name="output_path">Output Path</string>
     <string name="key_store_file">Key Store File Path</string>
@@ -109,7 +112,7 @@
 
     <string name="apk_signature">APK Signature</string>
     <string name="signature_suffix">Signature Suffix</string>
-    <string name="signature_suffix_tips">Signature Suffix: The output name of the Apk after signing (for example, if the input Apk name is apk_unsign.apk, then the input Apk name is apk_unsign%1$s.apk</string>
+    <string name="signature_suffix_tips">Signature Suffix: The output name of the Apk after signing (for example, if the input Apk name is apk.apk, then the input Apk name is apk%1$s.apk</string>
     <string name="delete_repeat_file">Whether to delete output files with duplicate names</string>
     <string name="delete_repeat_file_tips">Note: If the output file has the same name, it cannot be signed successfully, and the system will prompt that the output file already exists.</string>
     <string name="enable_file_alignment">Enable File Alignment</string>
@@ -130,7 +133,13 @@
 
     <string name="toolkit_expand">ToolKit Expand</string>
     <string name="enable_extended_options">Enable Extended Options</string>
+    <string name="whether_to_always_show_the_navigation_bar_label">Whether to always show the navigation bar label</string>
+    <string name="enable_apk_generation_options">Enable APK generation options</string>
     <string name="enable_garbage_code_generation_option">Enable garbage code generation option</string>
+    <string name="enable_icon_factory_option">Enable icon factory option</string>
+    <string name="enable_clear_build_option">Enable clear build option</string>
+    <string name="enable_signature_generation_option">Enable signature generation option</string>
+    <string name="whether_to_turn_off_file_alignment_function_when_signing_and_packaging_huawei_channel_package">Whether to turn off file alignment function when signing and packaging Huawei channel package</string>
 
     <string name="about">About</string>
     <string name="application_name">Application Name</string>
@@ -185,4 +194,13 @@
     <string name="cleanup_complete">Cleaning completed, %1$s has been cleaned for you</string>
     <string name="file_deletion_exception">%1$d files deleted abnormally</string>
     <string name="copied_to_clipboard">Copied to clipboard</string>
+
+    <string name="apk_output_path">APK Output Path</string>
+    <string name="icon_file">Icon File</string>
+    <string name="apktool_package_name">Package Name</string>
+    <string name="apktool_app_name">Application Name</string>
+    <string name="apktool_target_sdk_version">TargetSdkVersion</string>
+    <string name="apktool_min_sdk_version">MinSdkVersion</string>
+    <string name="apktool_version_code">VersionCode</string>
+    <string name="apktool_version_name">VersionName</string>
 </resources>
