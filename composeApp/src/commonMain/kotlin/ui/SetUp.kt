@@ -80,10 +80,14 @@ import org.tool.kit.composeapp.generated.resources.conventional
 import org.tool.kit.composeapp.generated.resources.default_output_path
 import org.tool.kit.composeapp.generated.resources.delete_repeat_file
 import org.tool.kit.composeapp.generated.resources.delete_repeat_file_tips
+import org.tool.kit.composeapp.generated.resources.enable_apk_generation_options
+import org.tool.kit.composeapp.generated.resources.enable_clear_build_option
 import org.tool.kit.composeapp.generated.resources.enable_extended_options
 import org.tool.kit.composeapp.generated.resources.enable_file_alignment
 import org.tool.kit.composeapp.generated.resources.enable_file_alignment_tips
 import org.tool.kit.composeapp.generated.resources.enable_garbage_code_generation_option
+import org.tool.kit.composeapp.generated.resources.enable_icon_factory_option
+import org.tool.kit.composeapp.generated.resources.enable_signature_generation_option
 import org.tool.kit.composeapp.generated.resources.icon
 import org.tool.kit.composeapp.generated.resources.license
 import org.tool.kit.composeapp.generated.resources.open_source_agreement
@@ -97,6 +101,8 @@ import org.tool.kit.composeapp.generated.resources.target_key_size_tips
 import org.tool.kit.composeapp.generated.resources.target_key_type
 import org.tool.kit.composeapp.generated.resources.target_key_type_tips
 import org.tool.kit.composeapp.generated.resources.toolkit_expand
+import org.tool.kit.composeapp.generated.resources.whether_to_always_show_the_navigation_bar_label
+import org.tool.kit.composeapp.generated.resources.whether_to_turn_off_file_alignment_function_when_signing_and_packaging_huawei_channel_package
 import theme.AppTheme
 import vm.MainViewModel
 import java.awt.Desktop
@@ -111,7 +117,7 @@ import java.net.URI
  */
 @Composable
 fun SetUp(viewModel: MainViewModel) {
-    val developerMode by viewModel.developerMode.collectAsState()
+    val developerMode by viewModel.isEnableDeveloperMode.collectAsState()
     Box(modifier = Modifier.padding(end = 14.dp)) {
         LazyColumn {
             item {
@@ -395,8 +401,14 @@ private fun Conventional(
 
 @Composable
 private fun DeveloperMode(viewModel: MainViewModel) {
-    val developerMode by viewModel.developerMode.collectAsState()
-    val junkCode by viewModel.junkCode.collectAsState()
+    val developerMode by viewModel.isEnableDeveloperMode.collectAsState()
+    val isHuaweiAlignFileSize by viewModel.isHuaweiAlignFileSize.collectAsState()
+    val alwaysShowLabel by viewModel.isAlwaysShowLabel.collectAsState()
+    val showApktool by viewModel.isShowApktool.collectAsState()
+    val showJunkCode by viewModel.isShowJunkCode.collectAsState()
+    val iconFactory by viewModel.isShowIconFactory.collectAsState()
+    val clearBuild by viewModel.isShowClearBuild.collectAsState()
+    val signatureGeneration by viewModel.isShowSignatureGeneration.collectAsState()
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -406,30 +418,54 @@ private fun DeveloperMode(viewModel: MainViewModel) {
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium
             )
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(Res.string.enable_extended_options),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f)
-                )
-                Switch(
-                    checked = developerMode, onCheckedChange = { viewModel.saveDeveloperMode(!developerMode) })
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(Res.string.enable_garbage_code_generation_option),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.weight(1f)
-                )
-                Switch(
-                    checked = junkCode, onCheckedChange = { viewModel.saveJunkCode(!junkCode) })
-            }
+            ExtensionsSwitch(
+                title = stringResource(Res.string.enable_extended_options),
+                checked = developerMode,
+                onCheckedChange = {
+                    viewModel.saveDeveloperMode(!developerMode)
+                })
+            ExtensionsSwitch(
+                title = stringResource(Res.string.enable_signature_generation_option),
+                checked = signatureGeneration,
+                onCheckedChange = {
+                    viewModel.saveSignatureGeneration(!signatureGeneration)
+                })
+            ExtensionsSwitch(
+                title = stringResource(Res.string.enable_apk_generation_options),
+                checked = showApktool,
+                onCheckedChange = {
+                    viewModel.saveApkTool(!showApktool)
+                })
+            ExtensionsSwitch(
+                title = stringResource(Res.string.enable_garbage_code_generation_option),
+                checked = showJunkCode,
+                onCheckedChange = {
+                    viewModel.saveJunkCode(!showJunkCode)
+                })
+            ExtensionsSwitch(
+                title = stringResource(Res.string.enable_icon_factory_option),
+                checked = iconFactory,
+                onCheckedChange = {
+                    viewModel.saveIconFactory(!iconFactory)
+                })
+            ExtensionsSwitch(
+                title = stringResource(Res.string.enable_clear_build_option),
+                checked = clearBuild,
+                onCheckedChange = {
+                    viewModel.saveClearBuild(!clearBuild)
+                })
+            ExtensionsSwitch(
+                title = stringResource(Res.string.whether_to_always_show_the_navigation_bar_label),
+                checked = alwaysShowLabel,
+                onCheckedChange = {
+                    viewModel.saveIsAlwaysShowLabel(!alwaysShowLabel)
+                })
+            ExtensionsSwitch(
+                title = stringResource(Res.string.whether_to_turn_off_file_alignment_function_when_signing_and_packaging_huawei_channel_package),
+                checked = isHuaweiAlignFileSize,
+                onCheckedChange = {
+                    viewModel.saveIsHuaweiAlignFileSize(!isHuaweiAlignFileSize)
+                })
         }
     }
 }
@@ -635,5 +671,22 @@ private fun AboutLibrariesWindow(viewModel: MainViewModel, onCloseRequest: () ->
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ExtensionsSwitch(title: String, checked: Boolean, onCheckedChange: ((Boolean) -> Unit)?) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f)
+        )
+        Switch(
+            checked = checked, onCheckedChange = onCheckedChange
+        )
     }
 }
