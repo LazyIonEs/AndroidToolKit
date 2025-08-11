@@ -139,7 +139,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     )
 
     val isHuaweiAlignFileSize = preferences.isHuaweiAlignFileSize.stateIn(
-        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
+        scope = viewModelScope, started = Eagerly, initialValue = false
     )
 
     val isAlwaysShowLabel = preferences.isAlwaysShowLabel.stateIn(
