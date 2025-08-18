@@ -147,7 +147,7 @@ compose.desktop {
             description = kitDescription
             copyright = kitCopyright
             vendor = kitVendor
-            licenseFile.set(kitLicenseFile)
+            // licenseFile.set(kitLicenseFile)
 
             modules(
                 "java.compiler",
@@ -186,7 +186,7 @@ compose.desktop {
                 msiPackageVersion = packageVersion
                 exePackageVersion = packageVersion
                 menuGroup = packageName
-                dirChooser = true
+                // dirChooser = true
                 perUserInstall = true
                 shortcut = true
                 menu = true
