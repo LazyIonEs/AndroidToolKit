@@ -62,3 +62,5 @@
 # 忽略第三方库警告
 -dontwarn com.google.common.**
 -dontwarn javax.xml.xpath.**
+
+-keep class model.** { *; }

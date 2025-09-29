@@ -110,6 +110,13 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.zoomimage.compose.coil3)
             implementation(libs.apktool.lib)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.cio)
+            implementation(libs.ktor.client.apache5)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.richeditor.compose)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -141,7 +148,13 @@ compose.desktop {
         }
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Exe, TargetFormat.Deb, TargetFormat.Rpm)
+            targetFormats(
+                TargetFormat.Dmg,
+                TargetFormat.Msi,
+                TargetFormat.Exe,
+                TargetFormat.Deb,
+                TargetFormat.Rpm
+            )
             packageName = kitPackageName
             packageVersion = kitVersion
             description = kitDescription
@@ -155,6 +168,8 @@ compose.desktop {
                 "java.naming",
                 "java.prefs",
                 "java.rmi",
+                "java.scripting",
+                "java.security.jgss",
                 "java.sql",
                 "jdk.management",
                 "jdk.security.auth",

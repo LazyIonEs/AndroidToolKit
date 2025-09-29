@@ -44,24 +44,28 @@ import model.PendingDeletionFile
 import model.Sequence
 import model.SignaturePolicy
 import model.SnackbarVisualsData
+import model.Update
 import model.UserData
 import model.Verifier
 import model.VerifierResult
 import org.apache.commons.codec.digest.DigestUtils
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
+import org.tool.kit.BuildConfig
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.apk_is_signed_successfully
 import org.tool.kit.composeapp.generated.resources.apk_parsing_failed
 import org.tool.kit.composeapp.generated.resources.apk_signature_verification_failed
 import org.tool.kit.composeapp.generated.resources.build_end
 import org.tool.kit.composeapp.generated.resources.build_failure
+import org.tool.kit.composeapp.generated.resources.check_update_error
 import org.tool.kit.composeapp.generated.resources.cleanup_complete
 import org.tool.kit.composeapp.generated.resources.create_signature_successfully
 import org.tool.kit.composeapp.generated.resources.exec_command_error
 import org.tool.kit.composeapp.generated.resources.file_deletion_exception
 import org.tool.kit.composeapp.generated.resources.icon_creation_failed
 import org.tool.kit.composeapp.generated.resources.icon_generation_completed
+import org.tool.kit.composeapp.generated.resources.it_s_the_latest_version
 import org.tool.kit.composeapp.generated.resources.jump
 import org.tool.kit.composeapp.generated.resources.output_file_already_exists
 import org.tool.kit.composeapp.generated.resources.scanning_anomalies
@@ -84,12 +88,14 @@ import utils.extractChannel
 import utils.extractIcon
 import utils.extractValue
 import utils.extractVersion
+import utils.filterByOS
 import utils.formatFileSize
 import utils.getFileLength
 import utils.getVerifier
 import utils.isJPEG
 import utils.isJPG
 import utils.isMac
+import utils.isNewVersion
 import utils.isPng
 import utils.isWindows
 import utils.renameManifestPackage
@@ -164,6 +170,10 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
 
     val isEnableDeveloperMode = preferences.isEnableDeveloperMode.stateIn(
         scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
+    )
+
+    val isStartCheckUpdate = preferences.isStartCheckUpdate.stateIn(
+        scope = viewModelScope, started = Eagerly, initialValue = false
     )
 
     // 主页选中下标
@@ -241,6 +251,14 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     private val _snackbarVisuals = MutableStateFlow(SnackbarVisualsData())
     val snackbarVisuals = _snackbarVisuals.asStateFlow()
 
+    // 检查更新
+    private val _checkUpdateState = MutableStateFlow(false)
+    val checkUpdateState = _checkUpdateState.asStateFlow()
+
+    // 检查更新结果
+    private val _checkUpdateResult = MutableStateFlow<Update?>(null)
+    val checkUpdateResult = _checkUpdateResult.asStateFlow()
+
     /**
      * 更新主题
      */
@@ -298,6 +316,12 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     fun saveClearBuild(show: Boolean) {
         viewModelScope.launch {
             preferences.saveClearBuild(show)
+        }
+    }
+
+    fun saveStartCheckUpdate(show: Boolean) {
+        viewModelScope.launch {
+            preferences.saveStartCheckUpdate(show)
         }
     }
 
@@ -1171,6 +1195,48 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             aapt.setExecutable(true)
         }
         return aapt
+    }
+
+    /**
+     * 检查更新
+     */
+    fun checkUpdate() {
+        viewModelScope.launch {
+            _checkUpdateState.update { true }
+            _checkUpdateResult.update { null }
+            val result = utils.checkUpdate()
+            _checkUpdateState.update { false }
+            if (result.isSuccess) {
+                val githubRestLatestResult = result.data!!
+                val isHaveNewVersion = githubRestLatestResult.tagName.isNewVersion(BuildConfig.APP_VERSION)
+                if (isHaveNewVersion) {
+                    val list = githubRestLatestResult.assets.filterByOS()
+                    if (list?.isNotEmpty() == true) {
+                        val version = githubRestLatestResult.tagName
+                        val htmlUrl = githubRestLatestResult.htmlUrl
+                        val createdAt = githubRestLatestResult.createdAt
+                        val body = githubRestLatestResult.body
+                        val update = Update(version, htmlUrl, createdAt, body, list)
+                        _checkUpdateResult.update { update }
+                    } else {
+                        updateSnackbarVisuals(Res.string.it_s_the_latest_version)
+                    }
+                } else {
+                    updateSnackbarVisuals(Res.string.it_s_the_latest_version)
+                }
+            } else {
+                updateSnackbarVisuals(result.msg ?: Res.string.check_update_error)
+            }
+        }
+    }
+
+    /**
+     * 取消更新
+     */
+    fun cancelUpdate() {
+        viewModelScope.launch {
+            _checkUpdateResult.update { null }
+        }
     }
 }
 

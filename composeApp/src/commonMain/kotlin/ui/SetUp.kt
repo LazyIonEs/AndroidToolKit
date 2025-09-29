@@ -1,5 +1,6 @@
 package ui
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -24,9 +25,12 @@ import androidx.compose.foundation.onClick
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Done
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -76,6 +80,7 @@ import org.tool.kit.composeapp.generated.resources.application_description
 import org.tool.kit.composeapp.generated.resources.application_name
 import org.tool.kit.composeapp.generated.resources.application_version
 import org.tool.kit.composeapp.generated.resources.author
+import org.tool.kit.composeapp.generated.resources.check_for_updates
 import org.tool.kit.composeapp.generated.resources.conventional
 import org.tool.kit.composeapp.generated.resources.default_output_path
 import org.tool.kit.composeapp.generated.resources.delete_repeat_file
@@ -96,11 +101,13 @@ import org.tool.kit.composeapp.generated.resources.signature_generation
 import org.tool.kit.composeapp.generated.resources.signature_suffix
 import org.tool.kit.composeapp.generated.resources.signature_suffix_tips
 import org.tool.kit.composeapp.generated.resources.source_code
+import org.tool.kit.composeapp.generated.resources.start_check_update
 import org.tool.kit.composeapp.generated.resources.target_key_size
 import org.tool.kit.composeapp.generated.resources.target_key_size_tips
 import org.tool.kit.composeapp.generated.resources.target_key_type
 import org.tool.kit.composeapp.generated.resources.target_key_type_tips
 import org.tool.kit.composeapp.generated.resources.toolkit_expand
+import org.tool.kit.composeapp.generated.resources.version_information
 import org.tool.kit.composeapp.generated.resources.whether_to_always_show_the_navigation_bar_label
 import org.tool.kit.composeapp.generated.resources.whether_to_turn_off_file_alignment_function_when_signing_and_packaging_huawei_channel_package
 import theme.AppTheme
@@ -182,7 +189,10 @@ private fun ApkSignatureSetUp(
                 })
             Spacer(Modifier.size(3.dp))
             Text(
-                text = stringResource(Res.string.signature_suffix_tips, userData.defaultSignerSuffix),
+                text = stringResource(
+                    Res.string.signature_suffix_tips,
+                    userData.defaultSignerSuffix
+                ),
                 modifier = Modifier.padding(horizontal = 24.dp),
                 style = MaterialTheme.typography.labelSmall
             )
@@ -192,7 +202,8 @@ private fun ApkSignatureSetUp(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = stringResource(Res.string.delete_repeat_file), style = MaterialTheme.typography.bodyLarge
+                        text = stringResource(Res.string.delete_repeat_file),
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     AnimatedVisibility(!userData.duplicateFileRemoval) {
                         Text(
@@ -254,7 +265,8 @@ private fun KeyStore(viewModel: MainViewModel) {
             ) {
                 Column(modifier = Modifier.weight(1.6f)) {
                     Text(
-                        text = stringResource(Res.string.target_key_type), style = MaterialTheme.typography.bodyLarge
+                        text = stringResource(Res.string.target_key_type),
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     AnimatedVisibility(userData.destStoreType == DestStoreType.JKS) {
                         Text(
@@ -266,10 +278,15 @@ private fun KeyStore(viewModel: MainViewModel) {
                 }
                 Box(modifier = Modifier.weight(1f)) {
                     val options = listOf(DestStoreType.JKS.name, DestStoreType.PKCS12.name)
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.align(Alignment.CenterEnd).width(220.dp)) {
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.align(Alignment.CenterEnd).width(220.dp)
+                    ) {
                         options.forEachIndexed { index, label ->
                             SegmentedButton(
-                                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = options.size
+                                ),
                                 onClick = {
                                     viewModel.saveUserData(userData.copy(destStoreType = if (index == 1) DestStoreType.PKCS12 else DestStoreType.JKS))
                                 },
@@ -290,7 +307,8 @@ private fun KeyStore(viewModel: MainViewModel) {
             ) {
                 Column(modifier = Modifier.weight(1.6f)) {
                     Text(
-                        text = stringResource(Res.string.target_key_size), style = MaterialTheme.typography.bodyLarge
+                        text = stringResource(Res.string.target_key_size),
+                        style = MaterialTheme.typography.bodyLarge
                     )
                     AnimatedVisibility(userData.destStoreSize == DestStoreSize.ONE_THOUSAND_TWENTY_FOUR) {
                         Text(
@@ -305,10 +323,15 @@ private fun KeyStore(viewModel: MainViewModel) {
                         "${DestStoreSize.ONE_THOUSAND_TWENTY_FOUR.size}",
                         "${DestStoreSize.TWO_THOUSAND_FORTY_EIGHT.size}"
                     )
-                    SingleChoiceSegmentedButtonRow(modifier = Modifier.align(Alignment.CenterEnd).width(220.dp)) {
+                    SingleChoiceSegmentedButtonRow(
+                        modifier = Modifier.align(Alignment.CenterEnd).width(220.dp)
+                    ) {
                         options.forEachIndexed { index, label ->
                             SegmentedButton(
-                                shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                                shape = SegmentedButtonDefaults.itemShape(
+                                    index = index,
+                                    count = options.size
+                                ),
                                 onClick = {
                                     viewModel.saveUserData(userData.copy(destStoreSize = if (index == 1) DestStoreSize.TWO_THOUSAND_FORTY_EIGHT else DestStoreSize.ONE_THOUSAND_TWENTY_FOUR))
                                 },
@@ -326,6 +349,7 @@ private fun KeyStore(viewModel: MainViewModel) {
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun Conventional(
     viewModel: MainViewModel
@@ -333,7 +357,10 @@ private fun Conventional(
     val userData by viewModel.userData.collectAsState()
     val themeConfig by viewModel.themeConfig.collectAsState()
     var outputPath by mutableStateOf(userData.defaultOutputPath)
-    val outPutError = userData.defaultOutputPath.isNotBlank() && !File(userData.defaultOutputPath).isDirectory
+    val outPutError =
+        userData.defaultOutputPath.isNotBlank() && !File(userData.defaultOutputPath).isDirectory
+    val isStartCheckUpdate by viewModel.isStartCheckUpdate.collectAsState()
+    val isCheckUpdate by viewModel.checkUpdateState.collectAsState()
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -368,7 +395,11 @@ private fun Conventional(
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)
                 ) {
-                    val modeList = listOf(DarkThemeConfig.FOLLOW_SYSTEM, DarkThemeConfig.LIGHT, DarkThemeConfig.DARK)
+                    val modeList = listOf(
+                        DarkThemeConfig.FOLLOW_SYSTEM,
+                        DarkThemeConfig.LIGHT,
+                        DarkThemeConfig.DARK
+                    )
                     modeList.forEach { theme ->
                         ElevatedFilterChip(
                             modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
@@ -395,6 +426,39 @@ private fun Conventional(
                     }
                 }
             }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 4.dp),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(Res.string.version_information),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    Text(
+                        text = BuildConfig.APP_VERSION,
+                        color = MaterialTheme.colorScheme.secondary,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                AnimatedContent(targetState = isCheckUpdate) { checkUpdate ->
+                    if (checkUpdate) {
+                        ContainedLoadingIndicator()
+                    } else {
+                        Button(onClick = {
+                            viewModel.checkUpdate()
+                        }) {
+                            Text(text = stringResource(Res.string.check_for_updates))
+                        }
+                    }
+                }
+            }
+            ExtensionsSwitch(
+                title = stringResource(Res.string.start_check_update),
+                checked = isStartCheckUpdate,
+                onCheckedChange = {
+                    viewModel.saveStartCheckUpdate(!isStartCheckUpdate)
+                })
         }
     }
 }
@@ -489,28 +553,43 @@ private fun About(viewModel: MainViewModel) {
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.size(8.dp))
-            TextAbout(title = stringResource(Res.string.application_name), value = BuildConfig.APP_NAME)
+            TextAbout(
+                title = stringResource(Res.string.application_name),
+                value = BuildConfig.APP_NAME
+            )
             VersionInfo {
                 viewModel.saveDeveloperMode(true)
             }
-            TextAbout(title = stringResource(Res.string.application_description), value = BuildConfig.APP_DESCRIPTION)
-            TextAbout(title = stringResource(Res.string.application_copyright), value = BuildConfig.APP_COPYRIGHT)
-            TextAbout(title = stringResource(Res.string.application_author), value = BuildConfig.APP_VENDOR)
-            TextAbout(title = stringResource(Res.string.open_source_agreement), value = BuildConfig.APP_LICENSE)
+            TextAbout(
+                title = stringResource(Res.string.application_description),
+                value = BuildConfig.APP_DESCRIPTION
+            )
+            TextAbout(
+                title = stringResource(Res.string.application_copyright),
+                value = BuildConfig.APP_COPYRIGHT
+            )
+            TextAbout(
+                title = stringResource(Res.string.application_author),
+                value = BuildConfig.APP_VENDOR
+            )
+            TextAbout(
+                title = stringResource(Res.string.open_source_agreement),
+                value = BuildConfig.APP_LICENSE
+            )
             HorizontalDivider(
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
                 thickness = 2.dp
             )
-            ClickABout(text = stringResource(Res.string.source_code)) {
+            ClickAbout(text = stringResource(Res.string.source_code)) {
                 Desktop.getDesktop().browse(BuildConfig.APP_GITHUB_URI)
             }
-            ClickABout(text = stringResource(Res.string.author)) {
+            ClickAbout(text = stringResource(Res.string.author)) {
                 Desktop.getDesktop().browse(BuildConfig.AUTHOR_GITHUB_URI)
             }
-            ClickABout(text = stringResource(Res.string.license)) {
+            ClickAbout(text = stringResource(Res.string.license)) {
                 Desktop.getDesktop().browse(BuildConfig.APP_LICENSE_URI)
             }
-            ClickABout(text = stringResource(Res.string.open_source_licenses)) {
+            ClickAbout(text = stringResource(Res.string.open_source_licenses)) {
                 isOpenLibraries = !isOpenLibraries
             }
         }
@@ -579,9 +658,10 @@ private fun TextAbout(title: String, value: String) {
 }
 
 @Composable
-private fun ClickABout(text: String, onClick: () -> Unit) {
+private fun ClickAbout(text: String, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 1.dp, bottom = 1.dp).height(36.dp),
+        modifier = Modifier.fillMaxWidth()
+            .padding(start = 16.dp, end = 8.dp, top = 1.dp, bottom = 1.dp).height(36.dp),
         onClick = onClick
     ) {
         Row(
@@ -655,13 +735,19 @@ private fun AboutLibrariesWindow(viewModel: MainViewModel, onCloseRequest: () ->
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 item {
-                                    Text(text = library.name, style = MaterialTheme.typography.titleMedium)
+                                    Text(
+                                        text = library.name,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
                                 }
                                 item {
                                     Spacer(Modifier.size(8.dp))
                                     val license = library.licenses.firstOrNull()
                                     license?.licenseContent?.let { content ->
-                                        Text(text = content, style = MaterialTheme.typography.bodyMedium)
+                                        Text(
+                                            text = content,
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
                                     }
                                     Spacer(Modifier.size(16.dp))
                                 }
@@ -675,7 +761,11 @@ private fun AboutLibrariesWindow(viewModel: MainViewModel, onCloseRequest: () ->
 }
 
 @Composable
-private fun ExtensionsSwitch(title: String, checked: Boolean, onCheckedChange: ((Boolean) -> Unit)?) {
+private fun ExtensionsSwitch(
+    title: String,
+    checked: Boolean,
+    onCheckedChange: ((Boolean) -> Unit)?
+) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 4.dp),
         verticalAlignment = Alignment.CenterVertically

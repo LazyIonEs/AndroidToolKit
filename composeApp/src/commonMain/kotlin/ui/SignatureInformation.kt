@@ -35,18 +35,19 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults.rememberPlainTooltipPositionProvider
+import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -160,7 +161,8 @@ private fun SignatureBox(
     ) {
         Column(modifier = Modifier.align(Alignment.BottomEnd)) {
             AnimatedVisibility(
-                visible = viewModel.verifierState != UIState.Loading, modifier = Modifier.align(Alignment.End)
+                visible = viewModel.verifierState != UIState.Loading,
+                modifier = Modifier.align(Alignment.End)
             ) {
                 FileButton(
                     value = if (dragging) {
@@ -184,13 +186,16 @@ private fun SignatureBox(
                 modifier = Modifier.align(Alignment.End).padding(bottom = 16.dp, end = 16.dp)
             ) {
                 TooltipBox(
-                    positionProvider = rememberPlainTooltipPositionProvider(), tooltip = {
+                    positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+                    tooltip = {
                         PlainTooltip {
                             Text(
-                                text = stringResource(Res.string.copy_md5), style = MaterialTheme.typography.bodySmall
+                                text = stringResource(Res.string.copy_md5),
+                                style = MaterialTheme.typography.bodySmall
                             )
                         }
-                    }, state = rememberTooltipState()
+                    },
+                    state = rememberTooltipState()
                 ) {
                     ExtendedFloatingActionButton(
                         onClick = {
@@ -245,14 +250,16 @@ private fun SignatureList(
                             if (uiState.result.isApk) {
                                 Text(
                                     "Valid APK signature V${verifier.version} found",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp).fillMaxWidth(),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
+                                        .fillMaxWidth(),
                                     textAlign = TextAlign.Center,
                                     style = MaterialTheme.typography.titleMedium
                                 )
                             } else {
                                 Text(
                                     "Valid KeyStore Signature V${verifier.version} found",
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp).fillMaxWidth(),
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
+                                        .fillMaxWidth(),
                                     textAlign = TextAlign.Center,
                                     style = MaterialTheme.typography.titleMedium
                                 )
@@ -319,7 +326,7 @@ private fun SignatureDialog(
                     expanded = expanded,
                     onExpandedChange = { expanded = it }) {
                     OutlinedTextField(
-                        modifier = Modifier.menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                        modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                         value = alisa,
                         readOnly = true,
                         onValueChange = { },
@@ -393,7 +400,8 @@ private fun SignatureListTop(
                 copy(verifier.subject, viewModel)
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Rounded.Subject,
@@ -411,7 +419,8 @@ private fun SignatureListTop(
                 copy(verifier.validFrom, viewModel)
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.QueryBuilder,
@@ -429,7 +438,8 @@ private fun SignatureListTop(
                 copy(verifier.validUntil, viewModel)
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Restore,
@@ -465,7 +475,8 @@ private fun SignatureListCenter(
                 copy(verifier.publicKeyType, viewModel)
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Public,
@@ -483,7 +494,8 @@ private fun SignatureListCenter(
                 copy(verifier.modulus, viewModel)
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Outlined.LibraryBooks,
@@ -501,7 +513,8 @@ private fun SignatureListCenter(
                 copy(verifier.signatureType, viewModel)
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.Lock,
@@ -536,7 +549,8 @@ private fun SignatureListBottom(
                 copy(verifier.md5, viewModel)
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.SentimentSatisfied,
@@ -554,7 +568,8 @@ private fun SignatureListBottom(
                 copy(verifier.sha1, viewModel)
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.SentimentDissatisfied,
@@ -572,7 +587,8 @@ private fun SignatureListBottom(
                 copy(verifier.sha256, viewModel)
             }) {
                 Row(
-                    modifier = Modifier.padding(6.dp), verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.padding(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.SentimentVeryDissatisfied,
