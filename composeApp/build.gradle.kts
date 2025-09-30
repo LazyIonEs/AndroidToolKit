@@ -139,7 +139,7 @@ compose.desktop {
     application {
         mainClass = "MainKt"
 
-        jvmArgs += listOf("-Dapple.awt.application.appearance=system")
+        jvmArgs += listOf("-Dapple.awt.application.appearance=system", "-Djava.net.useSystemProxies=true")
 
         this@application.dependsOn("rustTasks")
 
@@ -201,7 +201,7 @@ compose.desktop {
                 msiPackageVersion = packageVersion
                 exePackageVersion = packageVersion
                 menuGroup = packageName
-                // dirChooser = true
+                dirChooser = false
                 perUserInstall = true
                 shortcut = true
                 menu = true
