@@ -1200,7 +1200,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     /**
      * 检查更新
      */
-    fun checkUpdate() {
+    fun checkUpdate(showMessage: Boolean = true) {
         viewModelScope.launch {
             _checkUpdateState.update { true }
             _checkUpdateResult.update { null }
@@ -1219,13 +1219,19 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                         val update = Update(version, htmlUrl, createdAt, body, list)
                         _checkUpdateResult.update { update }
                     } else {
-                        updateSnackbarVisuals(Res.string.it_s_the_latest_version)
+                        if (showMessage) {
+                            updateSnackbarVisuals(Res.string.it_s_the_latest_version)
+                        }
                     }
                 } else {
-                    updateSnackbarVisuals(Res.string.it_s_the_latest_version)
+                    if (showMessage) {
+                        updateSnackbarVisuals(Res.string.it_s_the_latest_version)
+                    }
                 }
             } else {
-                updateSnackbarVisuals(result.msg ?: Res.string.check_update_error)
+                if (showMessage) {
+                    updateSnackbarVisuals(result.msg ?: Res.string.check_update_error)
+                }
             }
         }
     }

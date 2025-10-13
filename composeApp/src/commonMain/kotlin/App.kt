@@ -153,8 +153,15 @@ fun App() {
         DarkThemeConfig.DARK -> true
         DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
     }
+
     AppTheme(useDarkTheme) {
         MainContentScreen(viewModel)
+    }
+
+    LaunchedEffect(Unit) {
+        if (viewModel.isStartCheckUpdate.value) {
+            viewModel.checkUpdate(showMessage = false)
+        }
     }
 }
 
