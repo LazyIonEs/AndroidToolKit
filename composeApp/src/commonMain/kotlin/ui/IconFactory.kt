@@ -75,7 +75,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import constant.ConfigConstant
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import model.DarkThemeConfig
 import model.FileSelectorType
@@ -128,10 +127,9 @@ import kotlin.math.roundToInt
  */
 @Composable
 fun IconFactory(viewModel: MainViewModel) {
-    val scope = rememberCoroutineScope()
     val showBottomSheet = remember { mutableStateOf(false) }
-    IconFactoryPreview(viewModel, showBottomSheet, scope)
-    IconFactorySheet(viewModel, showBottomSheet, scope)
+    IconFactoryPreview(viewModel, showBottomSheet)
+    IconFactorySheet(viewModel, showBottomSheet)
 }
 
 /**
@@ -140,7 +138,7 @@ fun IconFactory(viewModel: MainViewModel) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun IconFactoryPreview(
-    viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>, scope: CoroutineScope
+    viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>
 ) {
     val icon = viewModel.iconFactoryInfoState.icon
     Column(
@@ -191,13 +189,10 @@ private fun IconFactoryPreview(
                         DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
                     }
                     if (useDarkTheme) {
-                        LottieAnimation(
-                            scope, "files/lottie_main_3_dark.json", modifier = Modifier.requiredSize(256.dp)
+                        LottieAnimation("files/lottie_main_3_dark.json", modifier = Modifier.requiredSize(256.dp)
                         )
                     } else {
-                        LottieAnimation(
-                            scope, "files/lottie_main_3_light.json", modifier = Modifier.requiredSize(256.dp)
-                        )
+                        LottieAnimation("files/lottie_main_3_light.json", modifier = Modifier.requiredSize(256.dp))
                     }
                 }
             })
@@ -303,10 +298,10 @@ private fun IconFactoryResultPlaceholder(resultFile: File?, title: String, size:
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>, scope: CoroutineScope) {
+private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var dragging by remember { mutableStateOf(false) }
-    UploadAnimate(dragging, scope)
+    UploadAnimate(dragging)
     Box(
         modifier = Modifier.fillMaxSize().dragAndDropTarget(
             shouldStartDragAndDrop = accept@{ true },

@@ -31,14 +31,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import constant.ConfigConstant
-import kotlinx.coroutines.CoroutineScope
 import model.FileSelectorType
 import model.SignaturePolicy
 import org.jetbrains.compose.resources.stringResource
@@ -46,8 +44,8 @@ import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.apk_file
 import org.tool.kit.composeapp.generated.resources.check_error
 import org.tool.kit.composeapp.generated.resources.key_alias
-import org.tool.kit.composeapp.generated.resources.key_store_file
 import org.tool.kit.composeapp.generated.resources.key_password
+import org.tool.kit.composeapp.generated.resources.key_store_file
 import org.tool.kit.composeapp.generated.resources.key_store_password
 import org.tool.kit.composeapp.generated.resources.output_path
 import org.tool.kit.composeapp.generated.resources.signature_strategy
@@ -67,9 +65,8 @@ import kotlin.io.path.pathString
  */
 @Composable
 fun ApkSignature(viewModel: MainViewModel) {
-    val scope = rememberCoroutineScope()
     SignatureCard(viewModel)
-    SignatureBox(viewModel, scope)
+    SignatureBox(viewModel)
 }
 
 /**
@@ -78,7 +75,7 @@ fun ApkSignature(viewModel: MainViewModel) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun SignatureBox(
-    viewModel: MainViewModel, scope: CoroutineScope
+    viewModel: MainViewModel
 ) {
     var dragging by remember { mutableStateOf(false) }
     Box(
@@ -111,7 +108,7 @@ private fun SignatureBox(
                 })
             )
     )
-    UploadAnimate(dragging, scope)
+    UploadAnimate(dragging)
 }
 
 @Composable

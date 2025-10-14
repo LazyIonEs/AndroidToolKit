@@ -60,7 +60,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.rememberWindowState
 import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
-import com.mikepenz.aboutlibraries.ui.compose.rememberLibraries
+import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
 import com.mikepenz.aboutlibraries.ui.compose.util.htmlReadyLicenseContent
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -699,7 +699,7 @@ private fun AboutLibrariesWindow(viewModel: MainViewModel, onCloseRequest: () ->
             DarkThemeConfig.DARK -> true
             DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
         }
-        val libraries by rememberLibraries {
+        val libraries by produceLibraries {
             Res.readBytes("files/aboutlibraries.json").decodeToString()
         }
         AppTheme(useDarkTheme) {

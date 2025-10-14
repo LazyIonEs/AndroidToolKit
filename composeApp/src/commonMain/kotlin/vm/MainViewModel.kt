@@ -129,7 +129,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
 
     // 偏好设置
     val userData = preferences.userData.stateIn(
-        scope = viewModelScope, started = WhileUiSubscribed, initialValue = PreferencesDataSource.DEFAULT_USER_DATA
+        scope = viewModelScope, started = Eagerly, initialValue = PreferencesDataSource.DEFAULT_USER_DATA
     )
 
     // 图标生成偏好设置

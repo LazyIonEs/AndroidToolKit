@@ -55,7 +55,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,7 +62,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.CoroutineScope
 import model.DarkThemeConfig
 import model.FileSelectorType
 import model.Verifier
@@ -98,13 +96,12 @@ import kotlin.io.path.pathString
 fun SignatureInformation(
     viewModel: MainViewModel
 ) {
-    val scope = rememberCoroutineScope()
     val signaturePath = remember { mutableStateOf("") }
     if (viewModel.verifierState == UIState.WAIT) {
-        SignatureLottie(viewModel, scope)
+        SignatureLottie(viewModel)
     }
     SignatureList(viewModel)
-    SignatureBox(viewModel, signaturePath, scope)
+    SignatureBox(viewModel, signaturePath)
     SignatureDialog(viewModel, signaturePath)
 }
 
@@ -112,7 +109,7 @@ fun SignatureInformation(
  * 主页动画
  */
 @Composable
-private fun SignatureLottie(viewModel: MainViewModel, scope: CoroutineScope) {
+private fun SignatureLottie(viewModel: MainViewModel) {
     val themeConfig by viewModel.themeConfig.collectAsState()
     val useDarkTheme = when (themeConfig) {
         DarkThemeConfig.LIGHT -> false
@@ -123,9 +120,9 @@ private fun SignatureLottie(viewModel: MainViewModel, scope: CoroutineScope) {
         modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
     ) {
         if (useDarkTheme) {
-            LottieAnimation(scope, "files/lottie_main_1_dark.json")
+            LottieAnimation("files/lottie_main_1_dark.json")
         } else {
-            LottieAnimation(scope, "files/lottie_main_1_light.json")
+            LottieAnimation("files/lottie_main_1_light.json")
         }
     }
 }
@@ -136,10 +133,10 @@ private fun SignatureLottie(viewModel: MainViewModel, scope: CoroutineScope) {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 private fun SignatureBox(
-    viewModel: MainViewModel, signaturePath: MutableState<String>, scope: CoroutineScope
+    viewModel: MainViewModel, signaturePath: MutableState<String>
 ) {
     var dragging by remember { mutableStateOf(false) }
-    UploadAnimate(dragging, scope)
+    UploadAnimate(dragging)
     Box(
         modifier = Modifier.fillMaxSize()
             .dragAndDropTarget(
@@ -346,7 +343,12 @@ private fun SignatureDialog(
                     ) {
                         options?.forEach { selectionOption ->
                             DropdownMenuItem(
-                                text = { Text(text = selectionOption, style = MaterialTheme.typography.labelLarge) },
+                                text = {
+                                    Text(
+                                        text = selectionOption,
+                                        style = MaterialTheme.typography.labelLarge
+                                    )
+                                },
                                 onClick = {
                                     alisa = selectionOption
                                     expanded = false

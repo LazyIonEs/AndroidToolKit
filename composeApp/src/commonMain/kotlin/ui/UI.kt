@@ -48,7 +48,6 @@ import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.path
-import kotlinx.coroutines.CoroutineScope
 import model.DarkThemeConfig
 import model.FileSelectorType
 import utils.LottieAnimation
@@ -292,10 +291,9 @@ fun PasswordInput(value: String, label: String, isError: Boolean, onValueChange:
 /**
  * 上传动画
  * @param dragging 是否在拖拽中
- * @param scope 协程作用域
  */
 @Composable
-fun UploadAnimate(dragging: Boolean, scope: CoroutineScope) {
+fun UploadAnimate(dragging: Boolean) {
     AnimatedVisibility(
         visible = dragging,
         enter = fadeIn() + slideIn(
@@ -314,7 +312,7 @@ fun UploadAnimate(dragging: Boolean, scope: CoroutineScope) {
                 containerColor = MaterialTheme.colorScheme.background,
             )
         ) {
-            LottieAnimation(scope, "files/upload.json")
+            LottieAnimation("files/upload.json")
         }
     }
 }
@@ -322,11 +320,10 @@ fun UploadAnimate(dragging: Boolean, scope: CoroutineScope) {
 /**
  * 加载中动画
  * @param visible 是否显示
- * @param scope 协程作用域
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LoadingAnimate(visible: Boolean, viewModel: MainViewModel, scope: CoroutineScope) {
+fun LoadingAnimate(visible: Boolean, viewModel: MainViewModel) {
     AnimatedVisibility(
         visible = visible,
         enter = fadeIn() + expandHorizontally(),
@@ -344,9 +341,9 @@ fun LoadingAnimate(visible: Boolean, viewModel: MainViewModel, scope: CoroutineS
                 DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
             }
             if (useDarkTheme) {
-                LottieAnimation(scope, "files/lottie_loading_light.json")
+                LottieAnimation("files/lottie_loading_light.json")
             } else {
-                LottieAnimation(scope, "files/lottie_loading_dark.json")
+                LottieAnimation("files/lottie_loading_dark.json")
             }
         }
     }

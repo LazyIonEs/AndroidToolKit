@@ -25,7 +25,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +35,6 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.rememberWindowState
 import coil3.compose.AsyncImage
 import com.github.panpf.zoomimage.CoilZoomAsyncImage
-import kotlinx.coroutines.CoroutineScope
 import model.ApkInformation
 import model.DarkThemeConfig
 import model.FileSelectorType
@@ -76,19 +74,18 @@ import kotlin.io.path.pathString
  */
 @Composable
 fun ApkInformation(viewModel: MainViewModel) {
-    val scope = rememberCoroutineScope()
     if (viewModel.apkInformationState == UIState.WAIT) {
-        ApkInformationLottie(viewModel, scope)
+        ApkInformationLottie(viewModel)
     }
     ApkInformationBox(viewModel)
-    ApkDraggingBox(viewModel, scope)
+    ApkDraggingBox(viewModel)
 }
 
 /**
  * 主页动画
  */
 @Composable
-private fun ApkInformationLottie(viewModel: MainViewModel, scope: CoroutineScope) {
+private fun ApkInformationLottie(viewModel: MainViewModel) {
     val themeConfig by viewModel.themeConfig.collectAsState()
     val useDarkTheme = when (themeConfig) {
         DarkThemeConfig.LIGHT -> false
@@ -99,18 +96,18 @@ private fun ApkInformationLottie(viewModel: MainViewModel, scope: CoroutineScope
         modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
     ) {
         if (useDarkTheme) {
-            LottieAnimation(scope, "files/lottie_main_2_dark.json")
+            LottieAnimation("files/lottie_main_2_dark.json")
         } else {
-            LottieAnimation(scope, "files/lottie_main_2_light.json")
+            LottieAnimation("files/lottie_main_2_light.json")
         }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ApkDraggingBox(viewModel: MainViewModel, scope: CoroutineScope) {
+private fun ApkDraggingBox(viewModel: MainViewModel) {
     var dragging by remember { mutableStateOf(false) }
-    UploadAnimate(dragging, scope)
+    UploadAnimate(dragging)
     Box(
         modifier = Modifier.fillMaxSize()
             .dragAndDropTarget(shouldStartDragAndDrop = accept@{ true }, target = dragAndDropTarget(dragging = {

@@ -81,15 +81,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
 import com.russhwolf.settings.ExperimentalSettingsApi
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.drop
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import model.Asset
 import model.DarkThemeConfig
 import model.DownloadState
 import model.Update
+import model.UserData
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.BuildConfig
@@ -171,11 +169,9 @@ fun App() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContentScreen(viewModel: MainViewModel) {
-    val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    scope.launch(Dispatchers.IO) {
-        collectOutputPath(viewModel)
-    }
+    val userData by viewModel.userData.collectAsState()
+    collectOutputPath(viewModel, userData)
     Scaffold(bottomBar = {
         AnimatedVisibility(
             visible = viewModel.uiPageIndex == Page.CLEAR_BUILD && viewModel.fileClearUIState == UIState.WAIT && viewModel.pendingDeletionFileList.isNotEmpty(),
@@ -286,7 +282,7 @@ fun MainContentScreen(viewModel: MainViewModel) {
             SnackbarResult.Dismissed -> Unit
         }
     }
-    LoadingAnimate(isShowLoading(viewModel), viewModel, scope)
+    LoadingAnimate(isShowLoading(viewModel), viewModel)
     UpdateDialog(viewModel)
 }
 
@@ -538,8 +534,7 @@ private fun isShowLoading(viewModel: MainViewModel) =
             || (viewModel.fileClearUIState == UIState.Loading && viewModel.isClearing
             || viewModel.apkToolInfoUIState == UIState.Loading)
 
-suspend fun collectOutputPath(viewModel: MainViewModel) {
-    val userData = viewModel.userData.drop(0).first()
+fun collectOutputPath(viewModel: MainViewModel, userData: UserData) {
     val outputPath = userData.defaultOutputPath
     viewModel.apply {
         updateApkSignature(viewModel.apkSignatureState.copy(outputPath = outputPath))
