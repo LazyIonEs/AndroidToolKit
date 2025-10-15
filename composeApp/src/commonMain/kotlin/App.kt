@@ -81,6 +81,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mohamedrejeb.richeditor.model.rememberRichTextState
 import com.mohamedrejeb.richeditor.ui.material3.RichText
 import com.russhwolf.settings.ExperimentalSettingsApi
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import model.Asset
@@ -141,6 +142,8 @@ import java.io.File
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 
+private val logger = KotlinLogging.logger("App")
+
 @OptIn(ExperimentalSettingsApi::class)
 @Composable
 fun App() {
@@ -151,6 +154,8 @@ fun App() {
         DarkThemeConfig.DARK -> true
         DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
     }
+
+    logger.info { "启动App, 应用版本号: ${BuildConfig.APP_VERSION}" }
 
     AppTheme(useDarkTheme) {
         MainContentScreen(viewModel)

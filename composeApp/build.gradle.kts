@@ -68,7 +68,7 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation(compose.foundation)
             implementation(libs.slf4j.api)
-            implementation(libs.slf4j.simple)
+            // implementation(libs.slf4j.simple)
             implementation(libs.android.apksig)
             implementation(libs.android.sdk.common)
             implementation(libs.android.binary.resources)
@@ -96,7 +96,10 @@ kotlin {
                 exclude(group = "commons-io", module = "commons-io")
                 exclude(group = "net.java.dev.jna", module = "jna-platform")
                 exclude(group = "org.apache.commons", module = "commons-compress")
-                exclude(group = "org.jetbrains.intellij.deps.fastutil", module = "intellij-deps-fastutil")
+                exclude(
+                    group = "org.jetbrains.intellij.deps.fastutil",
+                    module = "intellij-deps-fastutil"
+                )
                 exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
                 exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-core-jvm")
                 exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-json-jvm")
@@ -120,6 +123,8 @@ kotlin {
             implementation(libs.compottie)
             implementation(libs.compottie.dot)
             implementation(libs.compottie.resources)
+            implementation(libs.logging)
+            implementation(libs.logback.classic)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -142,7 +147,12 @@ compose.desktop {
     application {
         mainClass = "MainKt"
 
-        jvmArgs += listOf("-Dapple.awt.application.appearance=system", "-Djava.net.useSystemProxies=true")
+        jvmArgs += listOf(
+            "-Dapple.awt.application.appearance=system",
+            "-Djava.net.useSystemProxies=true",
+            "-Dorg.slf4j.simpleLogger.defaultLogLevel=INFO",
+            "-Dkotlin-logging-to-logbacktrue"
+        )
 
         this@application.dependsOn("rustTasks")
 

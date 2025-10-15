@@ -28,6 +28,7 @@
 -keep class com.android.apksig.** { *; }
 -keep class org.sqlite.** { *; }
 -keep class org.slf4j.** { *; }
+-keep class ch.qos.logback.** { *; }
 #-keep class java.nio.** { *; }
 #-keep class java.util.concurrent.** { *; }
 -keep class uniffi.toolkit.** { *; }

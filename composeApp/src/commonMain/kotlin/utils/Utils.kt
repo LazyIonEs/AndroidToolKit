@@ -3,10 +3,13 @@ package utils
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import brut.xml.XmlUtils
+import ch.qos.logback.classic.LoggerContext
+import ch.qos.logback.core.FileAppender
 import com.google.devrel.gmscore.tools.apk.arsc.ArscBlamer
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.downloadDir
 import io.github.vinceglb.filekit.path
@@ -15,6 +18,7 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
 import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.plugins.onDownload
 import io.ktor.client.request.get
@@ -38,6 +42,7 @@ import model.GithubRestLatestResult
 import model.GithubRestResult
 import model.Verifier
 import org.jetbrains.skia.Image
+import org.slf4j.LoggerFactory
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.check_update_error
 import org.tool.kit.composeapp.generated.resources.check_update_remaining_tips
@@ -63,6 +68,8 @@ import kotlin.time.ExperimentalTime
  * @Description : 工具类
  * @Version     : 1.0
  */
+
+private val logger = KotlinLogging.logger("Utils")
 
 /**
  * 获取下载目录
@@ -218,7 +225,7 @@ suspend fun extractAndroidManifest(aapt: File, apkPath: String): String? =
             val result = stdoutStream.toString("UTF-8").trimIndent()
             return@withContext result
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error(e) { "extractAndroidManifest 提取AndroidManifest异常, 异常信息: ${e.message}" }
         }
         return@withContext null
     }
@@ -250,7 +257,7 @@ suspend fun extractIcon(text: String?, apkPath: String, iconPath: String): Image
                 return@withContext processIconFromZip(apkPath, iconPath)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error(e) { "extractIcon 提取图标异常, 异常信息: ${e.message}" }
         }
         return@withContext null
     }
@@ -484,34 +491,34 @@ private fun runCommand(command: String): Boolean {
             } else {
                 false
             }
-        } catch (_: IllegalThreadStateException) {
+        } catch (e: IllegalThreadStateException) {
+            logger.error(e) { "runCommand 执行命令异常, 异常信息: ${e.message}" }
             return true
         }
-    } catch (_: IOException) {
+    } catch (e: IOException) {
+        logger.error(e) { "runCommand 执行命令异常, 异常信息: ${e.message}" }
         return false
     }
 }
 
 fun renameManifestPackage(file: File, minSdkVersion: String, targetSdkVersion: String) {
-    runCatching {
-        val doc = XmlUtils.loadDocument(file)
-        // 查找 uses-sdk 节点
-        val sdkElems = doc.getElementsByTagName("uses-sdk")
-        if (sdkElems.length > 0) {
-            val sdk = sdkElems.item(0)
-            sdk.attributes.getNamedItem("android:minSdkVersion")
-                ?.nodeValue = minSdkVersion
-            sdk.attributes.getNamedItem("android:targetSdkVersion")
-                ?.nodeValue = targetSdkVersion
-        } else {
-            // 若无 uses‑sdk 标签就插入
-            val newSdk = doc.createElement("uses-sdk")
-            newSdk.setAttribute("android:minSdkVersion", minSdkVersion)
-            newSdk.setAttribute("android:targetSdkVersion", targetSdkVersion)
-            doc.documentElement.insertBefore(newSdk, doc.documentElement.firstChild)
-        }
-        XmlUtils.saveDocument(doc, file)
+    val doc = XmlUtils.loadDocument(file)
+    // 查找 uses-sdk 节点
+    val sdkElems = doc.getElementsByTagName("uses-sdk")
+    if (sdkElems.length > 0) {
+        val sdk = sdkElems.item(0)
+        sdk.attributes.getNamedItem("android:minSdkVersion")
+            ?.nodeValue = minSdkVersion
+        sdk.attributes.getNamedItem("android:targetSdkVersion")
+            ?.nodeValue = targetSdkVersion
+    } else {
+        // 若无 uses‑sdk 标签就插入
+        val newSdk = doc.createElement("uses-sdk")
+        newSdk.setAttribute("android:minSdkVersion", minSdkVersion)
+        newSdk.setAttribute("android:targetSdkVersion", targetSdkVersion)
+        doc.documentElement.insertBefore(newSdk, doc.documentElement.firstChild)
     }
+    XmlUtils.saveDocument(doc, file)
 }
 
 fun renameValueAppName(file: File, appName: String) {
@@ -519,13 +526,11 @@ fun renameValueAppName(file: File, appName: String) {
         return
     }
     val key = "app_name"
-    runCatching {
-        val doc = XmlUtils.loadDocument(file)
-        val expression = String.format("/resources/%s[@name='%s']/text()", "string", key)
-        val node = XmlUtils.evaluateXPath(doc, expression, Node::class.java)
-        node.nodeValue = appName
-        XmlUtils.saveDocument(doc, file)
-    }
+    val doc = XmlUtils.loadDocument(file)
+    val expression = String.format("/resources/%s[@name='%s']/text()", "string", key)
+    val node = XmlUtils.evaluateXPath(doc, expression, Node::class.java)
+    node.nodeValue = appName
+    XmlUtils.saveDocument(doc, file)
 }
 
 private const val TIME_TO_TRIGGER_PROGRESS = 50
@@ -539,12 +544,16 @@ suspend fun downloadFile(
     destFile: File,
     onProgress: suspend (downloaded: Long, total: Long) -> Unit
 ) = coroutineScope {
+    logger.info { "downloadFile 开始下载, url: $url, destFile: $destFile" }
     destFile.parentFile?.let { parent ->
         if (!parent.exists()) parent.mkdirs()
     }
     if (destFile.exists()) destFile.delete()
 
     val client = HttpClient(Apache5) {
+        install(Logging) {
+            level = LogLevel.INFO
+        }
         engine {
             customizeClient {
                 setProxySelector(ProxySelector.getDefault())
@@ -568,7 +577,7 @@ suspend fun downloadFile(
             }
             true
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error(e) { "downloadFile 下载异常, 异常信息: ${e.message}" }
             destFile.delete()
             false
         } finally {
@@ -578,12 +587,15 @@ suspend fun downloadFile(
 }
 
 suspend fun checkUpdate() = coroutineScope {
+    logger.info { "checkUpdate 开始检查更新" }
     val client = HttpClient(Apache5) {
         install(HttpRequestRetry) {
             retryOnServerErrors(maxRetries = 1)
             exponentialDelay()
         }
-        install(Logging)
+        install(Logging) {
+            level = LogLevel.ALL
+        }
         install(ContentNegotiation) {
             json(Json {
                 ignoreUnknownKeys = true
@@ -618,6 +630,7 @@ suspend fun checkUpdate() = coroutineScope {
             GithubRestResult(true, null, result)
         }
     } catch (e: Exception) {
+        logger.error(e) { "checkUpdate 检查更新异常, 异常信息: ${e.message}" }
         GithubRestResult(false, Res.string.check_update_error, null)
     } finally {
         client.close()
@@ -642,6 +655,16 @@ fun MutableList<Asset>.filterByOS(): List<Asset>? {
         return filter { it.name.contains("linux") }
     } else if (isWindows) {
         return filter { it.name.contains("windows") }
+    }
+    return null
+}
+
+fun getRollingAppenderDir(): String? {
+    val context = LoggerFactory.getILoggerFactory() as? LoggerContext ?: return null
+    val logger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
+    val appender = logger.getAppender("FILE")
+    if (appender is FileAppender<*>) {
+        return File(appender.file).parentFile.absolutePath
     }
     return null
 }
