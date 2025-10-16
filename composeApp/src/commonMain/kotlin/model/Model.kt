@@ -53,6 +53,7 @@ data class Verifier(
 data class ApkSignature(
     var apkPath: String = "", // apk路径
     var outputPath: String = "", // apk输出路径
+    var outputPrefix: String = "", // 输出文件前缀
     var keyStorePolicy: SignaturePolicy = SignaturePolicy.V2, // 密钥策略
     private var _keyStorePath: String = "", // 密钥
     var keyStorePassword: String = "", // 密钥密码

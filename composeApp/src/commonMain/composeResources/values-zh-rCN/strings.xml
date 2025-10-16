@@ -38,6 +38,7 @@
     <string name="channel">渠道：</string>
 
     <string name="output_path">输出路径</string>
+    <string name="output_file_prefix">输出文件前缀(选填)</string>
     <string name="key_store_file">密钥文件路径</string>
     <string name="key_store_password">密钥库密码</string>
     <string name="key_alias">密钥别名</string>
@@ -153,6 +154,7 @@
     <string name="author">作者</string>
     <string name="license">许可证</string>
     <string name="open_source_licenses">开源许可证</string>
+    <string name="view_log_file">查看日志</string>
 
     <string name="key_output_path">密钥输出路径</string>
     <string name="key_file_name">密钥文件名称</string>

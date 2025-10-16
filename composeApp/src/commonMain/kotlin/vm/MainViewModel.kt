@@ -447,14 +447,10 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             val resultList = apks.map { path ->
                 async { suspendApkSigner(path = path, showUiState = false) }
             }.awaitAll()
-            val result = resultList.none { !it }
+            val result = resultList.none { it == null || !it.exists() }
             logger.info { "apksSigner 多APK签名结束, 结果: $result" }
             if (result) {
-                val file = File(apks.last())
-                val signerSuffix = userData.value.defaultSignerSuffix
-                val outputApk = File(
-                    apkSignatureState.outputPath, "${file.nameWithoutExtension}${signerSuffix}.apk"
-                )
+                val outputApk = resultList.last()
                 val snackbarVisualsData = SnackbarVisualsData(
                     message = getString(Res.string.apk_is_signed_successfully),
                     actionLabel = getString(Res.string.jump),
@@ -481,7 +477,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     suspend fun suspendApkSigner(path: String = apkSignatureState.apkPath, showUiState: Boolean = true) =
         suspendCancellableCoroutine { coroutine ->
             viewModelScope.launch(Dispatchers.IO) {
-                var result = false
+                var resultFile: File? = null
                 try {
                     val signerSuffix = userData.value.defaultSignerSuffix
                     val flagDelete = userData.value.duplicateFileRemoval
@@ -494,9 +490,17 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                         _apkSignatureUIState.update { UIState.Loading }
                     }
                     val inputApk = File(path)
-                    val outputApk = File(
-                        apkSignatureState.outputPath, "${inputApk.nameWithoutExtension}${signerSuffix}.apk"
-                    )
+                    val outputPrefix = apkSignatureState.outputPrefix
+                    val outputApk = if (outputPrefix.isNotBlank()) {
+                        File(
+                            apkSignatureState.outputPath, "${outputPrefix}-${inputApk.nameWithoutExtension}${signerSuffix}.apk"
+                        )
+                    } else {
+                        File(
+                            apkSignatureState.outputPath, "${inputApk.nameWithoutExtension}${signerSuffix}.apk"
+                        )
+                    }
+
                     if (outputApk.exists()) {
                         if (flagDelete) {
                             outputApk.delete()
@@ -536,19 +540,21 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                             })
                         updateSnackbarVisuals(snackbarVisualsData)
                     }
-                    result = true
-                    logger.info { "suspendApkSigner APK签名结束, 结果: $result" }
+                    if (outputApk.exists()) {
+                        resultFile = outputApk
+                    }
+                    logger.info { "suspendApkSigner APK签名结束, APK输出文件路径: ${resultFile?.absolutePath}" }
                 } catch (e: Exception) {
                     logger.error(e) { "suspendApkSigner APK签名异常, 异常信息: ${e.message}" }
                     if (showUiState) {
                         updateSnackbarVisuals(e.message ?: getString(Res.string.signature_failed))
                     }
-                    result = false
+                    resultFile = null
                 } finally {
                     if (showUiState) {
                         _apkSignatureUIState.update { UIState.WAIT }
                     }
-                    coroutine.resume(result)
+                    coroutine.resume(resultFile)
                 }
             }
         }
@@ -1102,7 +1108,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 .maxDepth(10)
                 // 如果父目录是缓存目录，不再继续遍历此目录下的文件
                 .onEnter { file -> file.parentFile?.nameWithoutExtension != "build" }
-                .filter { file -> file.isDirectory == true && file.nameWithoutExtension == "build" }
+                .filter { file -> file.isDirectory && file.nameWithoutExtension == "build" }
                 .forEach { file ->
                     val length = file.getFileLength()
                     withContext(Dispatchers.Main) {

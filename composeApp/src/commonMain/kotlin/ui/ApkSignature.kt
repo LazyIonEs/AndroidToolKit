@@ -48,6 +48,7 @@ import org.tool.kit.composeapp.generated.resources.key_password
 import org.tool.kit.composeapp.generated.resources.key_store_file
 import org.tool.kit.composeapp.generated.resources.key_store_password
 import org.tool.kit.composeapp.generated.resources.output_path
+import org.tool.kit.composeapp.generated.resources.output_file_prefix
 import org.tool.kit.composeapp.generated.resources.signature_strategy
 import org.tool.kit.composeapp.generated.resources.start_signing
 import org.tool.kit.composeapp.generated.resources.v2_tips
@@ -142,6 +143,16 @@ private fun SignatureCard(viewModel: MainViewModel) {
                     isError = outputError
                 ) { outputPath ->
                     viewModel.updateApkSignature(viewModel.apkSignatureState.copy(outputPath = outputPath))
+                }
+            }
+            item {
+                Spacer(Modifier.size(6.dp))
+                StringInput(
+                    value = viewModel.apkSignatureState.outputPrefix,
+                    label = stringResource(Res.string.output_file_prefix),
+                    isError = false
+                ) { outputPrefix ->
+                    viewModel.updateApkSignature(viewModel.apkSignatureState.copy(outputPrefix = outputPrefix))
                 }
             }
             item {

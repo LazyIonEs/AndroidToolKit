@@ -465,7 +465,8 @@ private fun formatSizeByTypeWithDivisor(
 /**
  * 在文件夹中打开
  */
-fun browseFileDirectory(file: File) {
+fun browseFileDirectory(file: File?) {
+    if (file == null || !file.exists()) return
     if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
         Desktop.getDesktop().browseFileDirectory(file)
     } else {
@@ -659,12 +660,15 @@ fun MutableList<Asset>.filterByOS(): List<Asset>? {
     return null
 }
 
-fun getRollingAppenderDir(): String? {
+/**
+ * 获取日志文件
+ */
+fun getRollingAppenderFile(): File? {
     val context = LoggerFactory.getILoggerFactory() as? LoggerContext ?: return null
     val logger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
     val appender = logger.getAppender("FILE")
     if (appender is FileAppender<*>) {
-        return File(appender.file).parentFile.absolutePath
+        return File(appender.file)
     }
     return null
 }

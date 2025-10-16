@@ -38,6 +38,7 @@
     <string name="channel">Channel：</string>
 
     <string name="output_path">Output Path</string>
+    <string name="output_file_prefix">Output File Prefix(optional)</string>
     <string name="key_store_file">Key Store File Path</string>
     <string name="key_store_password">Key Store Password</string>
     <string name="key_alias">Key Alias</string>
@@ -153,6 +154,7 @@
     <string name="author">Author</string>
     <string name="license">License</string>
     <string name="open_source_licenses">Open Source Licenses</string>
+    <string name="view_log_file">View Log File</string>
 
     <string name="key_output_path">Key Output Path</string>
     <string name="key_file_name">Key File Name</string>

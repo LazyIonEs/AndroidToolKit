@@ -108,9 +108,12 @@ import org.tool.kit.composeapp.generated.resources.target_key_type
 import org.tool.kit.composeapp.generated.resources.target_key_type_tips
 import org.tool.kit.composeapp.generated.resources.toolkit_expand
 import org.tool.kit.composeapp.generated.resources.version_information
+import org.tool.kit.composeapp.generated.resources.view_log_file
 import org.tool.kit.composeapp.generated.resources.whether_to_always_show_the_navigation_bar_label
 import org.tool.kit.composeapp.generated.resources.whether_to_turn_off_file_alignment_function_when_signing_and_packaging_huawei_channel_package
 import theme.AppTheme
+import utils.browseFileDirectory
+import utils.getRollingAppenderFile
 import vm.MainViewModel
 import java.awt.Desktop
 import java.io.File
@@ -591,6 +594,11 @@ private fun About(viewModel: MainViewModel) {
             }
             ClickAbout(text = stringResource(Res.string.open_source_licenses)) {
                 isOpenLibraries = !isOpenLibraries
+            }
+            getRollingAppenderFile()?.let { file ->
+                ClickAbout(text = stringResource(Res.string.view_log_file)) {
+                    browseFileDirectory(file)
+                }
             }
         }
     }

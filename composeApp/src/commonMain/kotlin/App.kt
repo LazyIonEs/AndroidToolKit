@@ -376,9 +376,14 @@ fun UpdateDialog(vm: MainViewModel) {
                             DownloadState.FINISH -> TextButton(onClick = {
                                 vm.cancelUpdate()
                                 if (downloadFile != null && downloadFile.exists()) {
-                                    Desktop.getDesktop().open(downloadFile)
+                                    runCatching {
+                                        Desktop.getDesktop().open(downloadFile)
+                                    }.onFailure { e ->
+                                        logger.error(e) { "UpdateDialog 打开安装文件异常, 异常信息: ${e.message}" }
+                                    }.onSuccess {
+                                        exitProcess(0)
+                                    }
                                 }
-                                exitProcess(0)
                             }) {
                                 Text(text = stringResource(Res.string.exit_and_install))
                             }
