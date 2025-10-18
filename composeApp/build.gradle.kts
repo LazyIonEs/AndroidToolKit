@@ -68,7 +68,7 @@ kotlin {
             implementation(compose.materialIconsExtended)
             implementation(compose.foundation)
             implementation(libs.slf4j.api)
-            implementation(libs.slf4j.simple)
+            // implementation(libs.slf4j.simple)
             implementation(libs.android.apksig)
             implementation(libs.android.sdk.common)
             implementation(libs.android.binary.resources)
@@ -96,7 +96,10 @@ kotlin {
                 exclude(group = "commons-io", module = "commons-io")
                 exclude(group = "net.java.dev.jna", module = "jna-platform")
                 exclude(group = "org.apache.commons", module = "commons-compress")
-                exclude(group = "org.jetbrains.intellij.deps.fastutil", module = "intellij-deps-fastutil")
+                exclude(
+                    group = "org.jetbrains.intellij.deps.fastutil",
+                    module = "intellij-deps-fastutil"
+                )
                 exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
                 exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-core-jvm")
                 exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-json-jvm")
@@ -110,6 +113,18 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.zoomimage.compose.coil3)
             implementation(libs.apktool.lib)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.cio)
+            implementation(libs.ktor.client.apache5)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation(libs.richeditor.compose)
+            implementation(libs.compottie)
+            implementation(libs.compottie.dot)
+            implementation(libs.compottie.resources)
+            implementation(libs.logging)
+            implementation(libs.logback.classic)
         }
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -132,7 +147,12 @@ compose.desktop {
     application {
         mainClass = "MainKt"
 
-        jvmArgs += listOf("-Dapple.awt.application.appearance=system")
+        jvmArgs += listOf(
+            "-Dapple.awt.application.appearance=system",
+            "-Djava.net.useSystemProxies=true",
+            "-Dorg.slf4j.simpleLogger.defaultLogLevel=INFO",
+            "-Dkotlin-logging-to-logbacktrue"
+        )
 
         this@application.dependsOn("rustTasks")
 
@@ -141,13 +161,19 @@ compose.desktop {
         }
 
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Exe, TargetFormat.Deb, TargetFormat.Rpm)
+            targetFormats(
+                TargetFormat.Dmg,
+                TargetFormat.Msi,
+                TargetFormat.Exe,
+                TargetFormat.Deb,
+                TargetFormat.Rpm
+            )
             packageName = kitPackageName
             packageVersion = kitVersion
             description = kitDescription
             copyright = kitCopyright
             vendor = kitVendor
-            licenseFile.set(kitLicenseFile)
+            // licenseFile.set(kitLicenseFile)
 
             modules(
                 "java.compiler",
@@ -155,6 +181,8 @@ compose.desktop {
                 "java.naming",
                 "java.prefs",
                 "java.rmi",
+                "java.scripting",
+                "java.security.jgss",
                 "java.sql",
                 "jdk.management",
                 "jdk.security.auth",
@@ -186,7 +214,7 @@ compose.desktop {
                 msiPackageVersion = packageVersion
                 exePackageVersion = packageVersion
                 menuGroup = packageName
-                dirChooser = true
+                dirChooser = false
                 perUserInstall = true
                 shortcut = true
                 menu = true

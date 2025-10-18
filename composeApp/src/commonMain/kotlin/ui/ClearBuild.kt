@@ -59,7 +59,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -156,7 +155,6 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
     }
     // 已使用空间
     val usedSpace = totalSpace - usableSpace
-    val scope = rememberCoroutineScope()
     Column(modifier = Modifier.fillMaxWidth()) {
         ElevatedCard(modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 12.dp)) {
             AnimatedVisibility(
@@ -294,9 +292,9 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                         scaleY = 1.7f
                     }
                     if (useDarkTheme) {
-                        LottieAnimation(scope, "files/lottie_main_4_dark.json", modifier)
+                        LottieAnimation("files/lottie_main_4_dark.json", modifier)
                     } else {
-                        LottieAnimation(scope, "files/lottie_main_4_light.json", modifier)
+                        LottieAnimation("files/lottie_main_4_light.json", modifier)
                     }
                     Box(modifier = Modifier.weight(1f))
                 }

@@ -3,18 +3,49 @@ package utils
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import brut.xml.XmlUtils
+import ch.qos.logback.classic.LoggerContext
+import ch.qos.logback.core.FileAppender
 import com.google.devrel.gmscore.tools.apk.arsc.ArscBlamer
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
 import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.downloadDir
 import io.github.vinceglb.filekit.path
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.engine.apache5.Apache5
+import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logging
+import io.ktor.client.plugins.onDownload
+import io.ktor.client.request.get
+import io.ktor.client.request.prepareGet
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
+import io.ktor.http.headers
+import io.ktor.serialization.kotlinx.json.json
+import io.ktor.util.cio.writeChannel
+import io.ktor.utils.io.copyAndClose
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import model.Asset
 import model.FileSelectorType
+import model.GithubRestLatestResult
+import model.GithubRestResult
 import model.Verifier
 import org.jetbrains.skia.Image
+import org.slf4j.LoggerFactory
+import org.tool.kit.composeapp.generated.resources.Res
+import org.tool.kit.composeapp.generated.resources.check_update_error
+import org.tool.kit.composeapp.generated.resources.check_update_remaining_tips
 import org.w3c.dom.Node
 import java.awt.Desktop
 import java.io.ByteArrayOutputStream
@@ -23,10 +54,13 @@ import java.io.IOException
 import java.io.InputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
+import java.net.ProxySelector
 import java.security.MessageDigest
 import java.security.cert.X509Certificate
 import java.security.interfaces.RSAPublicKey
 import java.util.zip.ZipFile
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 /**
  * @Author      : LazyIonEs
@@ -34,6 +68,8 @@ import java.util.zip.ZipFile
  * @Description : 工具类
  * @Version     : 1.0
  */
+
+private val logger = KotlinLogging.logger("Utils")
 
 /**
  * 获取下载目录
@@ -122,7 +158,16 @@ fun X509Certificate.getVerifier(version: Int): Verifier {
     val sha1 = getThumbPrint(this, "SHA-1") ?: ""
     val sha256 = getThumbPrint(this, "SHA-256") ?: ""
     val apkVerifier = Verifier(
-        version, subject, validFrom, validUntil, publicKeyType, modulus, signatureType, md5, sha1, sha256
+        version,
+        subject,
+        validFrom,
+        validUntil,
+        publicKeyType,
+        modulus,
+        signatureType,
+        md5,
+        sha1,
+        sha256
     )
     return apkVerifier
 }
@@ -160,29 +205,30 @@ fun extractVersion(line: String, attribute: String): String {
     return matchResult?.groups?.get(1)?.value ?: ""
 }
 
-suspend fun extractAndroidManifest(aapt: File, apkPath: String): String? = withContext(Dispatchers.IO) {
-    try {
-        val stdinStream = "".byteInputStream()
-        val stdoutStream = ByteArrayOutputStream()
-        val stderrStream = ByteArrayOutputStream()
+suspend fun extractAndroidManifest(aapt: File, apkPath: String): String? =
+    withContext(Dispatchers.IO) {
+        try {
+            val stdinStream = "".byteInputStream()
+            val stdoutStream = ByteArrayOutputStream()
+            val stderrStream = ByteArrayOutputStream()
 
-        val exitValue = withContext(Dispatchers.IO) {
-            ExternalCommand(aapt.absolutePath).execute(
-                listOf("dump", "xmltree", apkPath, "--file", "AndroidManifest.xml"),
-                stdinStream, stdoutStream, stderrStream
-            )
+            val exitValue = withContext(Dispatchers.IO) {
+                ExternalCommand(aapt.absolutePath).execute(
+                    listOf("dump", "xmltree", apkPath, "--file", "AndroidManifest.xml"),
+                    stdinStream, stdoutStream, stderrStream
+                )
+            }
+            if (exitValue != 0) {
+                // 执行命令出现错误
+                return@withContext null
+            }
+            val result = stdoutStream.toString("UTF-8").trimIndent()
+            return@withContext result
+        } catch (e: Exception) {
+            logger.error(e) { "extractAndroidManifest 提取AndroidManifest异常, 异常信息: ${e.message}" }
         }
-        if (exitValue != 0) {
-            // 执行命令出现错误
-            return@withContext null
-        }
-        val result = stdoutStream.toString("UTF-8").trimIndent()
-        return@withContext result
-    } catch (e: Exception) {
-        e.printStackTrace()
+        return@withContext null
     }
-    return@withContext null
-}
 
 fun extractChannel(text: String?): String? {
     if (text.isNullOrBlank()) return null
@@ -191,28 +237,30 @@ fun extractChannel(text: String?): String? {
     return regex.find(text)?.groupValues?.getOrNull(1)
 }
 
-suspend fun extractIcon(text: String?, apkPath: String, iconPath: String): ImageBitmap? = withContext(Dispatchers.IO) {
-    try {
-        if (iconPath.endsWith(".xml")) {
-            if (text == null) {
-                return@withContext null
+suspend fun extractIcon(text: String?, apkPath: String, iconPath: String): ImageBitmap? =
+    withContext(Dispatchers.IO) {
+        try {
+            if (iconPath.endsWith(".xml")) {
+                if (text == null) {
+                    return@withContext null
+                }
+                // 正则表达式匹配 "A: http://schemas.android.com/apk/res/android:icon" 后面的十六进制值
+                val regex =
+                    """A: http://schemas.android.com/apk/res/android:icon\(0x[0-9a-fA-F]+\)=@0x([0-9a-fA-F]+)""".toRegex()
+                // 查找匹配
+                regex.find(text)?.let { matchResult ->
+                    val resourceId =
+                        matchResult.groupValues[1].toIntOrNull(16) ?: return@withContext null
+                    return@withContext extractBitmapFromResourceTable(apkPath, resourceId)
+                }
+            } else {
+                return@withContext processIconFromZip(apkPath, iconPath)
             }
-            // 正则表达式匹配 "A: http://schemas.android.com/apk/res/android:icon" 后面的十六进制值
-            val regex =
-                """A: http://schemas.android.com/apk/res/android:icon\(0x[0-9a-fA-F]+\)=@0x([0-9a-fA-F]+)""".toRegex()
-            // 查找匹配
-            regex.find(text)?.let { matchResult ->
-                val resourceId = matchResult.groupValues[1].toIntOrNull(16) ?: return@withContext null
-                return@withContext extractBitmapFromResourceTable(apkPath, resourceId)
-            }
-        } else {
-            return@withContext processIconFromZip(apkPath, iconPath)
+        } catch (e: Exception) {
+            logger.error(e) { "extractIcon 提取图标异常, 异常信息: ${e.message}" }
         }
-    } catch (e: Exception) {
-        e.printStackTrace()
+        return@withContext null
     }
-    return@withContext null
-}
 
 private fun extractBitmapFromResourceTable(apkPath: String, resourceId: Int): ImageBitmap? {
     val binaryResourceIdentifier = BinaryResourceIdentifier.create(resourceId)
@@ -305,14 +353,62 @@ fun File.getFileLength(): Long {
 /**
  * @param scale 精确到小数点以后几位 (Accurate to a few decimal places)
  */
-fun Long.formatFileSize(scale: Int = 2, withUnit: Boolean = true, withInterval: Boolean = false): String {
+fun Float.formatFileSize(
+    scale: Int = 2,
+    withUnit: Boolean = true,
+    withInterval: Boolean = false
+): String {
     val divisor = if (isMac) { //ROUND_DOWN 1023 -> 1023B ; ROUND_HALF_UP  1023 -> 1KB
         1000L
     } else {
         1024L
     }
     val kiloByte: BigDecimal =
-        formatSizeByTypeWithDivisor(BigDecimal.valueOf(this), scale, FileSizeType.SIZE_TYPE_B, divisor)
+        formatSizeByTypeWithDivisor(
+            this.toBigDecimal(),
+            scale,
+            FileSizeType.SIZE_TYPE_B,
+            divisor
+        )
+    val interval = if (withInterval) " " else ""
+    if (kiloByte.toDouble() < 1) {
+        return "${kiloByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_B.unit else ""}"
+    } //KB
+    val megaByte = formatSizeByTypeWithDivisor(kiloByte, scale, FileSizeType.SIZE_TYPE_KB, divisor)
+    if (megaByte.toDouble() < 1) {
+        return "${kiloByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_KB.unit else ""}"
+    } //M
+    val gigaByte = formatSizeByTypeWithDivisor(megaByte, scale, FileSizeType.SIZE_TYPE_MB, divisor)
+    if (gigaByte.toDouble() < 1) {
+        return "${megaByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_MB.unit else ""}"
+    } //GB
+    val teraBytes = formatSizeByTypeWithDivisor(gigaByte, scale, FileSizeType.SIZE_TYPE_GB, divisor)
+    if (teraBytes.toDouble() < 1) {
+        return "${gigaByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_GB.unit else ""}"
+    } //TB
+    return "${teraBytes.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_TB.unit else ""}"
+}
+
+/**
+ * @param scale 精确到小数点以后几位 (Accurate to a few decimal places)
+ */
+fun Long.formatFileSize(
+    scale: Int = 2,
+    withUnit: Boolean = true,
+    withInterval: Boolean = false
+): String {
+    val divisor = if (isMac) { //ROUND_DOWN 1023 -> 1023B ; ROUND_HALF_UP  1023 -> 1KB
+        1000L
+    } else {
+        1024L
+    }
+    val kiloByte: BigDecimal =
+        formatSizeByTypeWithDivisor(
+            BigDecimal.valueOf(this),
+            scale,
+            FileSizeType.SIZE_TYPE_B,
+            divisor
+        )
     val interval = if (withInterval) " " else ""
     if (kiloByte.toDouble() < 1) {
         return "${kiloByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_B.unit else ""}"
@@ -369,7 +465,8 @@ private fun formatSizeByTypeWithDivisor(
 /**
  * 在文件夹中打开
  */
-fun browseFileDirectory(file: File) {
+fun browseFileDirectory(file: File?) {
+    if (file == null || !file.exists()) return
     if (Desktop.getDesktop().isSupported(Desktop.Action.BROWSE_FILE_DIR)) {
         Desktop.getDesktop().browseFileDirectory(file)
     } else {
@@ -395,34 +492,34 @@ private fun runCommand(command: String): Boolean {
             } else {
                 false
             }
-        } catch (_: IllegalThreadStateException) {
+        } catch (e: IllegalThreadStateException) {
+            logger.error(e) { "runCommand 执行命令异常, 异常信息: ${e.message}" }
             return true
         }
-    } catch (_: IOException) {
+    } catch (e: IOException) {
+        logger.error(e) { "runCommand 执行命令异常, 异常信息: ${e.message}" }
         return false
     }
 }
 
 fun renameManifestPackage(file: File, minSdkVersion: String, targetSdkVersion: String) {
-    runCatching {
-        val doc = XmlUtils.loadDocument(file)
-        // 查找 uses-sdk 节点
-        val sdkElems = doc.getElementsByTagName("uses-sdk")
-        if (sdkElems.length > 0) {
-            val sdk = sdkElems.item(0)
-            sdk.attributes.getNamedItem("android:minSdkVersion")
-                ?.nodeValue = minSdkVersion
-            sdk.attributes.getNamedItem("android:targetSdkVersion")
-                ?.nodeValue = targetSdkVersion
-        } else {
-            // 若无 uses‑sdk 标签就插入
-            val newSdk = doc.createElement("uses-sdk")
-            newSdk.setAttribute("android:minSdkVersion", minSdkVersion)
-            newSdk.setAttribute("android:targetSdkVersion", targetSdkVersion)
-            doc.documentElement.insertBefore(newSdk, doc.documentElement.firstChild)
-        }
-        XmlUtils.saveDocument(doc, file)
+    val doc = XmlUtils.loadDocument(file)
+    // 查找 uses-sdk 节点
+    val sdkElems = doc.getElementsByTagName("uses-sdk")
+    if (sdkElems.length > 0) {
+        val sdk = sdkElems.item(0)
+        sdk.attributes.getNamedItem("android:minSdkVersion")
+            ?.nodeValue = minSdkVersion
+        sdk.attributes.getNamedItem("android:targetSdkVersion")
+            ?.nodeValue = targetSdkVersion
+    } else {
+        // 若无 uses‑sdk 标签就插入
+        val newSdk = doc.createElement("uses-sdk")
+        newSdk.setAttribute("android:minSdkVersion", minSdkVersion)
+        newSdk.setAttribute("android:targetSdkVersion", targetSdkVersion)
+        doc.documentElement.insertBefore(newSdk, doc.documentElement.firstChild)
     }
+    XmlUtils.saveDocument(doc, file)
 }
 
 fun renameValueAppName(file: File, appName: String) {
@@ -430,11 +527,148 @@ fun renameValueAppName(file: File, appName: String) {
         return
     }
     val key = "app_name"
-    runCatching {
-        val doc = XmlUtils.loadDocument(file)
-        val expression = String.format("/resources/%s[@name='%s']/text()", "string", key)
-        val node = XmlUtils.evaluateXPath(doc, expression, Node::class.java)
-        node.nodeValue = appName
-        XmlUtils.saveDocument(doc, file)
+    val doc = XmlUtils.loadDocument(file)
+    val expression = String.format("/resources/%s[@name='%s']/text()", "string", key)
+    val node = XmlUtils.evaluateXPath(doc, expression, Node::class.java)
+    node.nodeValue = appName
+    XmlUtils.saveDocument(doc, file)
+}
+
+private const val TIME_TO_TRIGGER_PROGRESS = 50
+
+/**
+ * 下载文件
+ */
+@OptIn(ExperimentalTime::class)
+suspend fun downloadFile(
+    url: String,
+    destFile: File,
+    onProgress: suspend (downloaded: Long, total: Long) -> Unit
+) = coroutineScope {
+    logger.info { "downloadFile 开始下载, url: $url, destFile: $destFile" }
+    destFile.parentFile?.let { parent ->
+        if (!parent.exists()) parent.mkdirs()
     }
+    if (destFile.exists()) destFile.delete()
+
+    val client = HttpClient(Apache5) {
+        install(Logging) {
+            level = LogLevel.INFO
+        }
+        engine {
+            customizeClient {
+                setProxySelector(ProxySelector.getDefault())
+            }
+        }
+    }
+
+    return@coroutineScope withContext(Dispatchers.IO) {
+        var lastProgressTime = 0L
+        try {
+            client.prepareGet(url) {
+                onDownload { bytesSentTotal: Long, contentLength: Long? ->
+                    val currentTime = Clock.System.now().toEpochMilliseconds()
+                    if (currentTime - lastProgressTime >= TIME_TO_TRIGGER_PROGRESS) {
+                        onProgress(minOf(bytesSentTotal, contentLength ?: 0L), contentLength ?: 0,)
+                        lastProgressTime = currentTime
+                    }
+                }
+            }.execute { response ->
+                response.bodyAsChannel().copyAndClose(destFile.writeChannel())
+            }
+            true
+        } catch (e: Exception) {
+            logger.error(e) { "downloadFile 下载异常, 异常信息: ${e.message}" }
+            destFile.delete()
+            false
+        } finally {
+            client.close()
+        }
+    }
+}
+
+suspend fun checkUpdate() = coroutineScope {
+    logger.info { "checkUpdate 开始检查更新" }
+    val client = HttpClient(Apache5) {
+        install(HttpRequestRetry) {
+            retryOnServerErrors(maxRetries = 1)
+            exponentialDelay()
+        }
+        install(Logging) {
+            level = LogLevel.ALL
+        }
+        install(ContentNegotiation) {
+            json(Json {
+                ignoreUnknownKeys = true
+                encodeDefaults = true
+                isLenient = true
+                allowSpecialFloatingPointValues = true
+                allowStructuredMapKeys = true
+                prettyPrint = false
+                useArrayPolymorphism = false
+            })
+        }
+        engine {
+            customizeClient {
+                setProxySelector(ProxySelector.getDefault())
+            }
+        }
+    }
+    return@coroutineScope try {
+        val url = "https://api.github.com/repos/LazyIonEs/AndroidToolKit/releases/latest"
+        val response: HttpResponse = client.get(url) {
+            contentType(ContentType.Application.Json)
+            headers {
+                append(HttpHeaders.Accept, "application/vnd.github+json")
+                append("X-GitHub-Api-Version", "2022-11-28")
+            }
+        }
+        val remaining = response.headers["x-ratelimit-remaining"]
+        if (remaining == "0") {
+            GithubRestResult(false, Res.string.check_update_remaining_tips, null)
+        } else {
+            val result: GithubRestLatestResult = response.body()
+            GithubRestResult(true, null, result)
+        }
+    } catch (e: Exception) {
+        logger.error(e) { "checkUpdate 检查更新异常, 异常信息: ${e.message}" }
+        GithubRestResult(false, Res.string.check_update_error, null)
+    } finally {
+        client.close()
+    }
+}
+
+fun String.isNewVersion(other: String): Boolean {
+    fun normalize(version: String) = version.trim().removePrefix("v").removePrefix("V")
+    val parts1 = normalize(this).split(".").map { it.toIntOrNull() ?: 0 }
+    val parts2 = normalize(other).split(".").map { it.toIntOrNull() ?: 0 }
+    for (i in 0 until maxOf(parts1.size, parts2.size)) {
+        val diff = parts1.getOrElse(i) { 0 } - parts2.getOrElse(i) { 0 }
+        if (diff != 0) return diff > 0
+    }
+    return false
+}
+
+fun MutableList<Asset>.filterByOS(): List<Asset>? {
+    if (isMac) {
+        return filter { it.name.contains("macos") }
+    } else if (isLinux) {
+        return filter { it.name.contains("linux") }
+    } else if (isWindows) {
+        return filter { it.name.contains("windows") }
+    }
+    return null
+}
+
+/**
+ * 获取日志文件
+ */
+fun getRollingAppenderFile(): File? {
+    val context = LoggerFactory.getILoggerFactory() as? LoggerContext ?: return null
+    val logger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
+    val appender = logger.getAppender("FILE")
+    if (appender is FileAppender<*>) {
+        return File(appender.file)
+    }
+    return null
 }

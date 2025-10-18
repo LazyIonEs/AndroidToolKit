@@ -1,10 +1,10 @@
 package utils
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import java.io.File
 import java.io.FileWriter
-import java.text.DecimalFormat
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
 import java.util.zip.ZipEntry
@@ -19,6 +19,8 @@ import kotlin.random.Random
  * @Description : 垃圾代码生成
  * @Version     : 1.0
  */
+
+private val logger = KotlinLogging.logger("AndroidJunkGenerator")
 
 private const val ANDROID_SCHEMA = "http://schemas.android.com/apk/res/android"
 
@@ -136,25 +138,25 @@ class AndroidJunkGenerator(
 
     fun startGenerate(): File {
         // 清理原工作目录中的文件
-        println("正在清理工作空间...")
+        logger.info { "startGenerate 准备生成, 正在清理工作空间" }
 
         workspace.deleteRecursively()
-        println("工作空间已就绪...")
+        logger.info { "startGenerate 工作空间已就绪, 开始生成" }
 
         val start = System.nanoTime()
         generateClasses()
         generateManifest()
-        println("class 文件生成完成...")
+        logger.info { "startGenerate class 文件生成完成" }
 
         generateStringsFile()
         generateKeepProguard()
 
         writeRFile()
-        println("资源文件生成完成，开始打包...")
+        logger.info { "startGenerate 资源文件生成完成, 开始打包" }
 
         // 正在打包
         val outPath = assembleAar()
-        println("打包完成：\n\r\t$outPath \n\r\t${fileSize(outPath.length())}")
+        logger.info { "startGenerate 打包完成, 输出文件路径: $outPath , 文件大小: ${outPath.length().formatFileSize()}" }
 
         val end = System.nanoTime()
 
@@ -162,7 +164,7 @@ class AndroidJunkGenerator(
         val s = timeMills / 1000
         val ms = timeMills % 1000
 
-        println("用时：${s}.${ms} 秒")
+        logger.info{ "startGenerate 生成结束, 用时: ${s}.${ms} 秒" }
 
         workspace.deleteRecursively()
 
@@ -205,7 +207,7 @@ class AndroidJunkGenerator(
                     return name
                 }
 
-                println("nextMethod exclude：$name")
+                logger.info { "nextMethod exclude：$name" }
             }
         }
 
@@ -669,7 +671,7 @@ class AndroidJunkGenerator(
         val name = chars.concatToString()
         // 排除关键字
         if (KEYWORDS.contains(name) || XML_KEYWORDS.contains(name)) {
-            println("generatePackageName exclude：$name")
+            logger.info { "generatePackageName 排除关键字 exclude：$name" }
             return generatePackageName()
         }
 
@@ -691,7 +693,7 @@ class AndroidJunkGenerator(
                 "$packageName.$name"
             )
         ) {
-            println("generateClassName exclude：$packageName.$name")
+            logger.info { "generateClassName 排除关键字和已经存在的名字 exclude：$packageName.$name" }
             return generateClassName(packageName)
         }
 
@@ -901,31 +903,5 @@ class AndroidJunkGenerator(
         }
 
         file.writeBytes(bytes)
-    }
-
-
-    private fun fileSize(size: Long): String {
-        val gb = 1024 * 1024 * 1024 //定义GB的计算常量
-
-        val mb = 1024 * 1024 //定义MB的计算常量
-
-        val kb = 1024 //定义KB的计算常量
-
-        // 格式化小数
-        // 格式化小数
-        val df = DecimalFormat("0.00")
-
-        return if (size / gb >= 1) {
-            //如果当前Byte的值大于等于1GB
-            df.format(size / gb.toFloat()) + "GB"
-        } else if (size / mb >= 1) {
-            //如果当前Byte的值大于等于1MB
-            df.format(size / mb.toFloat()) + "MB"
-        } else if (size / kb >= 1) {
-            //如果当前Byte的值大于等于1KB
-            df.format(size / kb.toFloat()) + "KB"
-        } else {
-            size.toString() + "B"
-        }
     }
 }

@@ -2,10 +2,6 @@ rootProject.name = "AndroidToolKit"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
-    plugins {
-        // https://github.com/JetBrains/compose-hot-reload
-        id("org.jetbrains.compose.hot-reload") version "1.0.0-beta04"
-    }
     repositories {
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         google()

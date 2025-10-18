@@ -34,6 +34,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon
@@ -42,7 +43,6 @@ import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuAnchorType
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PlainTooltip
@@ -54,8 +54,9 @@ import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults.rememberPlainTooltipPositionProvider
+import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
@@ -74,7 +75,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import constant.ConfigConstant
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import model.DarkThemeConfig
 import model.FileSelectorType
@@ -127,10 +127,9 @@ import kotlin.math.roundToInt
  */
 @Composable
 fun IconFactory(viewModel: MainViewModel) {
-    val scope = rememberCoroutineScope()
     val showBottomSheet = remember { mutableStateOf(false) }
-    IconFactoryPreview(viewModel, showBottomSheet, scope)
-    IconFactorySheet(viewModel, showBottomSheet, scope)
+    IconFactoryPreview(viewModel, showBottomSheet)
+    IconFactorySheet(viewModel, showBottomSheet)
 }
 
 /**
@@ -139,7 +138,7 @@ fun IconFactory(viewModel: MainViewModel) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun IconFactoryPreview(
-    viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>, scope: CoroutineScope
+    viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>
 ) {
     val icon = viewModel.iconFactoryInfoState.icon
     Column(
@@ -190,13 +189,10 @@ private fun IconFactoryPreview(
                         DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
                     }
                     if (useDarkTheme) {
-                        LottieAnimation(
-                            scope, "files/lottie_main_3_dark.json", modifier = Modifier.requiredSize(256.dp)
+                        LottieAnimation("files/lottie_main_3_dark.json", modifier = Modifier.requiredSize(256.dp)
                         )
                     } else {
-                        LottieAnimation(
-                            scope, "files/lottie_main_3_light.json", modifier = Modifier.requiredSize(256.dp)
-                        )
+                        LottieAnimation("files/lottie_main_3_light.json", modifier = Modifier.requiredSize(256.dp))
                     }
                 }
             })
@@ -302,10 +298,10 @@ private fun IconFactoryResultPlaceholder(resultFile: File?, title: String, size:
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>, scope: CoroutineScope) {
+private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
     var dragging by remember { mutableStateOf(false) }
-    UploadAnimate(dragging, scope)
+    UploadAnimate(dragging)
     Box(
         modifier = Modifier.fillMaxSize().dragAndDropTarget(
             shouldStartDragAndDrop = accept@{ true },
@@ -401,7 +397,7 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
                     })
                 Box(modifier = Modifier.align(Alignment.CenterEnd).padding(top = 3.dp, end = 16.dp)) {
                     TooltipBox(
-                        positionProvider = rememberPlainTooltipPositionProvider(), tooltip = {
+                        positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above), tooltip = {
                             PlainTooltip {
                                 Text(
                                     if (sheetState.currentValue == SheetValue.Expanded)
@@ -564,7 +560,7 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
             expanded = expanded,
             onExpandedChange = { expanded = it }) {
             OutlinedTextField(
-                modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
+                modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
                 value = viewModel.iconFactoryInfoState.iconDir,
                 onValueChange = { iconDir ->
                     viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(iconDir = iconDir))
@@ -669,7 +665,7 @@ private fun <T> Algorithm(modifier: Modifier, options: List<T>, isPng: Boolean, 
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(modifier = modifier, expanded = expanded, onExpandedChange = { expanded = it }) {
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth().menuAnchor(MenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             value = name,
             onValueChange = {},
             label = {

@@ -38,6 +38,7 @@
     <string name="channel">Channel：</string>
 
     <string name="output_path">Output Path</string>
+    <string name="output_file_prefix">Output File Prefix(optional)</string>
     <string name="key_store_file">Key Store File Path</string>
     <string name="key_store_password">Key Store Password</string>
     <string name="key_alias">Key Alias</string>
@@ -130,6 +131,7 @@
     <string name="follow_the_system">Auto</string>
     <string name="light_mode">Light</string>
     <string name="dark_mode">Dark</string>
+    <string name="start_check_update">Check for updates at startup</string>
 
     <string name="toolkit_expand">ToolKit Expand</string>
     <string name="enable_extended_options">Enable Extended Options</string>
@@ -152,6 +154,7 @@
     <string name="author">Author</string>
     <string name="license">License</string>
     <string name="open_source_licenses">Open Source Licenses</string>
+    <string name="view_log_file">View Log File</string>
 
     <string name="key_output_path">Key Output Path</string>
     <string name="key_file_name">Key File Name</string>
@@ -203,4 +206,20 @@
     <string name="apktool_min_sdk_version">MinSdkVersion</string>
     <string name="apktool_version_code">VersionCode</string>
     <string name="apktool_version_name">VersionName</string>
+
+    <string name="check_for_updates">Check update</string>
+    <string name="version_information">Version information</string>
+    <string name="new_version_detected">New version detected</string>
+    <string name="it_s_the_latest_version">It's the latest version</string>
+    <string name="update">update</string>
+    <string name="select_file_download">Select the file you want to download</string>
+    <string name="download_success">Download successful</string>
+    <string name="download_tips">Please wait until download is completed</string>
+    <string name="prepare_for_installation">It's time to start installing</string>
+    <string name="exit_and_install">Exit and install</string>
+    <string name="connecting">Connecting...</string>
+    <string name="downloading">Downloading · %1$d%</string>
+    <string name="release_time">Release time: %1$s</string>
+    <string name="check_update_remaining_tips">The request reaches the rate limit, please try again later!</string>
+    <string name="check_update_error">Network request exception, please try again!</string>
 </resources>

@@ -28,6 +28,7 @@
 -keep class com.android.apksig.** { *; }
 -keep class org.sqlite.** { *; }
 -keep class org.slf4j.** { *; }
+-keep class ch.qos.logback.** { *; }
 #-keep class java.nio.** { *; }
 #-keep class java.util.concurrent.** { *; }
 -keep class uniffi.toolkit.** { *; }
@@ -62,3 +63,5 @@
 # 忽略第三方库警告
 -dontwarn com.google.common.**
 -dontwarn javax.xml.xpath.**
+
+-keep class model.** { *; }

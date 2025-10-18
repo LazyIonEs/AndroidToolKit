@@ -21,6 +21,7 @@ import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.coroutines.FlowSettings
 import constant.ConfigConstant
 import database.PreferencesDataSource
+import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -44,24 +45,28 @@ import model.PendingDeletionFile
 import model.Sequence
 import model.SignaturePolicy
 import model.SnackbarVisualsData
+import model.Update
 import model.UserData
 import model.Verifier
 import model.VerifierResult
 import org.apache.commons.codec.digest.DigestUtils
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
+import org.tool.kit.BuildConfig
 import org.tool.kit.composeapp.generated.resources.Res
 import org.tool.kit.composeapp.generated.resources.apk_is_signed_successfully
 import org.tool.kit.composeapp.generated.resources.apk_parsing_failed
 import org.tool.kit.composeapp.generated.resources.apk_signature_verification_failed
 import org.tool.kit.composeapp.generated.resources.build_end
 import org.tool.kit.composeapp.generated.resources.build_failure
+import org.tool.kit.composeapp.generated.resources.check_update_error
 import org.tool.kit.composeapp.generated.resources.cleanup_complete
 import org.tool.kit.composeapp.generated.resources.create_signature_successfully
 import org.tool.kit.composeapp.generated.resources.exec_command_error
 import org.tool.kit.composeapp.generated.resources.file_deletion_exception
 import org.tool.kit.composeapp.generated.resources.icon_creation_failed
 import org.tool.kit.composeapp.generated.resources.icon_generation_completed
+import org.tool.kit.composeapp.generated.resources.it_s_the_latest_version
 import org.tool.kit.composeapp.generated.resources.jump
 import org.tool.kit.composeapp.generated.resources.output_file_already_exists
 import org.tool.kit.composeapp.generated.resources.scanning_anomalies
@@ -84,12 +89,14 @@ import utils.extractChannel
 import utils.extractIcon
 import utils.extractValue
 import utils.extractVersion
+import utils.filterByOS
 import utils.formatFileSize
 import utils.getFileLength
 import utils.getVerifier
 import utils.isJPEG
 import utils.isJPG
 import utils.isMac
+import utils.isNewVersion
 import utils.isPng
 import utils.isWindows
 import utils.renameManifestPackage
@@ -103,6 +110,8 @@ import java.io.FileInputStream
 import java.security.KeyStore
 import java.security.cert.X509Certificate
 import kotlin.coroutines.resume
+
+private val logger = KotlinLogging.logger("MainViewModel")
 
 /**
  * @Author      : LazyIonEs
@@ -123,7 +132,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
 
     // 偏好设置
     val userData = preferences.userData.stateIn(
-        scope = viewModelScope, started = WhileUiSubscribed, initialValue = PreferencesDataSource.DEFAULT_USER_DATA
+        scope = viewModelScope, started = Eagerly, initialValue = PreferencesDataSource.DEFAULT_USER_DATA
     )
 
     // 图标生成偏好设置
@@ -164,6 +173,10 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
 
     val isEnableDeveloperMode = preferences.isEnableDeveloperMode.stateIn(
         scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
+    )
+
+    val isStartCheckUpdate = preferences.isStartCheckUpdate.stateIn(
+        scope = viewModelScope, started = Eagerly, initialValue = false
     )
 
     // 主页选中下标
@@ -241,6 +254,14 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     private val _snackbarVisuals = MutableStateFlow(SnackbarVisualsData())
     val snackbarVisuals = _snackbarVisuals.asStateFlow()
 
+    // 检查更新
+    private val _checkUpdateState = MutableStateFlow(false)
+    val checkUpdateState = _checkUpdateState.asStateFlow()
+
+    // 检查更新结果
+    private val _checkUpdateResult = MutableStateFlow<Update?>(null)
+    val checkUpdateResult = _checkUpdateResult.asStateFlow()
+
     /**
      * 更新主题
      */
@@ -298,6 +319,12 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     fun saveClearBuild(show: Boolean) {
         viewModelScope.launch {
             preferences.saveClearBuild(show)
+        }
+    }
+
+    fun saveStartCheckUpdate(show: Boolean) {
+        viewModelScope.launch {
+            preferences.saveStartCheckUpdate(show)
         }
     }
 
@@ -399,6 +426,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      * APK签名
      */
     fun apkSigner() {
+        logger.info { "apkSigner 进行APK签名, 签名信息: $apkSignatureState" }
         if (apkSignatureState.apkPath == ConfigConstant.APK.All.path) {
             apksSigner()
         } else {
@@ -412,18 +440,17 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      * 多APK签名
      */
     private fun apksSigner() = viewModelScope.launch(Dispatchers.IO) {
+        logger.info { "apksSigner 多APK签名开始" }
         try {
             val apks = ConfigConstant.APK.entries.filter { it.title != ConfigConstant.APK.All.title }.map { it.path }
             _apkSignatureUIState.update { UIState.Loading }
-            val result = apks.map { path ->
+            val resultList = apks.map { path ->
                 async { suspendApkSigner(path = path, showUiState = false) }
             }.awaitAll()
-            if (result.none { !it }) {
-                val file = File(apks.last())
-                val signerSuffix = userData.value.defaultSignerSuffix
-                val outputApk = File(
-                    apkSignatureState.outputPath, "${file.nameWithoutExtension}${signerSuffix}.apk"
-                )
+            val result = resultList.none { it == null || !it.exists() }
+            logger.info { "apksSigner 多APK签名结束, 结果: $result" }
+            if (result) {
+                val outputApk = resultList.last()
                 val snackbarVisualsData = SnackbarVisualsData(
                     message = getString(Res.string.apk_is_signed_successfully),
                     actionLabel = getString(Res.string.jump),
@@ -437,7 +464,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 updateSnackbarVisuals(getString(Res.string.signature_failed))
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error(e) { "apksSigner 多APK签名异常, 异常信息: ${e.message}" }
             updateSnackbarVisuals(e.message ?: getString(Res.string.signature_failed))
         } finally {
             _apkSignatureUIState.update { UIState.WAIT }
@@ -450,7 +477,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     suspend fun suspendApkSigner(path: String = apkSignatureState.apkPath, showUiState: Boolean = true) =
         suspendCancellableCoroutine { coroutine ->
             viewModelScope.launch(Dispatchers.IO) {
-                var result = false
+                var resultFile: File? = null
                 try {
                     val signerSuffix = userData.value.defaultSignerSuffix
                     val flagDelete = userData.value.duplicateFileRemoval
@@ -458,13 +485,22 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                         userData.value.alignFileSize && path != ConfigConstant.APK.Huawei.path
                     else
                         userData.value.alignFileSize
+                    logger.info { "suspendApkSigner APK签名开始, APK文件路径: $path 开启文件对齐: $isAlignFileSize" }
                     if (showUiState) {
                         _apkSignatureUIState.update { UIState.Loading }
                     }
                     val inputApk = File(path)
-                    val outputApk = File(
-                        apkSignatureState.outputPath, "${inputApk.nameWithoutExtension}${signerSuffix}.apk"
-                    )
+                    val outputPrefix = apkSignatureState.outputPrefix
+                    val outputApk = if (outputPrefix.isNotBlank()) {
+                        File(
+                            apkSignatureState.outputPath, "${outputPrefix}-${inputApk.nameWithoutExtension}${signerSuffix}.apk"
+                        )
+                    } else {
+                        File(
+                            apkSignatureState.outputPath, "${inputApk.nameWithoutExtension}${signerSuffix}.apk"
+                        )
+                    }
+
                     if (outputApk.exists()) {
                         if (flagDelete) {
                             outputApk.delete()
@@ -504,18 +540,21 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                             })
                         updateSnackbarVisuals(snackbarVisualsData)
                     }
-                    result = true
+                    if (outputApk.exists()) {
+                        resultFile = outputApk
+                    }
+                    logger.info { "suspendApkSigner APK签名结束, APK输出文件路径: ${resultFile?.absolutePath}" }
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    logger.error(e) { "suspendApkSigner APK签名异常, 异常信息: ${e.message}" }
                     if (showUiState) {
                         updateSnackbarVisuals(e.message ?: getString(Res.string.signature_failed))
                     }
-                    result = false
+                    resultFile = null
                 } finally {
                     if (showUiState) {
                         _apkSignatureUIState.update { UIState.WAIT }
                     }
-                    coroutine.resume(result)
+                    coroutine.resume(resultFile)
                 }
             }
         }
@@ -525,6 +564,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      * @param input 输入APK路径
      */
     fun apkInformation(input: String) = viewModelScope.launch(Dispatchers.IO) {
+        logger.info { "apkInformation 获取APK信息开始, APK文件路径: $input" }
         try {
             val aapt = getAapt2File()
             _apkInformationState.update { UIState.Loading }
@@ -540,12 +580,17 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 )
             }
 
+            logger.info { "apkInformation 获取APK信息中, 执行命令结束, 退出码: $exitValue" }
+
             if (exitValue != 0) {
                 // 执行命令出现错误
                 throw InterruptedException(getString(Res.string.exec_command_error))
             }
 
             val converted = StringUtil.convertLineSeparators(stdoutStream.toString("UTF-8"))
+
+            logger.info { "apkInformation 获取APK信息中, 获取结果: $converted" }
+
             val lines = StringUtil.split(converted, "\n", true, true)
 
             val apkInformation = ApkInformation()
@@ -588,6 +633,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             val channel = extractChannel(androidManifest)
             apkInformation.channel = channel
 
+            logger.info { "apkInformation 获取APK信息结束, APK信息: $apkInformation" }
+
             if (apkInformation.isBlank()) {
                 updateSnackbarVisuals(Res.string.apk_parsing_failed)
                 _apkInformationState.update { UIState.WAIT }
@@ -595,7 +642,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 _apkInformationState.update { UIState.Success(apkInformation) }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error(e) { "apkInformation 获取APK信息异常, 异常信息: ${e.message}" }
             updateSnackbarVisuals(e.message ?: getString(Res.string.apk_parsing_failed))
             _apkInformationState.update { UIState.WAIT }
         }
@@ -608,6 +655,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         try {
             val destStoreType = userData.value.destStoreType
             val destStoreSize = userData.value.destStoreSize.size
+            logger.info { "createSignature 生成签名开始, 签名信息: $keyStoreInfoState 签名类型: ${destStoreType.name} 密钥大小: $destStoreSize" }
             _keyStoreInfoUIState.update { UIState.Loading }
             val outputFile = File(keyStoreInfoState.keyStorePath, keyStoreInfoState.keyStoreName)
             val result = KeystoreHelper.createNewStore(
@@ -620,6 +668,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 keyStoreInfoState.validityPeriod.toInt(),
                 destStoreSize
             )
+            logger.info { "createSignature 生成签名结束, 结果: $result" }
             if (result) {
                 val snackbarVisualsData = SnackbarVisualsData(
                     message = getString(Res.string.create_signature_successfully),
@@ -634,7 +683,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 updateSnackbarVisuals(Res.string.signature_creation_failed)
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error(e) { "createSignature 生成签名异常, 异常信息: ${e.message}" }
             updateSnackbarVisuals(e.message ?: getString(Res.string.signature_creation_failed))
         }
         _keyStoreInfoUIState.update { UIState.WAIT }
@@ -647,6 +696,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      * @param alisa 签名别名
      */
     fun signerVerifier(input: String, password: String, alisa: String) = viewModelScope.launch(Dispatchers.IO) {
+        logger.info { "signerVerifier 获取签名信息开始, 签名文件路径: $input 签名密码: $password 签名别名: $alisa" }
         _verifierState.update { UIState.Loading }
         var fileInputStream: FileInputStream? = null
         val inputFile = File(input)
@@ -656,18 +706,20 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             fileInputStream = FileInputStream(inputFile)
             keyStore.load(fileInputStream, password.toCharArray())
             val cert = keyStore.getCertificate(alisa)
+            logger.error { "signerVerifier 获取签名信息结束, 判断是否是X509Certificate类型: ${cert.type}" }
             if (cert.type == "X.509") {
                 cert as X509Certificate
                 list.add(cert.getVerifier(cert.version))
                 val apkVerifierResult = VerifierResult(
                     isSuccess = true, isApk = false, path = input, name = inputFile.name, data = list
                 )
+                logger.error { "signerVerifier 获取签名信息结束, 结果: $apkVerifierResult" }
                 _verifierState.update { UIState.Success(apkVerifierResult) }
             } else {
                 throw Exception("Key Certificate Type Is Not X509Certificate")
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error { "signerVerifier 获取签名信息异常, 异常信息: ${e.message}" }
             updateSnackbarVisuals(e.message ?: getString(Res.string.signature_verification_failed))
             _verifierState.update { UIState.WAIT }
         } finally {
@@ -686,6 +738,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         val path = inputFile.path
         val name = inputFile.name
         val verifier: ApkVerifier = ApkVerifier.Builder(inputFile).build()
+        logger.info { "apkVerifier 获取APK签名信息开始, APK文件路径: $input" }
         try {
             val result = verifier.verify()
             var error = ""
@@ -731,18 +784,32 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 }
             }
 
+            if (result.v4SchemeSigners.isNotEmpty()) {
+                for (signer in result.v3SchemeSigners) {
+                    val cert = signer.certificate ?: continue
+                    if (signer.certificate.type == "X.509") {
+                        list.add(cert.getVerifier(4))
+                    }
+                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }.forEach {
+                        error += it.toString() + "\n"
+                    }
+                }
+            }
+
             if (isSuccess || list.isNotEmpty()) {
                 val apkVerifierResult = VerifierResult(isSuccess, true, path, name, list)
                 _verifierState.update { UIState.Success(apkVerifierResult) }
+                logger.info { "apkVerifier 获取APK签名信息结束, 结果: $apkVerifierResult" }
             } else {
                 if (error.isBlank()) {
                     error = getString(Res.string.apk_signature_verification_failed)
                 }
                 updateSnackbarVisuals(error)
                 _verifierState.update { UIState.WAIT }
+                logger.error { "apkVerifier 获取APK签名信息异常, 异常信息: $error" }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error(e) { "apkVerifier 获取APK签名信息异常, 异常信息: ${e.message}" }
             updateSnackbarVisuals(e.message ?: getString(Res.string.apk_signature_verification_failed))
             _verifierState.update { UIState.WAIT }
         }
@@ -753,6 +820,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      */
     fun generateJunkCode() = viewModelScope.launch(Dispatchers.IO) {
         _junkCodeUIState.update { UIState.Loading }
+        logger.info { "generateJunkCode 生成垃圾代码开始, 垃圾代码生成信息: $junkCodeInfoState" }
         try {
             val dir = resourcesDir
             val output = junkCodeInfoState.outputPath
@@ -763,6 +831,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             val androidJunkGenerator =
                 AndroidJunkGenerator(dir, output, appPackageName, packageCount, activityCountPerPackage, resPrefix)
             val file = androidJunkGenerator.startGenerate()
+            logger.info { "generateJunkCode 生成垃圾代码结束, 输出路径: ${file.absolutePath}" }
             val snackbarVisualsData = SnackbarVisualsData(
                 message = getString(Res.string.build_end, file.length().formatFileSize()),
                 actionLabel = getString(Res.string.jump),
@@ -773,7 +842,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 })
             updateSnackbarVisuals(snackbarVisualsData)
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error(e) { "generateJunkCode 生成垃圾代码异常, 异常信息: ${e.message}" }
             updateSnackbarVisuals(e.message ?: getString(Res.string.build_failure))
         } finally {
             _junkCodeUIState.update { UIState.WAIT }
@@ -787,6 +856,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         _apkToolInfoUIState.update { UIState.Loading }
         val outApktoolCacheDir = File(resourcesDir, "apktool")
         try {
+            logger.info { "generateApktool 生成空包开始, 空包信息: $apkToolInfoState" }
             val outApktoolFile = File(apkToolInfoState.outputPath, ConfigConstant.APKTOOL_FILE.name)
             val apkIcon = apkToolInfoState.icon
             val packageName = apkToolInfoState.packageName
@@ -800,19 +870,24 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             config.isAnalysisMode = true
             config.isForced = true
             config.isDebugMode = true
+            logger.info { "generateApktool 开始解包" }
             // 开始解包
             val apkDecoder = ApkDecoder(apkFile, config)
             val apkInfo = apkDecoder.decode(outApktoolCacheDir)
             // 解包完成
+            logger.info { "generateApktool 解包完成, ApkInfo: $apkInfo" }
             val apktoolYmlFile = File(outApktoolCacheDir, "apktool.yml")
             val androidManifestXmlFile = File(outApktoolCacheDir, "AndroidManifest.xml")
             // 删除Manifest中versionCode和versionName
             ResXmlUtils.removeManifestVersions(androidManifestXmlFile)
+            logger.info { "generateApktool 删除Manifest中versionCode和versionName" }
             // 替换Manifest中minSdkVersion和targetSdkVersion
             renameManifestPackage(androidManifestXmlFile, minSdkVersion, targetSdkVersion)
+            logger.info { "generateApktool 替换Manifest中minSdkVersion和targetSdkVersion" }
             // 替换strings中app_name的值
             val stringsFile = File(outApktoolCacheDir, "res/values/strings.xml")
             renameValueAppName(stringsFile, appName)
+            logger.info { "generateApktool 替换strings中app_name的值" }
             // 替换icon
             if (apkIcon.isNotBlank()) {
                 val apkIconFile = File(apkIcon)
@@ -824,6 +899,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                     val targetFile = File(targetFolderFile, "ic_launcher.${suffix}")
                     apkIconFile.copyTo(targetFile, overwrite = true)
                 }
+                logger.info { "generateApktool 替换icon" }
             }
             // 替换部分信息到apktool.yml
             apkInfo.versionInfo.versionCode = versionCode
@@ -832,12 +908,13 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             apkInfo.sdkInfo.targetSdkVersion = targetSdkVersion
             apkInfo.packageInfo.renameManifestPackage = packageName
             apkInfo.save(apktoolYmlFile)
+            logger.info { "generateApktool 替换部分信息到apktool.yml" }
             // 开始打包
-            println("开始打包")
+            logger.info { "generateApktool 开始打包" }
             val outApktoolCacheDirExt = ExtFile(outApktoolCacheDir)
             val apkBuilder = ApkBuilder(outApktoolCacheDirExt, config)
             apkBuilder.build(outApktoolFile)
-            println("打包完成")
+            logger.info { "generateApktool 打包完成" }
             val snackbarVisualsData = SnackbarVisualsData(
                 message = getString(Res.string.build_end, outApktoolFile.length().formatFileSize()),
                 actionLabel = getString(Res.string.jump),
@@ -848,7 +925,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 })
             updateSnackbarVisuals(snackbarVisualsData)
         } catch (e: Exception) {
-            e.printStackTrace()
+            logger.error(e) { "generateApktool 生成空包异常, 异常信息: ${e.message}" }
             updateSnackbarVisuals(e.message ?: getString(Res.string.build_failure))
         } finally {
             outApktoolCacheDir.deleteRecursively()
@@ -879,6 +956,9 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         } else {
             return@launch
         }
+
+        logger.info { "iconGeneration 图标生成开始, 图标文件路径: $path" }
+
         var isSuccess = true
         var error = ""
         val result = mutableListOf<File>()
@@ -931,13 +1011,15 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                         quality = if (iconFactory.lossless) 100f else iconFactory.quality
                     )
                 }
+                logger.info { "iconGeneration 图标生成完成, 任务索引: $index, 图标大小: $size, 输出文件路径: ${outputFile.absolutePath}" }
                 result.add(outputFile)
             } catch (e: RustException) {
+                logger.error(e) { "iconGeneration 图标生成异常, 异常信息: ${e.message}" }
                 isSuccess = false
                 error = e.message ?: getString(Res.string.icon_creation_failed)
                 break
             } catch (e: Exception) {
-                e.printStackTrace()
+                logger.error(e) { "iconGeneration 图标生成异常, 异常信息: ${e.message}" }
                 isSuccess = false
                 error = e.message ?: getString(Res.string.icon_creation_failed)
                 break
@@ -978,8 +1060,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 list.add(aliases.nextElement())
             }
             return list
-        } catch (_: Exception) {
-
+        } catch (e: Exception) {
+            logger.error(e) { "verifyAlisa 验证签名异常, 异常信息: ${e.message}" }
         } finally {
             fileInputStream?.close()
         }
@@ -1000,7 +1082,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 val key = keyStore.getKey(alisa, apkSignatureState.keyStoreAlisaPassword.toCharArray())
                 return key != null
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            logger.error(e) { "verifyAlisaPassword 验证别名密码异常, 异常信息: ${e.message}" }
             return false
         } finally {
             fileInputStream?.close()
@@ -1013,6 +1096,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      */
     fun scanPendingDeletionFileList(directory: File) {
         viewModelScope.launch(Dispatchers.IO) {
+            val start = System.currentTimeMillis()
+            logger.info { "scanPendingDeletionFileList 扫描自定义文件夹开始" }
             withContext(Dispatchers.Main) {
                 _fileClearUIState.update { UIState.Loading }
             }
@@ -1023,7 +1108,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 .maxDepth(10)
                 // 如果父目录是缓存目录，不再继续遍历此目录下的文件
                 .onEnter { file -> file.parentFile?.nameWithoutExtension != "build" }
-                .filter { file -> file.isDirectory == true && file.nameWithoutExtension == "build" }
+                .filter { file -> file.isDirectory && file.nameWithoutExtension == "build" }
                 .forEach { file ->
                     val length = file.getFileLength()
                     withContext(Dispatchers.Main) {
@@ -1040,6 +1125,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                         updateFileSort()
                     }
                 }
+            logger.info { "scanPendingDeletionFileList 扫描自定义文件夹结束, 耗时: ${System.currentTimeMillis() - start}ms, 扫描目录数: ${_pendingDeletionFileList.size}, 扫描文件总大小: ${totalLength.formatFileSize()}" }
             withContext(Dispatchers.Main) {
                 _fileClearUIState.update { UIState.WAIT }
                 if (_pendingDeletionFileList.isEmpty()) {
@@ -1111,6 +1197,8 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      */
     fun removeFileChecked() {
         viewModelScope.launch(Dispatchers.IO) {
+            val start = System.currentTimeMillis()
+            logger.info { "removeFileChecked 删除文件夹开始" }
             withContext(Dispatchers.Main) {
                 isClearing = true
                 _fileClearUIState.update { UIState.Loading }
@@ -1135,6 +1223,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             }
             val successCount = resultList.filter { it }.size
             val errorCount = resultList.size - successCount
+            logger.info { "removeFileChecked 删除文件夹结束, 耗时: ${System.currentTimeMillis() - start}ms, 删除文件数: ${resultList.size}, 删除成功数: $successCount, 删除失败数: $errorCount, 删除文件总大小: ${clearLength.formatFileSize()}" }
             withContext(Dispatchers.Main) {
                 isClearing = false
                 _fileClearUIState.update { UIState.WAIT }
@@ -1170,7 +1259,61 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         if (!aapt.canExecute()) {
             aapt.setExecutable(true)
         }
+        logger.info { "getAapt2File 获取aapt2文件路径: ${aapt.absolutePath}, aapt2可执行: ${aapt.canExecute()}" }
         return aapt
+    }
+
+    /**
+     * 检查更新
+     */
+    fun checkUpdate(showMessage: Boolean = true) {
+        viewModelScope.launch {
+            val start = System.currentTimeMillis()
+            logger.info { "checkUpdate 检查更新开始" }
+            _checkUpdateState.update { true }
+            _checkUpdateResult.update { null }
+            val result = utils.checkUpdate()
+            _checkUpdateState.update { false }
+            logger.info { "checkUpdate 检查更新结束, 耗时: ${System.currentTimeMillis() - start}ms, 检查更新结果: $result" }
+            if (result.isSuccess) {
+                val githubRestLatestResult = result.data!!
+                val isHaveNewVersion = githubRestLatestResult.tagName.isNewVersion(BuildConfig.APP_VERSION)
+                logger.info { "checkUpdate 检查更新结果对比: 现版本: ${BuildConfig.APP_VERSION} 新版本: ${githubRestLatestResult.tagName}" }
+                if (isHaveNewVersion) {
+                    val list = githubRestLatestResult.assets.filterByOS()
+                    if (list?.isNotEmpty() == true) {
+                        logger.info { "checkUpdate 展示更新弹窗" }
+                        val version = githubRestLatestResult.tagName
+                        val htmlUrl = githubRestLatestResult.htmlUrl
+                        val createdAt = githubRestLatestResult.createdAt
+                        val body = githubRestLatestResult.body
+                        val update = Update(version, htmlUrl, createdAt, body, list)
+                        _checkUpdateResult.update { update }
+                    } else {
+                        if (showMessage) {
+                            updateSnackbarVisuals(Res.string.it_s_the_latest_version)
+                        }
+                    }
+                } else {
+                    if (showMessage) {
+                        updateSnackbarVisuals(Res.string.it_s_the_latest_version)
+                    }
+                }
+            } else {
+                if (showMessage) {
+                    updateSnackbarVisuals(result.msg ?: Res.string.check_update_error)
+                }
+            }
+        }
+    }
+
+    /**
+     * 取消更新
+     */
+    fun cancelUpdate() {
+        viewModelScope.launch {
+            _checkUpdateResult.update { null }
+        }
     }
 }
 

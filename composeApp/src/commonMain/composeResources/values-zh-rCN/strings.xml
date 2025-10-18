@@ -38,6 +38,7 @@
     <string name="channel">渠道：</string>
 
     <string name="output_path">输出路径</string>
+    <string name="output_file_prefix">输出文件前缀(选填)</string>
     <string name="key_store_file">密钥文件路径</string>
     <string name="key_store_password">密钥库密码</string>
     <string name="key_alias">密钥别名</string>
@@ -130,6 +131,7 @@
     <string name="follow_the_system">跟随系统</string>
     <string name="light_mode">亮色模式</string>
     <string name="dark_mode">暗色模式</string>
+    <string name="start_check_update">启动时检查更新</string>
 
     <string name="toolkit_expand">ToolKit拓展</string>
     <string name="enable_extended_options">启用拓展功能</string>
@@ -152,6 +154,7 @@
     <string name="author">作者</string>
     <string name="license">许可证</string>
     <string name="open_source_licenses">开源许可证</string>
+    <string name="view_log_file">查看日志</string>
 
     <string name="key_output_path">密钥输出路径</string>
     <string name="key_file_name">密钥文件名称</string>
@@ -204,4 +207,19 @@
     <string name="apktool_version_code">VersionCode</string>
     <string name="apktool_version_name">VersionName</string>
 
+    <string name="check_for_updates">检查更新</string>
+    <string name="version_information">版本信息</string>
+    <string name="new_version_detected">检测到新版本</string>
+    <string name="it_s_the_latest_version">已是最新版本</string>
+    <string name="update">更新</string>
+    <string name="select_file_download">选择需要下载的文件</string>
+    <string name="download_success">下载成功</string>
+    <string name="download_tips">请等待下载完成</string>
+    <string name="prepare_for_installation">可以开始安装了</string>
+    <string name="exit_and_install">退出并安装</string>
+    <string name="connecting">连接中...</string>
+    <string name="downloading">下载中 · %1$d%</string>
+    <string name="release_time">发布时间: %1$s</string>
+    <string name="check_update_remaining_tips">请求达到速率限制，请稍后重试!</string>
+    <string name="check_update_error">网络请求异常，请重试!</string>
 </resources>

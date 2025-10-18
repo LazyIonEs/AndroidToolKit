@@ -6,6 +6,7 @@ import coil3.decode.DataSource
 import coil3.fetch.FetchResult
 import coil3.fetch.Fetcher
 import coil3.fetch.ImageFetchResult
+import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.Options
 import coil3.size.Size
@@ -15,6 +16,9 @@ fun getImageRequest(data: Any?) =
     ImageRequest.Builder(coil3.PlatformContext.INSTANCE)
         .data(data = data)
         .size(Size.ORIGINAL)
+        .memoryCachePolicy(CachePolicy.DISABLED)
+        .networkCachePolicy(CachePolicy.DISABLED)
+        .diskCachePolicy(CachePolicy.DISABLED)
         .fetcherFactory(SkiaBitmapFetcher.Factory())
         .build()
 

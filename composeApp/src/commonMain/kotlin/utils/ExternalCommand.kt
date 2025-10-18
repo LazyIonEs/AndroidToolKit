@@ -1,10 +1,13 @@
 package utils
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.concurrent.TimeUnit
+
+private val logger = KotlinLogging.logger("ExternalCommand")
 
 /**
  * Executes a command with ability to pass `stdin` and capture `stdout` and `stderr`.
@@ -44,7 +47,7 @@ class ExternalCommand(private val executable: String) {
             stdin.close()
             inToProcess.join()
         } catch (e: InterruptedException) {
-            println(e)
+            logger.error(e) { "执行命令异常, 异常信息: ${e.message}"}
         }
         return code
     }
