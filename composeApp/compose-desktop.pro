@@ -20,6 +20,11 @@
 -dontwarn org.jdom.**
 -dontwarn com.google.**
 -dontwarn org.apache.**
+-dontwarn ch.qos.logback.**
+-dontwarn androidx.compose.**
+-dontwarn androidx.lifecycle.**
+-dontwarn org.jetbrains.**
+-dontwarn kotlinx.coroutines.**
 
 -keep enum org.jetbrains.nav_cupcake.** { *; }
 -keep class com.android.ddmlib.** { *; }
@@ -65,3 +70,15 @@
 -dontwarn javax.xml.xpath.**
 
 -keep class model.** { *; }
+
+# ktor
+-keep class io.ktor.** { *; }
+-keepclassmembers class io.ktor.** { volatile <fields>; }
+-keep class io.ktor.client.engine.cio.** { *; }
+-dontwarn kotlinx.atomicfu.**
+-dontwarn io.netty.**
+-dontwarn com.typesafe.**
+-dontwarn org.slf4j.**
+-dontnote io.ktor.**
+-dontnote org.slf4j.**
+-dontnote kotlinx.serialization.**

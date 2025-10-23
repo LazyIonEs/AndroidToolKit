@@ -569,7 +569,7 @@ suspend fun downloadFile(
                 onDownload { bytesSentTotal: Long, contentLength: Long? ->
                     val currentTime = Clock.System.now().toEpochMilliseconds()
                     if (currentTime - lastProgressTime >= TIME_TO_TRIGGER_PROGRESS) {
-                        onProgress(minOf(bytesSentTotal, contentLength ?: 0L), contentLength ?: 0,)
+                        onProgress(minOf(bytesSentTotal, contentLength ?: 0L), contentLength ?: 0)
                         lastProgressTime = currentTime
                     }
                 }
@@ -614,27 +614,29 @@ suspend fun checkUpdate() = coroutineScope {
             }
         }
     }
-    return@coroutineScope try {
-        val url = "https://api.github.com/repos/LazyIonEs/AndroidToolKit/releases/latest"
-        val response: HttpResponse = client.get(url) {
-            contentType(ContentType.Application.Json)
-            headers {
-                append(HttpHeaders.Accept, "application/vnd.github+json")
-                append("X-GitHub-Api-Version", "2022-11-28")
+    return@coroutineScope withContext(Dispatchers.IO) {
+        try {
+            val url = "https://api.github.com/repos/LazyIonEs/AndroidToolKit/releases/latest"
+            val response: HttpResponse = client.get(url) {
+                contentType(ContentType.Application.Json)
+                headers {
+                    append(HttpHeaders.Accept, "application/vnd.github+json")
+                    append("X-GitHub-Api-Version", "2022-11-28")
+                }
             }
+            val remaining = response.headers["x-ratelimit-remaining"]
+            if (remaining == "0") {
+                GithubRestResult(false, Res.string.check_update_remaining_tips, null)
+            } else {
+                val result: GithubRestLatestResult = response.body()
+                GithubRestResult(true, null, result)
+            }
+        } catch (e: Exception) {
+            logger.error(e) { "checkUpdate 检查更新异常, 异常信息: ${e.message}" }
+            GithubRestResult(false, Res.string.check_update_error, null)
+        } finally {
+            client.close()
         }
-        val remaining = response.headers["x-ratelimit-remaining"]
-        if (remaining == "0") {
-            GithubRestResult(false, Res.string.check_update_remaining_tips, null)
-        } else {
-            val result: GithubRestLatestResult = response.body()
-            GithubRestResult(true, null, result)
-        }
-    } catch (e: Exception) {
-        logger.error(e) { "checkUpdate 检查更新异常, 异常信息: ${e.message}" }
-        GithubRestResult(false, Res.string.check_update_error, null)
-    } finally {
-        client.close()
     }
 }
 
@@ -663,7 +665,7 @@ fun MutableList<Asset>.filterByOS(): List<Asset>? {
 /**
  * 获取日志文件
  */
-fun getRollingAppenderFile(): File? {
+fun getLogFile(): File? {
     val context = LoggerFactory.getILoggerFactory() as? LoggerContext ?: return null
     val logger = context.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)
     val appender = logger.getAppender("FILE")

@@ -113,7 +113,7 @@ import org.tool.kit.composeapp.generated.resources.whether_to_always_show_the_na
 import org.tool.kit.composeapp.generated.resources.whether_to_turn_off_file_alignment_function_when_signing_and_packaging_huawei_channel_package
 import theme.AppTheme
 import utils.browseFileDirectory
-import utils.getRollingAppenderFile
+import utils.getLogFile
 import vm.MainViewModel
 import java.awt.Desktop
 import java.io.File
@@ -595,9 +595,10 @@ private fun About(viewModel: MainViewModel) {
             ClickAbout(text = stringResource(Res.string.open_source_licenses)) {
                 isOpenLibraries = !isOpenLibraries
             }
-            getRollingAppenderFile()?.let { file ->
+            val logFile = getLogFile()
+            if (logFile != null && logFile.exists()) {
                 ClickAbout(text = stringResource(Res.string.view_log_file)) {
-                    browseFileDirectory(file)
+                    browseFileDirectory(logFile)
                 }
             }
         }

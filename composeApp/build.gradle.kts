@@ -124,6 +124,7 @@ kotlin {
             implementation(libs.compottie.dot)
             implementation(libs.compottie.resources)
             implementation(libs.logging)
+            implementation(libs.logback.core)
             implementation(libs.logback.classic)
         }
         desktopMain.dependencies {
@@ -147,11 +148,17 @@ compose.desktop {
     application {
         mainClass = "MainKt"
 
+        val env = if (project.gradle.startParameter.taskNames.any {
+                it.contains("Release", ignoreCase = true)
+            }) "release" else "debug"
+
         jvmArgs += listOf(
             "-Dapple.awt.application.appearance=system",
             "-Djava.net.useSystemProxies=true",
             "-Dorg.slf4j.simpleLogger.defaultLogLevel=INFO",
-            "-Dkotlin-logging-to-logbacktrue"
+            "-Dkotlin-logging-to-logback=true",
+            "-Dapp.log.dir=${'$'}APPDIR",
+            "-Dapp.log.env=$env",
         )
 
         this@application.dependsOn("rustTasks")
