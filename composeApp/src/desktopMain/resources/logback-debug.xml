@@ -5,8 +5,7 @@
         </encoder>
     </appender>
 
-    <property name="env" value="${app.log.env:-debug}" />
-
-    <include resource="logback-${env}.xml" />
-
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT"/>
+    </root>
 </configuration>

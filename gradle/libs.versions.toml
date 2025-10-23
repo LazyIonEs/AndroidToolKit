@@ -26,8 +26,8 @@ zoomimage = "1.4.0"
 apktool = "2.12.1"
 ktor = "3.3.1"
 richeditor = "1.0.0-rc13"
-logback = "1.5.19"
-compottie="2.0.1"
+logback = "1.5.20"
+compottie = "2.0.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -60,7 +60,8 @@ jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 # https://github.com/oshai/kotlin-logging
 logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "logging" }
 # https://github.com/qos-ch/logback
-logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback"}
+logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 # https://github.com/Kotlin/kotlinx.coroutines
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
 # https://github.com/vinceglb/FileKit
