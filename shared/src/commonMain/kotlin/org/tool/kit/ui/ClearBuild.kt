@@ -72,36 +72,36 @@ import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLaunche
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
-import org.tool.kit.model.DarkThemeConfig
-import org.tool.kit.model.Sequence
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import androidtoolkit.shared.generated.resources.Res
-import androidtoolkit.shared.generated.resources.ZCOOLKuaiLe_Regular
-import androidtoolkit.shared.generated.resources.available_space
-import androidtoolkit.shared.generated.resources.cache_describe
-import androidtoolkit.shared.generated.resources.cache_title
-import androidtoolkit.shared.generated.resources.cancel
-import androidtoolkit.shared.generated.resources.confirm_deletion
-import androidtoolkit.shared.generated.resources.delete_cache_dialog_describe
-import androidtoolkit.shared.generated.resources.delete_cache_dialog_title
-import androidtoolkit.shared.generated.resources.folders
-import androidtoolkit.shared.generated.resources.largest_first
-import androidtoolkit.shared.generated.resources.name_a_z
-import androidtoolkit.shared.generated.resources.name_z_a
-import androidtoolkit.shared.generated.resources.newest_date_first
-import androidtoolkit.shared.generated.resources.oldest_date_first
-import androidtoolkit.shared.generated.resources.percentage_of_total_storage_space
-import androidtoolkit.shared.generated.resources.scanned_folders
-import androidtoolkit.shared.generated.resources.select_delete_director
-import androidtoolkit.shared.generated.resources.select_folder
-import androidtoolkit.shared.generated.resources.selected_folders
-import androidtoolkit.shared.generated.resources.size_and_time
-import androidtoolkit.shared.generated.resources.smallest_first
-import androidtoolkit.shared.generated.resources.time_format
-import androidtoolkit.shared.generated.resources.total_storage_space
-import androidtoolkit.shared.generated.resources.used_space
+import org.tool.kit.model.DarkThemeConfig
+import org.tool.kit.model.Sequence
+import org.tool.kit.shared.generated.resources.Res
+import org.tool.kit.shared.generated.resources.ZCOOLKuaiLe_Regular
+import org.tool.kit.shared.generated.resources.available_space
+import org.tool.kit.shared.generated.resources.cache_describe
+import org.tool.kit.shared.generated.resources.cache_title
+import org.tool.kit.shared.generated.resources.cancel
+import org.tool.kit.shared.generated.resources.confirm_deletion
+import org.tool.kit.shared.generated.resources.delete_cache_dialog_describe
+import org.tool.kit.shared.generated.resources.delete_cache_dialog_title
+import org.tool.kit.shared.generated.resources.folders
+import org.tool.kit.shared.generated.resources.largest_first
+import org.tool.kit.shared.generated.resources.name_a_z
+import org.tool.kit.shared.generated.resources.name_z_a
+import org.tool.kit.shared.generated.resources.newest_date_first
+import org.tool.kit.shared.generated.resources.oldest_date_first
+import org.tool.kit.shared.generated.resources.percentage_of_total_storage_space
+import org.tool.kit.shared.generated.resources.scanned_folders
+import org.tool.kit.shared.generated.resources.select_delete_director
+import org.tool.kit.shared.generated.resources.select_folder
+import org.tool.kit.shared.generated.resources.selected_folders
+import org.tool.kit.shared.generated.resources.size_and_time
+import org.tool.kit.shared.generated.resources.smallest_first
+import org.tool.kit.shared.generated.resources.time_format
+import org.tool.kit.shared.generated.resources.total_storage_space
+import org.tool.kit.shared.generated.resources.used_space
 import org.tool.kit.utils.LottieAnimation
 import org.tool.kit.utils.browseFileDirectory
 import org.tool.kit.utils.formatFileSize
@@ -156,7 +156,9 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
     // 已使用空间
     val usedSpace = totalSpace - usableSpace
     Column(modifier = Modifier.fillMaxWidth()) {
-        ElevatedCard(modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 12.dp)) {
+        ElevatedCard(
+            modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 12.dp)
+        ) {
             AnimatedVisibility(
                 visible = viewModel.fileClearUIState == UIState.WAIT && viewModel.pendingDeletionFileList.isEmpty(),
                 enter = fadeIn() + expandVertically(),
@@ -177,7 +179,8 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                         }
                         Column(modifier = Modifier.weight(1f).padding(16.dp)) {
                             Text(
-                                text = stringResource(Res.string.used_space), style = MaterialTheme.typography.bodySmall
+                                text = stringResource(Res.string.used_space),
+                                style = MaterialTheme.typography.bodySmall
                             )
                             Spacer(Modifier.size(3.dp))
                             Text(
@@ -238,7 +241,10 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                                 "$checkedCount", style = MaterialTheme.typography.headlineSmall
                             )
                             Spacer(Modifier.size(3.dp))
-                            Text(text = stringResource(Res.string.folders), style = MaterialTheme.typography.bodySmall)
+                            Text(
+                                text = stringResource(Res.string.folders),
+                                style = MaterialTheme.typography.bodySmall
+                            )
                         }
                         Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
                             Text(
@@ -247,13 +253,18 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                             )
                             Spacer(Modifier.size(3.dp))
                             Text(
-                                checkedTotalLength.formatFileUnit(), style = MaterialTheme.typography.bodySmall
+                                checkedTotalLength.formatFileUnit(),
+                                style = MaterialTheme.typography.bodySmall
                             )
                         }
                         Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
-                            val percentage = checkedTotalLength.toBigDecimal().multiply(100.toBigDecimal())
-                                .divide(totalSpace.toBigDecimal(), 1, RoundingMode.HALF_UP)
-                            Text("${percentage.toPlainString()}%", style = MaterialTheme.typography.headlineSmall)
+                            val percentage =
+                                checkedTotalLength.toBigDecimal().multiply(100.toBigDecimal())
+                                    .divide(totalSpace.toBigDecimal(), 1, RoundingMode.HALF_UP)
+                            Text(
+                                "${percentage.toPlainString()}%",
+                                style = MaterialTheme.typography.headlineSmall
+                            )
                             Spacer(Modifier.size(3.dp))
                             Text(
                                 text = stringResource(Res.string.percentage_of_total_storage_space),
@@ -307,7 +318,8 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                     )
                     Spacer(Modifier.size(24.dp))
                     Text(
-                        text = stringResource(Res.string.cache_describe), style = MaterialTheme.typography.bodyMedium
+                        text = stringResource(Res.string.cache_describe),
+                        style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(Modifier.size(48.dp))
                 }
@@ -330,16 +342,21 @@ private fun ClearBuildList(viewModel: MainViewModel) {
             ) { index, pendingDeletionFile ->
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
-                        modifier = Modifier.fillMaxWidth().height(56.dp), verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.fillMaxWidth().height(56.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(
                             onClick = { browseFileDirectory(pendingDeletionFile.file) },
                             modifier = Modifier.padding(horizontal = 16.dp)
                         ) {
-                            if (pendingDeletionFile.file.isDirectory) Icon(Icons.Outlined.FolderOpen, "FolderOpen")
+                            if (pendingDeletionFile.file.isDirectory) Icon(
+                                Icons.Outlined.FolderOpen,
+                                "FolderOpen"
+                            )
                             else Icon(Icons.Outlined.Description, "Description")
                         }
-                        val instant = Instant.fromEpochMilliseconds(pendingDeletionFile.fileLastModified)
+                        val instant =
+                            Instant.fromEpochMilliseconds(pendingDeletionFile.fileLastModified)
                         val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
                         val pattern = stringResource(Res.string.time_format)
                         val formatter = DateTimeFormatter.ofPattern(pattern)
@@ -359,7 +376,8 @@ private fun ClearBuildList(viewModel: MainViewModel) {
                                     Color.Unspecified
                                 },
                             )
-                            val size = pendingDeletionFile.fileLength.formatFileSize(withInterval = true)
+                            val size =
+                                pendingDeletionFile.fileLength.formatFileSize(withInterval = true)
                             val time = localDateTime.toJavaLocalDateTime().format(formatter)
                             Text(
                                 text = stringResource(Res.string.size_and_time, size, time),
@@ -400,7 +418,9 @@ fun ClearBuildBottom(viewModel: MainViewModel) {
     var sequenceExpanded by remember { mutableStateOf(false) }
     var deletionAlert by remember { mutableStateOf(false) }
     val launcher = rememberDirectoryPickerLauncher { directory ->
-        viewModel.scanPendingDeletionFileList(directory?.file ?: return@rememberDirectoryPickerLauncher)
+        viewModel.scanPendingDeletionFileList(
+            directory?.file ?: return@rememberDirectoryPickerLauncher
+        )
     }
     BottomAppBar(actions = {
         IconButton(onClick = { viewModel.closeFileCheck() }) {
@@ -441,11 +461,35 @@ fun ClearBuildBottom(viewModel: MainViewModel) {
         }
     })
     val onDismissRequest = { sequenceExpanded = false }
-    DropdownMenu(expanded = sequenceExpanded, offset = DpOffset(64.dp, 24.dp), onDismissRequest = onDismissRequest) {
-        SequenceDropdownMenu(Res.string.newest_date_first, Sequence.DATE_NEW_TO_OLD, onDismissRequest, viewModel)
-        SequenceDropdownMenu(Res.string.oldest_date_first, Sequence.DATE_OLD_TO_NEW, onDismissRequest, viewModel)
-        SequenceDropdownMenu(Res.string.largest_first, Sequence.SIZE_LARGE_TO_SMALL, onDismissRequest, viewModel)
-        SequenceDropdownMenu(Res.string.smallest_first, Sequence.SIZE_SMALL_TO_LARGE, onDismissRequest, viewModel)
+    DropdownMenu(
+        expanded = sequenceExpanded,
+        offset = DpOffset(64.dp, 24.dp),
+        onDismissRequest = onDismissRequest
+    ) {
+        SequenceDropdownMenu(
+            Res.string.newest_date_first,
+            Sequence.DATE_NEW_TO_OLD,
+            onDismissRequest,
+            viewModel
+        )
+        SequenceDropdownMenu(
+            Res.string.oldest_date_first,
+            Sequence.DATE_OLD_TO_NEW,
+            onDismissRequest,
+            viewModel
+        )
+        SequenceDropdownMenu(
+            Res.string.largest_first,
+            Sequence.SIZE_LARGE_TO_SMALL,
+            onDismissRequest,
+            viewModel
+        )
+        SequenceDropdownMenu(
+            Res.string.smallest_first,
+            Sequence.SIZE_SMALL_TO_LARGE,
+            onDismissRequest,
+            viewModel
+        )
         SequenceDropdownMenu(Res.string.name_a_z, Sequence.NAME_A_TO_Z, onDismissRequest, viewModel)
         SequenceDropdownMenu(Res.string.name_z_a, Sequence.NAME_Z_TO_A, onDismissRequest, viewModel)
     }
@@ -461,7 +505,10 @@ fun ClearBuildBottom(viewModel: MainViewModel) {
 
 @Composable
 private fun SequenceDropdownMenu(
-    resource: StringResource, sequence: Sequence, onDismissRequest: () -> Unit, viewModel: MainViewModel
+    resource: StringResource,
+    sequence: Sequence,
+    onDismissRequest: () -> Unit,
+    viewModel: MainViewModel
 ) {
     DropdownMenuItem(
         text = {

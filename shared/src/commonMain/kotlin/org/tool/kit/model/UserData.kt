@@ -1,11 +1,11 @@
 package org.tool.kit.model
 
-import androidtoolkit.shared.generated.resources.Res
-import androidtoolkit.shared.generated.resources.dark_mode
-import androidtoolkit.shared.generated.resources.follow_the_system
-import androidtoolkit.shared.generated.resources.light_mode
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.StringResource
+import org.tool.kit.shared.generated.resources.Res
+import org.tool.kit.shared.generated.resources.dark_mode
+import org.tool.kit.shared.generated.resources.follow_the_system
+import org.tool.kit.shared.generated.resources.light_mode
 
 @Serializable
 data class UserData(

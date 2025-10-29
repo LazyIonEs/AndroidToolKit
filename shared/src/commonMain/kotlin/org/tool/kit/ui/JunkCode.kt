@@ -17,17 +17,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
-import androidtoolkit.shared.generated.resources.Res
-import androidtoolkit.shared.generated.resources.aar_name
-import androidtoolkit.shared.generated.resources.aar_output_path
-import androidtoolkit.shared.generated.resources.check_empty
-import androidtoolkit.shared.generated.resources.check_error
-import androidtoolkit.shared.generated.resources.junk_package_name
-import androidtoolkit.shared.generated.resources.number_of_activities
-import androidtoolkit.shared.generated.resources.number_of_packages
-import androidtoolkit.shared.generated.resources.resource_prefix
-import androidtoolkit.shared.generated.resources.start_generating
-import androidtoolkit.shared.generated.resources.suffix
+import org.tool.kit.shared.generated.resources.Res
+import org.tool.kit.shared.generated.resources.aar_name
+import org.tool.kit.shared.generated.resources.aar_output_path
+import org.tool.kit.shared.generated.resources.check_empty
+import org.tool.kit.shared.generated.resources.check_error
+import org.tool.kit.shared.generated.resources.junk_package_name
+import org.tool.kit.shared.generated.resources.number_of_activities
+import org.tool.kit.shared.generated.resources.number_of_packages
+import org.tool.kit.shared.generated.resources.resource_prefix
+import org.tool.kit.shared.generated.resources.start_generating
+import org.tool.kit.shared.generated.resources.suffix
 import org.tool.kit.vm.MainViewModel
 import java.io.File
 
@@ -92,7 +92,11 @@ private fun JunkCodeBox(viewModel: MainViewModel) {
                     label = stringResource(Res.string.number_of_activities),
                     isError = viewModel.junkCodeInfoState.activityCountPerPackage.isBlank(),
                     onValueChange = { activityCountPerPackage ->
-                        viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(activityCountPerPackage = activityCountPerPackage))
+                        viewModel.updateJunkCodeInfo(
+                            viewModel.junkCodeInfoState.copy(
+                                activityCountPerPackage = activityCountPerPackage
+                            )
+                        )
                     })
             }
             item {
@@ -130,7 +134,12 @@ private fun PackageName(viewModel: MainViewModel) {
                 junkCodeInfo.packageName = packageName
                 viewModel.updateJunkCodeInfo(junkCodeInfo)
             },
-            label = { Text(text = stringResource(Res.string.junk_package_name), style = MaterialTheme.typography.labelLarge) },
+            label = {
+                Text(
+                    text = stringResource(Res.string.junk_package_name),
+                    style = MaterialTheme.typography.labelLarge
+                )
+            },
             singleLine = true,
             isError = viewModel.junkCodeInfoState.packageName.isBlank()
         )
@@ -147,7 +156,12 @@ private fun PackageName(viewModel: MainViewModel) {
                 junkCodeInfo.suffix = suffix
                 viewModel.updateJunkCodeInfo(junkCodeInfo)
             },
-            label = { Text(text = stringResource(Res.string.suffix), style = MaterialTheme.typography.labelLarge) },
+            label = {
+                Text(
+                    text = stringResource(Res.string.suffix),
+                    style = MaterialTheme.typography.labelLarge
+                )
+            },
             singleLine = true,
             isError = viewModel.junkCodeInfoState.suffix.isBlank()
         )

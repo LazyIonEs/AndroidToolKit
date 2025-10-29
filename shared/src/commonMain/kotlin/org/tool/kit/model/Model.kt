@@ -1,10 +1,5 @@
 package org.tool.kit.model
 
-import androidtoolkit.shared.generated.resources.Res
-import androidtoolkit.shared.generated.resources.apk_signature_v1
-import androidtoolkit.shared.generated.resources.apk_signature_v2
-import androidtoolkit.shared.generated.resources.apk_signature_v2_only
-import androidtoolkit.shared.generated.resources.apk_signature_v3
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.runtime.getValue
@@ -12,6 +7,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import org.jetbrains.compose.resources.StringResource
+import org.tool.kit.shared.generated.resources.Res
+import org.tool.kit.shared.generated.resources.apk_signature_v1
+import org.tool.kit.shared.generated.resources.apk_signature_v2
+import org.tool.kit.shared.generated.resources.apk_signature_v2_only
+import org.tool.kit.shared.generated.resources.apk_signature_v3
 import java.io.File
 
 /**

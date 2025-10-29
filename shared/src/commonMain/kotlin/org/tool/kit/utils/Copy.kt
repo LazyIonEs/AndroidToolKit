@@ -1,7 +1,7 @@
 package org.tool.kit.utils
 
-import androidtoolkit.shared.generated.resources.Res
-import androidtoolkit.shared.generated.resources.copied_to_clipboard
+import org.tool.kit.shared.generated.resources.Res
+import org.tool.kit.shared.generated.resources.copied_to_clipboard
 import org.tool.kit.vm.MainViewModel
 import java.awt.Toolkit
 import java.awt.datatransfer.Clipboard

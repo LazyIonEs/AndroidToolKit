@@ -20,20 +20,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import org.tool.kit.model.FileSelectorType
 import org.jetbrains.compose.resources.stringResource
-import androidtoolkit.shared.generated.resources.Res
-import androidtoolkit.shared.generated.resources.apk_output_path
-import androidtoolkit.shared.generated.resources.apktool_app_name
-import androidtoolkit.shared.generated.resources.apktool_min_sdk_version
-import androidtoolkit.shared.generated.resources.apktool_package_name
-import androidtoolkit.shared.generated.resources.apktool_target_sdk_version
-import androidtoolkit.shared.generated.resources.apktool_version_code
-import androidtoolkit.shared.generated.resources.apktool_version_name
-import androidtoolkit.shared.generated.resources.check_empty
-import androidtoolkit.shared.generated.resources.check_error
-import androidtoolkit.shared.generated.resources.icon_file
-import androidtoolkit.shared.generated.resources.start_generating
+import org.tool.kit.model.FileSelectorType
+import org.tool.kit.shared.generated.resources.Res
+import org.tool.kit.shared.generated.resources.apk_output_path
+import org.tool.kit.shared.generated.resources.apktool_app_name
+import org.tool.kit.shared.generated.resources.apktool_min_sdk_version
+import org.tool.kit.shared.generated.resources.apktool_package_name
+import org.tool.kit.shared.generated.resources.apktool_target_sdk_version
+import org.tool.kit.shared.generated.resources.apktool_version_code
+import org.tool.kit.shared.generated.resources.apktool_version_name
+import org.tool.kit.shared.generated.resources.check_empty
+import org.tool.kit.shared.generated.resources.check_error
+import org.tool.kit.shared.generated.resources.icon_file
+import org.tool.kit.shared.generated.resources.start_generating
 import org.tool.kit.vm.MainViewModel
 import java.io.File
 
@@ -181,7 +181,8 @@ private fun VersionInput(viewModel: MainViewModel) {
             },
             label = {
                 Text(
-                    text = stringResource(Res.string.apktool_version_code), style = MaterialTheme.typography.labelLarge
+                    text = stringResource(Res.string.apktool_version_code),
+                    style = MaterialTheme.typography.labelLarge
                 )
             },
             singleLine = true,
@@ -196,7 +197,8 @@ private fun VersionInput(viewModel: MainViewModel) {
             },
             label = {
                 Text(
-                    text = stringResource(Res.string.apktool_version_name), style = MaterialTheme.typography.labelLarge
+                    text = stringResource(Res.string.apktool_version_name),
+                    style = MaterialTheme.typography.labelLarge
                 )
             },
             singleLine = true,

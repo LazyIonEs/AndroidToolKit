@@ -21,25 +21,25 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
-import androidtoolkit.shared.generated.resources.Res
-import androidtoolkit.shared.generated.resources.certificate
-import androidtoolkit.shared.generated.resources.check_empty
-import androidtoolkit.shared.generated.resources.check_error
-import androidtoolkit.shared.generated.resources.city_or_locality
-import androidtoolkit.shared.generated.resources.confirm_password
-import androidtoolkit.shared.generated.resources.country_code
-import androidtoolkit.shared.generated.resources.create_key_store
-import androidtoolkit.shared.generated.resources.first_and_last_name
-import androidtoolkit.shared.generated.resources.key
-import androidtoolkit.shared.generated.resources.key_alias
-import androidtoolkit.shared.generated.resources.key_alias_password
-import androidtoolkit.shared.generated.resources.key_file_name
-import androidtoolkit.shared.generated.resources.key_output_path
-import androidtoolkit.shared.generated.resources.key_password
-import androidtoolkit.shared.generated.resources.organization
-import androidtoolkit.shared.generated.resources.organizational_unit
-import androidtoolkit.shared.generated.resources.state_or_province
-import androidtoolkit.shared.generated.resources.validity_period_unit_year
+import org.tool.kit.shared.generated.resources.Res
+import org.tool.kit.shared.generated.resources.certificate
+import org.tool.kit.shared.generated.resources.check_empty
+import org.tool.kit.shared.generated.resources.check_error
+import org.tool.kit.shared.generated.resources.city_or_locality
+import org.tool.kit.shared.generated.resources.confirm_password
+import org.tool.kit.shared.generated.resources.country_code
+import org.tool.kit.shared.generated.resources.create_key_store
+import org.tool.kit.shared.generated.resources.first_and_last_name
+import org.tool.kit.shared.generated.resources.key
+import org.tool.kit.shared.generated.resources.key_alias
+import org.tool.kit.shared.generated.resources.key_alias_password
+import org.tool.kit.shared.generated.resources.key_file_name
+import org.tool.kit.shared.generated.resources.key_output_path
+import org.tool.kit.shared.generated.resources.key_password
+import org.tool.kit.shared.generated.resources.organization
+import org.tool.kit.shared.generated.resources.organizational_unit
+import org.tool.kit.shared.generated.resources.state_or_province
+import org.tool.kit.shared.generated.resources.validity_period_unit_year
 import org.tool.kit.utils.isKey
 import org.tool.kit.vm.MainViewModel
 import java.io.File
@@ -108,7 +108,10 @@ private fun GenerationBox(
                     modifier = Modifier.fillMaxWidth().padding(start = 24.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = stringResource(Res.string.key), style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        text = stringResource(Res.string.key),
+                        style = MaterialTheme.typography.titleSmall
+                    )
                     HorizontalDivider(modifier = Modifier.padding(start = 8.dp), thickness = 2.dp)
                 }
                 Spacer(Modifier.size(12.dp))
@@ -131,7 +134,11 @@ private fun GenerationBox(
                     label = stringResource(Res.string.validity_period_unit_year),
                     isError = viewModel.keyStoreInfoState.validityPeriod.isBlank()
                 ) { validityPeriod ->
-                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(validityPeriod = validityPeriod))
+                    viewModel.updateSignatureGenerate(
+                        viewModel.keyStoreInfoState.copy(
+                            validityPeriod = validityPeriod
+                        )
+                    )
                 }
             }
             item {
@@ -140,7 +147,10 @@ private fun GenerationBox(
                     modifier = Modifier.fillMaxWidth().padding(start = 24.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(text = stringResource(Res.string.certificate), style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        text = stringResource(Res.string.certificate),
+                        style = MaterialTheme.typography.titleSmall
+                    )
                     HorizontalDivider(modifier = Modifier.padding(start = 8.dp), thickness = 2.dp)
                 }
                 Spacer(Modifier.size(12.dp))
@@ -159,7 +169,11 @@ private fun GenerationBox(
                     label = stringResource(Res.string.organizational_unit),
                     isError = false
                 ) { organizationalUnit ->
-                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(organizationalUnit = organizationalUnit))
+                    viewModel.updateSignatureGenerate(
+                        viewModel.keyStoreInfoState.copy(
+                            organizationalUnit = organizationalUnit
+                        )
+                    )
                 }
             }
             item {
@@ -169,7 +183,11 @@ private fun GenerationBox(
                     label = stringResource(Res.string.organization),
                     isError = false
                 ) { organizational ->
-                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(organizational = organizational))
+                    viewModel.updateSignatureGenerate(
+                        viewModel.keyStoreInfoState.copy(
+                            organizational = organizational
+                        )
+                    )
                 }
             }
             item {
@@ -233,7 +251,11 @@ private fun KeyStorePassword(
             viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePassword = keyStorePassword))
         },
         onConfirmPasswordChange = { keyStoreConfirmPassword ->
-            viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreConfirmPassword = keyStoreConfirmPassword))
+            viewModel.updateSignatureGenerate(
+                viewModel.keyStoreInfoState.copy(
+                    keyStoreConfirmPassword = keyStoreConfirmPassword
+                )
+            )
         })
 }
 
@@ -253,7 +275,11 @@ private fun KeyStoreAlisaPassword(
             viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreAlisaPassword = keyStoreAlisaPassword))
         },
         onConfirmPasswordChange = { keyStoreAlisaConfirmPassword ->
-            viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreAlisaConfirmPassword = keyStoreAlisaConfirmPassword))
+            viewModel.updateSignatureGenerate(
+                viewModel.keyStoreInfoState.copy(
+                    keyStoreAlisaConfirmPassword = keyStoreAlisaConfirmPassword
+                )
+            )
         })
 }
 
@@ -344,7 +370,8 @@ private fun ConfirmPasswordTextField(
             },
             label = {
                 Text(
-                    text = stringResource(Res.string.confirm_password), style = MaterialTheme.typography.labelLarge
+                    text = stringResource(Res.string.confirm_password),
+                    style = MaterialTheme.typography.labelLarge
                 )
             },
             isError = confirmPasswordError,

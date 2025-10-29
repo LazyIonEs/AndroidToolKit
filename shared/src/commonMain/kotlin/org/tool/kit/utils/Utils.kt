@@ -1,8 +1,5 @@
 package org.tool.kit.utils
 
-import androidtoolkit.shared.generated.resources.Res
-import androidtoolkit.shared.generated.resources.check_update_error
-import androidtoolkit.shared.generated.resources.check_update_remaining_tips
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import brut.xml.XmlUtils
@@ -47,6 +44,9 @@ import org.tool.kit.model.FileSelectorType
 import org.tool.kit.model.GithubRestLatestResult
 import org.tool.kit.model.GithubRestResult
 import org.tool.kit.model.Verifier
+import org.tool.kit.shared.generated.resources.Res
+import org.tool.kit.shared.generated.resources.check_update_error
+import org.tool.kit.shared.generated.resources.check_update_remaining_tips
 import org.w3c.dom.Node
 import java.awt.Desktop
 import java.io.ByteArrayOutputStream
@@ -349,45 +349,6 @@ fun File.getFileLength(): Long {
     } else {
         return this.length()
     }
-}
-
-/**
- * @param scale 精确到小数点以后几位 (Accurate to a few decimal places)
- */
-fun Float.formatFileSize(
-    scale: Int = 2,
-    withUnit: Boolean = true,
-    withInterval: Boolean = false
-): String {
-    val divisor = if (isMac) { //ROUND_DOWN 1023 -> 1023B ; ROUND_HALF_UP  1023 -> 1KB
-        1000L
-    } else {
-        1024L
-    }
-    val kiloByte: BigDecimal =
-        formatSizeByTypeWithDivisor(
-            this.toBigDecimal(),
-            scale,
-            FileSizeType.SIZE_TYPE_B,
-            divisor
-        )
-    val interval = if (withInterval) " " else ""
-    if (kiloByte.toDouble() < 1) {
-        return "${kiloByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_B.unit else ""}"
-    } //KB
-    val megaByte = formatSizeByTypeWithDivisor(kiloByte, scale, FileSizeType.SIZE_TYPE_KB, divisor)
-    if (megaByte.toDouble() < 1) {
-        return "${kiloByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_KB.unit else ""}"
-    } //M
-    val gigaByte = formatSizeByTypeWithDivisor(megaByte, scale, FileSizeType.SIZE_TYPE_MB, divisor)
-    if (gigaByte.toDouble() < 1) {
-        return "${megaByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_MB.unit else ""}"
-    } //GB
-    val teraBytes = formatSizeByTypeWithDivisor(gigaByte, scale, FileSizeType.SIZE_TYPE_GB, divisor)
-    if (teraBytes.toDouble() < 1) {
-        return "${gigaByte.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_GB.unit else ""}"
-    } //TB
-    return "${teraBytes.toPlainString()}${interval}${if (withUnit) FileSizeType.SIZE_TYPE_TB.unit else ""}"
 }
 
 /**

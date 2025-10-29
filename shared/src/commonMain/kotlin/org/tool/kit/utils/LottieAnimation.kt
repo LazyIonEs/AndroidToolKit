@@ -22,7 +22,7 @@ import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import org.jetbrains.skia.Rect
 import org.jetbrains.skia.skottie.Animation
 import org.jetbrains.skia.sksg.InvalidationController
-import androidtoolkit.shared.generated.resources.Res
+import org.tool.kit.shared.generated.resources.Res
 import kotlin.math.roundToInt
 
 /**

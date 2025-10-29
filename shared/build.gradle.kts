@@ -1,4 +1,5 @@
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileOutputStream
 import java.nio.file.Files
 
@@ -12,49 +13,111 @@ plugins {
     alias(libs.plugins.hot.reload)
 }
 
+// Build properties
+val kitVersion: String by project
+val kitPackageName: String by project
+val kitDescription: String by project
+val kitCopyright: String by project
+val kitVendor: String by project
+val kitLicenseFile: String by project
+
+// Rust configuration
 val linuxArmTarget = "aarch64-unknown-linux-gnu"
 val linuxX64Target = "x86_64-unknown-linux-gnu"
-
 val useCross = (properties.getOrDefault("useCross", "false") as String).toBoolean()
 val isLinuxAarch64 = (properties.getOrDefault("isLinuxAarch64", "false") as String).toBoolean()
 
+// Generated source paths
 val rustGeneratedSource = "${layout.buildDirectory.get()}/generated/source/uniffi/main/org/tool/kit/kotlin"
-
 val aboutLibrariesSource = "src/commonMain/composeResources/files/aboutlibraries.json"
 
+// Group and version
+group = "org.tool.kit"
+version = kitVersion
+
 kotlin {
+    // Java toolchain
+    jvmToolchain(17)
+    
+    // Target configuration
     jvm()
     
+    // Source sets
     sourceSets {
+        // Add Rust generated source to JVM
         jvmMain.get().kotlin.srcDir(rustGeneratedSource)
 
+        // Common dependencies
         commonMain.dependencies {
-            implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+            // Compose dependencies (API for downstream modules)
             api(compose.runtime)
             api(compose.foundation)
             api(compose.material)
+            api(compose.material3)
             api(compose.ui)
             api(compose.components.resources)
-            api(compose.material3)
             api(compose.materialIconsExtended)
-            api(compose.foundation)
+            
+            // Kotlin libraries
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.datetime)
+            
+            // Lifecycle
+            implementation(libs.lifecycle.viewmodel.compose)
+            
+            // Logging
+            api(libs.logging)
             implementation(libs.slf4j.api)
-            // implementation(libs.slf4j.simple)
+            implementation(libs.logback.core)
+            implementation(libs.logback.classic)
+            
+            // Android tools (with exclusions to avoid conflicts)
             implementation(libs.android.apksig)
             implementation(libs.android.sdk.common)
             implementation(libs.android.binary.resources)
+            
+            // Third-party libraries
+            implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
             implementation(libs.commons.codec)
             implementation(libs.asm)
-            implementation(libs.lifecycle.viewmodel.compose)
             implementation(libs.jna)
+            
+            // File handling
             implementation(libs.filekit.core)
             implementation(libs.filekit.dialogs)
             implementation(libs.filekit.dialogs.compose)
+            
+            // Settings
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.settings.coroutines)
             implementation(libs.multiplatform.settings.serialization)
-            implementation(libs.kotlinx.serialization.json)
-            implementation(libs.kotlinx.datetime)
+            
+            // Image handling
+            implementation(libs.coil.compose)
+            implementation(libs.zoomimage.compose.coil3)
+            
+            // APK tools
+            implementation(libs.apktool.lib)
+            
+            // Network
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.cio)
+            implementation(libs.ktor.client.apache5)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            
+            // UI components
+            implementation(libs.richeditor.compose)
+            implementation(libs.compottie)
+            implementation(libs.compottie.dot)
+            implementation(libs.compottie.resources)
+            
+            // About libraries
+            implementation(libs.about.libraries.core)
+            implementation(libs.about.libraries.compose.m3)
+            
+            // IntelliJ utilities (with extensive exclusions)
             implementation("com.jetbrains.intellij.platform:util:243.26053.20") {
                 exclude(group = "com.fasterxml", module = "aalto-xml")
                 exclude(group = "com.github.ben-manes.caffeine", module = "caffeine")
@@ -67,10 +130,7 @@ kotlin {
                 exclude(group = "commons-io", module = "commons-io")
                 exclude(group = "net.java.dev.jna", module = "jna-platform")
                 exclude(group = "org.apache.commons", module = "commons-compress")
-                exclude(
-                    group = "org.jetbrains.intellij.deps.fastutil",
-                    module = "intellij-deps-fastutil"
-                )
+                exclude(group = "org.jetbrains.intellij.deps.fastutil", module = "intellij-deps-fastutil")
                 exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
                 exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-core-jvm")
                 exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-json-jvm")
@@ -78,45 +138,32 @@ kotlin {
                 exclude(group = "org.slf4j", module = "log4j-over-slf4j")
                 exclude(group = "oro", module = "oro")
             }
-            runtimeOnly(libs.kotlinx.coroutines.swing)
-            implementation(libs.about.libraries.core)
-            implementation(libs.about.libraries.compose.m3)
-            implementation(libs.coil.compose)
-            implementation(libs.zoomimage.compose.coil3)
-            implementation(libs.apktool.lib)
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.cio)
-            implementation(libs.ktor.client.apache5)
-            implementation(libs.ktor.client.logging)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.serialization.kotlinx.json)
-            implementation(libs.richeditor.compose)
-            implementation(libs.compottie)
-            implementation(libs.compottie.dot)
-            implementation(libs.compottie.resources)
-            api(libs.logging)
-            implementation(libs.logback.core)
-            implementation(libs.logback.classic)
         }
+        
+        // JVM-specific dependencies
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
+            runtimeOnly(libs.kotlinx.coroutines.swing)
         }
     }
 }
 
+// Kotlin compiler options
+tasks.withType<KotlinCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+        freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
+    }
+}
+
+// About Libraries configuration
 aboutLibraries {
     export {
         outputFile = file(aboutLibrariesSource)
     }
 }
 
-val kitVersion = project.property("kitVersion") as String
-val kitPackageName = project.property("kitPackageName") as String
-val kitDescription = project.property("kitDescription") as String
-val kitCopyright = project.property("kitCopyright") as String
-val kitVendor = project.property("kitVendor") as String
-val kitLicenseFile = project.rootProject.file(project.property("kitLicenseFile") as String)
-
+// BuildConfig generation
 buildConfig {
     className("BuildConfig")
     packageName("org.tool.kit")
@@ -127,25 +174,27 @@ buildConfig {
     buildConfigField("APP_VENDOR", kitVendor)
     buildConfigField("APP_LICENSE", "MIT License")
     buildConfigField("APP_LICENSE_URI", uri("https://opensource.org/license/mit"))
-    buildConfigField("APP_LICENSE_FILE", kitLicenseFile)
+    buildConfigField("APP_LICENSE_FILE", rootProject.file(kitLicenseFile))
     buildConfigField("AUTHOR_GITHUB_URI", uri("https://github.com/LazyIonEs"))
     buildConfigField("APP_GITHUB_URI", uri("https://github.com/LazyIonEs/AndroidToolKit"))
 }
 
-task("rustTasks") {
-    runBuildRust()
-}
+// ========================================
+// Rust Integration Configuration
+// ========================================
 
-// 执行导出收集依赖项详细信息json文件
-tasks.getByName("copyNonXmlValueResourcesForCommonMain").dependsOn("exportLibraryDefinitions")
-tasks.getByName("compileKotlinJvm").doLast { runBuildRust() }
-
+/**
+ * Operating system enumeration
+ */
 enum class OS {
     LINUX,
     WINDOWS,
     MAC
 }
 
+/**
+ * Determine current operating system
+ */
 fun currentOs(): OS {
     val os = System.getProperty("os.name")
     return when {
@@ -156,22 +205,33 @@ fun currentOs(): OS {
     }
 }
 
-fun runBuildRust() {
-    val destinyLibFile = getRustDestinyLibFile()
-    val destinyKtFile = getRustDestinyKtFile()
-    if (destinyLibFile.exists() && destinyKtFile.exists()) {
-        println("rs cache exists")
-        // 已存在，不重新编译
-        return
+/**
+ * Get the destination file for Rust library
+ */
+fun getRustDestinyLibFile(): File {
+    val outputDir = "${layout.buildDirectory.asFile.get().absolutePath}/classes/kotlin/jvm/main"
+    val directory = File(outputDir)
+    directory.mkdirs()
+    val destinyLib = when (currentOs()) {
+        OS.LINUX -> "libuniffi_toolkit.so"
+        OS.WINDOWS -> "uniffi_toolkit.dll"
+        OS.MAC -> "libuniffi_toolkit.dylib"
     }
-    buildRust()
-    copyRustBuild()
-    generateKotlinFromUdl()
+    return File(directory, destinyLib)
 }
 
+/**
+ * Get the destination file for generated Kotlin code
+ */
+fun getRustDestinyKtFile(): File =
+    File(rustGeneratedSource + File.separator + "uniffi" + File.separator + "toolkit", "toolkit.kt")
+
+/**
+ * Build Rust library
+ */
 fun buildRust() {
     providers.exec {
-        println("Build rs called")
+        println("Building Rust library...")
         val binary = if (currentOs() == OS.LINUX && useCross) {
             "cross"
         } else {
@@ -195,6 +255,9 @@ fun buildRust() {
     }.result.get()
 }
 
+/**
+ * Copy built Rust library to destination
+ */
 fun copyRustBuild() {
     val workingDirPath = if (currentOs() == OS.LINUX && useCross) {
         if (isLinuxAarch64) {
@@ -218,27 +281,15 @@ fun copyRustBuild() {
     val destinyFile = getRustDestinyLibFile()
 
     Files.copy(originFile.toPath(), FileOutputStream(destinyFile))
-    println("Copy rs build completed")
+    println("Rust library copied successfully")
 }
 
-fun getRustDestinyLibFile(): File {
-    val outputDir = "${layout.buildDirectory.asFile.get().absolutePath}/classes/kotlin/jvm/main"
-    val directory = File(outputDir)
-    directory.mkdirs()
-    val destinyLib = when (currentOs()) {
-        OS.LINUX -> "libuniffi_toolkit.so"
-        OS.WINDOWS -> "uniffi_toolkit.dll"
-        OS.MAC -> "libuniffi_toolkit.dylib"
-    }
-    val destinyFile = File(directory, destinyLib)
-    return destinyFile
-}
-
-fun getRustDestinyKtFile() =
-    File(rustGeneratedSource + File.separator + "uniffi" + File.separator + "toolkit", "toolkit.kt")
-
+/**
+ * Generate Kotlin bindings from UDL
+ */
 fun generateKotlinFromUdl() {
     providers.exec {
+        println("Generating Kotlin bindings from UDL...")
         workingDir = File(rootDir, "rs")
         commandLine = listOf(
             "cargo", "run", "--features=uniffi/cli",
@@ -247,5 +298,40 @@ fun generateKotlinFromUdl() {
             "--out-dir", rustGeneratedSource
         )
     }.result.get()
+}
+
+/**
+ * Main Rust build task
+ */
+fun runBuildRust() {
+    val destinyLibFile = getRustDestinyLibFile()
+    val destinyKtFile = getRustDestinyKtFile()
+    
+    // Skip build if cached files exist
+    if (destinyLibFile.exists() && destinyKtFile.exists()) {
+        println("Rust cache exists, skipping rebuild")
+        return
+    }
+    
+    buildRust()
+    copyRustBuild()
+    generateKotlinFromUdl()
+}
+
+// ========================================
+// Task Configuration
+// ========================================
+
+// Register Rust build task
+task("rustTasks") {
+    runBuildRust()
+}
+
+// Export library definitions for aboutlibraries
+tasks.getByName("copyNonXmlValueResourcesForCommonMain").dependsOn("exportLibraryDefinitions")
+
+// Ensure Rust is built after Kotlin compilation
+tasks.getByName("compileKotlinJvm").doLast { 
+    runBuildRust() 
 }
 

@@ -36,22 +36,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.constant.ConfigConstant
 import org.tool.kit.model.FileSelectorType
 import org.tool.kit.model.SignaturePolicy
-import org.jetbrains.compose.resources.stringResource
-import androidtoolkit.shared.generated.resources.Res
-import androidtoolkit.shared.generated.resources.apk_file
-import androidtoolkit.shared.generated.resources.check_error
-import androidtoolkit.shared.generated.resources.key_alias
-import androidtoolkit.shared.generated.resources.key_password
-import androidtoolkit.shared.generated.resources.key_store_file
-import androidtoolkit.shared.generated.resources.key_store_password
-import androidtoolkit.shared.generated.resources.output_path
-import androidtoolkit.shared.generated.resources.output_file_prefix
-import androidtoolkit.shared.generated.resources.signature_strategy
-import androidtoolkit.shared.generated.resources.start_signing
-import androidtoolkit.shared.generated.resources.v2_tips
+import org.tool.kit.shared.generated.resources.Res
+import org.tool.kit.shared.generated.resources.apk_file
+import org.tool.kit.shared.generated.resources.check_error
+import org.tool.kit.shared.generated.resources.key_alias
+import org.tool.kit.shared.generated.resources.key_password
+import org.tool.kit.shared.generated.resources.key_store_file
+import org.tool.kit.shared.generated.resources.key_store_password
+import org.tool.kit.shared.generated.resources.output_file_prefix
+import org.tool.kit.shared.generated.resources.output_path
+import org.tool.kit.shared.generated.resources.signature_strategy
+import org.tool.kit.shared.generated.resources.start_signing
+import org.tool.kit.shared.generated.resources.v2_tips
 import org.tool.kit.utils.isApk
 import org.tool.kit.utils.isKey
 import org.tool.kit.vm.MainViewModel
@@ -356,7 +356,8 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
         expanded = expanded,
         onExpandedChange = { expanded = it }) {
         OutlinedTextField(
-            modifier = Modifier.fillMaxWidth().menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
+            modifier = Modifier.fillMaxWidth()
+                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
             value = selectedOptionText,
             readOnly = true,
             onValueChange = { },
