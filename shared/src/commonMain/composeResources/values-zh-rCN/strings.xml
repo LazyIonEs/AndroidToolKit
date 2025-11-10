@@ -221,5 +221,6 @@
     <string name="downloading">下载中 · %1$d%</string>
     <string name="release_time">发布时间: %1$s</string>
     <string name="check_update_remaining_tips">请求达到速率限制，请稍后重试!</string>
-    <string name="check_update_error">网络请求异常，请重试!</string>
+    <string name="network_error">网络请求异常，请重试!</string>
+    <string name="network_connection_error">网络连接异常，请检查网络后重试!</string>
 </resources>

@@ -221,5 +221,6 @@
     <string name="downloading">Downloading · %1$d%</string>
     <string name="release_time">Release time: %1$s</string>
     <string name="check_update_remaining_tips">The request reaches the rate limit, please try again later!</string>
-    <string name="check_update_error">Network request exception, please try again!</string>
+    <string name="network_error">Network request exception, please try again!</string>
+    <string name="network_connection_error">Network connection error, please check your network and try again.!</string>
 </resources>

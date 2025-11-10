@@ -300,7 +300,7 @@ fun MainContentScreen(viewModel: MainViewModel) {
 /**
  * 检查更新弹窗
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UpdateDialog(vm: MainViewModel) {
     val update by vm.checkUpdateResult.collectAsState()
@@ -330,11 +330,12 @@ fun UpdateDialog(vm: MainViewModel) {
                             0f
                         }
                     }
-                    if (result) {
+                    if (result.isSuccess) {
                         downloadFile = destFile
                         downloadState = DownloadState.FINISH
                     } else {
                         downloadState = DownloadState.START
+                        vm.updateSnackbarVisuals(result.msg ?: return@launch)
                     }
                 }
             }

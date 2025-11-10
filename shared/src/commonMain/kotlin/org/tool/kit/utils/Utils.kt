@@ -36,17 +36,20 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import org.apache.hc.core5.http.ConnectionClosedException
 import org.jetbrains.skia.Image
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.tool.kit.model.Asset
+import org.tool.kit.model.DownloadResult
 import org.tool.kit.model.FileSelectorType
 import org.tool.kit.model.GithubRestLatestResult
 import org.tool.kit.model.GithubRestResult
 import org.tool.kit.model.Verifier
 import org.tool.kit.shared.generated.resources.Res
-import org.tool.kit.shared.generated.resources.check_update_error
+import org.tool.kit.shared.generated.resources.network_error
 import org.tool.kit.shared.generated.resources.check_update_remaining_tips
+import org.tool.kit.shared.generated.resources.network_connection_error
 import org.w3c.dom.Node
 import java.awt.Desktop
 import java.io.ByteArrayOutputStream
@@ -538,11 +541,15 @@ suspend fun downloadFile(
             }.execute { response ->
                 response.bodyAsChannel().copyAndClose(destFile.writeChannel())
             }
-            true
+            DownloadResult(true, null, null)
+        } catch (e: ConnectionClosedException) {
+            logger.error(e) { "downloadFile 下载异常, 异常信息: ${e.message}" }
+            destFile.delete()
+            DownloadResult(false, Res.string.network_connection_error, destFile)
         } catch (e: Exception) {
             logger.error(e) { "downloadFile 下载异常, 异常信息: ${e.message}" }
             destFile.delete()
-            false
+            DownloadResult(false, Res.string.network_error, null)
         } finally {
             client.close()
         }
@@ -593,9 +600,12 @@ suspend fun checkUpdate() = coroutineScope {
                 val result: GithubRestLatestResult = response.body()
                 GithubRestResult(true, null, result)
             }
+        }  catch (e: ConnectionClosedException) {
+            logger.error(e) { "checkUpdate 检查更新异常, 异常信息: ${e.message}" }
+            GithubRestResult(false, Res.string.network_connection_error, null)
         } catch (e: Exception) {
             logger.error(e) { "checkUpdate 检查更新异常, 异常信息: ${e.message}" }
-            GithubRestResult(false, Res.string.check_update_error, null)
+            GithubRestResult(false, Res.string.network_error, null)
         } finally {
             client.close()
         }

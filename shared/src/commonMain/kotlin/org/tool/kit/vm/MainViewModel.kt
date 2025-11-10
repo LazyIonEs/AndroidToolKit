@@ -65,7 +65,7 @@ import org.tool.kit.shared.generated.resources.apk_parsing_failed
 import org.tool.kit.shared.generated.resources.apk_signature_verification_failed
 import org.tool.kit.shared.generated.resources.build_end
 import org.tool.kit.shared.generated.resources.build_failure
-import org.tool.kit.shared.generated.resources.check_update_error
+import org.tool.kit.shared.generated.resources.network_error
 import org.tool.kit.shared.generated.resources.cleanup_complete
 import org.tool.kit.shared.generated.resources.create_signature_successfully
 import org.tool.kit.shared.generated.resources.exec_command_error
@@ -1354,7 +1354,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 }
             } else {
                 if (showMessage) {
-                    updateSnackbarVisuals(result.msg ?: Res.string.check_update_error)
+                    updateSnackbarVisuals(result.msg ?: Res.string.network_error)
                 }
             }
         }
