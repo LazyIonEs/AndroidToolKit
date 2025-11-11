@@ -1,17 +1,46 @@
-*.iml
+# Gradle
 .gradle
 **/build/
-xcuserdata
 !src/**/build/
-local.properties
+gradle-app.setting
+!gradle-wrapper.jar
+.gradletasknamecache
+
+# IDE
 .idea
+*.iml
+*.ipr
+*.iws
 .DS_Store
+
+# Local configuration
+local.properties
+
+# Android
 captures
 .externalNativeBuild
 .cxx
+
+# Kotlin
+.kotlin
+*.class
+
+# Rust
+rust/target/
+rust/Cargo.lock
+rust/src/lut.inc
+
+# Compose Resources (generated)
+shared/src/commonMain/composeResources/files/aboutlibraries.json
+
+# macOS
+xcuserdata
 *.xcodeproj/*
 !*.xcodeproj/project.pbxproj
 !*.xcodeproj/xcshareddata/
 !*.xcodeproj/project.xcworkspace/
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
+
+# Logs
+*.log

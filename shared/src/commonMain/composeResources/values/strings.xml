@@ -1,0 +1,226 @@
+<resources>
+    <string name="signature_information_rail">Signature</string>
+    <string name="apk_information_rail">APK</string>
+    <string name="apk_signature_rail">Sign</string>
+    <string name="signature_generation_rail">KeyStore</string>
+    <string name="apk_tool_rail">APKTool</string>
+    <string name="icon_generation_rail">Icon</string>
+    <string name="garbage_code_rail">Garbage</string>
+    <string name="cache_cleanup_rail">Cache</string>
+    <string name="setting_rail">Setting</string>
+
+    <string name="signature_information_tooltip">Signature Information</string>
+    <string name="apk_information_tooltip">APK Information</string>
+    <string name="apk_signature_tooltip">APK Signature</string>
+    <string name="signature_generation_tooltip">Signature Generation</string>
+    <string name="apk_tool_tooltip">APK Generation</string>
+    <string name="icon_generation_tooltip">Icon Generation</string>
+    <string name="garbage_code_tooltip">Garbage Code</string>
+    <string name="cache_cleanup_tooltip">Cache Cleanup</string>
+    <string name="setting_tooltip">Setting</string>
+
+    <string name="size_and_time">%1$s, %2$s</string>
+
+    <string name="let_go">LetGo</string>
+    <string name="upload_apk">Upload APK</string>
+
+    <string name="app_name">App Name:</string>
+    <string name="version">Version:</string>
+    <string name="version_code">Version Code:</string>
+    <string name="package_name">Package Name:</string>
+    <string name="compile_sdk_version">Compile SDK:</string>
+    <string name="minimum_sdk_version">Minimum SDK:</string>
+    <string name="target_sdk_version">Target SDK:</string>
+    <string name="ABIs">ABIs:</string>
+    <string name="file_md5">File MD5:</string>
+    <string name="size">Size:</string>
+    <string name="permissions">Permissions:</string>
+    <string name="channel">Channel：</string>
+
+    <string name="output_path">Output Path</string>
+    <string name="output_file_prefix">Output File Prefix(optional)</string>
+    <string name="key_store_file">Key Store File Path</string>
+    <string name="key_store_password">Key Store Password</string>
+    <string name="key_alias">Key Alias</string>
+    <string name="key_password">Key Password</string>
+    <string name="apk_file">APK File</string>
+    <string name="signature_strategy">Signature Strategy: </string>
+    <string name="v2_tips">The APK package signed with V2 Only supports Android 7 and higher system installation and use. Please note</string>
+    <string name="start_signing">Start Signing</string>
+    <string name="apk_signature_v1">APK Signature Scheme V1</string>
+    <string name="apk_signature_v2">APK Signature Scheme V2, including V1</string>
+    <string name="apk_signature_v2_only">APK Signature Scheme V2, not including V1</string>
+    <string name="apk_signature_v3">APK Signature Scheme V3, including V1 and V2</string>
+
+    <string name="check_error">Please check the Error item</string>
+    <string name="check_empty">Please check for empty items</string>
+
+    <string name="select_folder">SELECT A FOLDER</string>
+    <string name="total_storage_space">Total Storage Space</string>
+    <string name="used_space">Used Space</string>
+    <string name="available_space">Available Space</string>
+    <string name="scanned_folders">Scanned Folders</string>
+    <string name="selected_folders">Selected Folders</string>
+    <string name="folders">Folders</string>
+    <string name="percentage_of_total_storage_space">Percentage of total storage space</string>
+    <string name="cache_title">Quickly clear cache directories</string>
+    <string name="cache_describe">Quickly and thoroughly scan the build‑cache directories of an Android project.\nBatch‑delete build caches to free up disk space.\nSelect an Android project or a higher‑level directory.</string>
+    <string name="time_format">MMM dd, yyyy</string>
+    <string name="select_delete_director">Please first select the directory to delete</string>
+    <string name="newest_date_first">Newest date first</string>
+    <string name="oldest_date_first">Oldest date first</string>
+    <string name="largest_first">Largest first</string>
+    <string name="smallest_first">Smallest first</string>
+    <string name="name_a_z">Name A -> Z</string>
+    <string name="name_z_a">Name Z -> A</string>
+    <string name="delete_cache_dialog_title">Delete selected folders?</string>
+    <string name="delete_cache_dialog_describe">This operation will permanently delete all files in the selected directory. Once removed, the data cannot be recovered and subsequent build times may be longer. Please ensure you have backed up all important data.</string>
+    <string name="confirm_deletion">Confirm deletion</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="icon_factory_title">One‑Click App Icon Generation</string>
+    <string name="icon_factory_describe">Supports PNG, JPG, and JPEG files. \nUpload a 1024 × 1024 pixel image for best results.</string>
+    <string name="more_settings">More Settings</string>
+    <string name="icon_output_path">Icon Output Path</string>
+    <string name="icon_name">Icon Name</string>
+    <string name="close">Close</string>
+    <string name="expand">Expand</string>
+    <string name="compress_custom">Compress Custom</string>
+    <string name="lossless_compression">Lossless Compression</string>
+    <string name="lossy_compression">Lossy Compression</string>
+    <string name="compression_speed">Compression Speed</string>
+    <string name="fast">Fast</string>
+    <string name="crazy">Crazy</string>
+    <string name="external_directory_name">External Directory Name</string>
+    <string name="android_directory">Android Directory</string>
+    <string name="png_quality">PNG Quality</string>
+    <string name="jpeg_quality">JPEG Quality</string>
+    <string name="minimum">Minimum: %1$d</string>
+    <string name="target">Target: %1$d</string>
+    <string name="png_scaling_algorithm">PNG scaling Algorithm</string>
+    <string name="jpeg_scaling_algorithm">JPEG scaling Algorithm</string>
+    <string name="upload_image">Upload Image</string>
+    <string name="start_making">Start Making</string>
+
+    <string name="aar_output_path">AAR Output Path</string>
+    <string name="aar_name">AAR Name</string>
+    <string name="number_of_packages">Number of packages</string>
+    <string name="number_of_activities">The Number Of Activities In Each Package</string>
+    <string name="resource_prefix">Resource Prefix</string>
+    <string name="junk_package_name">Package Name</string>
+    <string name="suffix">Suffix</string>
+    <string name="start_generating">Start Generating</string>
+
+    <string name="apk_signature">APK Signature</string>
+    <string name="signature_suffix">Signature Suffix</string>
+    <string name="signature_suffix_tips">Signature Suffix: The output name of the Apk after signing (for example, if the input Apk name is apk.apk, then the input Apk name is apk%1$s.apk</string>
+    <string name="delete_repeat_file">Whether to delete output files with duplicate names</string>
+    <string name="delete_repeat_file_tips">Note: If the output file has the same name, it cannot be signed successfully, and the system will prompt that the output file already exists.</string>
+    <string name="enable_file_alignment">Enable File Alignment</string>
+    <string name="enable_file_alignment_tips">Note: Target R+ (version 30 and higher) requires that files within the installed APK be stored uncompressed and aligned on 4-byte boundaries.</string>
+
+    <string name="signature_generation">Signature Generation</string>
+    <string name="target_key_type">Target Key Type</string>
+    <string name="target_key_type_tips">Note: JKS keystores use a proprietary format. The industry standard format PKCS12 is recommended.</string>
+    <string name="target_key_size">Target Key Size</string>
+    <string name="target_key_size_tips">Note: The generated certificates use 1024-bit RSA keys which are considered a security risk. This key size will be disabled in a future update.</string>
+
+    <string name="conventional">Conventional</string>
+    <string name="default_output_path">Default Output Path</string>
+    <string name="appearance">Appearance</string>
+    <string name="follow_the_system">Auto</string>
+    <string name="light_mode">Light</string>
+    <string name="dark_mode">Dark</string>
+    <string name="start_check_update">Check for updates at startup</string>
+
+    <string name="toolkit_expand">ToolKit Expand</string>
+    <string name="enable_extended_options">Enable Extended Options</string>
+    <string name="whether_to_always_show_the_navigation_bar_label">Whether to always show the navigation bar label</string>
+    <string name="enable_apk_generation_options">Enable APK generation options</string>
+    <string name="enable_garbage_code_generation_option">Enable garbage code generation option</string>
+    <string name="enable_icon_factory_option">Enable icon factory option</string>
+    <string name="enable_clear_build_option">Enable clear build option</string>
+    <string name="enable_signature_generation_option">Enable signature generation option</string>
+    <string name="whether_to_turn_off_file_alignment_function_when_signing_and_packaging_huawei_channel_package">Whether to turn off file alignment function when signing and packaging Huawei channel package</string>
+
+    <string name="about">About</string>
+    <string name="application_name">Application Name</string>
+    <string name="application_version">Application Version</string>
+    <string name="application_description">Application Description</string>
+    <string name="application_copyright">Application Copyright</string>
+    <string name="application_author">App Author</string>
+    <string name="open_source_agreement">Open Source Agreement</string>
+    <string name="source_code">Source Code</string>
+    <string name="author">Author</string>
+    <string name="license">License</string>
+    <string name="open_source_licenses">Open Source Licenses</string>
+    <string name="view_log_file">View Log File</string>
+
+    <string name="key_output_path">Key Output Path</string>
+    <string name="key_file_name">Key File Name</string>
+    <string name="key">Key</string>
+    <string name="validity_period_unit_year">Validity (years)</string>
+    <string name="certificate">证书</string>
+    <string name="first_and_last_name">First and Last Name</string>
+    <string name="organizational_unit">Organizational Unit</string>
+    <string name="organization">Organization</string>
+    <string name="city_or_locality">City or Locality</string>
+    <string name="state_or_province">State or Province</string>
+    <string name="country_code">Country Code (XX)</string>
+    <string name="key_alias_password">Alias Password</string>
+    <string name="create_key_store">Create Key Store</string>
+    <string name="confirm_password">Confirm Password</string>
+
+    <string name="upload_apk_signature_file">Upload APK/Signature File</string>
+    <string name="copy_md5">Copy MD5, SHA1, and SHA-256</string>
+    <string name="quick_copy">Quick Copy</string>
+    <string name="password_verification">Password Verification</string>
+    <string name="wrong_key_store_password">Wrong key store password</string>
+    <string name="confirm">Confirm</string>
+
+    <string name="toolkit_extension_mode_is_enabled">ToolKit extension mode is enabled</string>
+    <string name="output_file_already_exists">Output file already exists: %1$s</string>
+    <string name="apk_is_signed_successfully">APK is signed successfully, click to jump to the signed file</string>
+    <string name="jump">Jump</string>
+    <string name="signature_failed">Signing failed, please contact the developer to troubleshoot the problem</string>
+    <string name="exec_command_error">An error occurred while executing the command</string>
+    <string name="apk_parsing_failed">APK parsing failed</string>
+    <string name="create_signature_successfully">The signature is created successfully, click to jump to the signature file</string>
+    <string name="signature_creation_failed">Signature creation failed, please check whether the input items are legal.</string>
+    <string name="signature_verification_failed">Signature verification failed</string>
+    <string name="apk_signature_verification_failed">APK signature verification failed</string>
+    <string name="build_end">Build completed: Success, file size: %1$s, click to jump to the build file</string>
+    <string name="build_failure">Build failure</string>
+    <string name="icon_creation_failed">Icon creation failed</string>
+    <string name="icon_generation_completed">The icon generation is complete. Click to jump to the output directory</string>
+    <string name="scanning_anomalies">The cache directory was not scanned.</string>
+    <string name="cleanup_complete">Cleaning completed, %1$s has been cleaned for you</string>
+    <string name="file_deletion_exception">%1$d files deleted abnormally</string>
+    <string name="copied_to_clipboard">Copied to clipboard</string>
+
+    <string name="apk_output_path">APK Output Path</string>
+    <string name="icon_file">Icon File</string>
+    <string name="apktool_package_name">Package Name</string>
+    <string name="apktool_app_name">Application Name</string>
+    <string name="apktool_target_sdk_version">TargetSdkVersion</string>
+    <string name="apktool_min_sdk_version">MinSdkVersion</string>
+    <string name="apktool_version_code">VersionCode</string>
+    <string name="apktool_version_name">VersionName</string>
+
+    <string name="check_for_updates">Check update</string>
+    <string name="version_information">Version information</string>
+    <string name="new_version_detected">New version detected</string>
+    <string name="it_s_the_latest_version">It's the latest version</string>
+    <string name="update">update</string>
+    <string name="select_file_download">Select the file you want to download</string>
+    <string name="download_success">Download successful</string>
+    <string name="download_tips">Please wait until download is completed</string>
+    <string name="prepare_for_installation">It's time to start installing</string>
+    <string name="exit_and_install">Exit and install</string>
+    <string name="connecting">Connecting...</string>
+    <string name="downloading">Downloading · %1$d%</string>
+    <string name="release_time">Release time: %1$s</string>
+    <string name="check_update_remaining_tips">The request reaches the rate limit, please try again later!</string>
+    <string name="network_error">Network request exception, please try again!</string>
+    <string name="network_connection_error">Network connection error, please check your network and try again.!</string>
+</resources>

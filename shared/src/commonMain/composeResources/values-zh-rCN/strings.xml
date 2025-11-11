@@ -1,0 +1,226 @@
+<resources>
+    <string name="signature_information_rail">签名信息</string>
+    <string name="apk_information_rail">APK信息</string>
+    <string name="apk_signature_rail">APK签名</string>
+    <string name="signature_generation_rail">签名生成</string>
+    <string name="apk_tool_rail">APK生成</string>
+    <string name="icon_generation_rail">图标生成</string>
+    <string name="garbage_code_rail">垃圾代码</string>
+    <string name="cache_cleanup_rail">缓存清理</string>
+    <string name="setting_rail">设置</string>
+
+    <string name="signature_information_tooltip">签名信息</string>
+    <string name="apk_information_tooltip">APK信息</string>
+    <string name="apk_signature_tooltip">APK签名</string>
+    <string name="apk_tool_tooltip">APK生成</string>
+    <string name="signature_generation_tooltip">签名生成</string>
+    <string name="icon_generation_tooltip">图标生成</string>
+    <string name="garbage_code_tooltip">垃圾代码</string>
+    <string name="cache_cleanup_tooltip">缓存清理</string>
+    <string name="setting_tooltip">设置</string>
+
+    <string name="size_and_time">%1$s，%2$s</string>
+
+    <string name="let_go">愣着干嘛，还不松手</string>
+    <string name="upload_apk">上传APK</string>
+
+    <string name="app_name">应用名称：</string>
+    <string name="version">版本：</string>
+    <string name="version_code">版本号：</string>
+    <string name="package_name">包名：</string>
+    <string name="compile_sdk_version">编译SDK版本：</string>
+    <string name="minimum_sdk_version">最小SDK版本：</string>
+    <string name="target_sdk_version">目标SDK版本：</string>
+    <string name="ABIs">ABIs：</string>
+    <string name="file_md5">文件MD5：</string>
+    <string name="size">大小：</string>
+    <string name="permissions">应用权限列表：</string>
+    <string name="channel">渠道：</string>
+
+    <string name="output_path">输出路径</string>
+    <string name="output_file_prefix">输出文件前缀(选填)</string>
+    <string name="key_store_file">密钥文件路径</string>
+    <string name="key_store_password">密钥库密码</string>
+    <string name="key_alias">密钥别名</string>
+    <string name="key_password">密钥密码</string>
+    <string name="apk_file">APK文件</string>
+    <string name="signature_strategy">签名策略：</string>
+    <string name="v2_tips">使用 V2 Only 签名的APK包仅支持Android 7及更高版本的系统安装和使用，请注意</string>
+    <string name="start_signing">开始签名</string>
+    <string name="apk_signature_v1">APK Signature Scheme V1</string>
+    <string name="apk_signature_v2">APK Signature Scheme V2，包含V1</string>
+    <string name="apk_signature_v2_only">APK Signature Scheme V2，不包含V1</string>
+    <string name="apk_signature_v3">APK Signature Scheme V3，包含V1和V2</string>
+
+    <string name="check_error">请检查Error项</string>
+    <string name="check_empty">请检查空项</string>
+
+    <string name="select_folder">选择文件夹</string>
+    <string name="total_storage_space">总存储空间</string>
+    <string name="used_space">已使用空间</string>
+    <string name="available_space">可用空间</string>
+    <string name="scanned_folders">已扫描文件夹</string>
+    <string name="selected_folders">已选择文件夹</string>
+    <string name="folders">个文件夹</string>
+    <string name="percentage_of_total_storage_space">占总存储空间</string>
+    <string name="cache_title">快速清理缓存目录</string>
+    <string name="cache_describe">快速、深度扫描 Android 项目构建缓存目录\n批量删除构建缓存，释放磁盘空间\n选择 Android 项目或更上层目录</string>
+    <string name="time_format">yyyy年MM月dd日</string>
+    <string name="select_delete_director">请先选择需要删除的目录</string>
+    <string name="newest_date_first">日期（从新到旧）</string>
+    <string name="oldest_date_first">日期（从旧到新）</string>
+    <string name="largest_first">大小（从大到小）</string>
+    <string name="smallest_first">大小（从小到大）</string>
+    <string name="name_a_z">名称（从 A 到 Z）</string>
+    <string name="name_z_a">名称（从 Z 到 A）</string>
+    <string name="delete_cache_dialog_title">确认删除缓存目录？</string>
+    <string name="delete_cache_dialog_describe">此操作将永久清除该目录下的所有文件，删除后数据将无法恢复，且可能导致下次构建时间延长。请确保您已备份所有重要数据。</string>
+    <string name="confirm_deletion">确认删除</string>
+    <string name="cancel">取消</string>
+
+    <string name="icon_factory_title">一键生成应用图标</string>
+    <string name="icon_factory_describe">支持png、jpg、jpeg文件\n上传 1024 x 1024 像素的图片以获得最佳效果</string>
+    <string name="more_settings">更多设置</string>
+    <string name="icon_output_path">图标输出路径</string>
+    <string name="icon_name">图标名称</string>
+    <string name="close">收起</string>
+    <string name="expand">展开</string>
+    <string name="compress_custom">压缩自定义</string>
+    <string name="lossless_compression">无损压缩</string>
+    <string name="lossy_compression">有损压缩</string>
+    <string name="compression_speed">压缩速度</string>
+    <string name="fast">快速</string>
+    <string name="crazy">疯狂</string>
+    <string name="external_directory_name">外部目录名称</string>
+    <string name="android_directory">Android目录</string>
+    <string name="png_quality">PNG质量</string>
+    <string name="jpeg_quality">JPEG质量</string>
+    <string name="minimum">最低限度：%1$d</string>
+    <string name="target">目标：%1$d</string>
+    <string name="png_scaling_algorithm">PNG 缩放算法</string>
+    <string name="jpeg_scaling_algorithm">JPEG 缩放算法</string>
+    <string name="upload_image">上传图片</string>
+    <string name="start_making">开始制作</string>
+
+    <string name="aar_output_path">AAR输出路径</string>
+    <string name="aar_name">AAR 名称</string>
+    <string name="number_of_packages">包的数量</string>
+    <string name="number_of_activities">每个包里 activity 的数量</string>
+    <string name="resource_prefix">资源前缀</string>
+    <string name="junk_package_name">包名</string>
+    <string name="suffix">后缀</string>
+    <string name="start_generating">开始生成</string>
+
+    <string name="apk_signature">APK签名</string>
+    <string name="signature_suffix">签名后缀</string>
+    <string name="signature_suffix_tips">签名后缀： Apk签名后输出名称（比如：输入Apk名称为apk.apk，则输入Apk名称为apk%1$s.apk</string>
+    <string name="delete_repeat_file">是否删除重名输出文件</string>
+    <string name="delete_repeat_file_tips">注意：输出文件重名后无法成功签名，会提示输出文件已存在</string>
+    <string name="enable_file_alignment">启用文件对齐</string>
+    <string name="enable_file_alignment_tips">注意：目标 R+（版本 30 及更高版本）要求已安装 APK 内的文件未压缩存储并在 4 字节边界上对齐</string>
+
+    <string name="signature_generation">签名生成</string>
+    <string name="target_key_type">目标密钥类型</string>
+    <string name="target_key_type_tips">注意：JKS 密钥库使用专用格式。建议使用行业标准格式 PKCS12。</string>
+    <string name="target_key_size">目标密钥大小</string>
+    <string name="target_key_size_tips">注意：生成的证书 使用的 1024 位 RSA 密钥 被视为存在安全风险。此密钥大小将在未来的更新中被禁用。</string>
+
+    <string name="conventional">常规</string>
+    <string name="default_output_path">默认输出路径</string>
+    <string name="appearance">外观</string>
+    <string name="follow_the_system">跟随系统</string>
+    <string name="light_mode">亮色模式</string>
+    <string name="dark_mode">暗色模式</string>
+    <string name="start_check_update">启动时检查更新</string>
+
+    <string name="toolkit_expand">ToolKit拓展</string>
+    <string name="enable_extended_options">启用拓展功能</string>
+    <string name="whether_to_always_show_the_navigation_bar_label">是否始终显示导航栏的标签</string>
+    <string name="enable_apk_generation_options">启用APK生成功能</string>
+    <string name="enable_garbage_code_generation_option">启用垃圾代码生成功能</string>
+    <string name="enable_icon_factory_option">启用图标生成功能</string>
+    <string name="enable_clear_build_option">启用缓存清理功能</string>
+    <string name="enable_signature_generation_option">启用签名生成功能</string>
+    <string name="whether_to_turn_off_file_alignment_function_when_signing_and_packaging_huawei_channel_package">华为渠道包签名打包时是否关闭文件对齐功能</string>
+
+    <string name="about">关于</string>
+    <string name="application_name">应用名称</string>
+    <string name="application_version">应用版本</string>
+    <string name="application_description">应用描述</string>
+    <string name="application_copyright">应用版权</string>
+    <string name="application_author">应用作者</string>
+    <string name="open_source_agreement">开源协议</string>
+    <string name="source_code">源代码</string>
+    <string name="author">作者</string>
+    <string name="license">许可证</string>
+    <string name="open_source_licenses">开源许可证</string>
+    <string name="view_log_file">查看日志</string>
+
+    <string name="key_output_path">密钥输出路径</string>
+    <string name="key_file_name">密钥文件名称</string>
+    <string name="key">密钥</string>
+    <string name="validity_period_unit_year">有效期（单位：年）</string>
+    <string name="certificate">证书</string>
+    <string name="first_and_last_name">作者名称</string>
+    <string name="organizational_unit">组织单位</string>
+    <string name="organization">组织</string>
+    <string name="city_or_locality">城市或地区</string>
+    <string name="state_or_province">省份</string>
+    <string name="country_code">国家编码</string>
+    <string name="key_alias_password">别名密码</string>
+    <string name="create_key_store">创建密钥库</string>
+    <string name="confirm_password">确认密码</string>
+
+    <string name="upload_apk_signature_file">上传(APK/签名)文件</string>
+    <string name="copy_md5">复制MD5、SHA1和SHA-256</string>
+    <string name="quick_copy">快捷复制</string>
+    <string name="password_verification">密钥库密码验证</string>
+    <string name="wrong_key_store_password">密钥库密码错误</string>
+    <string name="confirm">确认</string>
+
+    <string name="toolkit_extension_mode_is_enabled">已开启ToolKit扩展模式</string>
+    <string name="output_file_already_exists">输出文件已存在：%1$s</string>
+    <string name="apk_is_signed_successfully">APK签名成功，点击跳转至已签名文件</string>
+    <string name="jump">跳转</string>
+    <string name="signature_failed">签名失败，请联系开发者排查问题</string>
+    <string name="exec_command_error">执行命令出现错误</string>
+    <string name="apk_parsing_failed">APK解析失败</string>
+    <string name="create_signature_successfully">创建签名成功，点击跳转至签名文件</string>
+    <string name="signature_creation_failed">签名制作失败，请检查输入项是否合法。</string>
+    <string name="signature_verification_failed">签名验证失败</string>
+    <string name="apk_signature_verification_failed">APK签名验证失败</string>
+    <string name="build_end">构建结束：成功，文件大小：%1$s，点击跳转至构建文件</string>
+    <string name="build_failure">构建失败</string>
+    <string name="icon_creation_failed">图标制作失败</string>
+    <string name="icon_generation_completed">图标生成完成。点击跳转至输出目录</string>
+    <string name="scanning_anomalies">未扫描到缓存目录</string>
+    <string name="cleanup_complete">清理完成，已为您清理%1$s</string>
+    <string name="file_deletion_exception">%1$d个文件删除异常</string>
+    <string name="copied_to_clipboard">已复制到剪切板</string>
+
+    <string name="apk_output_path">APK输出路径</string>
+    <string name="icon_file">图标文件</string>
+    <string name="apktool_package_name">包名</string>
+    <string name="apktool_app_name">应用名称</string>
+    <string name="apktool_target_sdk_version">TargetSdkVersion</string>
+    <string name="apktool_min_sdk_version">MinSdkVersion</string>
+    <string name="apktool_version_code">VersionCode</string>
+    <string name="apktool_version_name">VersionName</string>
+
+    <string name="check_for_updates">检查更新</string>
+    <string name="version_information">版本信息</string>
+    <string name="new_version_detected">检测到新版本</string>
+    <string name="it_s_the_latest_version">已是最新版本</string>
+    <string name="update">更新</string>
+    <string name="select_file_download">选择需要下载的文件</string>
+    <string name="download_success">下载成功</string>
+    <string name="download_tips">请等待下载完成</string>
+    <string name="prepare_for_installation">可以开始安装了</string>
+    <string name="exit_and_install">退出并安装</string>
+    <string name="connecting">连接中...</string>
+    <string name="downloading">下载中 · %1$d%</string>
+    <string name="release_time">发布时间: %1$s</string>
+    <string name="check_update_remaining_tips">请求达到速率限制，请稍后重试!</string>
+    <string name="network_error">网络请求异常，请重试!</string>
+    <string name="network_connection_error">网络连接异常，请检查网络后重试!</string>
+</resources>
