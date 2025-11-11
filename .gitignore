@@ -26,9 +26,9 @@ captures
 *.class
 
 # Rust
-rs/target/
-rs/Cargo.lock
-rs/src/lut.inc
+rust/target/
+rust/Cargo.lock
+rust/src/lut.inc
 
 # Compose Resources (generated)
 shared/src/commonMain/composeResources/files/aboutlibraries.json

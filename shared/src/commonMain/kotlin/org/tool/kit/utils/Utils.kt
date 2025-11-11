@@ -436,18 +436,17 @@ fun browseFileDirectory(file: File?) {
         Desktop.getDesktop().browseFileDirectory(file)
     } else {
         if (isWindows) {
-            Runtime.getRuntime().exec("explorer /select, ${file.absolutePath}")
+            Runtime.getRuntime().exec(arrayOf("explorer", "/select,", file.absolutePath))
         } else if (isMac) {
-            Runtime.getRuntime().exec("open -R ${file.absolutePath}")
+            Runtime.getRuntime().exec(arrayOf("open", "-R", file.absolutePath))
         } else if (isLinux) {
-            if (runCommand("xdg-open ${file.absolutePath}")) return
-            if (runCommand("gnome-open ${file.absolutePath}")) return
-            if (runCommand("xdg-open ${file.absolutePath}")) return
+            if (runCommand(arrayOf("xdg-open", file.absolutePath))) return
+            if (runCommand(arrayOf("gnome-open", file.absolutePath))) return
         }
     }
 }
 
-private fun runCommand(command: String): Boolean {
+private fun runCommand(command: Array<String>): Boolean {
     try {
         val p = Runtime.getRuntime().exec(command) ?: return false
         try {
@@ -600,7 +599,7 @@ suspend fun checkUpdate() = coroutineScope {
                 val result: GithubRestLatestResult = response.body()
                 GithubRestResult(true, null, result)
             }
-        }  catch (e: ConnectionClosedException) {
+        } catch (e: ConnectionClosedException) {
             logger.error(e) { "checkUpdate 检查更新异常, 异常信息: ${e.message}" }
             GithubRestResult(false, Res.string.network_connection_error, null)
         } catch (e: Exception) {

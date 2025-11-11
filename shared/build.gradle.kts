@@ -31,13 +31,17 @@ val isLinuxAarch64 = (properties.getOrDefault("isLinuxAarch64", "false") as Stri
 val rustGeneratedSource = "${layout.buildDirectory.get()}/generated/source/uniffi/main/org/tool/kit/kotlin"
 val aboutLibrariesSource = "src/commonMain/composeResources/files/aboutlibraries.json"
 
+val javaLanguageVersion = JavaLanguageVersion.of(21)
+
 // Group and version
 group = "org.tool.kit"
 version = kitVersion
 
 kotlin {
     // Java toolchain
-    jvmToolchain(17)
+    jvmToolchain {
+        languageVersion.set(javaLanguageVersion)
+    }
     
     // Target configuration
     jvm()
@@ -151,7 +155,7 @@ kotlin {
 // Kotlin compiler options
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+        jvmTarget.set(JvmTarget.JVM_21)
         freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
     }
 }
@@ -250,7 +254,7 @@ fun buildRust() {
             }
         }
 
-        workingDir = File(rootDir, "rs")
+        workingDir = File(rootDir, "rust")
         commandLine = params
     }.result.get()
 }
@@ -261,12 +265,12 @@ fun buildRust() {
 fun copyRustBuild() {
     val workingDirPath = if (currentOs() == OS.LINUX && useCross) {
         if (isLinuxAarch64) {
-            "rs/target/$linuxArmTarget/release"
+            "rust/target/$linuxArmTarget/release"
         } else {
-            "rs/target/$linuxX64Target/release"
+            "rust/target/$linuxX64Target/release"
         }
     } else {
-        "rs/target/release"
+        "rust/target/release"
     }
 
     val workingDir = File(rootDir, workingDirPath)
@@ -290,7 +294,7 @@ fun copyRustBuild() {
 fun generateKotlinFromUdl() {
     providers.exec {
         println("Generating Kotlin bindings from UDL...")
-        workingDir = File(rootDir, "rs")
+        workingDir = File(rootDir, "rust")
         commandLine = listOf(
             "cargo", "run", "--features=uniffi/cli",
             "--bin", "uniffi-bindgen", "generate", "src/toolkit.udl",
@@ -332,6 +336,5 @@ tasks.getByName("copyNonXmlValueResourcesForCommonMain").dependsOn("exportLibrar
 
 // Ensure Rust is built after Kotlin compilation
 tasks.getByName("compileKotlinJvm").doLast { 
-    runBuildRust() 
+    runBuildRust()
 }
-

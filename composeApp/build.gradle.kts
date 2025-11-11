@@ -19,7 +19,7 @@ val kitCopyright: String by project
 val kitVendor: String by project
 val kitLicenseFile: String by project
 
-val javaLanguageVersion = JavaLanguageVersion.of(17)
+val javaLanguageVersion = JavaLanguageVersion.of(21)
 
 // Group and version
 group = "org.tool.kit"
@@ -60,7 +60,7 @@ kotlin {
 // Kotlin compiler options
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions {
-        jvmTarget.set(JvmTarget.JVM_17)
+        jvmTarget.set(JvmTarget.JVM_21)
         freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
     }
 }
