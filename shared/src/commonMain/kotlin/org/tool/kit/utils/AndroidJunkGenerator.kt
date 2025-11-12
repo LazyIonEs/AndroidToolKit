@@ -135,10 +135,12 @@ class AndroidJunkGenerator(
 
     private val mRClassType = getTypedName(appPackageName, "R")
 
+    private val probability = 0.3 // drawable string 生成概率 30%
+    private val idProbability = 0.03 // id 生成概率 3%
 
     fun startGenerate(): File {
         // 清理原工作目录中的文件
-        logger.info { "startGenerate 准备生成, 正在清理工作空间" }
+        logger.info { "startGenerate 准备生成, 正在清理工作空间 工作空间目录: ${workspace.absolutePath}" }
 
         workspace.deleteRecursively()
         logger.info { "startGenerate 工作空间已就绪, 开始生成" }
@@ -156,7 +158,11 @@ class AndroidJunkGenerator(
 
         // 正在打包
         val outPath = assembleAar()
-        logger.info { "startGenerate 打包完成, 输出文件路径: $outPath , 文件大小: ${outPath.length().formatFileSize()}" }
+        logger.info {
+            "startGenerate 打包完成, 输出文件路径: $outPath , 文件大小: ${
+                outPath.length().formatFileSize()
+            }"
+        }
 
         val end = System.nanoTime()
 
@@ -164,7 +170,7 @@ class AndroidJunkGenerator(
         val s = timeMills / 1000
         val ms = timeMills % 1000
 
-        logger.info{ "startGenerate 生成结束, 用时: ${s}.${ms} 秒" }
+        logger.info { "startGenerate 生成结束, 用时: ${s}.${ms} 秒" }
 
         workspace.deleteRecursively()
 
@@ -172,19 +178,20 @@ class AndroidJunkGenerator(
     }
 
     private fun generateClasses() {
-        for (i in 0 until packageCount) {
+        (0 until packageCount).forEach { _ ->
             val packageName = generatePackageName()
             // 生成Activity
-            for (j in 0 until activityCountPerPackage) {
+            (0 until activityCountPerPackage).forEach { _ ->
                 val packageName1 = "$appPackageName.$packageName"
                 val activityName = generateClassName(packageName1)
                 generateActivity(packageName1, activityName)
             }
         }
 
-        val rootClassCount: Int = Random.nextInt(activityCountPerPackage) + (activityCountPerPackage shr 1)
+        val rootClassCount: Int =
+            Random.nextInt(activityCountPerPackage) + (activityCountPerPackage shr 1)
 
-        for (j in 0 until rootClassCount) {
+        (0 until rootClassCount).forEach { _ ->
             val activityPreName: String = generateClassName(appPackageName)
             generateActivity(appPackageName, activityPreName)
         }
@@ -217,7 +224,9 @@ class AndroidJunkGenerator(
         val selfType = getTypedName(packageName, className)
 
         val strRes = resPrefix + generateResName()
-        mStringIds.add(strRes)
+        if (Random.nextDouble() < probability) {
+            mStringIds.add(strRes)
+        }
 
         val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
         cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, selfType, null, "android/app/Activity", null)
@@ -259,7 +268,13 @@ class AndroidJunkGenerator(
             repeat(callCnt) {
                 mv.visitVarInsn(Opcodes.ALOAD, 0)
                 mv.visitFieldInsn(Opcodes.GETFIELD, selfType, fieldName, descriptor)
-                mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, that, m[it], "()Ljava/lang/String;", false)
+                mv.visitMethodInsn(
+                    Opcodes.INVOKEVIRTUAL,
+                    that,
+                    m[it],
+                    "()Ljava/lang/String;",
+                    false
+                )
                 mv.visitInsn(Opcodes.POP)
             }
 
@@ -273,11 +288,18 @@ class AndroidJunkGenerator(
         val (otherFields, otherMethods) = generateOtherClass(packageName, otherClassName)
 
         // 生成onCreate 方法
-        val mv = cw.visitMethod(Opcodes.ACC_PROTECTED, "onCreate", "(Landroid/os/Bundle;)V", null, null)
+        val mv =
+            cw.visitMethod(Opcodes.ACC_PROTECTED, "onCreate", "(Landroid/os/Bundle;)V", null, null)
         mv.visitCode()
         mv.visitVarInsn(Opcodes.ALOAD, 0)
         mv.visitVarInsn(Opcodes.ALOAD, 1)
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "android/app/Activity", "onCreate", "(Landroid/os/Bundle;)V", false)
+        mv.visitMethodInsn(
+            Opcodes.INVOKESPECIAL,
+            "android/app/Activity",
+            "onCreate",
+            "(Landroid/os/Bundle;)V",
+            false
+        )
 
         // new 一个对象，并给其字段赋值
         val otherType = getTypedName(packageName, otherClassName)
@@ -311,13 +333,15 @@ class AndroidJunkGenerator(
 
         // setContentView
         mv.visitVarInsn(Opcodes.ALOAD, 0)
-        mv.visitFieldInsn(Opcodes.GETSTATIC, "$mRClassType\$layout", layoutName, "I")
+        mv.visitFieldInsn(Opcodes.GETSTATIC, $$"$$mRClassType$layout", layoutName, "I")
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, selfType, "setContentView", "(I)V", false)
 
         // 初始化view
         val initViews = viewIds.mapIndexed { index, viewId ->
 
-            val listener = "${className}${viewId.substring(0, 1).uppercase()}${viewId.substring(1)}OnClickListener"
+            val listener = "${className}${
+                viewId.take(1).uppercase()
+            }${viewId.substring(1)}OnClickListener"
 
             // 使用 a - z  aa-zz的方法命名
             val size = CHARACTER.size
@@ -339,7 +363,7 @@ class AndroidJunkGenerator(
                 getTypedName(packageName, listener),
                 null,
                 "java/lang/Object",
-                arrayOf("android/view/View\$OnClickListener")
+                arrayOf($$"android/view/View$OnClickListener")
             )
 
             cwi.visitField(
@@ -353,7 +377,8 @@ class AndroidJunkGenerator(
             cc.visitMaxs(1, 1)
             cc.visitEnd()
 
-            val onClick = cwi.visitMethod(Opcodes.ACC_PUBLIC, "onClick", "(Landroid/view/View;)V", null, null)
+            val onClick =
+                cwi.visitMethod(Opcodes.ACC_PUBLIC, "onClick", "(Landroid/view/View;)V", null, null)
             onClick.visitCode()
 
             onClick.visitIntInsn(Opcodes.ALOAD, 1)
@@ -364,7 +389,13 @@ class AndroidJunkGenerator(
                 else -> onClick.visitIntInsn(Opcodes.BIPUSH, 8)
             }
 
-            onClick.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "android/view/View", "setVisibility", "(I)V", true)
+            onClick.visitMethodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                "android/view/View",
+                "setVisibility",
+                "(I)V",
+                true
+            )
             onClick.visitInsn(Opcodes.RETURN)
             onClick.visitMaxs(1, 1)
             onClick.visitEnd()
@@ -380,16 +411,24 @@ class AndroidJunkGenerator(
         initViews.forEachIndexed { index, name ->
             val viewId = viewIds[index]
 
-            val listener = "${className}${viewId.substring(0, 1).uppercase()}${viewId.substring(1)}OnClickListener"
+            val listener = "${className}${
+                viewId.take(1).uppercase()
+            }${viewId.substring(1)}OnClickListener"
             val type = getTypedName(packageName, listener)
 
             // 一个方法初始化一个view 方便生成
             val method = cw.visitMethod(Opcodes.ACC_PRIVATE, name, "()V", null, null)
             method.visitVarInsn(Opcodes.ALOAD, 0)
 //            // R.id.xx
-            method.visitFieldInsn(Opcodes.GETSTATIC, "$mRClassType\$id", viewId, "I")
+            method.visitFieldInsn(Opcodes.GETSTATIC, $$"$$mRClassType$id", viewId, "I")
 
-            method.visitMethodInsn(Opcodes.INVOKEVIRTUAL, selfType, "findViewById", "(I)Landroid/view/View;", false)
+            method.visitMethodInsn(
+                Opcodes.INVOKEVIRTUAL,
+                selfType,
+                "findViewById",
+                "(I)Landroid/view/View;",
+                false
+            )
             method.visitTypeInsn(Opcodes.NEW, type)
             method.visitInsn(Opcodes.DUP)
 
@@ -401,7 +440,7 @@ class AndroidJunkGenerator(
                 Opcodes.INVOKEVIRTUAL,
                 "android/view/View",
                 "setOnClickListener",
-                "(Landroid/view/View\$OnClickListener;)V",
+                $$"(Landroid/view/View$OnClickListener;)V",
                 false
             )
 
@@ -435,7 +474,13 @@ class AndroidJunkGenerator(
                     false
                 )
 
-                method.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "android/widget/Toast", "show", "()V", false)
+                method.visitMethodInsn(
+                    Opcodes.INVOKEVIRTUAL,
+                    "android/widget/Toast",
+                    "show",
+                    "()V",
+                    false
+                )
                 method.visitInsn(Opcodes.RETURN)
             } else {
                 val get = others[fn]
@@ -467,7 +512,7 @@ class AndroidJunkGenerator(
 
     private fun generateLayout(layoutName: String): List<String> {
         val drawableName = resPrefix + generateResName()
-        if (mDrawableIds.add(drawableName)) {
+        if (Random.nextDouble() < probability && mDrawableIds.add(drawableName)) {
             generateDrawable(drawableName)
         }
 
@@ -496,9 +541,13 @@ class AndroidJunkGenerator(
         fun linear() =
             if (Random.nextBoolean()) "android:orientation=\"vertical\"" else "android:orientation=\"horizontal\""
 
-        for (i in 0 until rnd) {
+        (0 until rnd).forEach { _ ->
             val viewId = generateResName()
-            val hasId = ids.add(viewId)
+            val hasId = if (Random.nextDouble() < idProbability) {
+                ids.add(viewId)
+            } else {
+                false
+            }
 
             val widget = VIEWS[Random.nextInt(VIEWS.size)]
 
@@ -512,7 +561,6 @@ class AndroidJunkGenerator(
                 """.trimIndent()
 
             xml.append(tpl).append("\n")
-
         }
 
         xml.append("</LinearLayout>")
@@ -545,7 +593,10 @@ class AndroidJunkGenerator(
         writeStringToFile(drawableFile, content.toString())
     }
 
-    private fun generateOtherClass(packageName: String, className: String): Pair<Set<String>, List<String>> {
+    private fun generateOtherClass(
+        packageName: String,
+        className: String
+    ): Pair<Set<String>, List<String>> {
         val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES)
         val owner = getTypedName(packageName, className)
 
@@ -593,7 +644,11 @@ class AndroidJunkGenerator(
                     method.visitLdcInsn(className)
                     method.visitLdcInsn(name)
                     method.visitMethodInsn(
-                        Opcodes.INVOKESTATIC, "android/util/Log", "d", "(Ljava/lang/String;Ljava/lang/String;)I", false
+                        Opcodes.INVOKESTATIC,
+                        "android/util/Log",
+                        "d",
+                        "(Ljava/lang/String;Ljava/lang/String;)I",
+                        false
                     )
                     method.visitInsn(Opcodes.POP)
                     method.visitInsn(Opcodes.RETURN)
@@ -608,7 +663,13 @@ class AndroidJunkGenerator(
                 2 -> {
                     // 返回一个 hash
                     method.visitLdcInsn(generateBigValue())
-                    method.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/lang/String", "hashCode", "()I", false)
+                    method.visitMethodInsn(
+                        Opcodes.INVOKEVIRTUAL,
+                        "java/lang/String",
+                        "hashCode",
+                        "()I",
+                        false
+                    )
                     method.visitInsn(Opcodes.IRETURN)
                 }
 
@@ -632,7 +693,7 @@ class AndroidJunkGenerator(
         val methodCnt = Random.nextInt(0, min(size, 5))
         repeat(methodCnt) {
             val field = listFields[it]
-            val name = "get" + field.substring(0, 1).uppercase() + field.substring(1)
+            val name = "get" + field.take(1).uppercase() + field.substring(1)
 
             getMethods.add(name)
 
@@ -715,7 +776,7 @@ class AndroidJunkGenerator(
     private fun generateColor(): String {
         val sb = java.lang.StringBuilder()
         sb.append("#")
-        for (i in 0..5) {
+        (0..5).forEach { _ ->
             sb.append(COLORS[Random.nextInt(COLORS.size)])
         }
         return sb.toString()
@@ -724,7 +785,7 @@ class AndroidJunkGenerator(
     private fun generateBigValue(): String {
         val abc1 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKMNLOPQRSTUVWZYZ0123456789".toCharArray()
         val sb = java.lang.StringBuilder()
-        for (i in 0 until Random.nextInt(10, 100)) {
+        (0 until Random.nextInt(10, 100)).forEach { _ ->
             sb.append(abc1[Random.nextInt(abc1.size)])
         }
         return sb.toString()
@@ -801,6 +862,11 @@ class AndroidJunkGenerator(
         val drawables = mDrawableIds.joinToString("\n") { "int drawable $it 0x0" }
         val ids = mIds.joinToString("\n") { "int id $it 0x0" }
 
+        logger.info { "strings 文件数量: ${mStringIds.size}" }
+        logger.info { "layouts 文件数量: ${mLayoutIds.size}" }
+        logger.info { "drawables 文件数量: ${mDrawableIds.size}" }
+        logger.info { "ids 大小: ${mIds.size}" }
+
         val txt = strings + "\n" + layouts + "\n" + drawables + "\n" + ids
         writeStringToFile(File(workspace, "R.txt"), txt)
     }
@@ -832,7 +898,8 @@ class AndroidJunkGenerator(
 
         out.outputStream().use { fos ->
             val zos = ZipOutputStream(fos)
-            workspace.listFiles { _, name -> name != classesDir }?.forEach { file -> addFileToZip(file, "", zos) }
+            workspace.listFiles { _, name -> name != classesDir }
+                ?.forEach { file -> addFileToZip(file, "", zos) }
 
             zos.finish()
         }

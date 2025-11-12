@@ -136,7 +136,7 @@ data class JunkCodeInfo(
     private var _packageName: String = "com.dev.junk", // 包名
     private var _suffix: String = "plugin", // 后缀
     var packageCount: String = "50", // 包数量
-    var activityCountPerPackage: String = "30", // 每个包里 activity 的数量
+    var activityCountPerPackage: String = "50", // 每个包里 activity 的数量
     var resPrefix: String = "junk_", // 资源前缀
 ) {
     var packageName: String
