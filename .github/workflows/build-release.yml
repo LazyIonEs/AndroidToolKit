@@ -23,10 +23,10 @@ jobs:
           # Linux
           - os: ubuntu-latest
             name: linux-amd64
-            rpm_arch: x86_64
+            rpm_arch: linux-x86_64
           - os: ubuntu-24.04-arm
             name: linux-arm64
-            rpm_arch: aarch64
+            rpm_arch: linux-aarch64
           # macOS
           - os: macos-15-intel
             name: macos-x64
@@ -154,5 +154,5 @@ jobs:
           draft: true
           allowUpdates: true
           tag: "v${{ inputs.tag_version }}"
-          artifacts: "release-assets/*" # 上传下载目录中的所有文件
+          artifacts: "release-assets/*/*" # 上传下载目录中的所有文件
           token: ${{ secrets.GH_TOKEN }}
