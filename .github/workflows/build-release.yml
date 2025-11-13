@@ -59,8 +59,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ... (你所有的构建和重命名步骤保持不变) ...
+      - name: Setup JDK (x64)
+        if: runner.arch == 'X64'
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "21"
+          architecture: x64
+          cache: 'gradle'
 
+      - name: Setup JDK (ARM64)
+        if: runner.arch == 'ARM64'
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: "21"
+          architecture: aarch64
+          cache: 'gradle'
+
+      # ... (你所有的构建和重命名步骤保持不变) ...
       - name: Package Release Distribution
         run: ./gradlew packageReleaseDistributionForCurrentOS
 
