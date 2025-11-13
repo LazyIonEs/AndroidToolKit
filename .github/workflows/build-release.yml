@@ -6,195 +6,153 @@ on:
       tag_version:
         description: 'Specify the version tag (required)'
         required: true
+
 jobs:
-  create-release-distribution:
+  # -----------------------------------------------------------------
+  # 作业 1：构建、重命名并上传所有平台的产物
+  # -----------------------------------------------------------------
+  build-and-rename:
     strategy:
       matrix:
-        os: [ windows-latest, windows-11-arm, ubuntu-latest, ubuntu-24.04-arm, macos-15-intel, macos-latest ]
+        include:
+          # Windows
+          - os: windows-latest
+            name: windows-x64
+          - os: windows-11-arm
+            name: windows-arm64
+          # Linux
+          - os: ubuntu-latest
+            name: linux-amd64
+            rpm_arch: x86_64
+          - os: ubuntu-24.04-arm
+            name: linux-arm64
+            rpm_arch: aarch64
+          # macOS
+          - os: macos-15-intel
+            name: macos-x64
+          - os: macos-latest # Apple Silicon
+            name: macos-arm64
+
     runs-on: ${{ matrix.os }}
-    name: Create Release Distribution
+    name: Build for ${{ matrix.name }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: PackageReleaseDistributionForCurrentOS
+      - name: Package Release Distribution
         run: ./gradlew packageReleaseDistributionForCurrentOS
 
-      - if: matrix.os == 'windows-latest'
-        name: Rename File
+      - name: Rename Windows Files
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          $basePath = "D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release"
+          $basePath = "${{ github.workspace }}\composeApp\output\main-release"
+          $suffix = "${{ matrix.name }}"
+          Write-Host "🔍 Searching for MSI and EXE files in $basePath for $suffix..."
 
-          Write-Host "🔍 Searching for MSI and EXE files..."
-
-          # 查找 .msi 文件
           $msi = Get-ChildItem -Path "$basePath\msi" -Filter "*.msi" -File -ErrorAction SilentlyContinue | Select-Object -First 1
-          # 查找 .exe 文件
-          $exe = Get-ChildItem -Path "$basePath\exe" -Filter "*.exe" -File -ErrorAction SilentlyContinue | Select-Object -First 1
-
           if ($null -ne $msi) {
-            $msiDest = "$basePath\msi\AndroidToolKit-windows-x64.msi"
+            $msiDest = "$basePath\msi\AndroidToolKit-$suffix.msi"
             Write-Host "Renaming $($msi.FullName) -> $msiDest"
             Move-Item -Path $msi.FullName -Destination $msiDest -Force
           } else {
-            Write-Warning "⚠️ No .msi file found in $basePath\msi"
+            Write-Warning "⚠️ No .msi file found"
           }
 
-          if ($null -ne $exe) {
-            $exeDest = "$basePath\exe\AndroidToolKit-windows-x64.exe"
-            Write-Host "Renaming $($exe.FullName) -> $exeDest"
-            Move-Item -Path $exe.FullName -Destination $exeDest -Force
-          } else {
-            Write-Warning "⚠️ No .exe file found in $basePath\exe"
-          }
-
-          Write-Host "✅ Rename complete."
-
-      - if: matrix.os == 'windows-11-arm'
-        name: Rename File
-        run: |
-          $basePath = "D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release"
-
-          Write-Host "🔍 Searching for MSI and EXE files..."
-
-          # 查找 .msi 文件
-          $msi = Get-ChildItem -Path "$basePath\msi" -Filter "*.msi" -File -ErrorAction SilentlyContinue | Select-Object -First 1
-          # 查找 .exe 文件
           $exe = Get-ChildItem -Path "$basePath\exe" -Filter "*.exe" -File -ErrorAction SilentlyContinue | Select-Object -First 1
-
-          if ($null -ne $msi) {
-            $msiDest = "$basePath\msi\AndroidToolKit-windows-arm64.msi"
-            Write-Host "Renaming $($msi.FullName) -> $msiDest"
-            Move-Item -Path $msi.FullName -Destination $msiDest -Force
-          } else {
-            Write-Warning "⚠️ No .msi file found in $basePath\msi"
-          }
-
           if ($null -ne $exe) {
-            $exeDest = "$basePath\exe\AndroidToolKit-windows-arm64.exe"
+            $exeDest = "$basePath\exe\AndroidToolKit-$suffix.exe"
             Write-Host "Renaming $($exe.FullName) -> $exeDest"
             Move-Item -Path $exe.FullName -Destination $exeDest -Force
           } else {
-            Write-Warning "⚠️ No .exe file found in $basePath\exe"
+            Write-Warning "⚠️ No .exe file found"
           }
+          Write-Host "✅ Rename complete for $suffix."
 
-          Write-Host "✅ Rename complete."
-
-      - if: matrix.os == 'ubuntu-latest'
-        name: Rename File
-        run: |
-          set -e  # 出错立即终止
-          BASE_PATH="/home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release"
-          
-          echo "🔍 Searching for DEB and RPM files..."
-          
-          DEB_SRC=$(find "$BASE_PATH/deb" -type f -name "*.deb" | head -n 1 || true)
-          RPM_SRC=$(find "$BASE_PATH/rpm" -type f -name "*.rpm" | head -n 1 || true)
-          
-          if [ -z "$DEB_SRC" ]; then
-            echo "⚠️ No .deb file found in $BASE_PATH/deb"
-          else
-            DEB_DEST="$BASE_PATH/deb/AndroidToolKit-linux-amd64.deb"
-          echo "Renaming: $DEB_SRC -> $DEB_DEST"
-            mv "$DEB_SRC" "$DEB_DEST"
-          fi
-          
-          if [ -z "$RPM_SRC" ]; then
-            echo "⚠️ No .rpm file found in $BASE_PATH/rpm"
-          else
-            RPM_DEST="$BASE_PATH/rpm/AndroidToolKit-linux-x86_64.rpm"
-          echo "Renaming: $RPM_SRC -> $RPM_DEST"
-            mv "$RPM_SRC" "$RPM_DEST"
-          fi
-          
-          echo "✅ Rename complete."
-
-      - if: matrix.os == 'ubuntu-24.04-arm'
-        name: Rename File
-        run: |
-          set -e  # 出错立即终止
-          BASE_PATH="/home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release"
-          
-          echo "🔍 Searching for DEB and RPM files..."
-          
-          DEB_SRC=$(find "$BASE_PATH/deb" -type f -name "*.deb" | head -n 1 || true)
-          RPM_SRC=$(find "$BASE_PATH/rpm" -type f -name "*.rpm" | head -n 1 || true)
-          
-          if [ -z "$DEB_SRC" ]; then
-            echo "⚠️ No .deb file found in $BASE_PATH/deb"
-          else
-            DEB_DEST="$BASE_PATH/deb/AndroidToolKit-linux-arm64.deb"
-          echo "Renaming: $DEB_SRC -> $DEB_DEST"
-            mv "$DEB_SRC" "$DEB_DEST"
-          fi
-          
-          if [ -z "$RPM_SRC" ]; then
-            echo "⚠️ No .rpm file found in $BASE_PATH/rpm"
-          else
-            RPM_DEST="$BASE_PATH/rpm/AndroidToolKit-linux-aarch64.rpm"
-          echo "Renaming: $RPM_SRC -> $RPM_DEST"
-            mv "$RPM_SRC" "$RPM_DEST"
-          fi
-          
-          echo "✅ Rename complete."
-
-      - if: matrix.os == 'macos-15-intel'
-        name: Rename File
+      - name: Rename Linux Files
+        if: runner.os == 'Linux'
         run: |
           set -e
-          BASE_PATH="/Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release"
-          echo "🔍 Searching for macOS build artifacts..."
+          BASE_PATH="${{ github.workspace }}/composeApp/output/main-release"
+          echo "🔍 Searching for DEB and RPM files for ${{ matrix.name }}..."
+
+          DEB_SRC=$(find "$BASE_PATH/deb" -type f -name "*.deb" | head -n 1 || true)
+          if [ -n "$DEB_SRC" ]; then
+            DEB_DEST="$BASE_PATH/deb/AndroidToolKit-${{ matrix.name }}.deb"
+            echo "Renaming: $DEB_SRC -> $DEB_DEST"
+            mv "$DEB_SRC" "$DEB_DEST"
+          else
+            echo "⚠️ No .deb file found"
+          fi
+
+          RPM_SRC=$(find "$BASE_PATH/rpm" -type f -name "*.rpm" | head -n 1 || true)
+          if [ -n "$RPM_SRC" ]; then
+            RPM_DEST="$BASE_PATH/rpm/AndroidToolKit-${{ matrix.rpm_arch }}.rpm" # 注意这里用了专门的 rpm_arch
+            echo "Renaming: $RPM_SRC -> $RPM_DEST"
+            mv "$RPM_SRC" "$RPM_DEST"
+          else
+            echo "⚠️ No .rpm file found"
+          fi
+          echo "✅ Rename complete for ${{ matrix.name }}."
+
+      - name: Rename macOS File
+        if: runner.os == 'macOS'
+        run: |
+          set -e
+          BASE_PATH="${{ github.workspace }}/composeApp/output/main-release"
+          echo "🔍 Searching for macOS build artifacts for ${{ matrix.name }}..."
 
           DMG_SRC=$(find "$BASE_PATH/dmg" -type f -name "*.dmg" | head -n 1 || true)
           if [ -n "$DMG_SRC" ]; then
-            mv "$DMG_SRC" "$BASE_PATH/dmg/AndroidToolKit-macos-x64.dmg"
-            echo "✅ Renamed DMG -> AndroidToolKit-macos-x64.dmg"
+            DMG_DEST="$BASE_PATH/dmg/AndroidToolKit-${{ matrix.name }}.dmg"
+            echo "Renaming: $DMG_SRC -> $DMG_DEST"
+            mv "$DMG_SRC" "$DMG_DEST"
           else
             echo "⚠️ No .dmg file found"
           fi
+          echo "✅ Rename complete for ${{ matrix.name }}."
 
-      - if: matrix.os == 'macos-latest'
-        name: Rename File
+      # --- 上传产物（为 Job 2 准备）---
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-${{ matrix.name }} # 每个 job 的产物包名唯一
+          path: | # 使用通配符匹配所有重命名后的文件
+            ${{ github.workspace }}/composeApp/output/main-release/msi/*.msi
+            ${{ github.workspace }}/composeApp/output/main-release/exe/*.exe
+            ${{ github.workspace }}/composeApp/output/main-release/deb/*.deb
+            ${{ github.workspace }}/composeApp/output/main-release/rpm/*.rpm
+            ${{ github.workspace }}/composeApp/output/main-release/dmg/*.dmg
+          if-no-files-found: warn # 如果某个平台没有产物（例如 Linux 没有 .msi）也不要报错
+          retention-days: 1 # 只需要保留1天，Job 2 用完就丢
+
+  # -----------------------------------------------------------------
+  # 作业 2：收集所有产物并创建（或更新）一个 Release
+  # -----------------------------------------------------------------
+  publish-release:
+    name: Publish Draft Release
+    runs-on: ubuntu-latest
+    needs: build-and-rename # 关键：等待所有 build-and-rename 任务成功
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets # 下载到这个目录
+          pattern: release-assets-* # 匹配所有 job 上传的产物
+          merge-multiple: true # 关键：将所有产物包合并到 release-assets 目录下
+
+      - name: List downloaded files (for debugging)
         run: |
-          set -e
-          BASE_PATH="/Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release"
-          echo "🔍 Searching for macOS build artifacts..."
+          echo "Listing all downloaded artifacts:"
+          ls -R release-assets
 
-          DMG_SRC=$(find "$BASE_PATH/dmg" -type f -name "*.dmg" | head -n 1 || true)
-          if [ -n "$DMG_SRC" ]; then
-            mv "$DMG_SRC" "$BASE_PATH/dmg/AndroidToolKit-macos-arm64.dmg"
-            echo "✅ Renamed DMG -> AndroidToolKit-macos-arm64.dmg"
-          else
-            echo "⚠️ No .dmg file found"
-          fi
-
-      - if: matrix.os == 'windows-latest' || matrix.os == 'windows-11-arm'
-        name: Draft Release
+      - name: Draft Release
         uses: ncipollo/release-action@v1
         with:
           draft: true
           allowUpdates: true
           tag: "v${{ inputs.tag_version }}"
-          artifacts: "composeApp/output/main-release/msi/*,composeApp/output/main-release/exe/*"
-          token: ${{ secrets.GH_TOKEN }}
-
-      - if: matrix.os == 'ubuntu-latest' || matrix.os == 'ubuntu-24.04-arm'
-        name: Draft Release
-        uses: ncipollo/release-action@v1
-        with:
-          draft: true
-          allowUpdates: true
-          tag: "v${{ inputs.tag_version }}"
-          artifacts: "composeApp/output/main-release/deb/*,composeApp/output/main-release/rpm/*"
-          token: ${{ secrets.GH_TOKEN }}
-
-      - if: matrix.os == 'macos-15-intel' || matrix.os == 'macos-latest'
-        name: Draft Release
-        uses: ncipollo/release-action@v1
-        with:
-          draft: true
-          allowUpdates: true
-          tag: "v${{ inputs.tag_version }}"
-          artifacts: "composeApp/output/main-release/dmg/*"
+          artifacts: "release-assets/*" # 上传下载目录中的所有文件
           token: ${{ secrets.GH_TOKEN }}
