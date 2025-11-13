@@ -4,14 +4,10 @@ on:
   workflow_dispatch:
 
 jobs:
-  # -----------------------------------------------------------------
-  # 作业 1：获取版本号
-  # -----------------------------------------------------------------
   get-version:
     name: Get Version
     runs-on: ubuntu-latest
     outputs:
-      # 将版本号定义为作业输出
       version_tag: ${{ steps.get_version.outputs.version_tag }}
 
     steps:
@@ -29,9 +25,6 @@ jobs:
           echo "Found version: $VERSION"
           echo "version_tag=v${VERSION}" >> $GITHUB_OUTPUT
 
-  # -----------------------------------------------------------------
-  # 作业 2：构建、重命名并上传所有平台的产物
-  # -----------------------------------------------------------------
   build-and-rename:
     strategy:
       matrix:
@@ -77,34 +70,78 @@ jobs:
           architecture: aarch64
           cache: 'gradle'
 
-      # ... (你所有的构建和重命名步骤保持不变) ...
       - name: Package Release Distribution
         run: ./gradlew packageReleaseDistributionForCurrentOS
 
       - name: Rename Windows Files
         if: runner.os == 'Windows'
-        # ... (pwsh script) ...
         shell: pwsh
         run: |
           $basePath = "${{ github.workspace }}\composeApp\output\main-release"
           $suffix = "${{ matrix.name }}"
-          # ... (rest of the script) ...
+          Write-Host "🔍 Searching for MSI and EXE files in $basePath for $suffix..."
+
+          $msi = Get-ChildItem -Path "$basePath\msi" -Filter "*.msi" -File -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($null -ne $msi) {
+            $msiDest = "$basePath\msi\AndroidToolKit-$suffix.msi"
+            Write-Host "Renaming $($msi.FullName) -> $msiDest"
+            Move-Item -Path $msi.FullName -Destination $msiDest -Force
+          } else {
+            Write-Warning "⚠️ No .msi file found"
+          }
+
+          $exe = Get-ChildItem -Path "$basePath\exe" -Filter "*.exe" -File -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($null -ne $exe) {
+            $exeDest = "$basePath\exe\AndroidToolKit-$suffix.exe"
+            Write-Host "Renaming $($exe.FullName) -> $exeDest"
+            Move-Item -Path $exe.FullName -Destination $exeDest -Force
+          } else {
+            Write-Warning "⚠️ No .exe file found"
+          }
+          Write-Host "✅ Rename complete for $suffix."
 
       - name: Rename Linux Files
         if: runner.os == 'Linux'
-        # ... (bash script) ...
         run: |
           set -e
           BASE_PATH="${{ github.workspace }}/composeApp/output/main-release"
-          # ... (rest of the script) ...
+          echo "🔍 Searching for DEB and RPM files for ${{ matrix.name }}..."
+
+          DEB_SRC=$(find "$BASE_PATH/deb" -type f -name "*.deb" | head -n 1 || true)
+          if [ -n "$DEB_SRC" ]; then
+            DEB_DEST="$BASE_PATH/deb/AndroidToolKit-${{ matrix.name }}.deb"
+            echo "Renaming: $DEB_SRC -> $DEB_DEST"
+            mv "$DEB_SRC" "$DEB_DEST"
+          else
+            echo "⚠️ No .deb file found"
+          fi
+
+          RPM_SRC=$(find "$BASE_PATH/rpm" -type f -name "*.rpm" | head -n 1 || true)
+          if [ -n "$RPM_SRC" ]; then
+            RPM_DEST="$BASE_PATH/rpm/AndroidToolKit-${{ matrix.rpm_arch }}.rpm" # 注意这里用了专门的 rpm_arch
+            echo "Renaming: $RPM_SRC -> $RPM_DEST"
+            mv "$RPM_SRC" "$RPM_DEST"
+          else
+            echo "⚠️ No .rpm file found"
+          fi
+          echo "✅ Rename complete for ${{ matrix.name }}."
 
       - name: Rename macOS File
         if: runner.os == 'macOS'
-        # ... (bash script) ...
         run: |
           set -e
           BASE_PATH="${{ github.workspace }}/composeApp/output/main-release"
-          # ... (rest of the script) ...
+          echo "🔍 Searching for macOS build artifacts for ${{ matrix.name }}..."
+
+          DMG_SRC=$(find "$BASE_PATH/dmg" -type f -name "*.dmg" | head -n 1 || true)
+          if [ -n "$DMG_SRC" ]; then
+            DMG_DEST="$BASE_PATH/dmg/AndroidToolKit-${{ matrix.name }}.dmg"
+            echo "Renaming: $DMG_SRC -> $DMG_DEST"
+            mv "$DMG_SRC" "$DMG_DEST"
+          else
+            echo "⚠️ No .dmg file found"
+          fi
+          echo "✅ Rename complete for ${{ matrix.name }}."
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -119,9 +156,6 @@ jobs:
           if-no-files-found: warn
           retention-days: 1
 
-  # -----------------------------------------------------------------
-  # 作业 3：收集所有产物并创建（或更新）一个 Release
-  # -----------------------------------------------------------------
   publish-release:
     name: Publish Draft Release
     runs-on: ubuntu-latest
@@ -145,7 +179,6 @@ jobs:
         with:
           draft: true
           allowUpdates: true
-          # --- 关键修改：从 needs.get-version 上下文获取 tag ---
           tag: ${{ needs.get-version.outputs.version_tag }}
           artifacts: "release-assets/*/*"
           token: ${{ secrets.GH_TOKEN }}

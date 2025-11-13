@@ -890,7 +890,7 @@ class AndroidJunkGenerator(
         // dir.deleteRecursively()
 
         // 打包aar
-        val out = File(output, "junk_" + appPackageName.replace(".", "_") + "_TT2.0.0.aar")
+        val out = File(output, "junk_" + appPackageName.replace(".", "_") + "_TT2.1.0.aar")
         val parent = out.parentFile
         if (!parent.exists()) {
             parent.mkdirs()
