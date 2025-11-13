@@ -80,7 +80,7 @@ jobs:
           
           echo "✅ Rename complete."
 
-      - if: matrix.os == 'macos-13'
+      - if: matrix.os == 'macos-15-intel'
         name: Rename File
         run: |
           set -e
@@ -95,7 +95,7 @@ jobs:
             echo "⚠️ No .dmg file found"
           fi
 
-      - if: matrix.os == 'macos-14'
+      - if: matrix.os == 'macos-latest'
         name: Rename File
         run: |
           set -e
