@@ -2,90 +2,183 @@ name: Build Release
 
 on:
   workflow_dispatch:
-    inputs:
-      tag_version:
-        description: 'Specify the version tag (required)'
-        required: true
+
 jobs:
-  create-release-distribution:
-    strategy:
-      matrix:
-        os: [ windows-latest , ubuntu-latest , macos-13 , macos-14 ]
-    runs-on: ${{ matrix.os }}
-    name: Create Release Distribution
+  get-version:
+    name: Get Version
+    runs-on: ubuntu-latest
+    outputs:
+      version_tag: ${{ steps.get_version.outputs.version_tag }}
 
     steps:
-      - if: matrix.os != 'macos-14'
-        name: Setup Jdk
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read Version from gradle.properties
+        id: get_version
+        run: |
+          VERSION=$(grep 'kitVersion=' gradle.properties | cut -d'=' -f2)
+          if [ -z "$VERSION" ]; then
+            echo "::error::kitVersion not found in gradle.properties"
+            exit 1
+          fi
+          echo "Found version: $VERSION"
+          echo "version_tag=v${VERSION}" >> $GITHUB_OUTPUT
+
+  build-and-rename:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            name: windows-x64
+          - os: windows-11-arm
+            name: windows-arm64
+          - os: ubuntu-latest
+            name: linux-amd64
+            rpm_arch: linux-x86_64
+          - os: ubuntu-24.04-arm
+            name: linux-arm64
+            rpm_arch: linux-aarch64
+          - os: macos-15-intel
+            name: macos-x64
+          - os: macos-latest
+            name: macos-arm64
+
+    runs-on: ${{ matrix.os }}
+    name: Build for ${{ matrix.name }}
+    needs: get-version
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK (x64)
+        if: runner.arch == 'X64'
         uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "21"
           architecture: x64
+          cache: 'gradle'
 
-      - if: matrix.os == 'macos-14'
-        name: Setup Jdk
+      - name: Setup JDK (ARM64)
+        if: runner.arch == 'ARM64'
         uses: actions/setup-java@v4
         with:
           distribution: "zulu"
           java-version: "21"
           architecture: aarch64
+          cache: 'gradle'
 
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: PackageReleaseDistributionForCurrentOS
+      - name: Package Release Distribution
         run: ./gradlew packageReleaseDistributionForCurrentOS
 
-      - if: matrix.os == 'windows-latest'
-        name: Rename File
+      - name: Rename Windows Files
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          $ErrorActionPreference = "Stop"
-          mv D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\msi\AndroidToolKit-${{ inputs.tag_version }}.msi D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\msi\AndroidToolKit-windows-x64.msi
-          mv D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\exe\AndroidToolKit-${{ inputs.tag_version }}.exe D:\a\AndroidToolKit\AndroidToolKit\composeApp\output\main-release\exe\AndroidToolKit-windows-x64.exe
+          $basePath = "${{ github.workspace }}\composeApp\output\main-release"
+          $suffix = "${{ matrix.name }}"
+          Write-Host "🔍 Searching for MSI and EXE files in $basePath for $suffix..."
 
-      - if: matrix.os == 'ubuntu-latest'
-        name: Rename File
+          $msi = Get-ChildItem -Path "$basePath\msi" -Filter "*.msi" -File -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($null -ne $msi) {
+            $msiDest = "$basePath\msi\AndroidToolKit-$suffix.msi"
+            Write-Host "Renaming $($msi.FullName) -> $msiDest"
+            Move-Item -Path $msi.FullName -Destination $msiDest -Force
+          } else {
+            Write-Warning "⚠️ No .msi file found"
+          }
+
+          $exe = Get-ChildItem -Path "$basePath\exe" -Filter "*.exe" -File -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($null -ne $exe) {
+            $exeDest = "$basePath\exe\AndroidToolKit-$suffix.exe"
+            Write-Host "Renaming $($exe.FullName) -> $exeDest"
+            Move-Item -Path $exe.FullName -Destination $exeDest -Force
+          } else {
+            Write-Warning "⚠️ No .exe file found"
+          }
+          Write-Host "✅ Rename complete for $suffix."
+
+      - name: Rename Linux Files
+        if: runner.os == 'Linux'
         run: |
-          mv /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/deb/androidtoolkit_${{ inputs.tag_version }}-1_amd64.deb  /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/deb/AndroidToolKit-linux-amd64.deb
-          mv /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/rpm/androidtoolkit-${{ inputs.tag_version }}-1.x86_64.rpm  /home/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/rpm/AndroidToolKit-linux-x86_64.rpm
+          set -e
+          BASE_PATH="${{ github.workspace }}/composeApp/output/main-release"
+          echo "🔍 Searching for DEB and RPM files for ${{ matrix.name }}..."
 
-      - if: matrix.os == 'macos-13'
-        name: Rename File
+          DEB_SRC=$(find "$BASE_PATH/deb" -type f -name "*.deb" | head -n 1 || true)
+          if [ -n "$DEB_SRC" ]; then
+            DEB_DEST="$BASE_PATH/deb/AndroidToolKit-${{ matrix.name }}.deb"
+            echo "Renaming: $DEB_SRC -> $DEB_DEST"
+            mv "$DEB_SRC" "$DEB_DEST"
+          else
+            echo "⚠️ No .deb file found"
+          fi
+
+          RPM_SRC=$(find "$BASE_PATH/rpm" -type f -name "*.rpm" | head -n 1 || true)
+          if [ -n "$RPM_SRC" ]; then
+            RPM_DEST="$BASE_PATH/rpm/AndroidToolKit-${{ matrix.rpm_arch }}.rpm" # 注意这里用了专门的 rpm_arch
+            echo "Renaming: $RPM_SRC -> $RPM_DEST"
+            mv "$RPM_SRC" "$RPM_DEST"
+          else
+            echo "⚠️ No .rpm file found"
+          fi
+          echo "✅ Rename complete for ${{ matrix.name }}."
+
+      - name: Rename macOS File
+        if: runner.os == 'macOS'
         run: |
-          mv /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ inputs.tag_version }}.dmg  /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-macos-x64.dmg
+          set -e
+          BASE_PATH="${{ github.workspace }}/composeApp/output/main-release"
+          echo "🔍 Searching for macOS build artifacts for ${{ matrix.name }}..."
 
-      - if: matrix.os == 'macos-14'
-        name: Rename File
+          DMG_SRC=$(find "$BASE_PATH/dmg" -type f -name "*.dmg" | head -n 1 || true)
+          if [ -n "$DMG_SRC" ]; then
+            DMG_DEST="$BASE_PATH/dmg/AndroidToolKit-${{ matrix.name }}.dmg"
+            echo "Renaming: $DMG_SRC -> $DMG_DEST"
+            mv "$DMG_SRC" "$DMG_DEST"
+          else
+            echo "⚠️ No .dmg file found"
+          fi
+          echo "✅ Rename complete for ${{ matrix.name }}."
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-assets-${{ matrix.name }}
+          path: |
+            ${{ github.workspace }}/composeApp/output/main-release/msi/*.msi
+            ${{ github.workspace }}/composeApp/output/main-release/exe/*.exe
+            ${{ github.workspace }}/composeApp/output/main-release/deb/*.deb
+            ${{ github.workspace }}/composeApp/output/main-release/rpm/*.rpm
+            ${{ github.workspace }}/composeApp/output/main-release/dmg/*.dmg
+          if-no-files-found: warn
+          retention-days: 1
+
+  publish-release:
+    name: Publish Draft Release
+    runs-on: ubuntu-latest
+    needs: [get-version, build-and-rename]
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          pattern: release-assets-*
+          merge-multiple: true
+
+      - name: List downloaded files (for debugging)
         run: |
-          mv /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-${{ inputs.tag_version }}.dmg /Users/runner/work/AndroidToolKit/AndroidToolKit/composeApp/output/main-release/dmg/AndroidToolKit-macos-arm64.dmg
+          echo "Listing all downloaded artifacts:"
+          ls -R release-assets
 
-      - if: matrix.os == 'windows-latest'
-        name: Draft Release
+      - name: Draft Release
         uses: ncipollo/release-action@v1
         with:
           draft: true
           allowUpdates: true
-          tag: "v${{ inputs.tag_version }}"
-          artifacts: "composeApp/output/main-release/msi/*,composeApp/output/main-release/exe/*"
-          token: ${{ secrets.GH_TOKEN }}
-
-      - if: matrix.os == 'ubuntu-latest'
-        name: Draft Release
-        uses: ncipollo/release-action@v1
-        with:
-          draft: true
-          allowUpdates: true
-          tag: "v${{ inputs.tag_version }}"
-          artifacts: "composeApp/output/main-release/deb/*,composeApp/output/main-release/rpm/*"
-          token: ${{ secrets.GH_TOKEN }}
-
-      - if: matrix.os == 'macos-13' || matrix.os == 'macos-14'
-        name: Draft Release
-        uses: ncipollo/release-action@v1
-        with:
-          draft: true
-          allowUpdates: true
-          tag: "v${{ inputs.tag_version }}"
-          artifacts: "composeApp/output/main-release/dmg/*"
+          tag: ${{ needs.get-version.outputs.version_tag }}
+          artifacts: "release-assets/*/*"
           token: ${{ secrets.GH_TOKEN }}

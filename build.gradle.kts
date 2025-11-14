@@ -10,15 +10,6 @@ plugins {
     alias(libs.plugins.hot.reload) apply false
 }
 
-// Configure all subprojects
-subprojects {
-    // Ensure consistent Java version across all modules
-    tasks.withType<JavaCompile>().configureEach {
-        sourceCompatibility = JavaVersion.VERSION_17.toString()
-        targetCompatibility = JavaVersion.VERSION_17.toString()
-    }
-}
-
 // Root project tasks
 tasks.register("clean", Delete::class) {
     delete(rootProject.layout.buildDirectory)
