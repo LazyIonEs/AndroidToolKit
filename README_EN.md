@@ -23,33 +23,39 @@
 [简体中文](./README.md) | English
 
 Desktop tools applicable to Android development, supporting Windows, Mac and Linux :tada:
-> The Linux platform has not been tested. If you have any questions, please give us feedback in time.
+> The Linux platform has not been tested. If you have any questions, please give us feedback in
+> time.
 
 ## Key Features
 
-- [x] Signature Information - Analyze the signature information of (APK/Signature) (modulus, md5, sha-1, sha-256, etc.)
+- [x] Signature Information - Analyze the signature information of (APK/Signature) (modulus, md5,
+  sha-1, sha-256, etc.)
 - [x] APK Information - Parse `AndroidManifest.xml` and extract some information
 - [x] APK Signature - Sign your APK
 - [x] Signature Generation - Generate a signed certificate
 - [x] Icon Generation - Generate icons of multiple sizes with one click
 - [x] Cache Cleaner - Cleans the Android project cache directory
 
-> Supports APK signature verification; single signature verification (signature password required); file dragging; apk
-> signature file alignment; generate signatures with specified key type and key size; appearance light and dark modes.
+> Supports APK signature verification; single signature verification (signature password required);
+> file dragging; apk
+> signature file alignment; generate signatures with specified key type and key size; appearance
+> light and dark modes.
 
 ## Download - [Releases](https://github.com/LazyIonEs/AndroidToolKit/releases/latest)
 
-| device  |    chip     |                                                                                                                         download                                                                                                                          |
-|:-------:|:-----------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-|  macos  |    apple    |                                                                 [`macos-arm64.dmg`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-macos-arm64.dmg)                                                                  |
-|  macos  |    intel    |                                                                   [`macos-x64.dmg`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-macos-x64.dmg)                                                                    |
-| windows | intel / amd |  [`windows-x64.msi`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-windows-x64.msi) **/** [`windows-x64.exe`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-windows-x64.exe)  |
-|  linux  |      -      | [`linux-amd64.deb`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-linux-amd64.deb) **/** [`linux-x86_64.rpm`](https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-linux-x86_64.rpm) |
+| device  |         chip          |                                                                                                                                                                                                               download                                                                                                                                                                                                                |
+|:-------:|:---------------------:|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|  macOS  | Apple Silicon (arm64) |                                                                                                                 <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-macos-arm64.dmg"><img src="https://img.shields.io/badge/DMG-Apple%20Silicon-%23000000?logo=Apple" /></a>                                                                                                                 |
+|  macOS  |      Intel (x64)      |                                                                                                                    <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-macos-x64.dmg"><img src="https://img.shields.io/badge/DMG-Intel%20x64-%2300A9E0?logo=Apple" /></a>                                                                                                                    |
+| Windows |   x64 (Intel / AMD)   |     <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-windows-x64.msi"><img src="https://img.shields.io/badge/MSI-x64-%232d7d9a?logo=writedotas&logoColor=white" /></a> <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-windows-x64.exe"><img src="https://img.shields.io/badge/EXE-x64-%232d7d9a?logo=writedotas&logoColor=white" /></a>     |
+| Windows |         ARM64         | <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-windows-arm64.msi"><img src="https://img.shields.io/badge/MSI-arm64-%232d7d9a?logo=writedotas&logoColor=white" /></a> <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-windows-arm64.exe"><img src="https://img.shields.io/badge/EXE-arm64-%232d7d9a?logo=writedotas&logoColor=white" /></a> |
+|  Linux  | x64 (AMD64 / x86_64)  |        <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-linux-amd64.deb"><img src="https://img.shields.io/badge/DEB-x64-%23FF9966?logo=debian&logoColor=white" /></a> <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-linux-x86_64.rpm"><img src="https://img.shields.io/badge/RPM-x64-%23F1B42F?logo=redhat&logoColor=white" /></a>         |
+|  Linux  |    ARM64 (aarch64)    |     <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-linux-arm64.deb"><img src="https://img.shields.io/badge/DEB-arm64-%23FF9966?logo=debian&logoColor=white" /></a> <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest/download/AndroidToolKit-linux-aarch64.rpm"><img src="https://img.shields.io/badge/RPM-aarch64-%23F1B42F?logo=redhat&logoColor=white" /></a>     |
 
 > [!CAUTION]
-> It is not recommended to install the Windows version to the C drive (the default installation path is the C drive :
-> clown_face:), which may cause problems such as permissions. If you encounter any problems, please refer
-> to [FAQ](FAQ.md)
+> For the Windows version, please right-click and install with administrator privileges; otherwise,
+> you may encounter permission issues that prevent installation. If you encounter problems, please
+> refer to... [FAQ](FAQ.md)
 
 ## screenshot
 
