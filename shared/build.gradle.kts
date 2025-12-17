@@ -54,21 +54,22 @@ kotlin {
         // Common dependencies
         commonMain.dependencies {
             // Compose dependencies (API for downstream modules)
-            api(compose.runtime)
-            api(compose.foundation)
-            api(compose.material)
-            api(compose.material3)
-            api(compose.ui)
-            api(compose.components.resources)
-            api(compose.materialIconsExtended)
+            api(libs.compose.runtime)
+            api(libs.compose.ui)
+            api(libs.compose.foundation)
+            api(libs.compose.material)
+            api(libs.compose.material3)
+            api(libs.compose.material3.adaptive)
+            api(libs.compose.components.resources)
+            api(libs.compose.material.icons.extended.desktop)
+
+            // Lifecycle
+            implementation(libs.lifecycle.viewmodel.compose)
             
             // Kotlin libraries
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
-            
-            // Lifecycle
-            implementation(libs.lifecycle.viewmodel.compose)
-            
+
             // Logging
             api(libs.logging)
             implementation(libs.slf4j.api)
