@@ -65,7 +65,6 @@ import org.tool.kit.shared.generated.resources.apk_parsing_failed
 import org.tool.kit.shared.generated.resources.apk_signature_verification_failed
 import org.tool.kit.shared.generated.resources.build_end
 import org.tool.kit.shared.generated.resources.build_failure
-import org.tool.kit.shared.generated.resources.network_error
 import org.tool.kit.shared.generated.resources.cleanup_complete
 import org.tool.kit.shared.generated.resources.create_signature_successfully
 import org.tool.kit.shared.generated.resources.exec_command_error
@@ -74,6 +73,7 @@ import org.tool.kit.shared.generated.resources.icon_creation_failed
 import org.tool.kit.shared.generated.resources.icon_generation_completed
 import org.tool.kit.shared.generated.resources.it_s_the_latest_version
 import org.tool.kit.shared.generated.resources.jump
+import org.tool.kit.shared.generated.resources.network_error
 import org.tool.kit.shared.generated.resources.output_file_already_exists
 import org.tool.kit.shared.generated.resources.scanning_anomalies
 import org.tool.kit.shared.generated.resources.signature_creation_failed
@@ -130,21 +130,21 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     val themeConfig = preferences.themeConfig.stateIn(
         scope = viewModelScope,
         started = WhileUiSubscribed,
-        initialValue = PreferencesDataSource.Companion.DEFAULT_THEME_CONFIG
+        initialValue = PreferencesDataSource.DEFAULT_THEME_CONFIG
     )
 
     // 偏好设置
     val userData = preferences.userData.stateIn(
         scope = viewModelScope,
         started = Eagerly,
-        initialValue = PreferencesDataSource.Companion.DEFAULT_USER_DATA
+        initialValue = PreferencesDataSource.DEFAULT_USER_DATA
     )
 
     // 图标生成偏好设置
     val iconFactoryData = preferences.iconFactoryData.stateIn(
         scope = viewModelScope,
         started = Eagerly,
-        initialValue = PreferencesDataSource.Companion.DEFAULT_ICON_FACTORY_DATA
+        initialValue = PreferencesDataSource.DEFAULT_ICON_FACTORY_DATA
     )
 
     // 偏好设置
@@ -491,11 +491,11 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 try {
                     val signerSuffix = userData.value.defaultSignerSuffix
                     val flagDelete = userData.value.duplicateFileRemoval
-                    val isAlignFileSize = if (isHuaweiAlignFileSize.value)
+                    val isAlignFileSize = (if (isHuaweiAlignFileSize.value)
                         userData.value.alignFileSize && path != ConfigConstant.APK.Huawei.path
                     else
-                        userData.value.alignFileSize
-                    logger.info { "suspendApkSigner APK签名开始, APK文件路径: $path 开启文件对齐: $isAlignFileSize" }
+                        userData.value.alignFileSize) || apkSignatureState.keyStorePolicy == SignaturePolicy.V4
+                    logger.info { "suspendApkSigner APK签名开始, APK文件路径: $path 开启文件对齐: $isAlignFileSize 签名策略: ${apkSignatureState.keyStorePolicy.title}" }
                     if (showUiState) {
                         _apkSignatureUIState.update { UIState.Loading }
                     }
@@ -524,10 +524,18 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                     }
                     val key = File(apkSignatureState.keyStorePath)
                     val v1SigningEnabled =
-                        apkSignatureState.keyStorePolicy == SignaturePolicy.V1 || apkSignatureState.keyStorePolicy == SignaturePolicy.V2 || apkSignatureState.keyStorePolicy == SignaturePolicy.V3
+                        apkSignatureState.keyStorePolicy == SignaturePolicy.V1 || apkSignatureState.keyStorePolicy == SignaturePolicy.V2
+                                || apkSignatureState.keyStorePolicy == SignaturePolicy.V3 || apkSignatureState.keyStorePolicy == SignaturePolicy.V4
                     val v2SigningEnabled =
-                        apkSignatureState.keyStorePolicy == SignaturePolicy.V2 || apkSignatureState.keyStorePolicy == SignaturePolicy.V2Only || apkSignatureState.keyStorePolicy == SignaturePolicy.V3
-                    val v3SigningEnabled = apkSignatureState.keyStorePolicy == SignaturePolicy.V3
+                        apkSignatureState.keyStorePolicy == SignaturePolicy.V2 || apkSignatureState.keyStorePolicy == SignaturePolicy.V2Only
+                                || apkSignatureState.keyStorePolicy == SignaturePolicy.V3 || apkSignatureState.keyStorePolicy == SignaturePolicy.V4
+                    val v3SigningEnabled =
+                        apkSignatureState.keyStorePolicy == SignaturePolicy.V3 || apkSignatureState.keyStorePolicy == SignaturePolicy.V4
+                    val v4SigningEnabled = apkSignatureState.keyStorePolicy == SignaturePolicy.V4
+                    val v4SignatureOutputFile = File(
+                        apkSignatureState.outputPath,
+                        apkSignatureState.v4SignatureOutputFileName
+                    )
                     val alisa =
                         apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
                     val certificateInfo = KeystoreHelper.getCertificateInfo(
@@ -550,7 +558,11 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                             .setV1SigningEnabled(v1SigningEnabled)
                             .setV2SigningEnabled(v2SigningEnabled)
                             .setV3SigningEnabled(v3SigningEnabled)
-                            .setAlignmentPreserved(!isAlignFileSize).build()
+                            .setV4SigningEnabled(v4SigningEnabled)
+                            .setV4SignatureOutputFile(v4SignatureOutputFile)
+                            .setV4ErrorReportingEnabled(true)
+                            .setAlignmentPreserved(!isAlignFileSize)
+                            .build()
                     apkSigner.sign()
                     if (showUiState) {
                         val snackbarVisualsData = SnackbarVisualsData(
@@ -734,7 +746,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 logger.error { "signerVerifier 获取签名信息结束, 判断是否是X509Certificate类型: ${cert.type}" }
                 if (cert.type == "X.509") {
                     cert as X509Certificate
-                    list.add(cert.getVerifier(cert.version))
+                    list.add(cert.getVerifier(cert.version.toString()))
                     val apkVerifierResult = VerifierResult(
                         isSuccess = true,
                         isApk = false,
@@ -784,7 +796,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 for (signer in result.v1SchemeSigners) {
                     val cert = signer.certificate ?: continue
                     if (signer.certificate.type == "X.509") {
-                        list.add(cert.getVerifier(1))
+                        list.add(cert.getVerifier("1"))
                     }
                     signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
                         .forEach {
@@ -797,7 +809,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 for (signer in result.v2SchemeSigners) {
                     val cert = signer.certificate ?: continue
                     if (signer.certificate.type == "X.509") {
-                        list.add(cert.getVerifier(2))
+                        list.add(cert.getVerifier("2"))
                     }
                     signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
                         .forEach {
@@ -810,7 +822,20 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                 for (signer in result.v3SchemeSigners) {
                     val cert = signer.certificate ?: continue
                     if (signer.certificate.type == "X.509") {
-                        list.add(cert.getVerifier(3))
+                        list.add(cert.getVerifier("3"))
+                    }
+                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
+                        .forEach {
+                            error += it.toString() + "\n"
+                        }
+                }
+            }
+
+            if (result.v31SchemeSigners.isNotEmpty()) {
+                for (signer in result.v3SchemeSigners) {
+                    val cert = signer.certificate ?: continue
+                    if (signer.certificate.type == "X.509") {
+                        list.add(cert.getVerifier("3.1"))
                     }
                     signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
                         .forEach {
@@ -820,10 +845,10 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             }
 
             if (result.v4SchemeSigners.isNotEmpty()) {
-                for (signer in result.v3SchemeSigners) {
+                for (signer in result.v4SchemeSigners) {
                     val cert = signer.certificate ?: continue
                     if (signer.certificate.type == "X.509") {
-                        list.add(cert.getVerifier(4))
+                        list.add(cert.getVerifier("4"))
                     }
                     signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
                         .forEach {

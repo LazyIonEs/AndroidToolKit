@@ -1,7 +1,9 @@
 package org.tool.kit.ui
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,10 +16,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
@@ -27,6 +30,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,7 +39,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.constant.ConfigConstant
@@ -52,6 +56,7 @@ import org.tool.kit.shared.generated.resources.output_path
 import org.tool.kit.shared.generated.resources.signature_strategy
 import org.tool.kit.shared.generated.resources.start_signing
 import org.tool.kit.shared.generated.resources.v2_tips
+import org.tool.kit.shared.generated.resources.v4_signature_output_file_name
 import org.tool.kit.utils.isApk
 import org.tool.kit.utils.isKey
 import org.tool.kit.vm.MainViewModel
@@ -98,7 +103,9 @@ private fun SignatureBox(
                             }
                         }
                         if (mApkPath.isNotBlank()) {
-                            viewModel.updateApkSignature(viewModel.apkSignatureState.copy(apkPath = mApkPath))
+                            val apkSignatureState = viewModel.apkSignatureState.copy()
+                            apkSignatureState.apkPath = mApkPath
+                            viewModel.updateApkSignature(apkSignatureState)
                         }
                         if (mSignaturePath.isNotBlank()) {
                             val apkSignature = viewModel.apkSignatureState.copy()
@@ -152,7 +159,9 @@ private fun SignatureCard(viewModel: MainViewModel) {
                     label = stringResource(Res.string.output_file_prefix),
                     isError = false
                 ) { outputPrefix ->
-                    viewModel.updateApkSignature(viewModel.apkSignatureState.copy(outputPrefix = outputPrefix))
+                    val apkSignatureState = viewModel.apkSignatureState.copy()
+                    apkSignatureState.outputPrefix = outputPrefix
+                    viewModel.updateApkSignature(apkSignatureState)
                 }
             }
             item {
@@ -256,7 +265,9 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
             trailingIcon = { TrailingIcon(expanded = expanded) },
             FileSelectorType.APK
         ) { path ->
-            viewModel.updateApkSignature(viewModel.apkSignatureState.copy(apkPath = path))
+            val apkSignatureState = viewModel.apkSignatureState.copy()
+            apkSignatureState.apkPath = path
+            viewModel.updateApkSignature(apkSignatureState)
         }
         ExposedDropdownMenu(
             expanded = expanded,
@@ -271,7 +282,9 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
                         )
                     },
                     onClick = {
-                        viewModel.updateApkSignature(viewModel.apkSignatureState.copy(apkPath = selectionOption.path))
+                        val apkSignatureState = viewModel.apkSignatureState.copy()
+                        apkSignatureState.apkPath = selectionOption.path
+                        viewModel.updateApkSignature(apkSignatureState)
                         expanded = false
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -284,12 +297,12 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
 /**
  * 签名策略
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun SignaturePolicy(
     viewModel: MainViewModel
 ) {
-    val policyList =
-        listOf(SignaturePolicy.V1, SignaturePolicy.V2, SignaturePolicy.V2Only, SignaturePolicy.V3)
+    val policyList = SignaturePolicy.entries
     Column {
         Row(
             verticalAlignment = Alignment.CenterVertically
@@ -304,38 +317,51 @@ private fun SignaturePolicy(
                 style = MaterialTheme.typography.bodyMedium
             )
         }
-        Spacer(Modifier.size(2.dp))
+        Spacer(Modifier.size(4.dp))
         Row(
-            modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)
+            modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 68.dp),
+            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
         ) {
-            policyList.forEach { signaturePolicy ->
-                ElevatedFilterChip(
-                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
-                    selected = viewModel.apkSignatureState.keyStorePolicy == signaturePolicy,
-                    onClick = {
-                        if (signaturePolicy == SignaturePolicy.V2Only) {
+            policyList.forEachIndexed { index, policy ->
+                ToggleButton(
+                    checked = policy == viewModel.apkSignatureState.keyStorePolicy,
+                    onCheckedChange = {
+                        if (policy == SignaturePolicy.V2Only) {
                             viewModel.updateSnackbarVisuals(Res.string.v2_tips)
                         }
-                        viewModel.updateApkSignature(viewModel.apkSignatureState.copy(keyStorePolicy = signaturePolicy))
+                        viewModel.updateApkSignature(viewModel.apkSignatureState.copy(keyStorePolicy = policy))
                     },
-                    label = {
-                        Text(
-                            signaturePolicy.title,
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.fillMaxWidth().padding(8.dp)
-                        )
-                    },
-                    leadingIcon = if (viewModel.apkSignatureState.keyStorePolicy == signaturePolicy) {
-                        {
+                    modifier = Modifier.weight(1f),
+                    shapes =
+                        when (index) {
+                            0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                            policyList.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                            else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                        },
+                ) {
+                    AnimatedVisibility(policy == viewModel.apkSignatureState.keyStorePolicy) {
+                        Row {
                             Icon(
                                 imageVector = Icons.Rounded.Done,
                                 contentDescription = "Done icon",
                                 modifier = Modifier.size(FilterChipDefaults.IconSize)
                             )
+                            Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                         }
-                    } else {
-                        null
-                    })
+                    }
+                    Text(text = policy.title)
+                }
+            }
+        }
+        AnimatedVisibility(viewModel.apkSignatureState.keyStorePolicy == SignaturePolicy.V4) {
+            Column {
+                Spacer(Modifier.size(6.dp))
+                StringInput(
+                    value = viewModel.apkSignatureState.v4SignatureOutputFileName,
+                    label = stringResource(Res.string.v4_signature_output_file_name),
+                    isError = false,
+                    realOnly = true
+                ) { }
             }
         }
     }

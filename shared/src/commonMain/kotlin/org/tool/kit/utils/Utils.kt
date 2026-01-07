@@ -151,7 +151,7 @@ val resourcesDirWithOs: String = System.getProperty("compose.application.resourc
 val resourcesDirWithCommon: String = System.getProperty("compose.application.resources.dir")
     ?: File(File(System.getProperty("user.dir"), "resources"), "common").absolutePath
 
-fun X509Certificate.getVerifier(version: Int): Verifier {
+fun X509Certificate.getVerifier(version: String): Verifier {
     val subject = this.subjectX500Principal.name
     val validFrom = this.notBefore.toString()
     val validUntil = this.notAfter.toString()

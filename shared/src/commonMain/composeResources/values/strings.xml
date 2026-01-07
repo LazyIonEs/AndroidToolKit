@@ -39,6 +39,7 @@
 
     <string name="output_path">Output Path</string>
     <string name="output_file_prefix">Output File Prefix(optional)</string>
+    <string name="v4_signature_output_file_name">(V4)Signature Output File Name</string>
     <string name="key_store_file">Key Store File Path</string>
     <string name="key_store_password">Key Store Password</string>
     <string name="key_alias">Key Alias</string>
@@ -51,6 +52,7 @@
     <string name="apk_signature_v2">APK Signature Scheme V2, including V1</string>
     <string name="apk_signature_v2_only">APK Signature Scheme V2, not including V1</string>
     <string name="apk_signature_v3">APK Signature Scheme V3, including V1 and V2</string>
+    <string name="apk_signature_v4">APK Signature Scheme V4, including V2 and V3</string>
 
     <string name="check_error">Please check the Error item</string>
     <string name="check_empty">Please check for empty items</string>
