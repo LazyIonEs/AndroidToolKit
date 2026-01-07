@@ -231,6 +231,29 @@ fun getRustDestinyLibFile(): File {
 fun getRustDestinyKtFile(): File =
     File(rustGeneratedSource + File.separator + "uniffi" + File.separator + "toolkit", "toolkit.kt")
 
+fun getRustLibFile(): File {
+    val workingDirPath = if (currentOs() == OS.LINUX && useCross) {
+        if (isLinuxAarch64) {
+            "rust/target/$linuxArmTarget/release"
+        } else {
+            "rust/target/$linuxX64Target/release"
+        }
+    } else {
+        "rust/target/release"
+    }
+
+    val workingDir = File(rootDir, workingDirPath)
+
+    val originLib = when (currentOs()) {
+        OS.LINUX -> "libtoolkit_rs.so"
+        OS.WINDOWS -> "toolkit_rs.dll"
+        OS.MAC -> "libtoolkit_rs.dylib"
+    }
+
+    val originFile = File(workingDir, originLib)
+    return originFile
+}
+
 /**
  * Build Rust library
  */
@@ -264,28 +287,8 @@ fun buildRust() {
  * Copy built Rust library to destination
  */
 fun copyRustBuild() {
-    val workingDirPath = if (currentOs() == OS.LINUX && useCross) {
-        if (isLinuxAarch64) {
-            "rust/target/$linuxArmTarget/release"
-        } else {
-            "rust/target/$linuxX64Target/release"
-        }
-    } else {
-        "rust/target/release"
-    }
-
-    val workingDir = File(rootDir, workingDirPath)
-
-    val originLib = when (currentOs()) {
-        OS.LINUX -> "libtoolkit_rs.so"
-        OS.WINDOWS -> "toolkit_rs.dll"
-        OS.MAC -> "libtoolkit_rs.dylib"
-    }
-
-    val originFile = File(workingDir, originLib)
     val destinyFile = getRustDestinyLibFile()
-
-    Files.copy(originFile.toPath(), FileOutputStream(destinyFile))
+    Files.copy(getRustLibFile().toPath(), FileOutputStream(destinyFile))
     println("Rust library copied successfully")
 }
 
@@ -311,16 +314,17 @@ fun generateKotlinFromUdl() {
 fun runBuildRust() {
     val destinyLibFile = getRustDestinyLibFile()
     val destinyKtFile = getRustDestinyKtFile()
+    val rustLibFile = getRustLibFile()
     
-    // Skip build if cached files exist
-    if (destinyLibFile.exists() && destinyKtFile.exists()) {
-        println("Rust cache exists, skipping rebuild")
-        return
+    if (!rustLibFile.exists()) {
+        buildRust()
     }
-    
-    buildRust()
-    copyRustBuild()
-    generateKotlinFromUdl()
+    if (!destinyLibFile.exists() || (destinyKtFile.length() != rustLibFile.length())) {
+        copyRustBuild()
+    }
+    if (!destinyKtFile.exists()) {
+        generateKotlinFromUdl()
+    }
 }
 
 // ========================================
