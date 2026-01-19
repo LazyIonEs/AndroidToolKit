@@ -93,6 +93,7 @@ import org.tool.kit.shared.generated.resources.key_alias
 import org.tool.kit.shared.generated.resources.key_store_password
 import org.tool.kit.shared.generated.resources.let_go
 import org.tool.kit.shared.generated.resources.password_verification
+import org.tool.kit.shared.generated.resources.switch_copy_mode
 import org.tool.kit.shared.generated.resources.upload
 import org.tool.kit.shared.generated.resources.upload_apk_signature_file
 import org.tool.kit.shared.generated.resources.wrong_key_store_password
@@ -247,7 +248,7 @@ private fun SignatureBox(
                             }
                         },
                         trailingButton = {
-                            val description = "切换复制模式"
+                            val description = stringResource(Res.string.switch_copy_mode)
                             TooltipBox(
                                 positionProvider = rememberTooltipPositionProvider(
                                     TooltipAnchorPosition.Above

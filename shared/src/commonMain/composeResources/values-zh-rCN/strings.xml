@@ -180,6 +180,7 @@
     <string name="password_verification">密钥库密码验证</string>
     <string name="wrong_key_store_password">密钥库密码错误</string>
     <string name="confirm">确认</string>
+    <string name="switch_copy_mode">切换复制模式</string>
     <string name="uppercase_with_colon">大写带冒号</string>
     <string name="lowercase_with_colon">小写带冒号</string>
     <string name="uppercase_without_colon">大写不带冒号</string>
@@ -213,6 +214,10 @@
     <string name="apktool_min_sdk_version">MinSdkVersion</string>
     <string name="apktool_version_code">VersionCode</string>
     <string name="apktool_version_name">VersionName</string>
+    <string name="signing_the_apk_after_it_is_generated">APK生成后立即签名</string>
+    <string name="apk_tool_sign_tips">此功能生成后的APK默认不包含签名(无法直接安装使用)</string>
+    <string name="apk_tool_sign_v3">默认使用V3签名策略(包含V1与V2)</string>
+
 
     <string name="check_for_updates">检查更新</string>
     <string name="version_information">版本信息</string>

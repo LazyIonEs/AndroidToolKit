@@ -48,6 +48,7 @@ import org.tool.kit.model.JunkCodeInfo
 import org.tool.kit.model.KeyStoreInfo
 import org.tool.kit.model.PendingDeletionFile
 import org.tool.kit.model.Sequence
+import org.tool.kit.model.Sign
 import org.tool.kit.model.SignaturePolicy
 import org.tool.kit.model.SnackbarVisualsData
 import org.tool.kit.model.Update
@@ -450,7 +451,12 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             apksSigner()
         } else {
             viewModelScope.launch(Dispatchers.IO) {
-                suspendApkSigner()
+                suspendApkSigner(
+                    outputPath = apkSignatureState.outputPath,
+                    apkPath = apkSignatureState.apkPath,
+                    sign = apkSignatureState,
+                    outputPrefix = apkSignatureState.outputPrefix,
+                )
             }
         }
     }
@@ -466,7 +472,15 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                     .map { it.path }
             _apkSignatureUIState.update { UIState.Loading }
             val resultList = apks.map { path ->
-                async { suspendApkSigner(path = path, showUiState = false) }
+                async {
+                    suspendApkSigner(
+                        outputPath = apkSignatureState.outputPath,
+                        apkPath = path,
+                        sign = apkSignatureState,
+                        outputPrefix = apkSignatureState.outputPrefix,
+                        showUiState = false
+                    )
+                }
             }.awaitAll()
             val result = resultList.none { it == null || !it.exists() }
             logger.info { "apksSigner 多APK签名结束, 结果: $result" }
@@ -496,7 +510,10 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      * APK签名
      */
     suspend fun suspendApkSigner(
-        path: String = apkSignatureState.apkPath,
+        outputPath: String,
+        apkPath: String,
+        sign: Sign,
+        outputPrefix: String = "",
         showUiState: Boolean = true
     ) =
         suspendCancellableCoroutine { coroutine ->
@@ -506,25 +523,22 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                     val signerSuffix = userData.value.defaultSignerSuffix
                     val flagDelete = userData.value.duplicateFileRemoval
                     val isAlignFileSize = (if (isHuaweiAlignFileSize.value)
-                        userData.value.alignFileSize && path != ConfigConstant.APK.Huawei.path
+                        userData.value.alignFileSize && apkPath != ConfigConstant.APK.Huawei.path
                     else
-                        userData.value.alignFileSize) || apkSignatureState.keyStorePolicy == SignaturePolicy.V4
-                    logger.info { "suspendApkSigner APK签名开始, APK文件路径: $path 开启文件对齐: $isAlignFileSize 签名策略: ${apkSignatureState.keyStorePolicy.title}" }
+                        userData.value.alignFileSize) || sign.keyStorePolicy == SignaturePolicy.V4
+                    logger.info { "suspendApkSigner APK签名开始, APK文件路径: $apkPath 开启文件对齐: $isAlignFileSize 签名策略: ${sign.keyStorePolicy.title}" }
                     if (showUiState) {
                         _apkSignatureUIState.update { UIState.Loading }
                     }
-                    val inputApk = File(path)
-                    val outputPrefix = apkSignatureState.outputPrefix
+                    val inputApk = File(apkPath)
+                    val outputPrefix = outputPrefix
                     val outputApk = if (outputPrefix.isNotBlank()) {
                         File(
-                            apkSignatureState.outputPath,
+                            outputPath,
                             "${outputPrefix}-${inputApk.nameWithoutExtension}${signerSuffix}.apk"
                         )
                     } else {
-                        File(
-                            apkSignatureState.outputPath,
-                            "${inputApk.nameWithoutExtension}${signerSuffix}.apk"
-                        )
+                        File(outputPath, "${inputApk.nameWithoutExtension}${signerSuffix}.apk")
                     }
 
                     if (outputApk.exists()) {
@@ -536,27 +550,24 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
                             throw Exception(message)
                         }
                     }
-                    val key = File(apkSignatureState.keyStorePath)
+                    val key = File(sign.keyStorePath)
                     val v1SigningEnabled =
-                        apkSignatureState.keyStorePolicy == SignaturePolicy.V1 || apkSignatureState.keyStorePolicy == SignaturePolicy.V2
-                                || apkSignatureState.keyStorePolicy == SignaturePolicy.V3 || apkSignatureState.keyStorePolicy == SignaturePolicy.V4
+                        sign.keyStorePolicy == SignaturePolicy.V1 || sign.keyStorePolicy == SignaturePolicy.V2
+                                || sign.keyStorePolicy == SignaturePolicy.V3 || sign.keyStorePolicy == SignaturePolicy.V4
                     val v2SigningEnabled =
-                        apkSignatureState.keyStorePolicy == SignaturePolicy.V2 || apkSignatureState.keyStorePolicy == SignaturePolicy.V2Only
-                                || apkSignatureState.keyStorePolicy == SignaturePolicy.V3 || apkSignatureState.keyStorePolicy == SignaturePolicy.V4
+                        sign.keyStorePolicy == SignaturePolicy.V2 || sign.keyStorePolicy == SignaturePolicy.V2Only
+                                || sign.keyStorePolicy == SignaturePolicy.V3 || sign.keyStorePolicy == SignaturePolicy.V4
                     val v3SigningEnabled =
-                        apkSignatureState.keyStorePolicy == SignaturePolicy.V3 || apkSignatureState.keyStorePolicy == SignaturePolicy.V4
-                    val v4SigningEnabled = apkSignatureState.keyStorePolicy == SignaturePolicy.V4
-                    val v4SignatureOutputFile = File(
-                        apkSignatureState.outputPath,
-                        apkSignatureState.v4SignatureOutputFileName
-                    )
+                        sign.keyStorePolicy == SignaturePolicy.V3 || sign.keyStorePolicy == SignaturePolicy.V4
+                    val v4SigningEnabled = sign.keyStorePolicy == SignaturePolicy.V4
+                    val v4SignatureOutputFile = File(outputPath, sign.v4SignatureOutputFileName)
                     val alisa =
-                        apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
+                        sign.keyStoreAlisaList?.getOrNull(sign.keyStoreAlisaIndex)
                     val certificateInfo = KeystoreHelper.getCertificateInfo(
                         "JKS",
                         key,
-                        apkSignatureState.keyStorePassword,
-                        apkSignatureState.keyStoreAlisaPassword,
+                        sign.keyStorePassword,
+                        sign.keyStoreAlisaPassword,
                         alisa
                     )
                     val privateKey = certificateInfo.key
@@ -999,6 +1010,15 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             val apkBuilder = ApkBuilder(outApktoolCacheDirExt, config)
             apkBuilder.build(outApktoolFile)
             logger.info { "generateApktool 打包完成" }
+            if (apkToolInfoState.enableSign) {
+                logger.info { "generateApktool 开始签名" }
+                suspendApkSigner(
+                    outputPath = apkToolInfoState.outputPath,
+                    apkPath = outApktoolFile.path,
+                    sign = apkToolInfoState,
+                    showUiState = false
+                )
+            }
             val snackbarVisualsData = SnackbarVisualsData(
                 message = getString(Res.string.build_end, outApktoolFile.length().formatFileSize()),
                 actionLabel = getString(Res.string.jump),
@@ -1159,17 +1179,15 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     /**
      * 验证别名密码
      */
-    fun verifyAlisaPassword(): Boolean {
+    fun verifyAlisaPassword(sign: Sign): Boolean {
         var fileInputStream: FileInputStream? = null
         try {
             val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
-            fileInputStream = FileInputStream(apkSignatureState.keyStorePath)
-            keyStore.load(fileInputStream, apkSignatureState.keyStorePassword.toCharArray())
-            val alisa =
-                apkSignatureState.keyStoreAlisaList?.getOrNull(apkSignatureState.keyStoreAlisaIndex)
+            fileInputStream = FileInputStream(sign.keyStorePath)
+            keyStore.load(fileInputStream, sign.keyStorePassword.toCharArray())
+            val alisa = sign.keyStoreAlisaList?.getOrNull(sign.keyStoreAlisaIndex)
             if (keyStore.containsAlias(alisa)) {
-                val key =
-                    keyStore.getKey(alisa, apkSignatureState.keyStoreAlisaPassword.toCharArray())
+                val key = keyStore.getKey(alisa, sign.keyStoreAlisaPassword.toCharArray())
                 return key != null
             }
         } catch (e: Exception) {

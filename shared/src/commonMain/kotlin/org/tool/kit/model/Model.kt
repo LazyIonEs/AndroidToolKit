@@ -55,18 +55,18 @@ data class ApkSignature(
     private var _apkPath: String = "", // apk路径
     var outputPath: String = "", // apk输出路径
     private var _outputPrefix: String = "", // 输出文件前缀
-    var keyStorePolicy: SignaturePolicy = SignaturePolicy.V2, // 密钥策略
-    private var _keyStorePath: String = "", // 密钥
-    var keyStorePassword: String = "", // 密钥密码
-    var keyStoreAlisaList: ArrayList<String>? = null,  // 别名列表
-    var keyStoreAlisaIndex: Int = 0, // 别名选中下标
-    var keyStoreAlisaPassword: String = "", // 别名密码
-    var v4SignatureOutputFileName: String = "apk-name.apk.idsig", // V4签名输出文件名称
-) {
+    override var keyStorePolicy: SignaturePolicy = SignaturePolicy.V2, // 密钥策略
+    override var _keyStorePath: String = "", // 密钥
+    override var keyStorePassword: String = "", // 密钥密码
+    override var keyStoreAlisaList: ArrayList<String>? = null,  // 别名列表
+    override var keyStoreAlisaIndex: Int = 0, // 别名选中下标
+    override var keyStoreAlisaPassword: String = "", // 别名密码
+    override var v4SignatureOutputFileName: String = "apk-name.apk.idsig", // V4签名输出文件名称
+) : Sign() {
     var apkPath: String
         get() = _apkPath
         set(value) {
-            if (_keyStorePath != value) {
+            if (_apkPath != value) {
                 if (value.isNotBlank()) {
                     val apkFile = File(value)
                     if (apkFile.exists()) {
@@ -108,17 +108,6 @@ data class ApkSignature(
                 }
             }
             _outputPrefix = value
-        }
-    var keyStorePath: String
-        get() = _keyStorePath
-        set(value) {
-            if (_keyStorePath != value) {
-                this.keyStorePassword = ""
-                this.keyStoreAlisaList = null
-                this.keyStoreAlisaIndex = 0
-                this.keyStoreAlisaPassword = ""
-            }
-            _keyStorePath = value
         }
 }
 
@@ -263,4 +252,33 @@ data class ApkToolInfo(
     var versionCode: String = "1", // 版本号
     var versionName: String = "1.0", // 版本名称
     var appName: String = "HelloAndroid", // 应用名称
-)
+    var enableSign: Boolean = false, // 启用签名
+    override var _keyStorePath: String = "", // 密钥
+    override var keyStorePolicy: SignaturePolicy = SignaturePolicy.V3, // 密钥策略
+    override var keyStorePassword: String = "", // 密钥密码
+    override var keyStoreAlisaList: ArrayList<String>? = null,  // 别名列表
+    override var keyStoreAlisaIndex: Int = 0, // 别名选中下标
+    override var keyStoreAlisaPassword: String = "", // 别名密码
+) : Sign()
+
+open class Sign(
+    protected open var _keyStorePath: String = "", // 密钥
+    open var keyStorePolicy: SignaturePolicy = SignaturePolicy.V2, // 密钥策略
+    open var keyStorePassword: String = "", // 密钥密码
+    open var keyStoreAlisaList: ArrayList<String>? = null,  // 别名列表
+    open var keyStoreAlisaIndex: Int = 0, // 别名选中下标
+    open var keyStoreAlisaPassword: String = "", // 别名密码
+    open var v4SignatureOutputFileName: String = "apk-name.apk.idsig", // V4签名输出文件名称
+) {
+    var keyStorePath: String
+        get() = _keyStorePath
+        set(value) {
+            if (_keyStorePath != value) {
+                this.keyStorePassword = ""
+                this.keyStoreAlisaList = null
+                this.keyStoreAlisaIndex = 0
+                this.keyStoreAlisaPassword = ""
+            }
+            _keyStorePath = value
+        }
+}
