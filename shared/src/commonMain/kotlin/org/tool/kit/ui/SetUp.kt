@@ -292,6 +292,7 @@ private fun KeyStore(viewModel: MainViewModel) {
                                 viewModel.saveUserData(userData.copy(destStoreType = destStoreType))
                             },
                             modifier = Modifier.defaultMinSize(minWidth = 120.dp),
+                            colors = ToggleButtonDefaults.elevatedToggleButtonColors(),
                             shapes =
                                 when (index) {
                                     0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
@@ -347,6 +348,7 @@ private fun KeyStore(viewModel: MainViewModel) {
                                 viewModel.saveUserData(userData.copy(destStoreSize = destStoreSize))
                             },
                             modifier = Modifier.defaultMinSize(minWidth = 120.dp),
+                            colors = ToggleButtonDefaults.elevatedToggleButtonColors(),
                             shapes =
                                 when (index) {
                                     0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
@@ -429,6 +431,7 @@ private fun Conventional(
                                 viewModel.saveThemeConfig(theme)
                             },
                             modifier = Modifier.weight(1f),
+                            colors = ToggleButtonDefaults.elevatedToggleButtonColors(),
                             shapes =
                                 when (index) {
                                     0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()

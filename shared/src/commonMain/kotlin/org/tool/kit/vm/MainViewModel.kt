@@ -40,6 +40,7 @@ import org.tool.kit.database.PreferencesDataSource
 import org.tool.kit.model.ApkInformation
 import org.tool.kit.model.ApkSignature
 import org.tool.kit.model.ApkToolInfo
+import org.tool.kit.model.CopyMode
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.IconFactoryData
 import org.tool.kit.model.IconFactoryInfo
@@ -182,6 +183,13 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
 
     val isStartCheckUpdate = preferences.isStartCheckUpdate.stateIn(
         scope = viewModelScope, started = Eagerly, initialValue = false
+    )
+
+    // 复制模式
+    val copyMode = preferences.copyMode.stateIn(
+        scope = viewModelScope,
+        started = Eagerly,
+        initialValue = PreferencesDataSource.DEFAULT_COPY_MODE
     )
 
     // 主页选中下标
@@ -349,6 +357,12 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     fun saveIconFactoryData(iconFactoryData: IconFactoryData) {
         viewModelScope.launch {
             preferences.saveIconFactoryData(iconFactoryData)
+        }
+    }
+
+    fun saveCopyMode(copyMode: CopyMode) {
+        viewModelScope.launch {
+            preferences.saveCopyMode(copyMode)
         }
     }
 

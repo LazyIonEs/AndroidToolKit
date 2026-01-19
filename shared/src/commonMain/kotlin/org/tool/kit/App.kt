@@ -73,6 +73,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -80,8 +83,9 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.mohamedrejeb.richeditor.model.rememberRichTextState
-import com.mohamedrejeb.richeditor.ui.material3.RichText
+import com.mikepenz.markdown.m3.Markdown
+import com.mikepenz.markdown.m3.markdownTypography
+import com.mikepenz.markdown.model.markdownPadding
 import com.russhwolf.settings.ExperimentalSettingsApi
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Job
@@ -440,18 +444,31 @@ private fun DownloadStartUI(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             update.body?.let { body ->
-                val regex = Regex("(?<!#)#{1,2}(?!#)")
-                val state = rememberRichTextState()
-                state.setMarkdown(body.replace(regex, "###"))
-                state.config.linkColor = MaterialTheme.colorScheme.primary
-                state.config.preserveStyleOnEmptyLine = false
-                state.config.exitListOnEmptyItem = false
-                RichText(
-                    state = state,
+                Markdown(
+                    content = body.trimIndent(),
+                    typography = markdownTypography(
+                        h1 = MaterialTheme.typography.titleLarge,
+                        h2 = MaterialTheme.typography.titleMedium,
+                        h3 = MaterialTheme.typography.titleSmall,
+                        h4 = MaterialTheme.typography.bodyLarge,
+                        h5 = MaterialTheme.typography.bodyMedium,
+                        h6 = MaterialTheme.typography.bodySmall,
+                        text = MaterialTheme.typography.labelMedium,
+                        paragraph = MaterialTheme.typography.labelMedium,
+                        ordered = MaterialTheme.typography.labelMedium,
+                        bullet = MaterialTheme.typography.labelMedium,
+                        list = MaterialTheme.typography.labelMedium,
+                        textLink = TextLinkStyles(
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                textDecoration = TextDecoration.Underline
+                            ).toSpanStyle()
+                        ),
+                    ),
+                    padding = markdownPadding(listItemTop = 2.dp, listItemBottom = 2.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 4.dp),
-                    style = MaterialTheme.typography.labelMedium
                 )
             }
             Text(

@@ -1,5 +1,6 @@
 package org.tool.kit.utils
 
+import org.tool.kit.model.CopyMode
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.copied_to_clipboard
 import org.tool.kit.vm.MainViewModel
@@ -16,6 +17,17 @@ import java.awt.datatransfer.StringSelection
 
 fun copy(value: String, viewModel: MainViewModel) {
     copy(value)
+    viewModel.updateSnackbarVisuals(Res.string.copied_to_clipboard)
+}
+
+fun copy(value: String, copyMode: CopyMode, viewModel: MainViewModel) {
+    val result = when (copyMode) {
+        CopyMode.UPPERCASE_WITH_COLON -> value.uppercase()
+        CopyMode.LOWERCASE_WITH_COLON -> value.lowercase()
+        CopyMode.UPPERCASE_WITHOUT_COLON -> value.uppercase().replace(":", "")
+        CopyMode.LOWERCASE_WITHOUT_COLON -> value.lowercase().replace(":", "")
+    }
+    copy(result)
     viewModel.updateSnackbarVisuals(Res.string.copied_to_clipboard)
 }
 

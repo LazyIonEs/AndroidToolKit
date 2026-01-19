@@ -331,6 +331,7 @@ private fun SignaturePolicy(
                         }
                         viewModel.updateApkSignature(viewModel.apkSignatureState.copy(keyStorePolicy = policy))
                     },
+                    colors = ToggleButtonDefaults.elevatedToggleButtonColors(),
                     modifier = Modifier.weight(1f),
                     shapes =
                         when (index) {

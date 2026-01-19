@@ -10,7 +10,6 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.about.libraries)
-    alias(libs.plugins.hot.reload)
 }
 
 // Build properties
@@ -113,7 +112,8 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             
             // UI components
-            implementation(libs.richeditor.compose)
+            implementation(libs.markdown.renderer.jvm)
+            implementation(libs.markdown.renderer.m3)
             implementation(libs.compottie)
             implementation(libs.compottie.dot)
             implementation(libs.compottie.resources)
