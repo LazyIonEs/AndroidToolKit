@@ -27,7 +27,7 @@ coil = "3.3.0"
 zoomimage = "1.4.0"
 apktool = "2.12.1"
 ktor = "3.3.2"
-richeditor = "1.0.0-rc13"
+markdown = "0.39.0"
 logback = "1.5.21"
 compottie = "2.0.2"
 
@@ -95,8 +95,9 @@ ktor-client-apache5 = { module = "io.ktor:ktor-client-apache5", version.ref = "k
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
-# https://github.com/MohamedRejeb/compose-rich-editor
-richeditor-compose = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richeditor" }
+# https://github.com/mikepenz/multiplatform-markdown-renderer
+markdown-renderer-jvm = { module = "com.mikepenz:multiplatform-markdown-renderer-jvm", version.ref = "markdown" }
+markdown-renderer-m3 = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "markdown" }
 # https://github.com/alexzhirkevich/compottie
 compottie = { module = "io.github.alexzhirkevich:compottie", version.ref = "compottie" }
 compottie-dot = { module = "io.github.alexzhirkevich:compottie-dot", version.ref = "compottie" }
@@ -110,6 +111,3 @@ githubBuildconfig = { id = "com.github.gmazzo.buildconfig", version.ref = "build
 kotlinSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 about-libraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "about-libraries" }
-# https://github.com/JetBrains/compose-hot-reload
-hot-reload = { id = "org.jetbrains.compose.hot-reload", version.ref = "hot-reload" }
-foojay-resolver-convention = { id = "org.gradle.toolchains.foojay-resolver-convention", version.ref = "foojay" }

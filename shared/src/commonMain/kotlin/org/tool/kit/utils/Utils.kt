@@ -47,9 +47,9 @@ import org.tool.kit.model.GithubRestLatestResult
 import org.tool.kit.model.GithubRestResult
 import org.tool.kit.model.Verifier
 import org.tool.kit.shared.generated.resources.Res
-import org.tool.kit.shared.generated.resources.network_error
 import org.tool.kit.shared.generated.resources.check_update_remaining_tips
 import org.tool.kit.shared.generated.resources.network_connection_error
+import org.tool.kit.shared.generated.resources.network_error
 import org.w3c.dom.Node
 import java.awt.Desktop
 import java.io.ByteArrayOutputStream
@@ -623,14 +623,26 @@ fun String.isNewVersion(other: String): Boolean {
 }
 
 fun MutableList<Asset>.filterByOS(): List<Asset>? {
-    if (isMac) {
-        return filter { it.name.contains("macos") }
-    } else if (isLinux) {
-        return filter { it.name.contains("linux") }
-    } else if (isWindows) {
-        return filter { it.name.contains("windows") }
+    val arch = System.getProperty("os.arch")
+    val isArm = arch.contains("aarch64", true) || arch.contains("arm64", true)
+    val targetArchKeywords = if (isArm) {
+        listOf("arm64", "aarch64")
+    } else {
+        listOf("x64", "x86_64", "amd64")
     }
-    return null
+    val targetOsKeyword = when {
+        isMac -> "macos"
+        isLinux -> "linux"
+        isWindows -> "windows"
+        else -> return null
+    }
+    return this.filter { asset ->
+        val osMatches = asset.name.contains(targetOsKeyword, true)
+        val archMatches = targetArchKeywords.any { keyword ->
+            asset.name.contains(keyword)
+        }
+        osMatches && archMatches
+    }
 }
 
 /**

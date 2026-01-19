@@ -12,10 +12,6 @@ pluginManagement {
     }
 }
 
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
-}
-
 dependencyResolutionManagement {
     // Prefer settings repositories over project repositories
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)

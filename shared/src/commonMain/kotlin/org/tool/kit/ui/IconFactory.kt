@@ -498,6 +498,7 @@ fun Compression(viewModel: MainViewModel) {
                 onCheckedChange = {
                     viewModel.saveIconFactoryData(iconFactoryData.copy(lossless = index == 0))
                 },
+                colors = ToggleButtonDefaults.tonalToggleButtonColors(),
                 modifier = Modifier.weight(1f),
                 shapes = when (index) {
                     0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
