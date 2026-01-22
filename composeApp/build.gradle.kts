@@ -85,7 +85,6 @@ compose.desktop {
 
         // JVM arguments for desktop application
         jvmArgs += listOf(
-            "-Dapple.awt.application.appearance=system",  // System appearance on macOS
             "-Djava.net.useSystemProxies=true",           // Use system proxies
             "-Dorg.slf4j.simpleLogger.defaultLogLevel=INFO",  // Logging level
             "-Dkotlin-logging-to-logback=true",           // Logback integration
@@ -151,6 +150,12 @@ compose.desktop {
                 bundleID = "org.tool.kit"
                 dockName = kitPackageName
                 iconFile.set(project.file("launcher/icon.icns"))
+
+                jvmArgs("-Dapple.awt.application.appearance=system") // System appearance on macOS
+
+                infoPlist {
+                    this.extraKeysRawXml = macExtraPlistKeys
+                }
             }
             
             // Windows-specific configuration
@@ -170,6 +175,7 @@ compose.desktop {
         
         // ProGuard configuration for release builds
         buildTypes.release.proguard {
+            version.set("7.8.2")
             obfuscate.set(true)
             optimize.set(true)
             joinOutputJars.set(true)
@@ -177,3 +183,13 @@ compose.desktop {
         }
     }
 }
+
+val macExtraPlistKeys: String
+    get() = """
+      <key>CFBundleLocalizations</key>
+      <array>
+        <string>en_US</string>
+        <string>en_GB</string>
+        <string>zh_CN</string>
+      </array>
+    """

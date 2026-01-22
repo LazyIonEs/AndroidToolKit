@@ -54,17 +54,22 @@ kotlin {
         commonMain.dependencies {
             // Compose dependencies (API for downstream modules)
             api(libs.compose.runtime)
+            api(libs.compose.runtime.saveable)
             api(libs.compose.ui)
             api(libs.compose.foundation)
             api(libs.compose.material)
             api(libs.compose.material3)
-            api(libs.compose.material3.adaptive)
             api(libs.compose.components.resources)
             api(libs.compose.material.icons.extended.desktop)
+            api(libs.compose.navigation3.ui)
+            api(libs.compose.adaptive)
+            api(libs.compose.adaptive.navigation3)
+            api(libs.compose.savedstate.compose)
 
             // Lifecycle
             implementation(libs.lifecycle.viewmodel.compose)
-            
+            implementation(libs.lifecycle.viewmodel.navigation3)
+
             // Kotlin libraries
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
@@ -123,7 +128,7 @@ kotlin {
             implementation(libs.about.libraries.compose.m3)
             
             // IntelliJ utilities (with extensive exclusions)
-            implementation("com.jetbrains.intellij.platform:util:243.26053.20") {
+            implementation("com.jetbrains.intellij.platform:util:253.29346.308") {
                 exclude(group = "com.fasterxml", module = "aalto-xml")
                 exclude(group = "com.github.ben-manes.caffeine", module = "caffeine")
                 exclude(group = "com.intellij.platform", module = "kotlinx-coroutines-core-jvm")
@@ -332,7 +337,7 @@ fun runBuildRust() {
 // ========================================
 
 // Register Rust build task
-task("rustTasks") {
+tasks.register("rustTasks") {
     runBuildRust()
 }
 

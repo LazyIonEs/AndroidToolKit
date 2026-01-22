@@ -2,11 +2,14 @@
 compose = "1.4.0"
 compose-compiler = "1.5.8"
 compose-plugin = "1.11.0-alpha01"
+material3 = "1.11.0-alpha01"
+navigation3 = "1.1.0-alpha01"
+savedstate = "1.4.0"
 icons = "1.7.3"
 adaptive = "1.3.0-alpha03"
 lifecycle = "2.10.0-alpha07"
 junit = "4.13.2"
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 apksig = "8.11.1"
 tools = "31.11.1"
 slf4j = "2.0.17"
@@ -14,19 +17,17 @@ buildconfig = "5.6.7"
 commons-codec = "1.19.0"
 asm = "9.9"
 jna = "5.18.1"
-logging = "7.0.13"
+logging = "7.0.14"
 coroutines = "1.10.2"
 filekit = "0.12.0"
 multiplatform-settings = "1.3.0"
-kotlinx-serialization-json = "1.9.0"
+kotlinx-serialization-json = "1.10.0-RC"
 kotlinx-datetime = "0.7.1"
 about-libraries = "13.2.1"
-hot-reload = "1.1.0-alpha03"
-foojay = "1.0.0"
 coil = "3.3.0"
 zoomimage = "1.4.0"
 apktool = "2.12.1"
-ktor = "3.3.2"
+ktor = "3.3.3"
 markdown = "0.39.0"
 logback = "1.5.21"
 compottie = "2.0.2"
@@ -36,15 +37,20 @@ kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotl
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "compose-plugin" }
+compose-runtime-saveable = { module = "org.jetbrains.compose.runtime:runtime-saveable", version.ref = "compose-plugin" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose-plugin" }
 compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose-plugin" }
 compose-material = { module = "org.jetbrains.compose.material:material", version.ref = "compose-plugin" }
-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-plugin" }
-compose-material3-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "adaptive" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-plugin" }
 compose-material-icons-extended-desktop = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "icons" }
+compose-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
+compose-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "adaptive" }
+compose-adaptive-navigation3 = { module = "org.jetbrains.compose.material3.adaptive:adaptive-navigation3", version.ref = "adaptive"}
+compose-savedstate-compose = { module = "org.jetbrains.androidx.savedstate:savedstate-compose", version.ref = "savedstate" }
 # https://mvnrepository.com/artifact/org.jetbrains.androidx.lifecycle/lifecycle-viewmodel-compose
 lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+lifecycle-viewmodel-navigation3 = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycle" }
 # https://mvnrepository.com/artifact/com.android.tools.build/apksig
 android-apksig = { module = "com.android.tools.build:apksig", version.ref = "apksig" }
 # https://mvnrepository.com/artifact/com.android.tools/sdk-common

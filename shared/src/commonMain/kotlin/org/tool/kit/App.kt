@@ -1,81 +1,39 @@
 package org.tool.kit
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Article
-import androidx.compose.material.icons.automirrored.rounded.Article
-import androidx.compose.material.icons.outlined.Assessment
-import androidx.compose.material.icons.outlined.BrightnessAuto
-import androidx.compose.material.icons.outlined.Cookie
-import androidx.compose.material.icons.outlined.DesignServices
-import androidx.compose.material.icons.outlined.FolderDelete
-import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.Verified
-import androidx.compose.material.icons.outlined.VpnKey
-import androidx.compose.material.icons.rounded.Assessment
-import androidx.compose.material.icons.rounded.BrightnessAuto
-import androidx.compose.material.icons.rounded.Cookie
-import androidx.compose.material.icons.rounded.DesignServices
-import androidx.compose.material.icons.rounded.FolderDelete
-import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material.icons.rounded.Verified
-import androidx.compose.material.icons.rounded.VpnKey
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.TextLinkStyles
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
@@ -83,71 +41,39 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.mikepenz.markdown.m3.Markdown
-import com.mikepenz.markdown.m3.markdownTypography
-import com.mikepenz.markdown.model.markdownPadding
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.ui.NavDisplay
 import com.russhwolf.settings.ExperimentalSettingsApi
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.tool.kit.model.Asset
+import org.tool.kit.feature.apk.navigation.apkInformationEntry
+import org.tool.kit.feature.apk.navigation.apkToolEntry
+import org.tool.kit.feature.cleaner.CleanerNavKey
+import org.tool.kit.feature.cleaner.navigation.cleanerEntry
+import org.tool.kit.feature.iconfactory.navigation.iconFactoryEntry
+import org.tool.kit.feature.junk.JunkCodeNavKey
+import org.tool.kit.feature.junk.navigation.junkCodeEntry
+import org.tool.kit.feature.rememberAppState
+import org.tool.kit.feature.setting.navigation.settingEntry
+import org.tool.kit.feature.signature.navigation.apkSignatureEntry
+import org.tool.kit.feature.signature.navigation.signatureGenerationEntry
+import org.tool.kit.feature.signature.navigation.signatureInformationEntry
 import org.tool.kit.model.DarkThemeConfig
-import org.tool.kit.model.DownloadState
-import org.tool.kit.model.Update
 import org.tool.kit.model.UserData
+import org.tool.kit.navigation.Navigator
+import org.tool.kit.navigation.TOP_LEVEL_NAV_ITEMS
+import org.tool.kit.navigation.defaultTransitionSpec
+import org.tool.kit.navigation.toEntries
 import org.tool.kit.platform.createFlowSettings
 import org.tool.kit.shared.generated.resources.Res
-import org.tool.kit.shared.generated.resources.apk_information_rail
-import org.tool.kit.shared.generated.resources.apk_information_tooltip
-import org.tool.kit.shared.generated.resources.apk_signature_rail
-import org.tool.kit.shared.generated.resources.apk_signature_tooltip
-import org.tool.kit.shared.generated.resources.apk_tool_rail
-import org.tool.kit.shared.generated.resources.apk_tool_tooltip
-import org.tool.kit.shared.generated.resources.cache_cleanup_rail
-import org.tool.kit.shared.generated.resources.cache_cleanup_tooltip
-import org.tool.kit.shared.generated.resources.cancel
-import org.tool.kit.shared.generated.resources.connecting
-import org.tool.kit.shared.generated.resources.download_success
-import org.tool.kit.shared.generated.resources.download_tips
-import org.tool.kit.shared.generated.resources.downloading
-import org.tool.kit.shared.generated.resources.exit_and_install
-import org.tool.kit.shared.generated.resources.garbage_code_rail
-import org.tool.kit.shared.generated.resources.garbage_code_tooltip
 import org.tool.kit.shared.generated.resources.icon
-import org.tool.kit.shared.generated.resources.icon_generation_rail
-import org.tool.kit.shared.generated.resources.icon_generation_tooltip
-import org.tool.kit.shared.generated.resources.prepare_for_installation
-import org.tool.kit.shared.generated.resources.release_time
-import org.tool.kit.shared.generated.resources.setting_rail
-import org.tool.kit.shared.generated.resources.setting_tooltip
-import org.tool.kit.shared.generated.resources.signature_generation_rail
-import org.tool.kit.shared.generated.resources.signature_generation_tooltip
-import org.tool.kit.shared.generated.resources.signature_information_rail
-import org.tool.kit.shared.generated.resources.signature_information_tooltip
-import org.tool.kit.shared.generated.resources.update
 import org.tool.kit.theme.AppTheme
-import org.tool.kit.ui.ApkInformation
-import org.tool.kit.ui.ApkSignature
-import org.tool.kit.ui.ApkTool
-import org.tool.kit.ui.ClearBuild
 import org.tool.kit.ui.ClearBuildBottom
-import org.tool.kit.ui.IconFactory
-import org.tool.kit.ui.JunkCode
 import org.tool.kit.ui.LoadingAnimate
-import org.tool.kit.ui.SetUp
-import org.tool.kit.ui.SignatureGeneration
-import org.tool.kit.ui.SignatureInformation
-import org.tool.kit.utils.downloadFile
-import org.tool.kit.utils.formatFileSize
+import org.tool.kit.ui.UpdateDialog
 import org.tool.kit.vm.MainViewModel
 import org.tool.kit.vm.UIState
-import java.awt.Desktop
-import java.io.File
-import kotlin.math.roundToInt
-import kotlin.system.exitProcess
 
 private val logger = KotlinLogging.logger("App")
 
@@ -181,15 +107,20 @@ fun WindowIcon() = painterResource(Res.drawable.icon)
 /**
  * 主要模块
  */
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MainContentScreen(viewModel: MainViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
     val userData by viewModel.userData.collectAsState()
     collectOutputPath(viewModel, userData)
+
+    val appState = rememberAppState()
+
+    val navigator = remember { Navigator(appState.navigationState) }
+
     Scaffold(bottomBar = {
         AnimatedVisibility(
-            visible = viewModel.uiPageIndex == Page.CLEAR_BUILD && viewModel.fileClearUIState == UIState.WAIT && viewModel.pendingDeletionFileList.isNotEmpty(),
+            visible = appState.navigationState.currentTopLevelKey == CleanerNavKey && viewModel.fileClearUIState == UIState.WAIT && viewModel.pendingDeletionFileList.isNotEmpty(),
             enter = fadeIn() + expandVertically(),
             exit = shrinkVertically() + fadeOut()
         ) {
@@ -203,29 +134,7 @@ fun MainContentScreen(viewModel: MainViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             val isAlwaysShowLabel by viewModel.isAlwaysShowLabel.collectAsState()
-            val isShowApktool by viewModel.isShowApktool.collectAsState()
             val isShowJunkCode by viewModel.isShowJunkCode.collectAsState()
-            val isShowIconFactory by viewModel.isShowIconFactory.collectAsState()
-            val isShowClearBuild by viewModel.isShowClearBuild.collectAsState()
-            val isShowSignatureGeneration by viewModel.isShowSignatureGeneration.collectAsState()
-            val pages = Page.entries.toMutableList().also { list ->
-                if (!isShowApktool) {
-                    list.remove(Page.APK_TOOL)
-                }
-                if (!isShowJunkCode) {
-                    list.remove(Page.JUNK_CODE)
-                }
-                if (!isShowSignatureGeneration) {
-                    list.remove(Page.SIGNATURE_GENERATION)
-                }
-                if (!isShowIconFactory) {
-                    list.remove(Page.ICON_FACTORY)
-                }
-                if (!isShowClearBuild) {
-                    list.remove(Page.CLEAR_BUILD)
-                }
-            }
-            // 导航栏
             AnimatedVisibility(viewModel.pendingDeletionFileList.isEmpty()) {
                 NavigationRail(Modifier.fillMaxHeight()) {
                     Column(
@@ -233,32 +142,35 @@ fun MainContentScreen(viewModel: MainViewModel) {
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        pages.forEachIndexed { _, page ->
+                        TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
+                            if (navKey == JunkCodeNavKey && !isShowJunkCode) {
+                                return@forEach
+                            }
+                            val selected = navKey == appState.navigationState.currentTopLevelKey
                             TooltipBox(
                                 positionProvider = rememberRichTooltipPositionProvider(),
                                 tooltip = {
                                     PlainTooltip {
                                         Text(
-                                            stringResource(page.tooltip),
+                                            stringResource(navItem.tooltip),
                                             style = MaterialTheme.typography.bodySmall
                                         )
                                     }
                                 },
                                 state = rememberTooltipState(),
-                                enableUserInput = viewModel.uiPageIndex != page
+                                enableUserInput = !selected
                             ) {
-                                val icon =
-                                    if (viewModel.uiPageIndex == page) page.selectedIcon else page.unSelectedIcon
+                                val icon = if (selected) navItem.selectedIcon else navItem.unSelectedIcon
                                 NavigationRailItem(
-                                    label = { Text(stringResource(page.title)) },
+                                    label = { Text(stringResource(navItem.title)) },
                                     icon = {
                                         Icon(
                                             icon,
-                                            contentDescription = stringResource(page.title)
+                                            contentDescription = stringResource(navItem.title)
                                         )
                                     },
-                                    selected = viewModel.uiPageIndex == page,
-                                    onClick = { viewModel.updateUiState(page) },
+                                    selected = selected,
+                                    onClick = { navigator.navigate(navKey) },
                                     alwaysShowLabel = isAlwaysShowLabel,
                                 )
                             }
@@ -266,25 +178,23 @@ fun MainContentScreen(viewModel: MainViewModel) {
                     }
                 }
             }
-            // 主界面
-            val content: @Composable (Page) -> Unit = { page ->
-                when (page) {
-                    Page.SIGNATURE_INFORMATION -> SignatureInformation(viewModel)
-                    Page.APK_INFORMATION -> ApkInformation(viewModel)
-                    Page.APK_SIGNATURE -> ApkSignature(viewModel)
-                    Page.SIGNATURE_GENERATION -> SignatureGeneration(viewModel)
-                    Page.APK_TOOL -> ApkTool(viewModel)
-                    Page.JUNK_CODE -> JunkCode(viewModel)
-                    Page.ICON_FACTORY -> IconFactory(viewModel)
-                    Page.CLEAR_BUILD -> ClearBuild(viewModel)
-                    Page.SET_UP -> SetUp(viewModel)
-                }
+
+            val entryProvider = entryProvider {
+                signatureInformationEntry(viewModel)
+                apkInformationEntry(viewModel)
+                apkSignatureEntry(viewModel)
+                signatureGenerationEntry(viewModel)
+                apkToolEntry(viewModel)
+                junkCodeEntry(viewModel)
+                iconFactoryEntry(viewModel)
+                cleanerEntry(viewModel)
+                settingEntry(viewModel)
             }
-            // 淡入淡出切换页面
-            Crossfade(
-                targetState = viewModel.uiPageIndex,
-                modifier = Modifier.fillMaxSize(),
-                content = content
+
+            NavDisplay(
+                entries = appState.navigationState.toEntries(entryProvider),
+                onBack = { navigator.goBack() },
+                transitionSpec = defaultTransitionSpec()
             )
         }
     }
@@ -299,270 +209,6 @@ fun MainContentScreen(viewModel: MainViewModel) {
     }
     LoadingAnimate(isShowLoading(viewModel), viewModel)
     UpdateDialog(viewModel)
-}
-
-/**
- * 检查更新弹窗
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun UpdateDialog(vm: MainViewModel) {
-    val update by vm.checkUpdateResult.collectAsState()
-    var downloadState by remember { mutableStateOf(DownloadState.START) }
-    var downloadProgress by remember { mutableStateOf(0f) }
-    var downloadedByte by remember { mutableStateOf(0L) }
-    var totalByte by remember { mutableStateOf(0L) }
-    val coroutineScope = rememberCoroutineScope()
-    var job: Job? = null
-    var downloadFile: File? = null
-    update?.let { update ->
-        if (update.assets.isNotEmpty()) {
-            val (selectedOption, onOptionSelected) = remember { mutableStateOf(update.assets[0]) }
-            val download: () -> Unit = {
-                job = coroutineScope.launch {
-                    val destFile = File(vm.userData.value.defaultOutputPath, selectedOption.name)
-                    downloadState = DownloadState.DOWNLOADING
-                    val result = downloadFile(
-                        selectedOption.browserDownloadUrl,
-                        destFile
-                    ) { downloaded, total ->
-                        downloadedByte = downloaded
-                        totalByte = total
-                        downloadProgress = if (total > 0) {
-                            (downloaded.toFloat() / total).coerceIn(0f, 1f)
-                        } else {
-                            0f
-                        }
-                    }
-                    if (result.isSuccess) {
-                        downloadFile = destFile
-                        downloadState = DownloadState.FINISH
-                    } else {
-                        downloadState = DownloadState.START
-                        vm.updateSnackbarVisuals(result.msg ?: return@launch)
-                    }
-                }
-            }
-            AlertDialog(
-                icon = null, title = {
-                    val title = when (downloadState) {
-                        DownloadState.START -> "${BuildConfig.APP_NAME}-${update.version}"
-                        DownloadState.DOWNLOADING -> if (downloadProgress <= 0f) {
-                            stringResource(Res.string.connecting)
-                        } else {
-                            stringResource(
-                                Res.string.downloading,
-                                (downloadProgress * 100).roundToInt()
-                            )
-                        }
-
-                        DownloadState.FINISH -> stringResource(Res.string.download_success)
-                    }
-                    Text(text = title)
-                }, text = {
-                    AnimatedContent(downloadState) { state ->
-                        when (state) {
-                            DownloadState.START -> DownloadStartUI(
-                                update,
-                                selectedOption,
-                                onOptionSelected
-                            )
-
-                            DownloadState.DOWNLOADING, DownloadState.FINISH -> DownloadUI(
-                                downloadProgress,
-                                downloadedByte,
-                                totalByte,
-                                state
-                            )
-                        }
-                    }
-                }, onDismissRequest = {
-                    if (downloadState != DownloadState.DOWNLOADING) {
-                        vm.cancelUpdate()
-                    }
-                }, confirmButton = {
-                    AnimatedContent(downloadState) { state ->
-                        when (state) {
-                            DownloadState.START -> TextButton(onClick = download) {
-                                Text(text = stringResource(Res.string.update))
-                            }
-
-                            DownloadState.DOWNLOADING -> Unit
-                            DownloadState.FINISH -> TextButton(onClick = {
-                                vm.cancelUpdate()
-                                if (downloadFile != null && downloadFile.exists()) {
-                                    runCatching {
-                                        Desktop.getDesktop().open(downloadFile)
-                                    }.onFailure { e ->
-                                        logger.error(e) { "org.tool.kit.UpdateDialog 打开安装文件异常, 异常信息: ${e.message}" }
-                                    }.onSuccess {
-                                        exitProcess(0)
-                                    }
-                                }
-                            }) {
-                                Text(text = stringResource(Res.string.exit_and_install))
-                            }
-                        }
-                    }
-                }, dismissButton = {
-                    TextButton(onClick = {
-                        if (downloadState == DownloadState.DOWNLOADING) {
-                            job?.cancel()
-                            job = null
-                            downloadProgress = 0f
-                            downloadedByte = 0L
-                            totalByte = 0L
-                            downloadState = DownloadState.START
-                        } else {
-                            vm.cancelUpdate()
-                        }
-                    }) {
-                        Text(text = stringResource(Res.string.cancel))
-                    }
-                })
-        }
-    }
-}
-
-@Composable
-private fun DownloadStartUI(
-    update: Update,
-    selectedOption: Asset,
-    onOptionSelected: (Asset) -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        val scrollState = rememberScrollState()
-        HorizontalDivider(thickness = 2.dp)
-        Column(
-            modifier = Modifier.fillMaxWidth()
-                .heightIn(0.dp, 160.dp)
-                .padding(vertical = 8.dp)
-                .verticalScroll(scrollState),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            update.body?.let { body ->
-                Markdown(
-                    content = body.trimIndent(),
-                    typography = markdownTypography(
-                        h1 = MaterialTheme.typography.titleLarge,
-                        h2 = MaterialTheme.typography.titleMedium,
-                        h3 = MaterialTheme.typography.titleSmall,
-                        h4 = MaterialTheme.typography.bodyLarge,
-                        h5 = MaterialTheme.typography.bodyMedium,
-                        h6 = MaterialTheme.typography.bodySmall,
-                        text = MaterialTheme.typography.labelMedium,
-                        paragraph = MaterialTheme.typography.labelMedium,
-                        ordered = MaterialTheme.typography.labelMedium,
-                        bullet = MaterialTheme.typography.labelMedium,
-                        list = MaterialTheme.typography.labelMedium,
-                        textLink = TextLinkStyles(
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                textDecoration = TextDecoration.Underline
-                            ).toSpanStyle()
-                        ),
-                    ),
-                    padding = markdownPadding(listItemTop = 2.dp, listItemBottom = 2.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp),
-                )
-            }
-            Text(
-                text = stringResource(Res.string.release_time, update.createdAt),
-                modifier = Modifier.padding(vertical = 4.dp)
-                    .align(Alignment.End),
-                style = MaterialTheme.typography.labelSmall,
-            )
-        }
-        HorizontalDivider(
-            modifier = Modifier.padding(bottom = 8.dp),
-            thickness = 2.dp
-        )
-        Column(Modifier.selectableGroup()) {
-            update.assets.forEach { asset ->
-                val interactionSource =
-                    remember { MutableInteractionSource() }
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .height(40.dp)
-                        .padding(vertical = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Start
-                ) {
-                    RadioButton(
-                        selected = (asset == selectedOption),
-                        onClick = { onOptionSelected(asset) },
-                        interactionSource = interactionSource,
-                    )
-                    Text(
-                        text = asset.name,
-                        style = MaterialTheme.typography.bodyLarge,
-                        modifier = Modifier.selectable(
-                            selected = (asset == selectedOption),
-                            onClick = { onOptionSelected(asset) },
-                            role = Role.RadioButton,
-                            interactionSource = interactionSource,
-                            indication = null
-                        )
-                    )
-                }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun DownloadUI(
-    downloadProgress: Float,
-    downloadedByte: Long,
-    totalByte: Long,
-    state: DownloadState
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.Start
-    ) {
-        val tips = when (state) {
-            DownloadState.START -> stringResource(Res.string.download_tips)
-            DownloadState.DOWNLOADING -> stringResource(Res.string.download_tips)
-            DownloadState.FINISH -> stringResource(Res.string.prepare_for_installation)
-        }
-        Text(
-            text = tips,
-            modifier = Modifier.padding(vertical = 4.dp),
-            style = MaterialTheme.typography.titleMedium,
-        )
-        AnimatedContent(
-            downloadProgress == 0f,
-            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
-        ) { unspecified ->
-            if (unspecified) {
-                LinearWavyProgressIndicator()
-            } else {
-                LinearWavyProgressIndicator(progress = { downloadProgress })
-            }
-        }
-        AnimatedVisibility(
-            totalByte != 0L && state == DownloadState.DOWNLOADING,
-            modifier = Modifier.align(Alignment.End)
-        ) {
-            Text(
-                text = "${
-                    downloadedByte.formatFileSize(1)
-                } / ${
-                    totalByte.formatFileSize(1)
-                }",
-                modifier = Modifier.padding(top = 4.dp),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-    }
 }
 
 private fun isShowLoading(viewModel: MainViewModel) =
@@ -583,68 +229,6 @@ fun collectOutputPath(viewModel: MainViewModel, userData: UserData) {
     }
 }
 
-enum class Page(
-    val title: StringResource,
-    val tooltip: StringResource,
-    val selectedIcon: ImageVector,
-    val unSelectedIcon: ImageVector
-) {
-    SIGNATURE_INFORMATION(
-        Res.string.signature_information_rail,
-        Res.string.signature_information_tooltip,
-        Icons.AutoMirrored.Rounded.Article,
-        Icons.AutoMirrored.Outlined.Article
-    ),
-    APK_INFORMATION(
-        Res.string.apk_information_rail,
-        Res.string.apk_information_tooltip,
-        Icons.Rounded.Assessment,
-        Icons.Outlined.Assessment
-    ),
-    APK_SIGNATURE(
-        Res.string.apk_signature_rail,
-        Res.string.apk_signature_tooltip,
-        Icons.Rounded.VpnKey,
-        Icons.Outlined.VpnKey
-    ),
-    SIGNATURE_GENERATION(
-        Res.string.signature_generation_rail,
-        Res.string.signature_generation_tooltip,
-        Icons.Rounded.Verified,
-        Icons.Outlined.Verified
-    ),
-    APK_TOOL(
-        Res.string.apk_tool_rail,
-        Res.string.apk_tool_tooltip,
-        Icons.Rounded.BrightnessAuto,
-        Icons.Outlined.BrightnessAuto
-    ),
-    JUNK_CODE(
-        Res.string.garbage_code_rail,
-        Res.string.garbage_code_tooltip,
-        Icons.Rounded.Cookie,
-        Icons.Outlined.Cookie
-    ),
-    ICON_FACTORY(
-        Res.string.icon_generation_rail,
-        Res.string.icon_generation_tooltip,
-        Icons.Rounded.DesignServices,
-        Icons.Outlined.DesignServices
-    ),
-    CLEAR_BUILD(
-        Res.string.cache_cleanup_rail,
-        Res.string.cache_cleanup_tooltip,
-        Icons.Rounded.FolderDelete,
-        Icons.Outlined.FolderDelete
-    ),
-    SET_UP(
-        Res.string.setting_rail,
-        Res.string.setting_tooltip,
-        Icons.Rounded.Settings,
-        Icons.Outlined.Settings
-    )
-}
-
 @Composable
 private fun rememberRichTooltipPositionProvider(): PopupPositionProvider {
     val tooltipAnchorSpacing = with(LocalDensity.current) { 4.dp.roundToPx() }
@@ -659,8 +243,7 @@ private fun rememberRichTooltipPositionProvider(): PopupPositionProvider {
                 var x = anchorBounds.right
                 if (x + popupContentSize.width > windowSize.width) {
                     x = anchorBounds.left - popupContentSize.width
-                    if (x < 0) x =
-                        anchorBounds.left + (anchorBounds.width - popupContentSize.width) / 2
+                    if (x < 0) x = anchorBounds.left + (anchorBounds.width - popupContentSize.width) / 2
                 }
                 x -= tooltipAnchorSpacing
                 val y = anchorBounds.top + (anchorBounds.height - popupContentSize.height) / 2

@@ -1,4 +1,4 @@
-package org.tool.kit.database
+package org.tool.kit.data.source
 
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.coroutines.FlowSettings
@@ -57,12 +57,8 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
         val DEFAULT_COPY_MODE = CopyMode.UPPERCASE_WITH_COLON
         private const val JUNK_CODE = "junk_code"
         private const val DEVELOPER_MODE = "developer_mode"
-        private const val APK_TOOL = "apk_tool"
         private const val ALWAYS_SHOW_LABEL = "always_show_label"
         private const val HUAWEI_ALIGN_FILE_SIZE = "huawei_align_file_size"
-        private const val SIGNATURE_GENERATION = "signature_generation"
-        private const val ICON_FACTORY = "icon_factory"
-        private const val CLEAR_BUILD = "clear_build"
         private const val START_CHECK_UPDATE = "start_check_update"
         private const val SIGNATURE_COPY_MODE = "signature_copy_mode"
     }
@@ -109,30 +105,6 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
 
     suspend fun saveJunkCode(show: Boolean) {
         settings.putBoolean(JUNK_CODE, show)
-    }
-
-    val isShowApktool = settings.getBooleanFlow(APK_TOOL, true)
-
-    suspend fun saveApkTool(show: Boolean) {
-        settings.putBoolean(APK_TOOL, show)
-    }
-
-    val isShowIconFactory = settings.getBooleanFlow(ICON_FACTORY, true)
-
-    suspend fun saveIconFactory(show: Boolean) {
-        settings.putBoolean(ICON_FACTORY, show)
-    }
-
-    val isShowSignatureGeneration = settings.getBooleanFlow(SIGNATURE_GENERATION, true)
-
-    suspend fun saveSignatureGeneration(show: Boolean) {
-        settings.putBoolean(SIGNATURE_GENERATION, show)
-    }
-
-    val isShowClearBuild = settings.getBooleanFlow(CLEAR_BUILD, true)
-
-    suspend fun saveClearBuild(show: Boolean) {
-        settings.putBoolean(CLEAR_BUILD, show)
     }
 
     val isAlwaysShowLabel = settings.getBooleanFlow(ALWAYS_SHOW_LABEL, false)

@@ -34,9 +34,8 @@ import org.apache.commons.codec.digest.DigestUtils
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.tool.kit.BuildConfig
-import org.tool.kit.Page
 import org.tool.kit.constant.ConfigConstant
-import org.tool.kit.database.PreferencesDataSource
+import org.tool.kit.data.source.PreferencesDataSource
 import org.tool.kit.model.ApkInformation
 import org.tool.kit.model.ApkSignature
 import org.tool.kit.model.ApkToolInfo
@@ -162,22 +161,6 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
     )
 
-    val isShowSignatureGeneration = preferences.isShowSignatureGeneration.stateIn(
-        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
-    )
-
-    val isShowApktool = preferences.isShowApktool.stateIn(
-        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
-    )
-
-    val isShowIconFactory = preferences.isShowIconFactory.stateIn(
-        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
-    )
-
-    val isShowClearBuild = preferences.isShowClearBuild.stateIn(
-        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
-    )
-
     val isEnableDeveloperMode = preferences.isEnableDeveloperMode.stateIn(
         scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
     )
@@ -192,14 +175,6 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         started = Eagerly,
         initialValue = PreferencesDataSource.DEFAULT_COPY_MODE
     )
-
-    // 主页选中下标
-    private val _uiPageIndex = mutableStateOf(Page.SIGNATURE_INFORMATION)
-    val uiPageIndex by _uiPageIndex
-
-    fun updateUiState(page: Page) {
-        _uiPageIndex.update { page }
-    }
 
     // 签名信息UI状态
     private val _verifierState = mutableStateOf<UIState>(UIState.WAIT)
@@ -300,18 +275,6 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         }
     }
 
-    fun saveApkTool(show: Boolean) {
-        viewModelScope.launch {
-            preferences.saveApkTool(show)
-        }
-    }
-
-    fun saveSignatureGeneration(show: Boolean) {
-        viewModelScope.launch {
-            preferences.saveSignatureGeneration(show)
-        }
-    }
-
     fun saveIsAlwaysShowLabel(show: Boolean) {
         viewModelScope.launch {
             preferences.saveIsAlwaysShowLabel(show)
@@ -321,18 +284,6 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     fun saveIsHuaweiAlignFileSize(show: Boolean) {
         viewModelScope.launch {
             preferences.saveIsHuaweiAlignFileSize(show)
-        }
-    }
-
-    fun saveIconFactory(show: Boolean) {
-        viewModelScope.launch {
-            preferences.saveIconFactory(show)
-        }
-    }
-
-    fun saveClearBuild(show: Boolean) {
-        viewModelScope.launch {
-            preferences.saveClearBuild(show)
         }
     }
 
