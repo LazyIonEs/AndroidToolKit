@@ -324,7 +324,7 @@ fun runBuildRust() {
     if (!rustLibFile.exists()) {
         buildRust()
     }
-    if (!destinyLibFile.exists() || (destinyKtFile.length() != rustLibFile.length())) {
+    if (!destinyLibFile.exists() || (destinyLibFile.length() != rustLibFile.length())) {
         copyRustBuild()
     }
     if (!destinyKtFile.exists()) {
@@ -338,13 +338,13 @@ fun runBuildRust() {
 
 // Register Rust build task
 tasks.register("rustTasks") {
-    runBuildRust()
+    doLast {
+        runBuildRust()
+    }
 }
 
 // Export library definitions for aboutlibraries
 tasks.getByName("copyNonXmlValueResourcesForCommonMain").dependsOn("exportLibraryDefinitions")
 
-// Ensure Rust is built after Kotlin compilation
-tasks.getByName("compileKotlinJvm").doLast { 
-    runBuildRust()
-}
+// Ensure Rust is built before Kotlin compilation
+tasks.getByName("compileKotlinJvm").dependsOn("rustTasks")
