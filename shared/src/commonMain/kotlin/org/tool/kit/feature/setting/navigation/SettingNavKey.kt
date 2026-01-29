@@ -1,10 +1,10 @@
-package org.tool.kit.feature.setting
+package org.tool.kit.feature.setting.navigation
 
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
 /**
- * @author      : Eddy
+ * @author      : LazyIonEs
  * @description : 描述
  * @createDate  : 2026/1/20 16:52
  */

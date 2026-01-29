@@ -21,15 +21,15 @@ import androidx.compose.material.icons.rounded.Verified
 import androidx.compose.material.icons.rounded.VpnKey
 import androidx.compose.ui.graphics.vector.ImageVector
 import org.jetbrains.compose.resources.StringResource
-import org.tool.kit.feature.apk.ApkInformationNavKey
-import org.tool.kit.feature.apk.ApkToolNavKey
-import org.tool.kit.feature.cleaner.CleanerNavKey
-import org.tool.kit.feature.iconfactory.IconFactoryNavKey
-import org.tool.kit.feature.junk.JunkCodeNavKey
-import org.tool.kit.feature.setting.SettingNavKey
-import org.tool.kit.feature.signature.ApkSignatureNavKey
-import org.tool.kit.feature.signature.SignatureGenerationNavKey
-import org.tool.kit.feature.signature.SignatureInformationNavKey
+import org.tool.kit.feature.apk.navigation.ApkInformationNavKey
+import org.tool.kit.feature.apk.navigation.ApkToolNavKey
+import org.tool.kit.feature.cleaner.navigation.CleanerNavKey
+import org.tool.kit.feature.iconfactory.navigation.IconFactoryNavKey
+import org.tool.kit.feature.junk.navigation.JunkCodeNavKey
+import org.tool.kit.feature.setting.navigation.SettingNavKey
+import org.tool.kit.feature.signature.navigation.ApkSignatureNavKey
+import org.tool.kit.feature.signature.navigation.SignatureGenerationNavKey
+import org.tool.kit.feature.signature.navigation.SignatureInformationNavKey
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.apk_information_rail
 import org.tool.kit.shared.generated.resources.apk_information_tooltip
@@ -51,7 +51,7 @@ import org.tool.kit.shared.generated.resources.signature_information_rail
 import org.tool.kit.shared.generated.resources.signature_information_tooltip
 
 /**
- * @author      : Eddy
+ * @author      : LazyIonEs
  * @description : 描述
  * @createDate  : 2026/1/20 16:35
  */

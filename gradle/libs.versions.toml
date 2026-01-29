@@ -1,13 +1,12 @@
 [versions]
 compose = "1.4.0"
 compose-compiler = "1.5.8"
-compose-plugin = "1.11.0-alpha01"
-material3 = "1.11.0-alpha01"
-navigation3 = "1.1.0-alpha01"
+compose-plugin = "1.11.0-alpha02"
+navigation3 = "1.1.0-alpha02"
 savedstate = "1.4.0"
 icons = "1.7.3"
-adaptive = "1.3.0-alpha03"
-lifecycle = "2.10.0-alpha07"
+adaptive = "1.3.0-alpha04"
+lifecycle = "2.10.0-alpha08"
 junit = "4.13.2"
 kotlin = "2.3.0"
 apksig = "8.11.1"
@@ -41,7 +40,7 @@ compose-runtime-saveable = { module = "org.jetbrains.compose.runtime:runtime-sav
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose-plugin" }
 compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose-plugin" }
 compose-material = { module = "org.jetbrains.compose.material:material", version.ref = "compose-plugin" }
-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-plugin" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-plugin" }
 compose-material-icons-extended-desktop = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "icons" }
 compose-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }

@@ -8,7 +8,7 @@ import org.tool.kit.shared.generated.resources.uppercase_with_colon
 import org.tool.kit.shared.generated.resources.uppercase_without_colon
 
 /**
- * @author      : Eddy
+ * @author      : LazyIonEs
  * @description : 描述
  * @createDate  : 2026/1/19 14:58
  */

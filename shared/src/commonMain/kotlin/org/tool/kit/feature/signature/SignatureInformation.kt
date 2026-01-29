@@ -1,4 +1,4 @@
-package org.tool.kit.ui
+package org.tool.kit.feature.signature
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
@@ -81,6 +81,9 @@ import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import io.github.vinceglb.filekit.path
 import org.jetbrains.compose.resources.stringResource
+import org.tool.kit.feature.ui.FileButton
+import org.tool.kit.feature.ui.UploadAnimate
+import org.tool.kit.feature.ui.dragAndDropTarget
 import org.tool.kit.model.CopyMode
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.FileSelectorType

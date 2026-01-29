@@ -5,13 +5,13 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.CoroutineScope
-import org.tool.kit.feature.signature.SignatureInformationNavKey
+import org.tool.kit.feature.signature.navigation.SignatureInformationNavKey
 import org.tool.kit.navigation.NavigationState
 import org.tool.kit.navigation.TOP_LEVEL_NAV_ITEMS
 import org.tool.kit.navigation.rememberNavigationState
 
 /**
- * @author      : Eddy
+ * @author      : LazyIonEs
  * @description : 描述
  * @createDate  : 2026/1/20 16:58
  */
@@ -19,8 +19,7 @@ import org.tool.kit.navigation.rememberNavigationState
 fun rememberAppState(
     coroutineScope: CoroutineScope = rememberCoroutineScope(),
 ): AppState {
-    val navigationState =
-        rememberNavigationState(SignatureInformationNavKey, TOP_LEVEL_NAV_ITEMS.keys)
+    val navigationState = rememberNavigationState(SignatureInformationNavKey, TOP_LEVEL_NAV_ITEMS.keys)
 
     return remember(
         navigationState,

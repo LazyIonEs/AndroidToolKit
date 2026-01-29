@@ -1,4 +1,4 @@
-package org.tool.kit.ui
+package org.tool.kit.feature.junk
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
+import org.tool.kit.feature.ui.FolderInput
+import org.tool.kit.feature.ui.IntInput
+import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.aar_name
 import org.tool.kit.shared.generated.resources.aar_output_path
@@ -45,12 +48,14 @@ fun JunkCode(viewModel: MainViewModel) {
 @Composable
 private fun JunkCodeBox(viewModel: MainViewModel) {
     Card(
-        modifier = Modifier.fillMaxSize().padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
+        modifier = Modifier.fillMaxSize()
+            .padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
     ) {
         val outputPathError =
             viewModel.junkCodeInfoState.outputPath.isNotBlank() && !File(viewModel.junkCodeInfoState.outputPath).isDirectory
         LazyColumn(
-            modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 Spacer(Modifier.size(16.dp))
@@ -127,7 +132,8 @@ private fun PackageName(viewModel: MainViewModel) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(3f),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp)
+                .weight(3f),
             value = viewModel.junkCodeInfoState.packageName,
             onValueChange = { packageName ->
                 val junkCodeInfo = viewModel.junkCodeInfoState.copy()
@@ -149,7 +155,8 @@ private fun PackageName(viewModel: MainViewModel) {
             modifier = Modifier.align(Alignment.Bottom).padding(bottom = 3.dp)
         )
         OutlinedTextField(
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(2f),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp)
+                .weight(2f),
             value = viewModel.junkCodeInfoState.suffix,
             onValueChange = { suffix ->
                 val junkCodeInfo = viewModel.junkCodeInfoState.copy()

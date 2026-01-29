@@ -1,4 +1,4 @@
-package org.tool.kit.ui
+package org.tool.kit.feature.apk
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -37,6 +37,9 @@ import coil3.compose.AsyncImage
 import com.github.panpf.zoomimage.CoilZoomAsyncImage
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.tool.kit.feature.ui.FileButton
+import org.tool.kit.feature.ui.UploadAnimate
+import org.tool.kit.feature.ui.dragAndDropTarget
 import org.tool.kit.model.ApkInformation
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.FileSelectorType

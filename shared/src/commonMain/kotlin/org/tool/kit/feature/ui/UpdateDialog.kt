@@ -1,4 +1,4 @@
-package org.tool.kit.ui
+package org.tool.kit.feature.ui
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -67,7 +67,7 @@ import kotlin.math.roundToInt
 import kotlin.system.exitProcess
 
 /**
- * @author      : Eddy
+ * @author      : LazyIonEs
  * @description : 描述
  * @createDate  : 2026/1/20 09:19
  */

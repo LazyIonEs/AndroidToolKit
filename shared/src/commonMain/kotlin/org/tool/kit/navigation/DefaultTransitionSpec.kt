@@ -8,7 +8,7 @@ import androidx.compose.animation.fadeOut
 import androidx.navigation3.scene.Scene
 
 /**
- * @author      : Eddy
+ * @author      : LazyIonEs
  * @description : 描述
  * @createDate  : 2026/1/22 14:05
  */

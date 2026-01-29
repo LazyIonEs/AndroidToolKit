@@ -1,4 +1,4 @@
-package org.tool.kit.ui
+package org.tool.kit.feature.apk
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
@@ -43,6 +43,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
+import org.tool.kit.feature.ui.FileInput
+import org.tool.kit.feature.ui.FolderInput
+import org.tool.kit.feature.ui.PasswordInput
+import org.tool.kit.feature.ui.StringInput
+import org.tool.kit.feature.ui.UploadAnimate
+import org.tool.kit.feature.ui.dragAndDropTarget
 import org.tool.kit.model.FileSelectorType
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.apk_output_path

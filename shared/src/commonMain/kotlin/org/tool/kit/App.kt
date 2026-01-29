@@ -27,8 +27,10 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -49,16 +51,17 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.feature.apk.navigation.apkInformationEntry
 import org.tool.kit.feature.apk.navigation.apkToolEntry
-import org.tool.kit.feature.cleaner.CleanerNavKey
+import org.tool.kit.feature.cleaner.navigation.CleanerNavKey
 import org.tool.kit.feature.cleaner.navigation.cleanerEntry
 import org.tool.kit.feature.iconfactory.navigation.iconFactoryEntry
-import org.tool.kit.feature.junk.JunkCodeNavKey
+import org.tool.kit.feature.junk.navigation.JunkCodeNavKey
 import org.tool.kit.feature.junk.navigation.junkCodeEntry
 import org.tool.kit.feature.rememberAppState
 import org.tool.kit.feature.setting.navigation.settingEntry
 import org.tool.kit.feature.signature.navigation.apkSignatureEntry
 import org.tool.kit.feature.signature.navigation.signatureGenerationEntry
 import org.tool.kit.feature.signature.navigation.signatureInformationEntry
+import org.tool.kit.feature.ui.LoadingAnimate
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.UserData
 import org.tool.kit.navigation.Navigator
@@ -69,9 +72,8 @@ import org.tool.kit.platform.createFlowSettings
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.icon
 import org.tool.kit.theme.AppTheme
-import org.tool.kit.ui.ClearBuildBottom
-import org.tool.kit.ui.LoadingAnimate
-import org.tool.kit.ui.UpdateDialog
+import org.tool.kit.feature.cleaner.ClearBuildBottom
+import org.tool.kit.feature.ui.UpdateDialog
 import org.tool.kit.vm.MainViewModel
 import org.tool.kit.vm.UIState
 
@@ -91,7 +93,9 @@ fun App() {
     logger.info { "启动App, 应用版本号: ${BuildConfig.APP_VERSION}" }
 
     AppTheme(useDarkTheme) {
-        MainContentScreen(viewModel)
+        CompositionLocalProvider(LocalIsAppDarkTheme provides useDarkTheme) {
+            MainContentScreen(viewModel)
+        }
     }
 
     LaunchedEffect(Unit) {
@@ -99,6 +103,10 @@ fun App() {
             viewModel.checkUpdate(showMessage = false)
         }
     }
+}
+
+val LocalIsAppDarkTheme = compositionLocalOf<Boolean> {
+    error("LocalIsAppDarkTheme state should be initialized at runtime")
 }
 
 @Composable

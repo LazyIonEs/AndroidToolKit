@@ -1,4 +1,4 @@
-package org.tool.kit.ui
+package org.tool.kit.feature.signature
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -24,7 +24,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +41,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.constant.ConfigConstant
+import org.tool.kit.feature.ui.FileInput
+import org.tool.kit.feature.ui.FolderInput
+import org.tool.kit.feature.ui.PasswordInput
+import org.tool.kit.feature.ui.StringInput
+import org.tool.kit.feature.ui.UploadAnimate
 import org.tool.kit.model.FileSelectorType
 import org.tool.kit.model.SignaturePolicy
 import org.tool.kit.shared.generated.resources.Res
@@ -88,7 +92,7 @@ private fun SignatureBox(
         modifier = Modifier.fillMaxSize()
             .dragAndDropTarget(
                 shouldStartDragAndDrop = accept@{ true },
-                target = dragAndDropTarget(dragging = {
+                target = org.tool.kit.feature.ui.dragAndDropTarget(dragging = {
                     dragging = it
                 }, onFinish = { result ->
                     result.onSuccess { fileList ->
@@ -133,10 +137,12 @@ private fun SignatureCard(viewModel: MainViewModel) {
     val signatureAlisaPasswordError =
         !viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty() && viewModel.apkSignatureState.keyStoreAlisaPassword.isNotBlank() && !viewModel.verifyAlisaPassword(viewModel.apkSignatureState)
     Card(
-        modifier = Modifier.fillMaxSize().padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
+        modifier = Modifier.fillMaxSize()
+            .padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
     ) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 Spacer(Modifier.size(16.dp))
@@ -262,7 +268,7 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
             modifier = Modifier.padding(end = 8.dp, bottom = 3.dp).menuAnchor(
                 ExposedDropdownMenuAnchorType.PrimaryEditable
             ),
-            trailingIcon = { TrailingIcon(expanded = expanded) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             FileSelectorType.APK
         ) { path ->
             val apkSignatureState = viewModel.apkSignatureState.copy()
@@ -379,7 +385,8 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
     val selectedOptionText =
         options?.getOrNull(viewModel.apkSignatureState.keyStoreAlisaIndex) ?: ""
     ExposedDropdownMenuBox(
-        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 72.dp, bottom = 3.dp),
+        modifier = Modifier.fillMaxWidth()
+            .padding(start = 24.dp, end = 72.dp, bottom = 3.dp),
         expanded = expanded,
         onExpandedChange = { expanded = it }) {
         OutlinedTextField(
@@ -395,7 +402,7 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
                 )
             },
             singleLine = true,
-            trailingIcon = { TrailingIcon(expanded = expanded) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = ExposedDropdownMenuDefaults.textFieldColors()
         )
         ExposedDropdownMenu(
@@ -469,4 +476,3 @@ private fun signatureApk(
     }
     viewModel.apkSigner()
 }
-

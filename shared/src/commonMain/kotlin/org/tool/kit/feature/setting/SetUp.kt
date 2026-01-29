@@ -1,4 +1,4 @@
-package org.tool.kit.ui
+package org.tool.kit.feature.setting
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -65,6 +65,8 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.BuildConfig
+import org.tool.kit.feature.ui.FolderInput
+import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.DestStoreSize
 import org.tool.kit.model.DestStoreType
@@ -194,7 +196,8 @@ private fun ApkSignatureSetUp(
                 style = MaterialTheme.typography.labelSmall
             )
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 12.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 24.dp, end = 16.dp, top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -215,7 +218,8 @@ private fun ApkSignatureSetUp(
                     onCheckedChange = { viewModel.saveUserData(userData.copy(duplicateFileRemoval = it)) })
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 6.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 24.dp, end = 16.dp, top = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -257,7 +261,8 @@ private fun KeyStore(viewModel: MainViewModel) {
             )
             Spacer(Modifier.size(6.dp))
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 6.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 24.dp, end = 16.dp, top = 6.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -312,7 +317,8 @@ private fun KeyStore(viewModel: MainViewModel) {
                 }
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 6.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 24.dp, end = 16.dp, top = 6.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -452,7 +458,8 @@ private fun Conventional(
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 4.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 24.dp, end = 16.dp, top = 4.dp),
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -573,7 +580,12 @@ private fun About(viewModel: MainViewModel) {
                 value = BuildConfig.APP_LICENSE
             )
             HorizontalDivider(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 8.dp,
+                    bottom = 8.dp
+                ),
                 thickness = 2.dp
             )
             ClickAbout(text = stringResource(Res.string.source_code)) {
@@ -727,7 +739,8 @@ private fun AboutLibrariesWindow(viewModel: MainViewModel, onCloseRequest: () ->
                     selectLibrary?.let { library ->
                         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
                         ModalBottomSheet(
-                            modifier = Modifier.fillMaxHeight().align(Alignment.BottomEnd),
+                            modifier = Modifier.fillMaxHeight()
+                                .align(Alignment.BottomEnd),
                             sheetState = sheetState,
                             onDismissRequest = { selectLibrary = null }
                         ) {
@@ -769,7 +782,8 @@ private fun ExtensionsSwitch(
     onCheckedChange: ((Boolean) -> Unit)?
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 4.dp),
+        modifier = Modifier.fillMaxWidth()
+            .padding(start = 24.dp, end = 16.dp, top = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
