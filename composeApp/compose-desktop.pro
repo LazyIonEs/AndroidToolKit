@@ -26,6 +26,7 @@
 -dontwarn org.jetbrains.**
 -dontwarn kotlinx.coroutines.**
 
+-keep class androidx.compose.** { *; }
 -keep enum org.jetbrains.nav_cupcake.** { *; }
 -keep class com.android.ddmlib.** { *; }
 -keep class org.lwjgl.** { *; }
