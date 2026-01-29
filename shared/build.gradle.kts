@@ -27,7 +27,8 @@ val useCross = (properties.getOrDefault("useCross", "false") as String).toBoolea
 val isLinuxAarch64 = (properties.getOrDefault("isLinuxAarch64", "false") as String).toBoolean()
 
 // Generated source paths
-val rustGeneratedSource = "${layout.buildDirectory.get()}/generated/source/uniffi/main/org/tool/kit/kotlin"
+val rustGeneratedSource =
+    "${layout.buildDirectory.get()}/generated/source/uniffi/main/org/tool/kit/kotlin"
 val aboutLibrariesSource = "src/commonMain/composeResources/files/aboutlibraries.json"
 
 val javaLanguageVersion = JavaLanguageVersion.of(21)
@@ -41,10 +42,10 @@ kotlin {
     jvmToolchain {
         languageVersion.set(javaLanguageVersion)
     }
-    
+
     // Target configuration
     jvm()
-    
+
     // Source sets
     sourceSets {
         // Add Rust generated source to JVM
@@ -79,35 +80,35 @@ kotlin {
             implementation(libs.slf4j.api)
             implementation(libs.logback.core)
             implementation(libs.logback.classic)
-            
+
             // Android tools (with exclusions to avoid conflicts)
             implementation(libs.android.apksig)
             implementation(libs.android.sdk.common)
             implementation(libs.android.binary.resources)
-            
+
             // Third-party libraries
             implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
             implementation(libs.commons.codec)
             implementation(libs.asm)
             implementation(libs.jna)
-            
+
             // File handling
             implementation(libs.filekit.core)
             implementation(libs.filekit.dialogs)
             implementation(libs.filekit.dialogs.compose)
-            
+
             // Settings
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.settings.coroutines)
             implementation(libs.multiplatform.settings.serialization)
-            
+
             // Image handling
             implementation(libs.coil.compose)
             implementation(libs.zoomimage.compose.coil3)
-            
+
             // APK tools
             implementation(libs.apktool.lib)
-            
+
             // Network
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.cio)
@@ -115,18 +116,18 @@ kotlin {
             implementation(libs.ktor.client.logging)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
-            
+
             // UI components
             implementation(libs.markdown.renderer.jvm)
             implementation(libs.markdown.renderer.m3)
             implementation(libs.compottie)
             implementation(libs.compottie.dot)
             implementation(libs.compottie.resources)
-            
+
             // About libraries
             implementation(libs.about.libraries.core)
             implementation(libs.about.libraries.compose.m3)
-            
+
             // IntelliJ utilities (with extensive exclusions)
             implementation("com.jetbrains.intellij.platform:util:253.29346.308") {
                 exclude(group = "com.fasterxml", module = "aalto-xml")
@@ -140,7 +141,10 @@ kotlin {
                 exclude(group = "commons-io", module = "commons-io")
                 exclude(group = "net.java.dev.jna", module = "jna-platform")
                 exclude(group = "org.apache.commons", module = "commons-compress")
-                exclude(group = "org.jetbrains.intellij.deps.fastutil", module = "intellij-deps-fastutil")
+                exclude(
+                    group = "org.jetbrains.intellij.deps.fastutil",
+                    module = "intellij-deps-fastutil"
+                )
                 exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
                 exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-core-jvm")
                 exclude(group = "org.jetbrains.kotlinx", module = "kotlinx-serialization-json-jvm")
@@ -149,7 +153,7 @@ kotlin {
                 exclude(group = "oro", module = "oro")
             }
         }
-        
+
         // JVM-specific dependencies
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -317,9 +321,16 @@ fun generateKotlinFromUdl() {
  * Main Rust build task
  */
 fun runBuildRust() {
-    buildRust()
+    val destinyKtFile = getRustDestinyKtFile()
+    val rustLibFile = getRustLibFile()
+
+    if (!rustLibFile.exists()) {
+        buildRust()
+    }
     copyRustBuild()
-    generateKotlinFromUdl()
+    if (!destinyKtFile.exists()) {
+        generateKotlinFromUdl()
+    }
 }
 
 // ========================================
@@ -327,14 +338,14 @@ fun runBuildRust() {
 // ========================================
 
 // Register Rust build task
-tasks.register("rustTasks") {
-    doLast {
-        runBuildRust()
-    }
+task("rustTasks") {
+    runBuildRust()
 }
 
 // Export library definitions for aboutlibraries
 tasks.getByName("copyNonXmlValueResourcesForCommonMain").dependsOn("exportLibraryDefinitions")
 
 // Ensure Rust is built before Kotlin compilation
-tasks.getByName("compileKotlinJvm").dependsOn("rustTasks")
+tasks.getByName("compileKotlinJvm").doLast {
+    runBuildRust()
+}

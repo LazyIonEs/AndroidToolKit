@@ -8,19 +8,19 @@ crate-type = ["cdylib"]
 name = "toolkit_rs"
 
 [dependencies]
-uniffi = { version = "0.30.0", features = [ "cli" ] }
-image = "0.25.8"
+uniffi = { version = "0.31.0", features = [ "cli" ] }
+image = "0.25.9"
 imagequant = "4.4.1"
-thiserror = "2.0.17"
+thiserror = "2.0.18"
 lodepng = "3.12.1"
-fast_image_resize = { version = "5.3.0", features = ["image"] }
+fast_image_resize = { version = "6.0.0", features = ["image"] }
 mozjpeg = "0.10.13"
-oxipng = { version = "9.1.5", features = ["parallel", "zopfli", "filetime"], default-features = false }
+oxipng = { version = "10.1.0", features = ["parallel", "zopfli"], default-features = false }
 rgb = { version = "0.8.52", default-features = false }
 resize = "0.8.8"
 
 [build-dependencies]
-uniffi = { version = "0.30.0", features = ["build"] }
+uniffi = { version = "0.31.0", features = ["build"] }
 
 [[bin]]
 name = "uniffi-bindgen"
