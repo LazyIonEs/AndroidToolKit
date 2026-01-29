@@ -1,4 +1,4 @@
-package org.tool.kit.ui
+package org.tool.kit.feature.iconfactory
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -27,19 +27,22 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material.icons.rounded.KeyboardArrowUp
 import androidx.compose.material.icons.rounded.Start
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -47,16 +50,15 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.RangeSlider
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.SheetValue
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
@@ -79,6 +81,10 @@ import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.constant.ConfigConstant
+import org.tool.kit.feature.ui.FileButton
+import org.tool.kit.feature.ui.FolderInput
+import org.tool.kit.feature.ui.StringInput
+import org.tool.kit.feature.ui.UploadAnimate
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.FileSelectorType
 import org.tool.kit.model.IconFactoryData
@@ -174,35 +180,41 @@ private fun IconFactoryPreview(
                 }
             }
 
-            Crossfade(targetState = icon, modifier = Modifier.weight(1.5f), content = { icon ->
-                icon?.let {
-                    Box(modifier = Modifier.size(256.dp), contentAlignment = Alignment.Center) {
-                        AsyncImage(
-                            model = getImageRequest(icon),
-                            contentDescription = null,
-                            modifier = Modifier.size(192.dp)
-                        )
+            Crossfade(
+                targetState = icon,
+                modifier = Modifier.weight(1.5f),
+                content = { icon ->
+                    icon?.let {
+                        Box(
+                            modifier = Modifier.size(256.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            AsyncImage(
+                                model = getImageRequest(icon),
+                                contentDescription = null,
+                                modifier = Modifier.size(192.dp)
+                            )
+                        }
+                    } ?: let {
+                        val themeConfig by viewModel.themeConfig.collectAsState()
+                        val useDarkTheme = when (themeConfig) {
+                            DarkThemeConfig.LIGHT -> false
+                            DarkThemeConfig.DARK -> true
+                            DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
+                        }
+                        if (useDarkTheme) {
+                            LottieAnimation(
+                                "files/lottie_main_3_dark.json",
+                                modifier = Modifier.requiredSize(256.dp)
+                            )
+                        } else {
+                            LottieAnimation(
+                                "files/lottie_main_3_light.json",
+                                modifier = Modifier.requiredSize(256.dp)
+                            )
+                        }
                     }
-                } ?: let {
-                    val themeConfig by viewModel.themeConfig.collectAsState()
-                    val useDarkTheme = when (themeConfig) {
-                        DarkThemeConfig.LIGHT -> false
-                        DarkThemeConfig.DARK -> true
-                        DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
-                    }
-                    if (useDarkTheme) {
-                        LottieAnimation(
-                            "files/lottie_main_3_dark.json",
-                            modifier = Modifier.requiredSize(256.dp)
-                        )
-                    } else {
-                        LottieAnimation(
-                            "files/lottie_main_3_light.json",
-                            modifier = Modifier.requiredSize(256.dp)
-                        )
-                    }
-                }
-            })
+                })
 
             AnimatedVisibility(
                 visible = icon != null,
@@ -249,7 +261,8 @@ private fun IconFactoryPreview(
 @Composable
 private fun IconFactoryResult(viewModel: MainViewModel) {
     Column(
-        verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -307,7 +320,10 @@ private fun IconFactoryResultPlaceholder(resultFile: File?, title: String, size:
             )
         } else {
             Card(modifier = Modifier.size(size.dp)) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(text = title, style = MaterialTheme.typography.labelLarge)
                 }
             }
@@ -324,20 +340,22 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
     Box(
         modifier = Modifier.fillMaxSize().dragAndDropTarget(
             shouldStartDragAndDrop = accept@{ true },
-            target = dragAndDropTarget(dragging = { dragging = it }, onFinish = { result ->
-                result.onSuccess { fileList ->
-                    fileList.firstOrNull()?.let {
-                        val path = it.toAbsolutePath().pathString
-                        if (path.isImage) {
-                            viewModel.updateIconFactoryInfo(
-                                viewModel.iconFactoryInfoState.copy(
-                                    icon = File(path), result = null
+            target = org.tool.kit.feature.ui.dragAndDropTarget(
+                dragging = { dragging = it },
+                onFinish = { result ->
+                    result.onSuccess { fileList ->
+                        fileList.firstOrNull()?.let {
+                            val path = it.toAbsolutePath().pathString
+                            if (path.isImage) {
+                                viewModel.updateIconFactoryInfo(
+                                    viewModel.iconFactoryInfoState.copy(
+                                        icon = File(path), result = null
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
-                }
-            })
+                })
         )
     ) {
         Column(modifier = Modifier.align(Alignment.BottomEnd)) {
@@ -366,7 +384,8 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
             }
             AnimatedVisibility(
                 visible = viewModel.iconFactoryInfoState.icon != null,
-                modifier = Modifier.padding(bottom = 16.dp, end = 16.dp).align(Alignment.End)
+                modifier = Modifier.padding(bottom = 16.dp, end = 16.dp)
+                    .align(Alignment.End)
             ) {
                 ExtendedFloatingActionButton(
                     onClick = { showBottomSheet.update { true } },
@@ -419,10 +438,13 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
                         viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(iconName = iconName))
                     })
                 Box(
-                    modifier = Modifier.align(Alignment.CenterEnd).padding(top = 3.dp, end = 16.dp)
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                        .padding(top = 3.dp, end = 16.dp)
                 ) {
                     TooltipBox(
-                        positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+                        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                            TooltipAnchorPosition.Above
+                        ),
                         tooltip = {
                             PlainTooltip {
                                 Text(
@@ -466,7 +488,10 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
                     stringResource(Res.string.compress_custom),
                     style = MaterialTheme.typography.titleSmall
                 )
-                HorizontalDivider(modifier = Modifier.padding(start = 8.dp), thickness = 2.dp)
+                HorizontalDivider(
+                    modifier = Modifier.padding(start = 8.dp),
+                    thickness = 2.dp
+                )
             }
             Spacer(Modifier.size(12.dp))
             Compression(viewModel)
@@ -475,6 +500,7 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @ExperimentalMaterial3Api
 @Composable
 fun Compression(viewModel: MainViewModel) {
@@ -484,21 +510,38 @@ fun Compression(viewModel: MainViewModel) {
             stringResource(Res.string.lossless_compression),
             stringResource(Res.string.lossy_compression)
         )
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
+    Row(
+        modifier = Modifier.padding(horizontal = 24.dp),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+    ) {
         compressionOptions.forEachIndexed { index, label ->
-            SegmentedButton(
-                shape = SegmentedButtonDefaults.itemShape(
-                    index = index,
-                    count = compressionOptions.size
-                ), onClick = {
+            ToggleButton(
+                checked = if (iconFactoryData.lossless) index == 0 else index == 1,
+                onCheckedChange = {
                     viewModel.saveIconFactoryData(iconFactoryData.copy(lossless = index == 0))
-                }, selected = if (iconFactoryData.lossless) index == 0 else index == 1
+                },
+                colors = ToggleButtonDefaults.tonalToggleButtonColors(),
+                modifier = Modifier.weight(1f),
+                shapes = when (index) {
+                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    compressionOptions.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                },
             ) {
-                Text(label, style = MaterialTheme.typography.labelLarge)
+                AnimatedVisibility(if (iconFactoryData.lossless) index == 0 else index == 1) {
+                    Row {
+                        Icon(
+                            imageVector = Icons.Rounded.Done,
+                            contentDescription = "Done icon",
+                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                        )
+                        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                    }
+                }
+                Text(text = label)
             }
         }
     }
-
     AnimatedVisibility(
         visible = !iconFactoryData.lossless,
         enter = fadeIn() + expandVertically(),
@@ -554,7 +597,8 @@ fun Compression(viewModel: MainViewModel) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Algorithm(
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp)
+                .weight(1f),
             options = ConfigConstant.ICON_PNG_ALGORITHM,
             isPng = true,
             name = iconFactoryData.pngTypIdx.name
@@ -563,7 +607,8 @@ fun Compression(viewModel: MainViewModel) {
         }
 
         Algorithm(
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp)
+                .weight(1f),
             options = ConfigConstant.ICON_JPEG_ALGORITHM,
             isPng = false,
             name = iconFactoryData.jpegTypIdx.name
@@ -581,7 +626,8 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         OutlinedTextField(
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp)
+                .weight(1f),
             value = viewModel.iconFactoryInfoState.fileDir,
             onValueChange = { fileDir ->
                 viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(fileDir = fileDir))
@@ -598,7 +644,8 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
         var expanded by remember { mutableStateOf(false) }
         val options = ConfigConstant.ANDROID_ICON_DIR_LIST
         ExposedDropdownMenuBox(
-            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
+            modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp)
+                .weight(1f),
             expanded = expanded,
             onExpandedChange = { expanded = it }) {
             OutlinedTextField(
@@ -617,7 +664,7 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
                 isError = viewModel.iconFactoryInfoState.iconDir.isBlank(),
                 singleLine = true,
                 readOnly = true,
-                trailingIcon = { TrailingIcon(expanded = expanded) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             )
             ExposedDropdownMenu(
                 expanded = expanded,
@@ -745,7 +792,7 @@ private fun <T> Algorithm(
             },
             singleLine = true,
             readOnly = true,
-            trailingIcon = { TrailingIcon(expanded = expanded) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
         )
         ExposedDropdownMenu(
             expanded = expanded,

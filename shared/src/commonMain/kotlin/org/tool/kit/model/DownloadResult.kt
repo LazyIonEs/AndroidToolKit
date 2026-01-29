@@ -3,7 +3,7 @@ package org.tool.kit.model
 import org.jetbrains.compose.resources.StringResource
 
 /**
- * @author      : Eddy
+ * @author      : LazyIonEs
  * @description : 描述
  * @createDate  : 2025/11/10 21:14
  */

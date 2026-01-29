@@ -33,12 +33,6 @@ import kotlin.math.roundToInt
  */
 @Composable
 fun LottieAnimation(path: String, modifier: Modifier = Modifier) {
-//    var animation by remember { mutableStateOf<Animation?>(null) }
-//    scope.launch {
-//        val json = Res.readBytes(path).decodeToString()
-//        animation = Animation.makeFromString(json)
-//    }
-//    animation?.let { InfiniteAnimation(it, modifier.fillMaxSize()) }
     val composition by rememberLottieComposition {
         LottieCompositionSpec.JsonString(Res.readBytes(path).decodeToString())
     }

@@ -1,6 +1,7 @@
-package org.tool.kit.ui
+package org.tool.kit.feature.signature
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
@@ -14,35 +15,44 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
 import androidx.compose.material.icons.automirrored.rounded.Subject
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.SentimentDissatisfied
 import androidx.compose.material.icons.outlined.SentimentVeryDissatisfied
-import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Done
+import androidx.compose.material.icons.rounded.DriveFolderUpload
 import androidx.compose.material.icons.rounded.Password
 import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.QueryBuilder
 import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.SentimentSatisfied
+import androidx.compose.material.icons.rounded.Stars
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.SplitButtonDefaults
+import androidx.compose.material3.SplitButtonLayout
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipAnchorPosition
@@ -58,11 +68,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.path
 import org.jetbrains.compose.resources.stringResource
+import org.tool.kit.feature.ui.FileButton
+import org.tool.kit.feature.ui.UploadAnimate
+import org.tool.kit.feature.ui.dragAndDropTarget
+import org.tool.kit.model.CopyMode
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.FileSelectorType
 import org.tool.kit.model.Verifier
@@ -70,18 +92,20 @@ import org.tool.kit.model.VerifierResult
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.cancel
 import org.tool.kit.shared.generated.resources.confirm
-import org.tool.kit.shared.generated.resources.copy_md5
 import org.tool.kit.shared.generated.resources.key_alias
 import org.tool.kit.shared.generated.resources.key_store_password
 import org.tool.kit.shared.generated.resources.let_go
 import org.tool.kit.shared.generated.resources.password_verification
-import org.tool.kit.shared.generated.resources.quick_copy
+import org.tool.kit.shared.generated.resources.switch_copy_mode
+import org.tool.kit.shared.generated.resources.upload
 import org.tool.kit.shared.generated.resources.upload_apk_signature_file
 import org.tool.kit.shared.generated.resources.wrong_key_store_password
 import org.tool.kit.utils.LottieAnimation
+import org.tool.kit.utils.checkFile
 import org.tool.kit.utils.copy
 import org.tool.kit.utils.isApk
 import org.tool.kit.utils.isKey
+import org.tool.kit.utils.toFileExtensions
 import org.tool.kit.vm.MainViewModel
 import org.tool.kit.vm.UIState
 import kotlin.io.path.pathString
@@ -130,12 +154,16 @@ private fun SignatureLottie(viewModel: MainViewModel) {
 /**
  * 签名主页，包含拖拽文件逻辑
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
 @Composable
 private fun SignatureBox(
     viewModel: MainViewModel, signaturePath: MutableState<String>
 ) {
     var dragging by remember { mutableStateOf(false) }
+    val copyMode by viewModel.copyMode.collectAsState()
     UploadAnimate(dragging)
     Box(
         modifier = Modifier.fillMaxSize()
@@ -156,10 +184,9 @@ private fun SignatureBox(
                 })
             ), contentAlignment = Alignment.TopCenter
     ) {
-        Column(modifier = Modifier.align(Alignment.BottomEnd)) {
+        Row(modifier = Modifier.align(Alignment.BottomEnd)) {
             AnimatedVisibility(
-                visible = viewModel.verifierState != UIState.Loading,
-                modifier = Modifier.align(Alignment.End)
+                visible = viewModel.verifierState == UIState.WAIT,
             ) {
                 FileButton(
                     value = if (dragging) {
@@ -167,7 +194,7 @@ private fun SignatureBox(
                     } else {
                         stringResource(Res.string.upload_apk_signature_file)
                     },
-                    expanded = viewModel.verifierState !is UIState.Success,
+                    expanded = true,
                     FileSelectorType.KEY,
                     FileSelectorType.APK
                 ) { path ->
@@ -180,40 +207,121 @@ private fun SignatureBox(
             }
             AnimatedVisibility(
                 visible = viewModel.verifierState is UIState.Success,
-                modifier = Modifier.align(Alignment.End).padding(bottom = 16.dp, end = 16.dp)
+                modifier = Modifier.padding(end = 16.dp, bottom = 8.dp)
             ) {
-                TooltipBox(
-                    positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
-                    tooltip = {
-                        PlainTooltip {
-                            Text(
-                                text = stringResource(Res.string.copy_md5),
-                                style = MaterialTheme.typography.bodySmall
-                            )
+                Box(modifier = Modifier.wrapContentSize()) {
+                    var checked by remember { mutableStateOf(false) }
+                    val type = arrayOf(FileSelectorType.KEY, FileSelectorType.APK)
+                    val launcher = rememberFilePickerLauncher(
+                        type = FileKitType.File(type.toFileExtensions()),
+                        mode = FileKitMode.Single
+                    ) { file ->
+                        if (type.checkFile(file?.path ?: return@rememberFilePickerLauncher)) {
+                            if (file.path.isApk) {
+                                viewModel.apkVerifier(file.path)
+                            } else if (file.path.isKey) {
+                                signaturePath.value = file.path
+                            }
                         }
-                    },
-                    state = rememberTooltipState()
-                ) {
-                    ExtendedFloatingActionButton(
-                        onClick = {
-                            ((viewModel.verifierState as UIState.Success).result as? VerifierResult)?.let { result ->
-                                if (result.isSuccess) {
-                                    result.data.getOrNull(0)?.let { verifier ->
-                                        val stringBuilder = StringBuilder()
-                                        stringBuilder.append("MD5: ${verifier.md5}")
-                                        stringBuilder.append(System.lineSeparator())
-                                        stringBuilder.append("SHA1: ${verifier.sha1}")
-                                        stringBuilder.append(System.lineSeparator())
-                                        stringBuilder.append("SHA-256: ${verifier.sha256}")
-                                        copy(stringBuilder.toString(), viewModel)
-                                    }
-                                }
+                    }
+                    val size = SplitButtonDefaults.SmallContainerHeight
+                    SplitButtonLayout(
+                        leadingButton = {
+                            SplitButtonDefaults.LeadingButton(
+                                onClick = {
+                                    launcher.launch()
+                                },
+                                modifier = Modifier.heightIn(size),
+                                shapes = SplitButtonDefaults.leadingButtonShapesFor(size),
+                                contentPadding = SplitButtonDefaults.leadingButtonContentPaddingFor(
+                                    size
+                                ),
+                                elevation = ButtonDefaults.elevatedButtonElevation(),
+                            ) {
+                                Icon(
+                                    Icons.Rounded.DriveFolderUpload,
+                                    "DriveFolderUpload",
+                                    Modifier.size(SplitButtonDefaults.leadingButtonIconSizeFor(size))
+                                )
+                                Spacer(Modifier.size(ButtonDefaults.iconSpacingFor(size)))
+                                Text(
+                                    text = stringResource(Res.string.upload),
+                                    style = ButtonDefaults.textStyleFor(size)
+                                )
                             }
                         },
-                        expanded = true,
-                        icon = { Icon(Icons.Rounded.ContentCopy, "ContentCopy") },
-                        text = { Text(text = stringResource(Res.string.quick_copy)) },
+                        trailingButton = {
+                            val description = stringResource(Res.string.switch_copy_mode)
+                            TooltipBox(
+                                positionProvider = rememberTooltipPositionProvider(
+                                    TooltipAnchorPosition.Above
+                                ),
+                                tooltip = { PlainTooltip { Text(description) } },
+                                state = rememberTooltipState(),
+                            ) {
+                                SplitButtonDefaults.TrailingButton(
+                                    checked = checked,
+                                    onCheckedChange = { checked = it },
+                                    modifier = Modifier.heightIn(size).semantics {
+                                        stateDescription = if (checked) "Expanded" else "Collapsed"
+                                        contentDescription = description
+                                    },
+                                    elevation = ButtonDefaults.elevatedButtonElevation(),
+                                    shapes = SplitButtonDefaults.trailingButtonShapesFor(size),
+                                    contentPadding = SplitButtonDefaults.trailingButtonContentPaddingFor(
+                                        size
+                                    ),
+                                ) {
+                                    val rotation: Float by
+                                    animateFloatAsState(
+                                        targetValue = if (checked) 180f else 0f,
+                                        label = "Trailing Icon Rotation",
+                                    )
+                                    Icon(
+                                        Icons.Filled.KeyboardArrowDown,
+                                        modifier =
+                                            Modifier.size(
+                                                SplitButtonDefaults.trailingButtonIconSizeFor(
+                                                    size
+                                                )
+                                            )
+                                                .graphicsLayer {
+                                                    this.rotationZ = rotation
+                                                },
+                                        contentDescription = "Localized description",
+                                    )
+                                }
+                            }
+                        }
                     )
+                    DropdownMenu(
+                        expanded = checked,
+                        onDismissRequest = { checked = false }
+                    ) {
+                        val typeList = CopyMode.entries
+                        typeList.forEach { mode ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(mode.title)) },
+                                onClick = {
+                                    viewModel.saveCopyMode(mode)
+                                },
+                                leadingIcon = {
+                                    AnimatedVisibility(copyMode == mode) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Done,
+                                            contentDescription = "Done"
+                                        )
+                                    }
+                                    AnimatedVisibility(copyMode != mode) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Stars,
+                                            contentDescription = "Stars"
+                                        )
+                                    }
+                                },
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -540,6 +648,7 @@ private fun SignatureListCenter(
 private fun SignatureListBottom(
     verifier: Verifier, viewModel: MainViewModel
 ) {
+    val copyMode by viewModel.copyMode.collectAsState()
     Card(
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
         modifier = Modifier.padding(top = 4.dp, bottom = 8.dp).fillMaxWidth()
@@ -548,7 +657,7 @@ private fun SignatureListBottom(
             modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp)
         ) {
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                copy(verifier.md5, viewModel)
+                copy(verifier.md5, copyMode, viewModel)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp),
@@ -567,7 +676,7 @@ private fun SignatureListBottom(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                copy(verifier.sha1, viewModel)
+                copy(verifier.sha1, copyMode, viewModel)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp),
@@ -586,7 +695,7 @@ private fun SignatureListBottom(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                copy(verifier.sha256, viewModel)
+                copy(verifier.sha256, copyMode, viewModel)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp),

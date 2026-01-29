@@ -1,4 +1,4 @@
-package org.tool.kit.ui
+package org.tool.kit.feature.ui
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutLinearInEasing

@@ -1,5 +1,4 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.compose.compiler.gradle.ComposeFeatureFlag
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -8,7 +7,6 @@ plugins {
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.hot.reload)
 }
 
 // Build properties
@@ -87,7 +85,6 @@ compose.desktop {
 
         // JVM arguments for desktop application
         jvmArgs += listOf(
-            "-Dapple.awt.application.appearance=system",  // System appearance on macOS
             "-Djava.net.useSystemProxies=true",           // Use system proxies
             "-Dorg.slf4j.simpleLogger.defaultLogLevel=INFO",  // Logging level
             "-Dkotlin-logging-to-logback=true",           // Logback integration
@@ -153,6 +150,12 @@ compose.desktop {
                 bundleID = "org.tool.kit"
                 dockName = kitPackageName
                 iconFile.set(project.file("launcher/icon.icns"))
+
+                jvmArgs("-Dapple.awt.application.appearance=system") // System appearance on macOS
+
+                infoPlist {
+                    this.extraKeysRawXml = macExtraPlistKeys
+                }
             }
             
             // Windows-specific configuration
@@ -172,6 +175,7 @@ compose.desktop {
         
         // ProGuard configuration for release builds
         buildTypes.release.proguard {
+            version.set("7.8.2")
             obfuscate.set(true)
             optimize.set(true)
             joinOutputJars.set(true)
@@ -180,13 +184,12 @@ compose.desktop {
     }
 }
 
-// Hot reload configuration
-tasks.withType<org.jetbrains.compose.reload.gradle.ComposeHotRun>().configureEach {
-    mainClass.set("org.tool.kit.MainKt")
-}
-
-// Compose compiler configuration
-composeCompiler {
-    // Enable optimization for non-skipping groups
-    featureFlags.add(ComposeFeatureFlag.OptimizeNonSkippingGroups)
-}
+val macExtraPlistKeys: String
+    get() = """
+      <key>CFBundleLocalizations</key>
+      <array>
+        <string>en_US</string>
+        <string>en_GB</string>
+        <string>zh_CN</string>
+      </array>
+    """

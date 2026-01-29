@@ -10,7 +10,6 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.about.libraries)
-    alias(libs.plugins.hot.reload)
 }
 
 // Build properties
@@ -54,21 +53,27 @@ kotlin {
         // Common dependencies
         commonMain.dependencies {
             // Compose dependencies (API for downstream modules)
-            api(compose.runtime)
-            api(compose.foundation)
-            api(compose.material)
-            api(compose.material3)
-            api(compose.ui)
-            api(compose.components.resources)
-            api(compose.materialIconsExtended)
-            
+            api(libs.compose.runtime)
+            api(libs.compose.runtime.saveable)
+            api(libs.compose.ui)
+            api(libs.compose.foundation)
+            api(libs.compose.material)
+            api(libs.compose.material3)
+            api(libs.compose.components.resources)
+            api(libs.compose.material.icons.extended.desktop)
+            api(libs.compose.navigation3.ui)
+            api(libs.compose.adaptive)
+            api(libs.compose.adaptive.navigation3)
+            api(libs.compose.savedstate.compose)
+
+            // Lifecycle
+            implementation(libs.lifecycle.viewmodel.compose)
+            implementation(libs.lifecycle.viewmodel.navigation3)
+
             // Kotlin libraries
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
-            
-            // Lifecycle
-            implementation(libs.lifecycle.viewmodel.compose)
-            
+
             // Logging
             api(libs.logging)
             implementation(libs.slf4j.api)
@@ -112,7 +117,8 @@ kotlin {
             implementation(libs.ktor.serialization.kotlinx.json)
             
             // UI components
-            implementation(libs.richeditor.compose)
+            implementation(libs.markdown.renderer.jvm)
+            implementation(libs.markdown.renderer.m3)
             implementation(libs.compottie)
             implementation(libs.compottie.dot)
             implementation(libs.compottie.resources)
@@ -122,7 +128,7 @@ kotlin {
             implementation(libs.about.libraries.compose.m3)
             
             // IntelliJ utilities (with extensive exclusions)
-            implementation("com.jetbrains.intellij.platform:util:243.26053.20") {
+            implementation("com.jetbrains.intellij.platform:util:253.29346.308") {
                 exclude(group = "com.fasterxml", module = "aalto-xml")
                 exclude(group = "com.github.ben-manes.caffeine", module = "caffeine")
                 exclude(group = "com.intellij.platform", module = "kotlinx-coroutines-core-jvm")
@@ -230,6 +236,29 @@ fun getRustDestinyLibFile(): File {
 fun getRustDestinyKtFile(): File =
     File(rustGeneratedSource + File.separator + "uniffi" + File.separator + "toolkit", "toolkit.kt")
 
+fun getRustLibFile(): File {
+    val workingDirPath = if (currentOs() == OS.LINUX && useCross) {
+        if (isLinuxAarch64) {
+            "rust/target/$linuxArmTarget/release"
+        } else {
+            "rust/target/$linuxX64Target/release"
+        }
+    } else {
+        "rust/target/release"
+    }
+
+    val workingDir = File(rootDir, workingDirPath)
+
+    val originLib = when (currentOs()) {
+        OS.LINUX -> "libtoolkit_rs.so"
+        OS.WINDOWS -> "toolkit_rs.dll"
+        OS.MAC -> "libtoolkit_rs.dylib"
+    }
+
+    val originFile = File(workingDir, originLib)
+    return originFile
+}
+
 /**
  * Build Rust library
  */
@@ -263,28 +292,8 @@ fun buildRust() {
  * Copy built Rust library to destination
  */
 fun copyRustBuild() {
-    val workingDirPath = if (currentOs() == OS.LINUX && useCross) {
-        if (isLinuxAarch64) {
-            "rust/target/$linuxArmTarget/release"
-        } else {
-            "rust/target/$linuxX64Target/release"
-        }
-    } else {
-        "rust/target/release"
-    }
-
-    val workingDir = File(rootDir, workingDirPath)
-
-    val originLib = when (currentOs()) {
-        OS.LINUX -> "libtoolkit_rs.so"
-        OS.WINDOWS -> "toolkit_rs.dll"
-        OS.MAC -> "libtoolkit_rs.dylib"
-    }
-
-    val originFile = File(workingDir, originLib)
     val destinyFile = getRustDestinyLibFile()
-
-    Files.copy(originFile.toPath(), FileOutputStream(destinyFile))
+    Files.copy(getRustLibFile().toPath(), FileOutputStream(destinyFile))
     println("Rust library copied successfully")
 }
 
@@ -310,16 +319,17 @@ fun generateKotlinFromUdl() {
 fun runBuildRust() {
     val destinyLibFile = getRustDestinyLibFile()
     val destinyKtFile = getRustDestinyKtFile()
+    val rustLibFile = getRustLibFile()
     
-    // Skip build if cached files exist
-    if (destinyLibFile.exists() && destinyKtFile.exists()) {
-        println("Rust cache exists, skipping rebuild")
-        return
+    if (!rustLibFile.exists()) {
+        buildRust()
     }
-    
-    buildRust()
-    copyRustBuild()
-    generateKotlinFromUdl()
+    if (!destinyLibFile.exists() || (destinyKtFile.length() != rustLibFile.length())) {
+        copyRustBuild()
+    }
+    if (!destinyKtFile.exists()) {
+        generateKotlinFromUdl()
+    }
 }
 
 // ========================================
@@ -327,7 +337,7 @@ fun runBuildRust() {
 // ========================================
 
 // Register Rust build task
-task("rustTasks") {
+tasks.register("rustTasks") {
     runBuildRust()
 }
 

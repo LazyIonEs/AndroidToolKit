@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.StringResource
 
 /**
- * * author      : Eddy
+ * * author      : LazyIonEs
  * * description : 描述
  * * createDate  : 2025/9/9 17:42
  */

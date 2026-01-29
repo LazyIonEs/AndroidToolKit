@@ -39,6 +39,7 @@
 
     <string name="output_path">输出路径</string>
     <string name="output_file_prefix">输出文件前缀(选填)</string>
+    <string name="v4_signature_output_file_name">(V4)签名输出文件名称</string>
     <string name="key_store_file">密钥文件路径</string>
     <string name="key_store_password">密钥库密码</string>
     <string name="key_alias">密钥别名</string>
@@ -51,6 +52,7 @@
     <string name="apk_signature_v2">APK Signature Scheme V2，包含V1</string>
     <string name="apk_signature_v2_only">APK Signature Scheme V2，不包含V1</string>
     <string name="apk_signature_v3">APK Signature Scheme V3，包含V1和V2</string>
+    <string name="apk_signature_v4">APK Signature Scheme V4，包含V2和V3</string>
 
     <string name="check_error">请检查Error项</string>
     <string name="check_empty">请检查空项</string>
@@ -173,10 +175,16 @@
 
     <string name="upload_apk_signature_file">上传(APK/签名)文件</string>
     <string name="copy_md5">复制MD5、SHA1和SHA-256</string>
-    <string name="quick_copy">快捷复制</string>
+    <string name="copy">复制</string>
+    <string name="upload">上传</string>
     <string name="password_verification">密钥库密码验证</string>
     <string name="wrong_key_store_password">密钥库密码错误</string>
     <string name="confirm">确认</string>
+    <string name="switch_copy_mode">切换复制模式</string>
+    <string name="uppercase_with_colon">大写带冒号</string>
+    <string name="lowercase_with_colon">小写带冒号</string>
+    <string name="uppercase_without_colon">大写不带冒号</string>
+    <string name="lowercase_without_colon">小写不带冒号</string>
 
     <string name="toolkit_extension_mode_is_enabled">已开启ToolKit扩展模式</string>
     <string name="output_file_already_exists">输出文件已存在：%1$s</string>
@@ -206,6 +214,10 @@
     <string name="apktool_min_sdk_version">MinSdkVersion</string>
     <string name="apktool_version_code">VersionCode</string>
     <string name="apktool_version_name">VersionName</string>
+    <string name="signing_the_apk_after_it_is_generated">APK生成后立即签名</string>
+    <string name="apk_tool_sign_tips">此功能生成后的APK默认不包含签名(无法直接安装使用)</string>
+    <string name="apk_tool_sign_v3">默认使用V3签名策略(包含V1与V2)</string>
+
 
     <string name="check_for_updates">检查更新</string>
     <string name="version_information">版本信息</string>

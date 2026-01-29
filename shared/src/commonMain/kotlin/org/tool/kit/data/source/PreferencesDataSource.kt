@@ -1,4 +1,4 @@
-package org.tool.kit.database
+package org.tool.kit.data.source
 
 import com.russhwolf.settings.ExperimentalSettingsApi
 import com.russhwolf.settings.coroutines.FlowSettings
@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.ExperimentalSerializationApi
+import org.tool.kit.model.CopyMode
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.DestStoreSize
 import org.tool.kit.model.DestStoreType
@@ -53,15 +54,13 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
             percentage = 1f,
             quality = 85f
         )
+        val DEFAULT_COPY_MODE = CopyMode.UPPERCASE_WITH_COLON
         private const val JUNK_CODE = "junk_code"
         private const val DEVELOPER_MODE = "developer_mode"
-        private const val APK_TOOL = "apk_tool"
         private const val ALWAYS_SHOW_LABEL = "always_show_label"
         private const val HUAWEI_ALIGN_FILE_SIZE = "huawei_align_file_size"
-        private const val SIGNATURE_GENERATION = "signature_generation"
-        private const val ICON_FACTORY = "icon_factory"
-        private const val CLEAR_BUILD = "clear_build"
         private const val START_CHECK_UPDATE = "start_check_update"
+        private const val SIGNATURE_COPY_MODE = "signature_copy_mode"
     }
 
     private val _userData = MutableStateFlow(DEFAULT_USER_DATA)
@@ -108,30 +107,6 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
         settings.putBoolean(JUNK_CODE, show)
     }
 
-    val isShowApktool = settings.getBooleanFlow(APK_TOOL, true)
-
-    suspend fun saveApkTool(show: Boolean) {
-        settings.putBoolean(APK_TOOL, show)
-    }
-
-    val isShowIconFactory = settings.getBooleanFlow(ICON_FACTORY, true)
-
-    suspend fun saveIconFactory(show: Boolean) {
-        settings.putBoolean(ICON_FACTORY, show)
-    }
-
-    val isShowSignatureGeneration = settings.getBooleanFlow(SIGNATURE_GENERATION, true)
-
-    suspend fun saveSignatureGeneration(show: Boolean) {
-        settings.putBoolean(SIGNATURE_GENERATION, show)
-    }
-
-    val isShowClearBuild = settings.getBooleanFlow(CLEAR_BUILD, true)
-
-    suspend fun saveClearBuild(show: Boolean) {
-        settings.putBoolean(CLEAR_BUILD, show)
-    }
-
     val isAlwaysShowLabel = settings.getBooleanFlow(ALWAYS_SHOW_LABEL, false)
 
     suspend fun saveIsAlwaysShowLabel(show: Boolean) {
@@ -154,5 +129,23 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
 
     suspend fun saveStartCheckUpdate(show: Boolean) {
         settings.putBoolean(START_CHECK_UPDATE, show)
+    }
+
+    val copyMode = settings.getStringOrNullFlow(SIGNATURE_COPY_MODE).map { string ->
+        string?.let {
+            when (it) {
+                CopyMode.UPPERCASE_WITH_COLON.name -> CopyMode.UPPERCASE_WITH_COLON
+                CopyMode.LOWERCASE_WITH_COLON.name -> CopyMode.LOWERCASE_WITH_COLON
+                CopyMode.UPPERCASE_WITHOUT_COLON.name -> CopyMode.UPPERCASE_WITHOUT_COLON
+                CopyMode.LOWERCASE_WITHOUT_COLON.name -> CopyMode.LOWERCASE_WITHOUT_COLON
+                else -> DEFAULT_COPY_MODE
+            }
+        } ?: let {
+            DEFAULT_COPY_MODE
+        }
+    }
+
+    suspend fun saveCopyMode(copyMode: CopyMode) {
+        settings.putString(SIGNATURE_COPY_MODE, copyMode.name)
     }
 }

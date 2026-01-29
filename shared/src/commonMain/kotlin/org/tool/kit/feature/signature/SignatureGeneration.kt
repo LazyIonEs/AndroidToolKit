@@ -1,4 +1,4 @@
-package org.tool.kit.ui
+package org.tool.kit.feature.signature
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,6 +21,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
+import org.tool.kit.feature.ui.FolderInput
+import org.tool.kit.feature.ui.IntInput
+import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.certificate
 import org.tool.kit.shared.generated.resources.check_empty

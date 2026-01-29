@@ -1,4 +1,4 @@
-package org.tool.kit.ui
+package org.tool.kit.feature.setting
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -13,22 +13,22 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.onClick
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Done
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.ContainedLoadingIndicator
-import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilterChipDefaults
@@ -36,12 +36,11 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -52,7 +51,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -67,6 +65,8 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.BuildConfig
+import org.tool.kit.feature.ui.FolderInput
+import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.DestStoreSize
 import org.tool.kit.model.DestStoreType
@@ -85,14 +85,10 @@ import org.tool.kit.shared.generated.resources.conventional
 import org.tool.kit.shared.generated.resources.default_output_path
 import org.tool.kit.shared.generated.resources.delete_repeat_file
 import org.tool.kit.shared.generated.resources.delete_repeat_file_tips
-import org.tool.kit.shared.generated.resources.enable_apk_generation_options
-import org.tool.kit.shared.generated.resources.enable_clear_build_option
 import org.tool.kit.shared.generated.resources.enable_extended_options
 import org.tool.kit.shared.generated.resources.enable_file_alignment
 import org.tool.kit.shared.generated.resources.enable_file_alignment_tips
 import org.tool.kit.shared.generated.resources.enable_garbage_code_generation_option
-import org.tool.kit.shared.generated.resources.enable_icon_factory_option
-import org.tool.kit.shared.generated.resources.enable_signature_generation_option
 import org.tool.kit.shared.generated.resources.icon
 import org.tool.kit.shared.generated.resources.license
 import org.tool.kit.shared.generated.resources.open_source_agreement
@@ -200,7 +196,8 @@ private fun ApkSignatureSetUp(
                 style = MaterialTheme.typography.labelSmall
             )
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 12.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 24.dp, end = 16.dp, top = 12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -221,7 +218,8 @@ private fun ApkSignatureSetUp(
                     onCheckedChange = { viewModel.saveUserData(userData.copy(duplicateFileRemoval = it)) })
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 6.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 24.dp, end = 16.dp, top = 6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column(modifier = Modifier.weight(1f)) {
@@ -248,6 +246,7 @@ private fun ApkSignatureSetUp(
 /**
  * 签名生成设置页
  */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun KeyStore(viewModel: MainViewModel) {
     val userData by viewModel.userData.collectAsState()
@@ -262,11 +261,12 @@ private fun KeyStore(viewModel: MainViewModel) {
             )
             Spacer(Modifier.size(6.dp))
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 6.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 24.dp, end = 16.dp, top = 6.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1.6f)) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(Res.string.target_key_type),
                         style = MaterialTheme.typography.bodyLarge
@@ -279,36 +279,50 @@ private fun KeyStore(viewModel: MainViewModel) {
                         )
                     }
                 }
-                Box(modifier = Modifier.weight(1f)) {
-                    val options = listOf(DestStoreType.JKS.name, DestStoreType.PKCS12.name)
-                    SingleChoiceSegmentedButtonRow(
-                        modifier = Modifier.align(Alignment.CenterEnd).width(220.dp)
-                    ) {
-                        options.forEachIndexed { index, label ->
-                            SegmentedButton(
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index,
-                                    count = options.size
-                                ),
-                                onClick = {
-                                    viewModel.saveUserData(userData.copy(destStoreType = if (index == 1) DestStoreType.PKCS12 else DestStoreType.JKS))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(
+                        ButtonGroupDefaults.ConnectedSpaceBetween,
+                        Alignment.End
+                    )
+                ) {
+                    val options = DestStoreType.entries
+                    options.forEachIndexed { index, destStoreType ->
+                        ToggleButton(
+                            checked = destStoreType == userData.destStoreType,
+                            onCheckedChange = {
+                                viewModel.saveUserData(userData.copy(destStoreType = destStoreType))
+                            },
+                            modifier = Modifier.defaultMinSize(minWidth = 120.dp),
+                            colors = ToggleButtonDefaults.elevatedToggleButtonColors(),
+                            shapes =
+                                when (index) {
+                                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                                 },
-                                selected = if (userData.destStoreType == DestStoreType.PKCS12) index == 1 else index == 0,
-                                colors = SegmentedButtonDefaults.colors()
-                                    .copy(inactiveContainerColor = Color.Transparent)
-                            ) {
-                                Text(label, style = MaterialTheme.typography.labelLarge)
+                        ) {
+                            AnimatedVisibility(destStoreType == userData.destStoreType) {
+                                Row {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Done,
+                                        contentDescription = "Done icon",
+                                        modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                    )
+                                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                                }
                             }
+                            Text(text = destStoreType.name)
                         }
                     }
                 }
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 6.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 24.dp, end = 16.dp, top = 6.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.weight(1.6f)) {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = stringResource(Res.string.target_key_size),
                         style = MaterialTheme.typography.bodyLarge
@@ -321,29 +335,40 @@ private fun KeyStore(viewModel: MainViewModel) {
                         )
                     }
                 }
-                Box(modifier = Modifier.weight(1f)) {
-                    val options = listOf(
-                        "${DestStoreSize.ONE_THOUSAND_TWENTY_FOUR.size}",
-                        "${DestStoreSize.TWO_THOUSAND_FORTY_EIGHT.size}"
+                Row(
+                    modifier = Modifier.padding(start = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        ButtonGroupDefaults.ConnectedSpaceBetween,
+                        Alignment.End
                     )
-                    SingleChoiceSegmentedButtonRow(
-                        modifier = Modifier.align(Alignment.CenterEnd).width(220.dp)
-                    ) {
-                        options.forEachIndexed { index, label ->
-                            SegmentedButton(
-                                shape = SegmentedButtonDefaults.itemShape(
-                                    index = index,
-                                    count = options.size
-                                ),
-                                onClick = {
-                                    viewModel.saveUserData(userData.copy(destStoreSize = if (index == 1) DestStoreSize.TWO_THOUSAND_FORTY_EIGHT else DestStoreSize.ONE_THOUSAND_TWENTY_FOUR))
+                ) {
+                    val options = DestStoreSize.entries
+                    options.forEachIndexed { index, destStoreSize ->
+                        ToggleButton(
+                            checked = destStoreSize == userData.destStoreSize,
+                            onCheckedChange = {
+                                viewModel.saveUserData(userData.copy(destStoreSize = destStoreSize))
+                            },
+                            modifier = Modifier.defaultMinSize(minWidth = 120.dp),
+                            colors = ToggleButtonDefaults.elevatedToggleButtonColors(),
+                            shapes =
+                                when (index) {
+                                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                                 },
-                                selected = if (userData.destStoreSize == DestStoreSize.TWO_THOUSAND_FORTY_EIGHT) index == 1 else index == 0,
-                                colors = SegmentedButtonDefaults.colors()
-                                    .copy(inactiveContainerColor = Color.Transparent)
-                            ) {
-                                Text(label, style = MaterialTheme.typography.labelLarge)
+                        ) {
+                            AnimatedVisibility(destStoreSize == userData.destStoreSize) {
+                                Row {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Done,
+                                        contentDescription = "Done icon",
+                                        modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                    )
+                                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                                }
                             }
+                            Text(text = destStoreSize.size.toString())
                         }
                     }
                 }
@@ -389,49 +414,52 @@ private fun Conventional(
                     }
                 })
             Spacer(Modifier.size(18.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Column {
                 Text(
                     text = stringResource(Res.string.appearance),
                     modifier = Modifier.padding(start = 24.dp),
                     style = MaterialTheme.typography.bodyLarge
                 )
+                Spacer(Modifier.size(4.dp))
+                val modeList = DarkThemeConfig.entries
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 62.dp)
+                    modifier = Modifier.padding(start = 24.dp, end = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
                 ) {
-                    val modeList = listOf(
-                        DarkThemeConfig.FOLLOW_SYSTEM,
-                        DarkThemeConfig.LIGHT,
-                        DarkThemeConfig.DARK
-                    )
-                    modeList.forEach { theme ->
-                        ElevatedFilterChip(
-                            modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
-                            selected = themeConfig == theme,
-                            onClick = { viewModel.saveThemeConfig(theme) },
-                            label = {
-                                Text(
-                                    text = stringResource(theme.resource),
-                                    textAlign = TextAlign.End,
-                                    modifier = Modifier.fillMaxWidth().padding(8.dp)
-                                )
+                    modeList.forEachIndexed { index, theme ->
+                        ToggleButton(
+                            checked = themeConfig == theme,
+                            onCheckedChange = {
+                                viewModel.saveThemeConfig(theme)
                             },
-                            leadingIcon = if (themeConfig == theme) {
-                                {
+                            modifier = Modifier.weight(1f),
+                            colors = ToggleButtonDefaults.elevatedToggleButtonColors(),
+                            shapes =
+                                when (index) {
+                                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                    modeList.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                                },
+                        ) {
+                            AnimatedVisibility(themeConfig == theme) {
+                                Row {
                                     Icon(
                                         imageVector = Icons.Rounded.Done,
                                         contentDescription = "Done icon",
                                         modifier = Modifier.size(FilterChipDefaults.IconSize)
                                     )
+                                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
                                 }
-                            } else {
-                                null
-                            })
+                            }
+                            Text(text = stringResource(theme.resource))
+                        }
                     }
                 }
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 4.dp),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 24.dp, end = 16.dp, top = 4.dp),
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -471,11 +499,7 @@ private fun DeveloperMode(viewModel: MainViewModel) {
     val developerMode by viewModel.isEnableDeveloperMode.collectAsState()
     val isHuaweiAlignFileSize by viewModel.isHuaweiAlignFileSize.collectAsState()
     val alwaysShowLabel by viewModel.isAlwaysShowLabel.collectAsState()
-    val showApktool by viewModel.isShowApktool.collectAsState()
     val showJunkCode by viewModel.isShowJunkCode.collectAsState()
-    val iconFactory by viewModel.isShowIconFactory.collectAsState()
-    val clearBuild by viewModel.isShowClearBuild.collectAsState()
-    val signatureGeneration by viewModel.isShowSignatureGeneration.collectAsState()
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -492,34 +516,10 @@ private fun DeveloperMode(viewModel: MainViewModel) {
                     viewModel.saveDeveloperMode(!developerMode)
                 })
             ExtensionsSwitch(
-                title = stringResource(Res.string.enable_signature_generation_option),
-                checked = signatureGeneration,
-                onCheckedChange = {
-                    viewModel.saveSignatureGeneration(!signatureGeneration)
-                })
-            ExtensionsSwitch(
-                title = stringResource(Res.string.enable_apk_generation_options),
-                checked = showApktool,
-                onCheckedChange = {
-                    viewModel.saveApkTool(!showApktool)
-                })
-            ExtensionsSwitch(
                 title = stringResource(Res.string.enable_garbage_code_generation_option),
                 checked = showJunkCode,
                 onCheckedChange = {
                     viewModel.saveJunkCode(!showJunkCode)
-                })
-            ExtensionsSwitch(
-                title = stringResource(Res.string.enable_icon_factory_option),
-                checked = iconFactory,
-                onCheckedChange = {
-                    viewModel.saveIconFactory(!iconFactory)
-                })
-            ExtensionsSwitch(
-                title = stringResource(Res.string.enable_clear_build_option),
-                checked = clearBuild,
-                onCheckedChange = {
-                    viewModel.saveClearBuild(!clearBuild)
                 })
             ExtensionsSwitch(
                 title = stringResource(Res.string.whether_to_always_show_the_navigation_bar_label),
@@ -580,7 +580,12 @@ private fun About(viewModel: MainViewModel) {
                 value = BuildConfig.APP_LICENSE
             )
             HorizontalDivider(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp),
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 8.dp,
+                    bottom = 8.dp
+                ),
                 thickness = 2.dp
             )
             ClickAbout(text = stringResource(Res.string.source_code)) {
@@ -734,7 +739,8 @@ private fun AboutLibrariesWindow(viewModel: MainViewModel, onCloseRequest: () ->
                     selectLibrary?.let { library ->
                         val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
                         ModalBottomSheet(
-                            modifier = Modifier.fillMaxHeight().align(Alignment.BottomEnd),
+                            modifier = Modifier.fillMaxHeight()
+                                .align(Alignment.BottomEnd),
                             sheetState = sheetState,
                             onDismissRequest = { selectLibrary = null }
                         ) {
@@ -776,7 +782,8 @@ private fun ExtensionsSwitch(
     onCheckedChange: ((Boolean) -> Unit)?
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, top = 4.dp),
+        modifier = Modifier.fillMaxWidth()
+            .padding(start = 24.dp, end = 16.dp, top = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
