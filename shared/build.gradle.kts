@@ -317,16 +317,9 @@ fun generateKotlinFromUdl() {
  * Main Rust build task
  */
 fun runBuildRust() {
-    val destinyKtFile = getRustDestinyKtFile()
-    val rustLibFile = getRustLibFile()
-    
-    if (!rustLibFile.exists()) {
-        buildRust()
-    }
+    buildRust()
     copyRustBuild()
-    if (!destinyKtFile.exists()) {
-        generateKotlinFromUdl()
-    }
+    generateKotlinFromUdl()
 }
 
 // ========================================
