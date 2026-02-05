@@ -51,6 +51,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.feature.apk.navigation.apkInformationEntry
 import org.tool.kit.feature.apk.navigation.apkToolEntry
+import org.tool.kit.feature.cleaner.ClearBuildBottom
 import org.tool.kit.feature.cleaner.navigation.CleanerNavKey
 import org.tool.kit.feature.cleaner.navigation.cleanerEntry
 import org.tool.kit.feature.iconfactory.navigation.iconFactoryEntry
@@ -62,8 +63,8 @@ import org.tool.kit.feature.signature.navigation.apkSignatureEntry
 import org.tool.kit.feature.signature.navigation.signatureGenerationEntry
 import org.tool.kit.feature.signature.navigation.signatureInformationEntry
 import org.tool.kit.feature.ui.LoadingAnimate
+import org.tool.kit.feature.ui.UpdateDialog
 import org.tool.kit.model.DarkThemeConfig
-import org.tool.kit.model.UserData
 import org.tool.kit.navigation.Navigator
 import org.tool.kit.navigation.TOP_LEVEL_NAV_ITEMS
 import org.tool.kit.navigation.defaultTransitionSpec
@@ -72,8 +73,6 @@ import org.tool.kit.platform.createFlowSettings
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.icon
 import org.tool.kit.theme.AppTheme
-import org.tool.kit.feature.cleaner.ClearBuildBottom
-import org.tool.kit.feature.ui.UpdateDialog
 import org.tool.kit.vm.MainViewModel
 import org.tool.kit.vm.UIState
 
@@ -120,7 +119,9 @@ fun WindowIcon() = painterResource(Res.drawable.icon)
 fun MainContentScreen(viewModel: MainViewModel) {
     val snackbarHostState = remember { SnackbarHostState() }
     val userData by viewModel.userData.collectAsState()
-    collectOutputPath(viewModel, userData)
+    LaunchedEffect(userData.defaultOutputPath) {
+        collectOutputPath(viewModel, userData.defaultOutputPath)
+    }
 
     val appState = rememberAppState()
 
@@ -226,14 +227,13 @@ private fun isShowLoading(viewModel: MainViewModel) =
             || (viewModel.fileClearUIState == UIState.Loading && viewModel.isClearing
             || viewModel.apkToolInfoUIState == UIState.Loading)
 
-fun collectOutputPath(viewModel: MainViewModel, userData: UserData) {
-    val outputPath = userData.defaultOutputPath
+fun collectOutputPath(viewModel: MainViewModel, defaultOutputPath: String) {
     viewModel.apply {
-        updateApkSignature(viewModel.apkSignatureState.copy(outputPath = outputPath))
-        updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePath = outputPath))
-        updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = outputPath))
-        updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = outputPath))
-        updateApkToolInfo(viewModel.apkToolInfoState.copy(outputPath = outputPath))
+        updateApkSignature(viewModel.apkSignatureState.copy(outputPath = defaultOutputPath))
+        updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePath = defaultOutputPath))
+        updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = defaultOutputPath))
+        updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = defaultOutputPath))
+        updateApkToolInfo(viewModel.apkToolInfoState.copy(outputPath = defaultOutputPath))
     }
 }
 
