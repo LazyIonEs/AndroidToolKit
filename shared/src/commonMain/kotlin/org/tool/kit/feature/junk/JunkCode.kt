@@ -1,5 +1,6 @@
 package org.tool.kit.feature.junk
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,8 +8,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -31,6 +35,7 @@ import org.tool.kit.shared.generated.resources.number_of_packages
 import org.tool.kit.shared.generated.resources.resource_prefix
 import org.tool.kit.shared.generated.resources.start_generating
 import org.tool.kit.shared.generated.resources.suffix
+import org.tool.kit.utils.generateSecureToken
 import org.tool.kit.vm.MainViewModel
 import java.io.File
 
@@ -110,6 +115,18 @@ private fun JunkCodeBox(viewModel: MainViewModel) {
                     value = viewModel.junkCodeInfoState.resPrefix,
                     label = stringResource(Res.string.resource_prefix),
                     isError = viewModel.junkCodeInfoState.resPrefix.isBlank(),
+                    trailingIcon = {
+                        Icon(
+                            Icons.Rounded.Shuffle,
+                            contentDescription = "Shuffle",
+                            modifier = Modifier.clickable {
+                                viewModel.updateJunkCodeInfo(
+                                    viewModel.junkCodeInfoState.copy(
+                                        resPrefix = generateSecureToken(2, 6) + "_"
+                                    )
+                                )
+                            })
+                    },
                     onValueChange = { resPrefix ->
                         viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(resPrefix = resPrefix))
                     })
@@ -162,6 +179,16 @@ private fun PackageName(viewModel: MainViewModel) {
                 val junkCodeInfo = viewModel.junkCodeInfoState.copy()
                 junkCodeInfo.suffix = suffix
                 viewModel.updateJunkCodeInfo(junkCodeInfo)
+            },
+            trailingIcon = {
+                Icon(
+                    Icons.Rounded.Shuffle,
+                    contentDescription = "Shuffle",
+                    modifier = Modifier.clickable {
+                        val junkCodeInfo = viewModel.junkCodeInfoState.copy()
+                        junkCodeInfo.suffix = generateSecureToken(3, 8)
+                        viewModel.updateJunkCodeInfo(junkCodeInfo)
+                    })
             },
             label = {
                 Text(

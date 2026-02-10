@@ -60,6 +60,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.net.ProxySelector
 import java.security.MessageDigest
+import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.security.interfaces.RSAPublicKey
 import java.util.zip.ZipFile
@@ -656,4 +657,21 @@ fun getLogFile(): File? {
         return File(appender.file)
     }
     return null
+}
+
+private const val CHAR_POOL = "abcdefghijklmnopqrstuvwxyz"
+
+private val secureRandom by lazy { SecureRandom() }
+
+/**
+ * 生成随机字符
+ */
+fun generateSecureToken(min: Int, max: Int): String {
+    val length = secureRandom.nextInt(max - min + 1) + min
+    return buildString {
+        repeat(length) {
+            val index = secureRandom.nextInt(CHAR_POOL.length)
+            append(CHAR_POOL[index])
+        }
+    }
 }
