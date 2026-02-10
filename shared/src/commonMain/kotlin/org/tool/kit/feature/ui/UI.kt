@@ -199,7 +199,8 @@ fun FileInput(
 @Composable
 fun FolderInput(value: String, label: String, isError: Boolean, onValueChange: (String) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = Alignment.CenterVertically
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         CurrentTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(1f),
@@ -230,6 +231,7 @@ fun StringInput(
     label: String,
     isError: Boolean,
     realOnly: Boolean = false,
+    trailingIcon: @Composable (() -> Unit)? = null,
     onValueChange: (String) -> Unit
 ) {
     CurrentTextField(
@@ -238,7 +240,8 @@ fun StringInput(
         label = label,
         realOnly = realOnly,
         isError = isError,
-        onValueChange = onValueChange
+        onValueChange = onValueChange,
+        trailingIcon = trailingIcon
     )
 }
 
@@ -379,7 +382,10 @@ private fun CurrentTextField(
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun dragAndDropTarget(dragging: (Boolean) -> Unit, onFinish: (Result<List<Path>>) -> Unit): DragAndDropTarget {
+fun dragAndDropTarget(
+    dragging: (Boolean) -> Unit,
+    onFinish: (Result<List<Path>>) -> Unit
+): DragAndDropTarget {
     val dragAndDropTarget = remember {
         object : DragAndDropTarget {
             override fun onEntered(event: DragAndDropEvent) {
@@ -397,9 +403,10 @@ fun dragAndDropTarget(dragging: (Boolean) -> Unit, onFinish: (Result<List<Path>>
             override fun onDrop(event: DragAndDropEvent): Boolean {
                 dragging(false)
                 if (event.dragData() is DragData.FilesList) {
-                    val fileList = (event.dragData() as DragData.FilesList).readFiles().mapNotNull { path ->
-                        URI(path).toPath().takeIf { it.exists(LinkOption.NOFOLLOW_LINKS) }
-                    }
+                    val fileList =
+                        (event.dragData() as DragData.FilesList).readFiles().mapNotNull { path ->
+                            URI(path).toPath().takeIf { it.exists(LinkOption.NOFOLLOW_LINKS) }
+                        }
                     onFinish(Result.success(fileList))
                     return true
                 }
