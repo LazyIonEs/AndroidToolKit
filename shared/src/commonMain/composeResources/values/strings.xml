@@ -112,6 +112,7 @@
     <string name="junk_package_name">Package Name</string>
     <string name="suffix">Suffix</string>
     <string name="start_generating">Start Generating</string>
+    <string name="estimated_size">Estimated Size</string>
 
     <string name="apk_signature">APK Signature</string>
     <string name="signature_suffix">Signature Suffix</string>
