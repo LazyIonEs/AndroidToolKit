@@ -112,6 +112,7 @@
     <string name="junk_package_name">包名</string>
     <string name="suffix">后缀</string>
     <string name="start_generating">开始生成</string>
+    <string name="estimated_size">预估大小</string>
 
     <string name="apk_signature">APK签名</string>
     <string name="signature_suffix">签名后缀</string>

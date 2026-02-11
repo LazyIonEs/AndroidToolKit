@@ -1,10 +1,14 @@
 package org.tool.kit.feature.junk
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,10 +20,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.feature.ui.FolderInput
 import org.tool.kit.feature.ui.IntInput
@@ -29,12 +35,15 @@ import org.tool.kit.shared.generated.resources.aar_name
 import org.tool.kit.shared.generated.resources.aar_output_path
 import org.tool.kit.shared.generated.resources.check_empty
 import org.tool.kit.shared.generated.resources.check_error
+import org.tool.kit.shared.generated.resources.estimated_size
 import org.tool.kit.shared.generated.resources.junk_package_name
 import org.tool.kit.shared.generated.resources.number_of_activities
 import org.tool.kit.shared.generated.resources.number_of_packages
 import org.tool.kit.shared.generated.resources.resource_prefix
 import org.tool.kit.shared.generated.resources.start_generating
 import org.tool.kit.shared.generated.resources.suffix
+import org.tool.kit.utils.JunkSizePredictor
+import org.tool.kit.utils.formatFileSize
 import org.tool.kit.utils.generateSecureToken
 import org.tool.kit.vm.MainViewModel
 import java.io.File
@@ -206,21 +215,48 @@ private fun PackageName(viewModel: MainViewModel) {
 private fun Generate(
     viewModel: MainViewModel, outputPathError: Boolean
 ) {
-    Button(onClick = {
-        if (outputPathError) {
-            viewModel.updateSnackbarVisuals(Res.string.check_error)
-            return@Button
+    val packageCount = viewModel.junkCodeInfoState.packageCount.toIntOrNull() ?: 0
+    val activityCountPerPackage =
+        viewModel.junkCodeInfoState.activityCountPerPackage.toIntOrNull() ?: 0
+    val estimateSize = JunkSizePredictor.estimateAarSize(packageCount, activityCountPerPackage)
+    Row(
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(end = 72.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.End
+    ) {
+        Column(
+            horizontalAlignment = Alignment.End
+        ) {
+            Text(
+                text = stringResource(Res.string.estimated_size),
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                lineHeight = 10.sp
+            )
+            Text(
+                text = estimateSize.formatFileSize(scale = 1),
+                style = MaterialTheme.typography.titleMedium,
+            )
         }
-        if (viewModel.junkCodeInfoState.outputPath.isBlank() || viewModel.junkCodeInfoState.packageName.isBlank() || viewModel.junkCodeInfoState.suffix.isBlank() || viewModel.junkCodeInfoState.packageCount.isBlank() || viewModel.junkCodeInfoState.activityCountPerPackage.isEmpty() || viewModel.junkCodeInfoState.resPrefix.isBlank()) {
-            viewModel.updateSnackbarVisuals(Res.string.check_empty)
-            return@Button
-        }
-        viewModel.generateJunkCode()
-    }) {
-        Text(
-            text = stringResource(Res.string.start_generating),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 48.dp)
+        VerticalDivider(
+            modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp)
         )
+        Button(onClick = {
+            if (outputPathError) {
+                viewModel.updateSnackbarVisuals(Res.string.check_error)
+                return@Button
+            }
+            if (viewModel.junkCodeInfoState.outputPath.isBlank() || viewModel.junkCodeInfoState.packageName.isBlank() || viewModel.junkCodeInfoState.suffix.isBlank() || viewModel.junkCodeInfoState.packageCount.isBlank() || viewModel.junkCodeInfoState.activityCountPerPackage.isEmpty() || viewModel.junkCodeInfoState.resPrefix.isBlank()) {
+                viewModel.updateSnackbarVisuals(Res.string.check_empty)
+                return@Button
+            }
+            viewModel.generateJunkCode()
+        }) {
+            Text(
+                text = stringResource(Res.string.start_generating),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = 48.dp)
+            )
+        }
     }
 }

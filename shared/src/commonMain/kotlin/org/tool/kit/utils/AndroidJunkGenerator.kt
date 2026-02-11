@@ -4,9 +4,10 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import java.io.File
-import java.io.FileWriter
+import java.util.concurrent.ConcurrentHashMap
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
+import java.util.stream.IntStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.math.max
@@ -123,15 +124,15 @@ class AndroidJunkGenerator(
 
     private val classesDir = "classes"
 
-    private val mCheckActivityNames = HashSet<String>(1024)
-    private val mCheckClassName = mutableSetOf<String>()
+    private val mCheckActivityNames = ConcurrentHashMap.newKeySet<String>(1024)
+    private val mCheckClassName = ConcurrentHashMap.newKeySet<String>()
 
-    private val mDrawableIds = HashSet<String>(4098)
-    private val mLayoutIds = HashSet<String>(max(packageCount * activityCountPerPackage, 1024))
-    private val mStringIds = HashSet<String>(4098)
-    private val mIds = HashSet<String>(4098)
+    private val mDrawableIds = ConcurrentHashMap.newKeySet<String>(4098)
+    private val mLayoutIds = ConcurrentHashMap.newKeySet<String>(max(packageCount * activityCountPerPackage, 1024))
+    private val mStringIds = ConcurrentHashMap.newKeySet<String>(4098)
+    private val mIds = ConcurrentHashMap.newKeySet<String>(4098)
 
-    private val mActivities = HashSet<String>(max(packageCount * activityCountPerPackage, 1024))
+    private val mActivities = ConcurrentHashMap.newKeySet<String>(max(packageCount * activityCountPerPackage, 1024))
 
     private val mRClassType = getTypedName(appPackageName, "R")
 
@@ -178,7 +179,7 @@ class AndroidJunkGenerator(
     }
 
     private fun generateClasses() {
-        (0 until packageCount).forEach { _ ->
+        IntStream.range(0, packageCount).parallel().forEach { _ ->
             val packageName = generatePackageName()
             // 生成Activity
             (0 until activityCountPerPackage).forEach { _ ->
@@ -191,7 +192,7 @@ class AndroidJunkGenerator(
         val rootClassCount: Int =
             Random.nextInt(activityCountPerPackage) + (activityCountPerPackage shr 1)
 
-        (0 until rootClassCount).forEach { _ ->
+        IntStream.range(0, rootClassCount).parallel().forEach { _ ->
             val activityPreName: String = generateClassName(appPackageName)
             generateActivity(appPackageName, activityPreName)
         }
@@ -799,39 +800,43 @@ class AndroidJunkGenerator(
 
     private fun generateManifest() {
         val manifestFile = File(workspace, "AndroidManifest.xml")
+        if (!manifestFile.parentFile.exists()) {
+            manifestFile.parentFile.mkdirs()
+        }
 
-        val xml =
-            """<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="$appPackageName"> 
+        manifestFile.bufferedWriter().use { writer ->
+            writer.write("""<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="$appPackageName"> 
         <application>
         
-        ${
-                mActivities.joinToString("\n\n") { activity ->
-                    "<activity android:name=\"$activity\" />"
-                }
+        """.trimIndent())
+            
+            mActivities.forEach { activity ->
+                writer.write("<activity android:name=\"$activity\" />\n")
             }
-        
+            
+            writer.write("""
        </application>
     </manifest>
-        """.trimIndent()
-
-        writeStringToFile(manifestFile, xml)
-
+        """.trimIndent())
+        }
     }
 
     private fun generateStringsFile() {
         val res = File(workspace, "res/values/strings.xml")
-
-        val xml = """<?xml version="1.0" encoding="utf-8"?>
-            <resources>
-                ${
-            mStringIds.joinToString("\n") {
-                "<string name=\"$it\">${generateBigValue()}</string>"
-            }
+        if (!res.parentFile.exists()) {
+            res.parentFile.mkdirs()
         }
-            </resources>
-        """.trimIndent()
 
-        writeStringToFile(res, xml)
+        res.bufferedWriter().use { writer ->
+            writer.write("""<?xml version="1.0" encoding="utf-8"?>
+            <resources>
+                """.trimIndent())
+            writer.newLine()
+            mStringIds.forEach { 
+                writer.write("<string name=\"$it\">${generateBigValue()}</string>\n")
+            }
+            writer.write("            </resources>")
+        }
     }
 
     private fun generateKeepProguard() {
@@ -857,18 +862,25 @@ class AndroidJunkGenerator(
     }
 
     private fun writeRFile() {
-        val strings = mStringIds.joinToString("\n") { "int string $it 0x0" }
-        val layouts = mLayoutIds.joinToString("\n") { "int layout $it 0x0" }
-        val drawables = mDrawableIds.joinToString("\n") { "int drawable $it 0x0" }
-        val ids = mIds.joinToString("\n") { "int id $it 0x0" }
+        val file = File(workspace, "R.txt")
+        if (!file.parentFile.exists()) {
+            file.parentFile.mkdirs()
+        }
+
+        file.bufferedWriter().use { writer ->
+            mStringIds.forEach { writer.write("int string $it 0x0\n") }
+            writer.newLine()
+            mLayoutIds.forEach { writer.write("int layout $it 0x0\n") }
+            writer.newLine()
+            mDrawableIds.forEach { writer.write("int drawable $it 0x0\n") }
+            writer.newLine()
+            mIds.forEach { writer.write("int id $it 0x0\n") }
+        }
 
         logger.info { "strings 文件数量: ${mStringIds.size}" }
         logger.info { "layouts 文件数量: ${mLayoutIds.size}" }
         logger.info { "drawables 文件数量: ${mDrawableIds.size}" }
         logger.info { "ids 大小: ${mIds.size}" }
-
-        val txt = strings + "\n" + layouts + "\n" + drawables + "\n" + ids
-        writeStringToFile(File(workspace, "R.txt"), txt)
     }
 
     private fun assembleAar(): File {
@@ -876,7 +888,7 @@ class AndroidJunkGenerator(
         val classJar = File(workspace, "classes.jar")
         val dir = File(workspace, classesDir)
 
-        classJar.outputStream().use { fos ->
+        classJar.outputStream().buffered().use { fos ->
             val jos = JarOutputStream(fos)
 
             dir.listFiles()?.forEach { file ->
@@ -896,7 +908,7 @@ class AndroidJunkGenerator(
             parent.mkdirs()
         }
 
-        out.outputStream().use { fos ->
+        out.outputStream().buffered().use { fos ->
             val zos = ZipOutputStream(fos)
             workspace.listFiles { _, name -> name != classesDir }
                 ?.forEach { file -> addFileToZip(file, "", zos) }
@@ -932,7 +944,7 @@ class AndroidJunkGenerator(
     private fun copyEntry(entry: ZipEntry, file: File, zos: ZipOutputStream) {
         zos.putNextEntry(entry)
 
-        file.inputStream().use { fos ->
+        file.inputStream().buffered().use { fos ->
             val bytes = ByteArray(10240)
             var len: Int
             while (true) {
@@ -950,8 +962,8 @@ class AndroidJunkGenerator(
             file.parentFile.mkdirs()
         }
 
-        return FileWriter(file).runCatching {
-            use { write(content) }
+        return runCatching {
+            file.bufferedWriter().use { it.write(content) }
         }.isSuccess
     }
 
@@ -969,6 +981,6 @@ class AndroidJunkGenerator(
             file.createNewFile()
         }
 
-        file.writeBytes(bytes)
+        file.outputStream().buffered().use { it.write(bytes) }
     }
 }
