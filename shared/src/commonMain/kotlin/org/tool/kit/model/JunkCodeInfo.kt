@@ -27,8 +27,8 @@ data class JunkCodeInfo(
     var aarCount: String = "50", // aar数量
     var leastPackageCount: String = "5", // 包数量（最小）
     var maximumPackageCount: String = "20", // 包数量（最大）
-    var leastActivityCountPerPackage: String = "10", // 每个包里 activity 的数量（最小）
-    var maximumActivityCountPerPackage: String = "40", // 每个包里 activity 的数量（最大）
+    var leastActivityCountPerPackage: String = "5", // 每个包里 activity 的数量（最小）
+    var maximumActivityCountPerPackage: String = "20", // 每个包里 activity 的数量（最大）
 ) {
     var packageName: String
         get() = _packageName
