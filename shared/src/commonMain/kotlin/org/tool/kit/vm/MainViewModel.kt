@@ -44,6 +44,7 @@ import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.IconFactoryData
 import org.tool.kit.model.IconFactoryInfo
 import org.tool.kit.model.JunkCodeInfo
+import org.tool.kit.model.JunkMode
 import org.tool.kit.model.KeyStoreInfo
 import org.tool.kit.model.PendingDeletionFile
 import org.tool.kit.model.Sequence
@@ -207,6 +208,13 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     // 垃圾代码生成UI状态
     private val _junkCodeUIState = mutableStateOf<UIState>(UIState.WAIT)
     val junkCodeUIState by _junkCodeUIState
+
+    // 垃圾代码模式
+    val junkMode = preferences.junkMode.stateIn(
+        scope = viewModelScope,
+        started = Eagerly,
+        initialValue = PreferencesDataSource.DEFAULT_JUNK_MODE
+    )
 
     // 图标工厂信息
     private val _iconFactoryInfoState = mutableStateOf(IconFactoryInfo())
@@ -391,6 +399,15 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      */
     fun updateApkToolInfo(apkToolInfo: ApkToolInfo) {
         _apkToolInfoState.update { apkToolInfo }
+    }
+
+    /**
+     * 更新垃圾代码模式
+     */
+    fun saveJunkMode(junkMode: JunkMode) {
+        viewModelScope.launch {
+            preferences.saveJunkMode(junkMode)
+        }
     }
 
     /**
