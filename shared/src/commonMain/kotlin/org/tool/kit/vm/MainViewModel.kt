@@ -44,6 +44,7 @@ import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.IconFactoryData
 import org.tool.kit.model.IconFactoryInfo
 import org.tool.kit.model.JunkCodeInfo
+import org.tool.kit.model.JunkMode
 import org.tool.kit.model.KeyStoreInfo
 import org.tool.kit.model.PendingDeletionFile
 import org.tool.kit.model.Sequence
@@ -83,6 +84,7 @@ import org.tool.kit.shared.generated.resources.signature_verification_failed
 import org.tool.kit.shared.generated.resources.toolkit_extension_mode_is_enabled
 import org.tool.kit.utils.AndroidJunkGenerator
 import org.tool.kit.utils.ExternalCommand
+import org.tool.kit.utils.MultiAarGenerator
 import org.tool.kit.utils.WhileUiSubscribed
 import org.tool.kit.utils.browseFileDirectory
 import org.tool.kit.utils.extractAndroidManifest
@@ -207,6 +209,13 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
     // 垃圾代码生成UI状态
     private val _junkCodeUIState = mutableStateOf<UIState>(UIState.WAIT)
     val junkCodeUIState by _junkCodeUIState
+
+    // 垃圾代码模式
+    val junkMode = preferences.junkMode.stateIn(
+        scope = viewModelScope,
+        started = Eagerly,
+        initialValue = PreferencesDataSource.DEFAULT_JUNK_MODE
+    )
 
     // 图标工厂信息
     private val _iconFactoryInfoState = mutableStateOf(IconFactoryInfo())
@@ -391,6 +400,15 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      */
     fun updateApkToolInfo(apkToolInfo: ApkToolInfo) {
         _apkToolInfoState.update { apkToolInfo }
+    }
+
+    /**
+     * 更新垃圾代码模式
+     */
+    fun saveJunkMode(junkMode: JunkMode) {
+        viewModelScope.launch {
+            preferences.saveJunkMode(junkMode)
+        }
     }
 
     /**
@@ -859,32 +877,62 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
      */
     fun generateJunkCode() = viewModelScope.launch(Dispatchers.IO) {
         _junkCodeUIState.update { UIState.Loading }
-        logger.info { "generateJunkCode 生成垃圾代码开始, 垃圾代码生成信息: $junkCodeInfoState" }
+        val start = System.currentTimeMillis()
+        logger.info { "generateJunkCode 生成垃圾代码开始, 模式: ${junkMode.value.title}, 垃圾代码生成信息: $junkCodeInfoState" }
         try {
             val dir = resourcesDir
             val output = junkCodeInfoState.outputPath
-            val appPackageName = junkCodeInfoState.packageName + "." + junkCodeInfoState.suffix
-            val packageCount = junkCodeInfoState.packageCount.toInt()
-            val activityCountPerPackage = junkCodeInfoState.activityCountPerPackage.toInt()
-            val resPrefix = junkCodeInfoState.resPrefix
-            val androidJunkGenerator =
-                AndroidJunkGenerator(
-                    dir,
-                    output,
-                    appPackageName,
-                    packageCount,
-                    activityCountPerPackage,
-                    resPrefix
+            
+            val resultFile = if (junkMode.value == JunkMode.MULTI) {
+                val outputDir = junkCodeInfoState.outputDir
+                val aarCount = junkCodeInfoState.aarCount.toIntOrNull() ?: 0
+                val leastPackageCount = junkCodeInfoState.leastPackageCount.toIntOrNull() ?: 0
+                val maximumPackageCount = junkCodeInfoState.maximumPackageCount.toIntOrNull() ?: 0
+                val leastActivityCount = junkCodeInfoState.leastActivityCountPerPackage.toIntOrNull() ?: 0
+                val maximumActivityCount = junkCodeInfoState.maximumActivityCountPerPackage.toIntOrNull() ?: 0
+
+                MultiAarGenerator.generate(
+                    resourcesDir = dir,
+                    outputPath = output,
+                    outputDir = outputDir,
+                    aarCount = aarCount,
+                    leastPackageCount = leastPackageCount,
+                    maximumPackageCount = maximumPackageCount,
+                    leastActivityCount = leastActivityCount,
+                    maximumActivityCount = maximumActivityCount
                 )
-            val file = androidJunkGenerator.startGenerate()
-            logger.info { "generateJunkCode 生成垃圾代码结束, 输出路径: ${file.absolutePath}" }
+                File(output, outputDir)
+            } else {
+                val appPackageName = junkCodeInfoState.packageName + "." + junkCodeInfoState.suffix
+                val packageCount = junkCodeInfoState.packageCount.toIntOrNull() ?: 0
+                val activityCountPerPackage = junkCodeInfoState.activityCountPerPackage.toIntOrNull() ?: 0
+                val resPrefix = junkCodeInfoState.resPrefix
+                val androidJunkGenerator =
+                    AndroidJunkGenerator(
+                        dir,
+                        output,
+                        appPackageName,
+                        packageCount,
+                        activityCountPerPackage,
+                        resPrefix
+                    )
+                androidJunkGenerator.startGenerate()
+            }
+            
+            val totalSize = if (resultFile.isDirectory) {
+                resultFile.walkBottomUp().filter { it.isFile }.sumOf { it.length() }
+            } else {
+                resultFile.length()
+            }
+            
+            logger.info { "generateJunkCode 生成垃圾代码结束, 耗时: ${System.currentTimeMillis() - start}ms, aar大小: ${totalSize.formatFileSize()}, 输出路径: ${resultFile.absolutePath}" }
             val snackbarVisualsData = SnackbarVisualsData(
-                message = getString(Res.string.build_end, file.length().formatFileSize()),
+                message = getString(Res.string.build_end, totalSize.formatFileSize()),
                 actionLabel = getString(Res.string.jump),
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
                 action = {
-                    browseFileDirectory(file)
+                    browseFileDirectory(resultFile)
                 })
             updateSnackbarVisuals(snackbarVisualsData)
         } catch (e: Exception) {

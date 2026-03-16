@@ -15,6 +15,7 @@ import org.tool.kit.model.DestStoreSize
 import org.tool.kit.model.DestStoreType
 import org.tool.kit.model.IconFactoryData
 import org.tool.kit.model.JpegAlgorithm
+import org.tool.kit.model.JunkMode
 import org.tool.kit.model.PngAlgorithm
 import org.tool.kit.model.UserData
 import org.tool.kit.utils.getDownloadDirectory
@@ -61,6 +62,8 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
         private const val HUAWEI_ALIGN_FILE_SIZE = "huawei_align_file_size"
         private const val START_CHECK_UPDATE = "start_check_update"
         private const val SIGNATURE_COPY_MODE = "signature_copy_mode"
+        private const val JUNK_MODE = "junk_mode"
+        val DEFAULT_JUNK_MODE = JunkMode.SINGLE
     }
 
     private val _userData = MutableStateFlow(DEFAULT_USER_DATA)
@@ -147,5 +150,21 @@ class PreferencesDataSource @OptIn(ExperimentalSettingsApi::class) constructor(p
 
     suspend fun saveCopyMode(copyMode: CopyMode) {
         settings.putString(SIGNATURE_COPY_MODE, copyMode.name)
+    }
+
+    val junkMode = settings.getStringOrNullFlow(JUNK_MODE).map { string ->
+        string?.let {
+            when (it) {
+                JunkMode.SINGLE.name -> JunkMode.SINGLE
+                JunkMode.MULTI.name -> JunkMode.MULTI
+                else -> JunkMode.SINGLE
+            }
+        } ?: let {
+            DEFAULT_JUNK_MODE
+        }
+    }
+
+    suspend fun saveJunkMode(junkMode: JunkMode) {
+        settings.putString(JUNK_MODE, junkMode.name)
     }
 }

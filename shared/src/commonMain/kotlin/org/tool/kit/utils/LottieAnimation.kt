@@ -15,6 +15,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.skiaCanvas
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.rememberLottieComposition
@@ -60,7 +61,7 @@ private fun InfiniteAnimation(animation: Animation, modifier: Modifier) {
     Canvas(modifier) {
         drawIntoCanvas {
             animation.render(
-                canvas = it.nativeCanvas, dst = Rect.makeWH(size.width, size.height)
+                canvas = it.skiaCanvas, dst = Rect.makeWH(size.width, size.height)
             )
         }
     }
