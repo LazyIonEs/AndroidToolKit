@@ -52,6 +52,9 @@ object MultiAarGenerator {
         val outputFolder = File(outputPath, outputDir)
         if (!outputFolder.exists()) {
             outputFolder.mkdirs()
+        } else {
+            outputFolder.deleteRecursively()
+            outputFolder.mkdirs()
         }
 
         // 使用 Set 进行查重，保证本次批量生成的包名和资源前缀绝对不重复
