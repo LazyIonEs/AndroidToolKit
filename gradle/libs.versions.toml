@@ -1,33 +1,34 @@
 [versions]
 compose = "1.4.0"
 compose-compiler = "1.5.8"
-compose-plugin = "1.11.0-alpha04"
-navigation3 = "1.1.0-alpha04"
+compose-plugin = "1.11.0"
+compose-material3 = "1.11.0-alpha07"
+navigation3 = "1.1.1"
 savedstate = "1.4.0"
 icons = "1.7.3"
-adaptive = "1.3.0-alpha06"
-lifecycle = "2.11.0-alpha01"
+adaptive = "1.3.0-alpha07"
+lifecycle = "2.11.0-beta01"
 junit = "4.13.2"
-kotlin = "2.3.10"
+kotlin = "2.3.21"
 apksig = "8.11.1"
 tools = "31.11.1"
 slf4j = "2.0.17"
 buildconfig = "6.0.9"
 commons-codec = "1.21.0"
-asm = "9.9.1"
+asm = "9.10"
 jna = "5.18.1"
-logging = "8.0.01"
-coroutines = "1.10.2"
-filekit = "0.13.0"
+logging = "8.0.02"
+coroutines = "1.11.0"
+filekit = "0.14.1"
 multiplatform-settings = "1.3.0"
-kotlinx-serialization-json = "1.10.0"
-kotlinx-datetime = "0.7.1"
-about-libraries = "13.2.1"
+kotlinx-serialization-json = "1.11.0"
+kotlinx-datetime = "0.8.0"
+about-libraries = "14.2.1"
 coil = "3.4.0"
 zoomimage = "1.4.0"
 apktool = "2.12.1"
-ktor = "3.4.1"
-markdown = "0.39.2"
+ktor = "3.5.0"
+markdown = "0.41.0"
 logback = "1.5.32"
 compottie = "2.1.0"
 
@@ -40,7 +41,7 @@ compose-runtime-saveable = { module = "org.jetbrains.compose.runtime:runtime-sav
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "compose-plugin" }
 compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "compose-plugin" }
 compose-material = { module = "org.jetbrains.compose.material:material", version.ref = "compose-plugin" }
-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-plugin" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "compose-material3" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-plugin" }
 compose-material-icons-extended-desktop = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "icons" }
 compose-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }

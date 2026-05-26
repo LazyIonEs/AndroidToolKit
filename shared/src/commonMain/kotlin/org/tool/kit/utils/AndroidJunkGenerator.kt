@@ -2,6 +2,7 @@ package org.tool.kit.utils
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Label
 import org.objectweb.asm.Opcodes
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
@@ -25,7 +26,7 @@ private val logger = KotlinLogging.logger("AndroidJunkGenerator")
 
 private const val ANDROID_SCHEMA = "http://schemas.android.com/apk/res/android"
 
-private val KEYWORDS = arrayOf( /*基本数据类型*/
+private val KEYWORDS = setOf( /*基本数据类型*/
     "boolean",
     "byte",
     "char",
@@ -82,18 +83,20 @@ private val KEYWORDS = arrayOf( /*基本数据类型*/
     "switch"
 )
 
-private val XML_KEYWORDS = arrayOf("null")
+private val XML_KEYWORDS = setOf("null")
 
 private val CHARACTER = "abcdefghijklmnopqrstuvwxyz".toCharArray()
 
 private val COLORS = "0123456789abcdef".toCharArray()
 
-private val VIEWS = arrayOf(
+private val VIEW_GROUPS = arrayOf(
     "FrameLayout",
     "LinearLayout",
     "RelativeLayout",
-    "GridLayout",
-    "Chronometer",
+    "GridLayout"
+)
+
+private val VIEWS = arrayOf(
     "Button",
     "ImageButton",
     "ImageView",
@@ -105,6 +108,9 @@ private val VIEWS = arrayOf(
     "StackView",
     "AdapterViewFlipper"
 )
+
+private val DRAWABLE_DIRS = arrayOf("drawable", "drawable-hdpi", "drawable-mdpi", "drawable-xhdpi", "drawable-xxhdpi", "drawable-xxxhdpi")
+private val MIPMAP_DIRS = arrayOf("mipmap", "mipmap-hdpi", "mipmap-mdpi", "mipmap-xhdpi", "mipmap-xxhdpi", "mipmap-xxxhdpi")
 
 class AndroidJunkGenerator(
     // 工作目录
@@ -128,6 +134,8 @@ class AndroidJunkGenerator(
     private val mCheckClassName = ConcurrentHashMap.newKeySet<String>()
 
     private val mDrawableIds = ConcurrentHashMap.newKeySet<String>(4098)
+    private val mAnimIds = ConcurrentHashMap.newKeySet<String>(4098)
+    private val mMipmapIds = ConcurrentHashMap.newKeySet<String>(4098)
     private val mLayoutIds = ConcurrentHashMap.newKeySet<String>(max(packageCount * activityCountPerPackage, 1024))
     private val mStringIds = ConcurrentHashMap.newKeySet<String>(4098)
     private val mIds = ConcurrentHashMap.newKeySet<String>(4098)
@@ -136,8 +144,15 @@ class AndroidJunkGenerator(
 
     private val mRClassType = getTypedName(appPackageName, "R")
 
-    private val probability = 0.3 // drawable string 生成概率 30%
-    private val idProbability = 0.03 // id 生成概率 3%
+    companion object {
+        const val ID_PROBABILITY = 0.03  // id 生成概率 3%
+        const val DRAWABLE_PROBABILITY = 0.2
+        const val STRING_PROBABILITY = 0.1
+        const val MIPMAP_PROBABILITY = 0.05
+        const val ANIM_PROBABILITY = 0.03
+        const val ASSET_PROBABILITY = 0.01
+        const val LIFECYCLE_PROBABILITY = 0.2
+    }
 
     fun startGenerate(): File {
         // 清理原工作目录中的文件
@@ -152,6 +167,7 @@ class AndroidJunkGenerator(
         logger.info { "startGenerate class 文件生成完成" }
 
         generateStringsFile()
+        generateOtherResources()
         generateKeepProguard()
 
         writeRFile()
@@ -225,7 +241,7 @@ class AndroidJunkGenerator(
         val selfType = getTypedName(packageName, className)
 
         val strRes = resPrefix + generateResName()
-        if (Random.nextDouble() < probability) {
+        if (Random.nextDouble() < STRING_PROBABILITY) {
             mStringIds.add(strRes)
         }
 
@@ -334,7 +350,7 @@ class AndroidJunkGenerator(
 
         // setContentView
         mv.visitVarInsn(Opcodes.ALOAD, 0)
-        mv.visitFieldInsn(Opcodes.GETSTATIC, $$"$$mRClassType$layout", layoutName, "I")
+        mv.visitFieldInsn(Opcodes.GETSTATIC, "$mRClassType\$layout", layoutName, "I")
         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, selfType, "setContentView", "(I)V", false)
 
         // 初始化view
@@ -364,7 +380,7 @@ class AndroidJunkGenerator(
                 getTypedName(packageName, listener),
                 null,
                 "java/lang/Object",
-                arrayOf($$"android/view/View$OnClickListener")
+                arrayOf("android/view/View\$OnClickListener")
             )
 
             cwi.visitField(
@@ -421,7 +437,7 @@ class AndroidJunkGenerator(
             val method = cw.visitMethod(Opcodes.ACC_PRIVATE, name, "()V", null, null)
             method.visitVarInsn(Opcodes.ALOAD, 0)
 //            // R.id.xx
-            method.visitFieldInsn(Opcodes.GETSTATIC, $$"$$mRClassType$id", viewId, "I")
+            method.visitFieldInsn(Opcodes.GETSTATIC, "$mRClassType\$id", viewId, "I")
 
             method.visitMethodInsn(
                 Opcodes.INVOKEVIRTUAL,
@@ -441,7 +457,7 @@ class AndroidJunkGenerator(
                 Opcodes.INVOKEVIRTUAL,
                 "android/view/View",
                 "setOnClickListener",
-                $$"(Landroid/view/View$OnClickListener;)V",
+                "(Landroid/view/View\$OnClickListener;)V",
                 false
             )
 
@@ -504,6 +520,77 @@ class AndroidJunkGenerator(
         mv.visitMaxs(1, 1)
         mv.visitEnd()
 
+        // 随机生成其他生命周期方法，增加内部逻辑多样性
+        val lifecycleMethods = listOf("onStart", "onResume", "onPause", "onStop", "onDestroy")
+        
+        lifecycleMethods.forEach { methodName ->
+            // onResume 强制生成，其他看概率
+            if (Random.nextDouble() < LIFECYCLE_PROBABILITY || methodName == "onResume") {
+                val methodMv = cw.visitMethod(Opcodes.ACC_PROTECTED, methodName, "()V", null, null)
+                methodMv.visitCode()
+                methodMv.visitVarInsn(Opcodes.ALOAD, 0)
+                methodMv.visitMethodInsn(Opcodes.INVOKESPECIAL, "android/app/Activity", methodName, "()V", false)
+                
+                // 注入随机字节码逻辑
+                val snippetsCount = Random.nextInt(1, 4)
+                repeat(snippetsCount) {
+                    injectRandomBytecode(methodMv, className)
+                }
+
+                // 如果是 onResume，则额外注入资源引用
+                if (methodName == "onResume") {
+                    if (Random.nextDouble() < ASSET_PROBABILITY) {
+                        val assetFileName = resPrefix + generateResName() + ".txt"
+                        generateAsset(assetFileName)
+                        
+                        val l0 = Label()
+                        val l1 = Label()
+                        val l2 = Label()
+                        methodMv.visitTryCatchBlock(l0, l1, l2, "java/lang/Exception")
+                        methodMv.visitLabel(l0)
+                        methodMv.visitVarInsn(Opcodes.ALOAD, 0)
+                        methodMv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "android/app/Activity", "getAssets", "()Landroid/content/res/AssetManager;", false)
+                        methodMv.visitLdcInsn(assetFileName)
+                        methodMv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "android/content/res/AssetManager", "open", "(Ljava/lang/String;)Ljava/io/InputStream;", false)
+                        methodMv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/InputStream", "close", "()V", false)
+                        methodMv.visitLabel(l1)
+                        val l3 = Label()
+                        methodMv.visitJumpInsn(Opcodes.GOTO, l3)
+                        methodMv.visitLabel(l2)
+                        methodMv.visitVarInsn(Opcodes.ASTORE, 1)
+                        methodMv.visitLabel(l3)
+                    }
+
+                    if (Random.nextDouble() < ANIM_PROBABILITY) {
+                        val animName = resPrefix + generateResName()
+                        if (mAnimIds.add(animName)) {
+                            generateAnim(animName)
+                            methodMv.visitVarInsn(Opcodes.ALOAD, 0)
+                            methodMv.visitFieldInsn(Opcodes.GETSTATIC, "$mRClassType\$anim", animName, "I")
+                            methodMv.visitMethodInsn(Opcodes.INVOKESTATIC, "android/view/animation/AnimationUtils", "loadAnimation", "(Landroid/content/Context;I)Landroid/view/animation/Animation;", false)
+                            methodMv.visitInsn(Opcodes.POP)
+                        }
+                    }
+
+                    if (Random.nextDouble() < MIPMAP_PROBABILITY) {
+                        val mipmapName = resPrefix + generateResName()
+                        if (mMipmapIds.add(mipmapName)) {
+                            generateMipmap(mipmapName)
+                            methodMv.visitVarInsn(Opcodes.ALOAD, 0)
+                            methodMv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "android/app/Activity", "getResources", "()Landroid/content/res/Resources;", false)
+                            methodMv.visitFieldInsn(Opcodes.GETSTATIC, "$mRClassType\$mipmap", mipmapName, "I")
+                            methodMv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "android/content/res/Resources", "getDrawable", "(I)Landroid/graphics/drawable/Drawable;", false)
+                            methodMv.visitInsn(Opcodes.POP)
+                        }
+                    }
+                }
+                
+                methodMv.visitInsn(Opcodes.RETURN)
+                methodMv.visitMaxs(5, 3)
+                methodMv.visitEnd()
+            }
+        }
+
         cw.visitEnd()
 
         val bytes = cw.toByteArray()
@@ -511,21 +598,26 @@ class AndroidJunkGenerator(
         writeClassToFile(packageName, className, bytes)
     }
 
+    private fun injectRandomBytecode(mv: org.objectweb.asm.MethodVisitor, className: String) {
+        AndroidJunkBytecodeInject.injectRandomBytecode(mv, className, ::generateResName, ::generateBigValue)
+    }
+
     private fun generateLayout(layoutName: String): List<String> {
         val drawableName = resPrefix + generateResName()
-        if (Random.nextDouble() < probability && mDrawableIds.add(drawableName)) {
+        if (Random.nextDouble() < DRAWABLE_PROBABILITY && mDrawableIds.add(drawableName)) {
             generateDrawable(drawableName)
         }
 
         val ids = mutableSetOf<String>()
         val rnd = Random.nextInt(2, 18)
-        // 生成布局
+        val rootGroup = VIEW_GROUPS[Random.nextInt(VIEW_GROUPS.size)]
+        val isLinear = rootGroup == "LinearLayout"
 
         val root = """<?xml version="1.0" encoding="utf-8"?>
-            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            <$rootGroup xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical">
+                ${if (isLinear) "android:orientation=\"vertical\"" else ""}>
                 
         """.trimIndent()
 
@@ -544,27 +636,66 @@ class AndroidJunkGenerator(
 
         (0 until rnd).forEach { _ ->
             val viewId = generateResName()
-            val hasId = if (Random.nextDouble() < idProbability) {
+            val hasId = if (Random.nextDouble() < ID_PROBABILITY) {
                 ids.add(viewId)
             } else {
                 false
             }
 
             val widget = VIEWS[Random.nextInt(VIEWS.size)]
+            val extraAttrs = StringBuilder()
+            var hasBackground = false
 
-            // 宽高
+            if (Random.nextDouble() < MIPMAP_PROBABILITY) {
+                val mipmapName = resPrefix + generateResName()
+                if (mMipmapIds.add(mipmapName)) {
+                    generateMipmap(mipmapName)
+                    extraAttrs.append("\n                    android:background=\"@mipmap/$mipmapName\"")
+                    hasBackground = true
+                }
+            }
+
+            if (Random.nextDouble() < ANIM_PROBABILITY) {
+                val animName = resPrefix + generateResName()
+                if (mAnimIds.add(animName)) {
+                    generateAnim(animName)
+                    extraAttrs.append("\n                    android:layoutAnimation=\"@anim/$animName\"")
+                }
+            }
+
+            if (Random.nextDouble() < DRAWABLE_PROBABILITY) {
+                val dName = resPrefix + generateResName()
+                if (mDrawableIds.add(dName)) {
+                    generateDrawable(dName)
+                    if (widget.contains("Image")) {
+                        extraAttrs.append("\n                    android:src=\"@drawable/$dName\"")
+                    } else if (!hasBackground) {
+                        extraAttrs.append("\n                    android:background=\"@drawable/$dName\"")
+                        hasBackground = true
+                    }
+                }
+            }
+
+            if (Random.nextDouble() < STRING_PROBABILITY) {
+                val strRes = resPrefix + generateResName()
+                mStringIds.add(strRes)
+                if (widget.contains("Text") || widget.contains("Button")) {
+                    extraAttrs.append("\n                    android:text=\"@string/$strRes\"")
+                }
+            }
+
             val tpl = """
                 <$widget
                     ${if (hasId) "android:id=\"@+id/$viewId\"" else ""}   
                     android:layout_width="${getDimens()}"
                     ${if (widget == "LinearLayout") linear() else ""}
-                    android:layout_height="${getDimens()}" />
-                """.trimIndent()
+                    android:layout_height="${getDimens()}"$extraAttrs />
+            """.trimIndent()
 
             xml.append(tpl).append("\n")
         }
 
-        xml.append("</LinearLayout>")
+        xml.append("</$rootGroup>")
 
         val file = File(workspace, "res/layout/$layoutName.xml")
         writeStringToFile(file, xml.toString())
@@ -572,26 +703,212 @@ class AndroidJunkGenerator(
         return ids.toList()
     }
 
-    private fun generateDrawable(drawableName: String) {
-        val content = StringBuilder(
-            """<vector xmlns:android="$ANDROID_SCHEMA"
-                    android:width="${Random.nextInt(100)}dp"
-                    android:height="${Random.nextInt(100)}dp"
-                    android:viewportWidth="${Random.nextInt(100)}"
-                    android:viewportHeight="${Random.nextInt(100)}">
-                    <path  android:fillColor="${generateColor()}"   android:pathData="M"""
-        )
-        val t: Int = Random.nextInt(10, 40)
-        for (i in 0 until t) {
-            if (i != t - 1) {
-                content.append(Random.nextInt(100)).append(",")
-            } else {
-                content.append(Random.nextInt(100))
+    private fun generateOtherResources() {
+        val count = Random.nextInt(packageCount * 5, packageCount * 15)
+        IntStream.range(0, count).parallel().forEach { _ ->
+            if (Random.nextDouble() < ANIM_PROBABILITY) {
+                val animName = resPrefix + generateResName()
+                if (mAnimIds.add(animName)) {
+                    generateAnim(animName)
+                }
+            }
+            if (Random.nextDouble() < MIPMAP_PROBABILITY) {
+                val mipmapName = resPrefix + generateResName()
+                if (mMipmapIds.add(mipmapName)) {
+                    generateMipmap(mipmapName)
+                }
+            }
+            if (Random.nextDouble() < ASSET_PROBABILITY) {
+                generateAsset()
+            }
+            if (Random.nextDouble() < DRAWABLE_PROBABILITY) {
+                val drawableName = resPrefix + generateResName()
+                if (mDrawableIds.add(drawableName)) {
+                    generateDrawable(drawableName)
+                }
             }
         }
-        content.append("z\" />\n").append("</vector>\n").append("\n")
-        val drawableFile = File(workspace, "res/drawable/$drawableName.xml")
-        writeStringToFile(drawableFile, content.toString())
+    }
+
+    private fun generateAnim(animName: String) {
+        val animTypes = arrayOf("alpha", "scale", "translate", "rotate", "set")
+        val root = animTypes[Random.nextInt(animTypes.size)]
+        
+        val content = java.lang.StringBuilder("""<?xml version="1.0" encoding="utf-8"?>""")
+        content.append("\n<").append(root).append(" xmlns:android=\"").append(ANDROID_SCHEMA).append("\"")
+        
+        fun generateAnimAttributes(): String {
+            val attrs = java.lang.StringBuilder()
+            attrs.append(" android:duration=\"").append(Random.nextInt(300, 2000)).append("\"")
+            if (Random.nextBoolean()) attrs.append(" android:fillAfter=\"").append(Random.nextBoolean()).append("\"")
+            if (Random.nextBoolean()) attrs.append(" android:repeatCount=\"").append(Random.nextInt(1, 10)).append("\"")
+            return attrs.toString()
+        }
+
+        fun generateChildAnim(type: String): String {
+            val child = java.lang.StringBuilder("\n    <").append(type).append(generateAnimAttributes())
+            when (type) {
+                "alpha" -> {
+                    child.append(" android:fromAlpha=\"").append(Random.nextDouble().toFloat()).append("\"")
+                    child.append(" android:toAlpha=\"").append(Random.nextDouble().toFloat()).append("\"")
+                }
+                "scale" -> {
+                    child.append(" android:fromXScale=\"").append(Random.nextDouble().toFloat()).append("\"")
+                    child.append(" android:toXScale=\"").append(Random.nextDouble().toFloat()).append("\"")
+                    child.append(" android:fromYScale=\"").append(Random.nextDouble().toFloat()).append("\"")
+                    child.append(" android:toYScale=\"").append(Random.nextDouble().toFloat()).append("\"")
+                    child.append(" android:pivotX=\"").append(Random.nextInt(0, 100)).append("%\"")
+                    child.append(" android:pivotY=\"").append(Random.nextInt(0, 100)).append("%\"")
+                }
+                "translate" -> {
+                    child.append(" android:fromXDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
+                    child.append(" android:toXDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
+                    child.append(" android:fromYDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
+                    child.append(" android:toYDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
+                }
+                "rotate" -> {
+                    child.append(" android:fromDegrees=\"").append(Random.nextInt(0, 360)).append("\"")
+                    child.append(" android:toDegrees=\"").append(Random.nextInt(0, 360)).append("\"")
+                    child.append(" android:pivotX=\"").append(Random.nextInt(0, 100)).append("%\"")
+                    child.append(" android:pivotY=\"").append(Random.nextInt(0, 100)).append("%\"")
+                }
+            }
+            child.append(" />")
+            return child.toString()
+        }
+
+        if (root == "set") {
+            content.append(generateAnimAttributes()).append(">\n")
+            val childCount = Random.nextInt(1, 4)
+            for (i in 0 until childCount) {
+                val childType = animTypes[Random.nextInt(animTypes.size - 1)]
+                content.append(generateChildAnim(childType))
+            }
+            content.append("\n</").append(root).append(">\n")
+        } else {
+            content.append(generateAnimAttributes())
+            when (root) {
+                "alpha" -> {
+                    content.append(" android:fromAlpha=\"").append(Random.nextDouble().toFloat()).append("\"")
+                    content.append(" android:toAlpha=\"").append(Random.nextDouble().toFloat()).append("\"")
+                }
+                "scale" -> {
+                    content.append(" android:fromXScale=\"").append(Random.nextDouble().toFloat()).append("\"")
+                    content.append(" android:toXScale=\"").append(Random.nextDouble().toFloat()).append("\"")
+                    content.append(" android:fromYScale=\"").append(Random.nextDouble().toFloat()).append("\"")
+                    content.append(" android:toYScale=\"").append(Random.nextDouble().toFloat()).append("\"")
+                    content.append(" android:pivotX=\"").append(Random.nextInt(0, 100)).append("%\"")
+                    content.append(" android:pivotY=\"").append(Random.nextInt(0, 100)).append("%\"")
+                }
+                "translate" -> {
+                    content.append(" android:fromXDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
+                    content.append(" android:toXDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
+                    content.append(" android:fromYDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
+                    content.append(" android:toYDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
+                }
+                "rotate" -> {
+                    content.append(" android:fromDegrees=\"").append(Random.nextInt(0, 360)).append("\"")
+                    content.append(" android:toDegrees=\"").append(Random.nextInt(0, 360)).append("\"")
+                    content.append(" android:pivotX=\"").append(Random.nextInt(0, 100)).append("%\"")
+                    content.append(" android:pivotY=\"").append(Random.nextInt(0, 100)).append("%\"")
+                }
+            }
+            content.append(" />\n")
+        }
+
+        val file = File(workspace, "res/anim/$animName.xml")
+        writeStringToFile(file, content.toString())
+    }
+
+    private fun generateAsset(fileName: String? = null) {
+        val assetTypes = arrayOf(".xml", ".yaml", ".json", ".config", ".txt")
+        val ext = assetTypes[Random.nextInt(assetTypes.size)]
+        val name = fileName ?: (resPrefix + generateResName() + ext)
+        
+        val content = java.lang.StringBuilder()
+        when (ext) {
+            ".json" -> {
+                content.append("{\n")
+                val keyCount = Random.nextInt(5, 20)
+                for (i in 0 until keyCount) {
+                    content.append("  \"").append(generateResName()).append("\": \"").append(generateBigValue(20)).append("\"")
+                    if (i < keyCount - 1) content.append(",\n") else content.append("\n")
+                }
+                content.append("}")
+            }
+            ".xml" -> {
+                content.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<root>\n")
+                val keyCount = Random.nextInt(5, 20)
+                for (i in 0 until keyCount) {
+                    val node = generateResName()
+                    content.append("  <").append(node).append(">").append(generateBigValue(20)).append("</").append(node).append(">\n")
+                }
+                content.append("</root>")
+            }
+            ".yaml", ".config" -> {
+                val keyCount = Random.nextInt(5, 20)
+                for (i in 0 until keyCount) {
+                    content.append(generateResName()).append(": ").append(generateBigValue(20)).append("\n")
+                }
+            }
+            else -> {
+                val lineCount = Random.nextInt(10, 50)
+                for (i in 0 until lineCount) {
+                    content.append(generateBigValue()).append("\n")
+                }
+            }
+        }
+        
+        val file = File(workspace, "assets/$name")
+        writeStringToFile(file, content.toString())
+    }
+
+    private fun generateVectorContent(): String {
+        val width = Random.nextInt(24, 200)
+        val height = Random.nextInt(24, 200)
+        val content = java.lang.StringBuilder(
+            """<vector xmlns:android="$ANDROID_SCHEMA"
+                    android:width="${width}dp"
+                    android:height="${height}dp"
+                    android:viewportWidth="${width}"
+                    android:viewportHeight="${height}">"""
+        )
+        val pathCount = Random.nextInt(1, 5)
+        for (p in 0 until pathCount) {
+            content.append("\n    <path android:fillColor=\"${generateColor()}\"")
+            if (Random.nextBoolean()) {
+                content.append(" android:strokeColor=\"${generateColor()}\" android:strokeWidth=\"${Random.nextInt(1, 5)}\"")
+            }
+            content.append(" android:pathData=\"M")
+            val pointCount = Random.nextInt(5, 20)
+            for (i in 0 until pointCount) {
+                if (Random.nextBoolean()) {
+                    content.append(" ").append(Random.nextInt(width)).append(",").append(Random.nextInt(height))
+                } else {
+                    content.append(" C ").append(Random.nextInt(width)).append(" ").append(Random.nextInt(height))
+                        .append(", ").append(Random.nextInt(width)).append(" ").append(Random.nextInt(height))
+                        .append(", ").append(Random.nextInt(width)).append(" ").append(Random.nextInt(height))
+                }
+                if (i != pointCount - 1) {
+                    content.append(" L ")
+                }
+            }
+            content.append(" Z\" />")
+        }
+        content.append("\n</vector>\n")
+        return content.toString()
+    }
+
+    private fun generateMipmap(mipmapName: String) {
+        val dirName = MIPMAP_DIRS[Random.nextInt(MIPMAP_DIRS.size)]
+        val file = File(workspace, "res/$dirName/$mipmapName.xml")
+        writeStringToFile(file, generateVectorContent())
+    }
+
+    private fun generateDrawable(drawableName: String) {
+        val dirName = DRAWABLE_DIRS[Random.nextInt(DRAWABLE_DIRS.size)]
+        val drawableFile = File(workspace, "res/$dirName/$drawableName.xml")
+        writeStringToFile(drawableFile, generateVectorContent())
     }
 
     private fun generateOtherClass(
@@ -611,8 +928,10 @@ class AndroidJunkGenerator(
         val cnt = Random.nextInt(2, 16)
 
         repeat(cnt) {
-            val field = generateFieldName()
-            fields.add(field)
+            var field: String
+            do {
+                field = generateFieldName()
+            } while (!fields.add(field))
             cw.visitField(Opcodes.ACC_MODULE, field, "Ljava/lang/String;", null, null).visitEnd()
         }
 
@@ -626,10 +945,10 @@ class AndroidJunkGenerator(
         // 静态方法 0-3
         val sMethodCnt = Random.nextInt(3)
         repeat(sMethodCnt) {
-            val name = generateMethodName()
-            if (!methods.add(name)) {
-                return@repeat
-            }
+            var name: String
+            do {
+                name = generateMethodName()
+            } while (!methods.add(name))
 
             val index = Random.nextInt(descriptor.size)
             val des = descriptor[index]
@@ -775,7 +1094,7 @@ class AndroidJunkGenerator(
     }
 
     private fun generateColor(): String {
-        val sb = java.lang.StringBuilder()
+        val sb = java.lang.StringBuilder(7)
         sb.append("#")
         (0..5).forEach { _ ->
             sb.append(COLORS[Random.nextInt(COLORS.size)])
@@ -783,11 +1102,12 @@ class AndroidJunkGenerator(
         return sb.toString()
     }
 
-    private fun generateBigValue(): String {
-        val abc1 = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKMNLOPQRSTUVWZYZ0123456789".toCharArray()
-        val sb = java.lang.StringBuilder()
-        (0 until Random.nextInt(10, 100)).forEach { _ ->
-            sb.append(abc1[Random.nextInt(abc1.size)])
+    private val BIG_VALUE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKMNLOPQRSTUVWZYZ0123456789".toCharArray()
+
+    private fun generateBigValue(length: Int = Random.nextInt(10, 100)): String {
+        val sb = java.lang.StringBuilder(length)
+        (0 until length).forEach { _ ->
+            sb.append(BIG_VALUE_CHARS[Random.nextInt(BIG_VALUE_CHARS.size)])
         }
         return sb.toString()
     }
@@ -851,7 +1171,7 @@ class AndroidJunkGenerator(
             return
         }
 
-        val keep = "@layout/$prefix*,@drawable/$prefix*,@string/$prefix*"
+        val keep = "@layout/$prefix*,@drawable/$prefix*,@string/$prefix*,@anim/$prefix*,@mipmap/$prefix*"
 
         val content = """<?xml version="1.0" encoding="utf-8"?>
         <resources xmlns:tools="http://schemas.android.com/tools"
@@ -874,12 +1194,18 @@ class AndroidJunkGenerator(
             writer.newLine()
             mDrawableIds.forEach { writer.write("int drawable $it 0x0\n") }
             writer.newLine()
+            mAnimIds.forEach { writer.write("int anim $it 0x0\n") }
+            writer.newLine()
+            mMipmapIds.forEach { writer.write("int mipmap $it 0x0\n") }
+            writer.newLine()
             mIds.forEach { writer.write("int id $it 0x0\n") }
         }
 
         logger.info { "strings 文件数量: ${mStringIds.size}" }
         logger.info { "layouts 文件数量: ${mLayoutIds.size}" }
         logger.info { "drawables 文件数量: ${mDrawableIds.size}" }
+        logger.info { "anims 文件数量: ${mAnimIds.size}" }
+        logger.info { "mipmaps 文件数量: ${mMipmapIds.size}" }
         logger.info { "ids 大小: ${mIds.size}" }
     }
 
@@ -943,18 +1269,10 @@ class AndroidJunkGenerator(
 
     private fun copyEntry(entry: ZipEntry, file: File, zos: ZipOutputStream) {
         zos.putNextEntry(entry)
-
-        file.inputStream().buffered().use { fos ->
-            val bytes = ByteArray(10240)
-            var len: Int
-            while (true) {
-                len = fos.read(bytes)
-                if (len == -1) break
-                zos.write(bytes, 0, len)
-            }
-
-            zos.closeEntry()
+        file.inputStream().use { fis ->
+            fis.copyTo(zos)
         }
+        zos.closeEntry()
     }
 
     private fun writeStringToFile(file: File, content: String): Boolean {
@@ -963,10 +1281,9 @@ class AndroidJunkGenerator(
         }
 
         return runCatching {
-            file.bufferedWriter().use { it.write(content) }
+            file.writeText(content)
         }.isSuccess
     }
-
 
     private fun writeClassToFile(packageName: String, className: String, bytes: ByteArray) {
         val dir = File(workspace, classesDir)
@@ -977,10 +1294,6 @@ class AndroidJunkGenerator(
             parent.mkdirs()
         }
 
-        if (file.exists()) {
-            file.createNewFile()
-        }
-
-        file.outputStream().buffered().use { it.write(bytes) }
+        file.writeBytes(bytes)
     }
 }
