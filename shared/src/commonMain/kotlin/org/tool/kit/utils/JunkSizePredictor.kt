@@ -1,11 +1,13 @@
 package org.tool.kit.utils
 
-object JunkSizePredictor {
+import org.tool.kit.utils.AndroidJunkGenerator.Companion.ANIM_PROBABILITY
+import org.tool.kit.utils.AndroidJunkGenerator.Companion.ASSET_PROBABILITY
+import org.tool.kit.utils.AndroidJunkGenerator.Companion.DRAWABLE_PROBABILITY
+import org.tool.kit.utils.AndroidJunkGenerator.Companion.ID_PROBABILITY
+import org.tool.kit.utils.AndroidJunkGenerator.Companion.MIPMAP_PROBABILITY
+import org.tool.kit.utils.AndroidJunkGenerator.Companion.STRING_PROBABILITY
 
-    // 基于 AndroidJunkGenerator 的常量定义
-    private const val ID_PROBABILITY = 0.03
-    private const val DRAWABLE_PROBABILITY = 0.3
-    private const val STRING_PROBABILITY = 0.3
+object JunkSizePredictor {
 
     // 布局 View 数量: Random.nextInt(2, 18) -> 平均 9.5
     private const val AVG_VIEWS_PER_LAYOUT = 9.5
@@ -26,11 +28,21 @@ object JunkSizePredictor {
         val totalActivities = calculateTotalActivities(packageCount, activityCountPerPackage)
         val bytesPerActivityUnit = calculateUnitSize()
 
-        // 基础开销：Jar 头, Manifest 头, R.txt 头, Proguard 文件, 少量 keep xml
-        // 估算为 4KB (压缩后)
-        val baseOverhead = 4096L
+        // generateOtherResources 会为每个 Package 额外生成大量各种各样的资源
+        // 数量: Random.nextInt(packageCount * 5, packageCount * 15) -> 平均 packageCount * 10
+        // 这些资源包括 Asset, Anim, Mipmap, Drawable
+        val extraResourcesOverhead = packageCount * 10 * (
+                (ASSET_PROBABILITY * 750.0) +
+                        (ANIM_PROBABILITY * 260.0) +
+                        (MIPMAP_PROBABILITY * 260.0) +
+                        (DRAWABLE_PROBABILITY * 260.0)
+        )
 
-        return baseOverhead + (totalActivities * bytesPerActivityUnit).toLong()
+        // 基础开销：Jar 头, Manifest 头, R.txt 头, Proguard 文件, 少量 keep xml
+        // 估算为 5KB (压缩后)
+        val baseOverhead = 5120L
+
+        return baseOverhead + (totalActivities * bytesPerActivityUnit).toLong() + extraResourcesOverhead.toLong()
     }
 
     private fun calculateTotalActivities(packageCount: Int, activityCountPerPackage: Int): Long {
@@ -42,16 +54,13 @@ object JunkSizePredictor {
 
     private fun calculateUnitSize(): Double {
         // --- 详细拆解 (基于压缩后的体积估算) ---
-        // 基于实验数据校准：Average unit size ≈ 3157 Bytes (针对性能优化后的版本校准)
-
         // 1. Class 文件 (Bytes)
-        // Activity Class (主类) - 包含较多逻辑 (onCreate, initViews, random calls)
-        // 包含大量字符串常量 (generateBigValue) 用于字段赋值，显著增加体积
-        val activityClassSize = 1090.0
+        // Activity Class (主类) - 包含 5 大生命周期方法，随机注入近 300 种庞大的字节码 Snippets
+        val activityClassSize = 2650.0
 
         // Other Class - 字段 + getter + static methods
         // 平均 2.5 个类
-        val otherClassSize = 550.0
+        val otherClassSize = 600.0
 
         // Listener Class - 仅在 view 有 ID 时生成 (根据 idProbability)
         val avgListeners = AVG_VIEWS_PER_LAYOUT * ID_PROBABILITY // 9.5 * 0.03 = 0.285
@@ -62,14 +71,14 @@ object JunkSizePredictor {
                 (avgListeners * listenerClassSize)
 
         // 2. 资源文件 (Bytes)
-        // Layout XML: ~10 Views + Attributes. 文本压缩率高.
-        val layoutXmlSize = 445.0
+        // Layout XML: 包含各种 layoutAnimation, mipmap, drawable 等复杂注入属性
+        val layoutXmlSize = 780.0
 
-        // Vector Drawable (0.3 概率)
-        val drawableSize = 250.0
+        // Vector Drawable / Mipmap (0.3 概率) -> 包含多 path 和 贝塞尔曲线
+        val drawableSize = 300.0
 
         // String (0.3 概率, entries in strings.xml)
-        val stringEntrySize = 100.0
+        val stringEntrySize = 50.0
 
         val totalResSize = layoutXmlSize +
                 (drawableSize * DRAWABLE_PROBABILITY) +
@@ -78,7 +87,7 @@ object JunkSizePredictor {
         // 3. 配置与元数据增量
         // Manifest entry (<activity.../>) + R.txt entries (layout, string, drawable, ids)
         val manifestEntry = 65.0
-        val rTextEntries = 20.0
+        val rTextEntries = 30.0
 
         val configOverhead = manifestEntry + rTextEntries
 

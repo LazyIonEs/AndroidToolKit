@@ -15,7 +15,7 @@ data class JunkCodeInfo(
     var outputPath: String = "", // 输出路径
 
     // 单aar模式使用
-    var aarName: String = "junk_com_dev_junk_plugin_TT2.1.0.aar", // aar名称
+    var aarName: String = "junk_com_dev_junk_plugin_TT2.2.0.aar", // aar名称
     private var _packageName: String = "com.dev.junk", // 包名
     private var _suffix: String = "plugin", // 后缀
     var packageCount: String = "50", // 包数量
@@ -34,14 +34,14 @@ data class JunkCodeInfo(
         get() = _packageName
         set(value) {
             _packageName = value
-            aarName = "junk_" + packageName.replace(".", "_") + "_" + this.suffix + "_TT2.1.0.aar"
+            aarName = "junk_" + packageName.replace(".", "_") + "_" + this.suffix + "_TT2.2.0.aar"
         }
 
     var suffix: String
         get() = _suffix
         set(value) {
             _suffix = value
-            aarName = "junk_" + packageName.replace(".", "_") + "_" + this.suffix + "_TT2.1.0.aar"
+            aarName = "junk_" + packageName.replace(".", "_") + "_" + this.suffix + "_TT2.2.0.aar"
         }
 
     fun estimateAarSize(junkMode: JunkMode): String {
