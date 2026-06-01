@@ -175,7 +175,7 @@ compose.desktop {
         
         // ProGuard configuration for release builds
         buildTypes.release.proguard {
-            version.set("7.8.2")
+            version.set("7.9.1")
             obfuscate.set(true)
             optimize.set(true)
             joinOutputJars.set(true)
