@@ -12,6 +12,7 @@ import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.downloadDir
+import io.github.vinceglb.filekit.downloadsDir
 import io.github.vinceglb.filekit.path
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -79,7 +80,7 @@ private val logger = KotlinLogging.logger("Utils")
 /**
  * 获取下载目录
  */
-fun getDownloadDirectory() = FileKit.downloadDir.path
+fun getDownloadDirectory() = FileKit.downloadsDir.path
 
 val isWindows = System.getProperty("os.name").startsWith("Win")
 
