@@ -7,14 +7,12 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,13 +33,10 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -56,10 +51,9 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.rememberWindowState
-import com.mikepenz.aboutlibraries.entity.Library
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
-import com.mikepenz.aboutlibraries.ui.compose.util.htmlReadyLicenseContent
+import com.mikepenz.aboutlibraries.ui.compose.variant.LibraryDetailMode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
@@ -107,13 +101,12 @@ import org.tool.kit.shared.generated.resources.version_information
 import org.tool.kit.shared.generated.resources.view_log_file
 import org.tool.kit.shared.generated.resources.whether_to_always_show_the_navigation_bar_label
 import org.tool.kit.shared.generated.resources.whether_to_turn_off_file_alignment_function_when_signing_and_packaging_huawei_channel_package
-import org.tool.kit.theme.AppTheme
 import org.tool.kit.utils.browseFileDirectory
 import org.tool.kit.utils.getLogFile
 import org.tool.kit.vm.MainViewModel
 import java.awt.Desktop
 import java.io.File
-import java.net.URI
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * @Author      : LazyIonEs
@@ -542,7 +535,7 @@ private fun DeveloperMode(viewModel: MainViewModel) {
 private fun About(viewModel: MainViewModel) {
     var isOpenLibraries by remember { mutableStateOf(false) }
     if (isOpenLibraries) {
-        AboutLibrariesWindow(viewModel) {
+        AboutLibrariesWindow {
             isOpenLibraries = false
         }
     }
@@ -631,7 +624,7 @@ fun VersionInfo(
                 tapCount = 0
             } else {
                 coroutineScope.launch {
-                    delay(tapTimeoutMillis)
+                    delay(tapTimeoutMillis.milliseconds)
                     tapCount = 0
                 }
             }
@@ -696,9 +689,8 @@ private fun ClickAbout(text: String, onClick: () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AboutLibrariesWindow(viewModel: MainViewModel, onCloseRequest: () -> Unit) {
+private fun AboutLibrariesWindow(onCloseRequest: () -> Unit) {
     val windowState = rememberWindowState(size = DpSize(800.dp, 600.dp))
     Window(
         onCloseRequest = onCloseRequest,
@@ -707,71 +699,14 @@ private fun AboutLibrariesWindow(viewModel: MainViewModel, onCloseRequest: () ->
         icon = painterResource(Res.drawable.icon),
         alwaysOnTop = true
     ) {
-        val themeConfig by viewModel.themeConfig.collectAsState()
-        val useDarkTheme = when (themeConfig) {
-            DarkThemeConfig.LIGHT -> false
-            DarkThemeConfig.DARK -> true
-            DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
-        }
         val libraries by produceLibraries {
             Res.readBytes("files/aboutlibraries.json").decodeToString()
         }
-        AppTheme(useDarkTheme) {
-            Surface(color = MaterialTheme.colorScheme.background) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    var selectLibrary by remember { mutableStateOf<Library?>(null) }
-                    LibrariesContainer(
-                        libraries = libraries,
-                        modifier = Modifier.fillMaxWidth(),
-                        showAuthor = false,
-                        showDescription = true,
-                        onLibraryClick = { library ->
-                            val license = library.licenses.firstOrNull()
-                            if (!license?.htmlReadyLicenseContent.isNullOrBlank()) {
-                                selectLibrary = library
-                            } else if (!license?.url.isNullOrBlank()) {
-                                license.url?.also {
-                                    Desktop.getDesktop().browse(URI.create(it))
-                                }
-                            }
-                        }
-                    )
-                    selectLibrary?.let { library ->
-                        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-                        ModalBottomSheet(
-                            modifier = Modifier.fillMaxHeight()
-                                .align(Alignment.BottomEnd),
-                            sheetState = sheetState,
-                            onDismissRequest = { selectLibrary = null }
-                        ) {
-                            LazyColumn(
-                                modifier = Modifier.fillMaxWidth()
-                                    .padding(horizontal = 16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                item {
-                                    Text(
-                                        text = library.name,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                }
-                                item {
-                                    Spacer(Modifier.size(8.dp))
-                                    val license = library.licenses.firstOrNull()
-                                    license?.licenseContent?.let { content ->
-                                        Text(
-                                            text = content,
-                                            style = MaterialTheme.typography.bodyMedium
-                                        )
-                                    }
-                                    Spacer(Modifier.size(16.dp))
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        LibrariesContainer(
+            libraries = libraries,
+            modifier = Modifier.fillMaxSize(),
+            detailMode = LibraryDetailMode.Sheet
+        )
     }
 }
 

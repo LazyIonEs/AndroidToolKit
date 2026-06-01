@@ -5,13 +5,12 @@ import androidx.compose.ui.graphics.toComposeImageBitmap
 import brut.xml.XmlUtils
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.core.FileAppender
-import com.google.devrel.gmscore.tools.apk.arsc.ArscBlamer
-import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceFile
-import com.google.devrel.gmscore.tools.apk.arsc.BinaryResourceIdentifier
+import com.google.devrel.gmscore.tools.apk.arsc.ResourceFile
+import com.google.devrel.gmscore.tools.apk.arsc.ResourceIdentifier
 import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.FileKit
-import io.github.vinceglb.filekit.downloadDir
+import io.github.vinceglb.filekit.downloadsDir
 import io.github.vinceglb.filekit.path
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -79,7 +78,7 @@ private val logger = KotlinLogging.logger("Utils")
 /**
  * 获取下载目录
  */
-fun getDownloadDirectory() = FileKit.downloadDir.path
+fun getDownloadDirectory() = FileKit.downloadsDir.path
 
 val isWindows = System.getProperty("os.name").startsWith("Win")
 
@@ -268,17 +267,17 @@ suspend fun extractIcon(text: String?, apkPath: String, iconPath: String): Image
     }
 
 private fun extractBitmapFromResourceTable(apkPath: String, resourceId: Int): ImageBitmap? {
-    val binaryResourceIdentifier = BinaryResourceIdentifier.create(resourceId)
+    val binaryResourceIdentifier = ResourceIdentifier.create(resourceId)
 
     ZipFile(apkPath).use { zipFile ->
         val inputStream = zipFile.getZipFileInputStream("resources.arsc") ?: return null
-        val resourceFile = BinaryResourceFile.fromInputStream(inputStream)
+        val resourceFile = ResourceFile.fromInputStream(inputStream)
 
         val resourceTable = resourceFile.chunks.firstOrNull() as? ResourceTableChunk ?: return null
 
         val blamer = ArscBlamer(resourceTable).apply { blame() }
 
-        val matchingTypeChunk = blamer.typeChunks.lastOrNull { typeChunk ->
+        val matchingTypeChunk = blamer.getTypeChunks().lastOrNull { typeChunk ->
             typeChunk.containsResource(binaryResourceIdentifier) &&
                     typeChunk.configuration.density() in listOf(160, 240, 320, 480, 640)
         } ?: return null
@@ -286,7 +285,7 @@ private fun extractBitmapFromResourceTable(apkPath: String, resourceId: Int): Im
         val entry = matchingTypeChunk.entries[binaryResourceIdentifier.entryId()] ?: return null
         if (entry.isComplex) return null
 
-        val resourcePath = resourceTable.stringPool.getString(entry.value().data())
+        val resourcePath = resourceTable.stringPool.getString(entry.value()?.data() ?: 0)
         val resourceBytes = zipFile.getZipFileData(resourcePath) ?: return null
 
         return Image.makeFromEncoded(resourceBytes).toComposeImageBitmap()

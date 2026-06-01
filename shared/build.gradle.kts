@@ -84,6 +84,7 @@ kotlin {
             // Android tools (with exclusions to avoid conflicts)
             implementation(libs.android.apksig)
             implementation(libs.android.sdk.common)
+            implementation(libs.google.guava)
             implementation(libs.android.binary.resources)
 
             // Third-party libraries
@@ -157,7 +158,8 @@ kotlin {
         // JVM-specific dependencies
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
-            runtimeOnly(libs.kotlinx.coroutines.swing)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.coroutines.swing)
         }
     }
 }
