@@ -83,3 +83,8 @@
 -dontnote io.ktor.**
 -dontnote org.slf4j.**
 -dontnote kotlinx.serialization.**
+
+# dbus-java
+-keep class org.freedesktop.dbus.** { *; }
+-keep class io.github.vinceglb.filekit.dialogs.platform.xdg.** { *; }
+-keepattributes Signature,InnerClasses,RuntimeVisibleAnnotations
