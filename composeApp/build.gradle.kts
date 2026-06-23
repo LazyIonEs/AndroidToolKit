@@ -37,20 +37,22 @@ kotlin {
     jvmToolchain {
         languageVersion.set(javaLanguageVersion)
     }
-    
+
     // Target configuration
     jvm()
-    
+
     // Source sets
     sourceSets {
         // Common dependencies
         commonMain.dependencies {
             implementation(projects.shared)
         }
-        
+
         // JVM-specific dependencies
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
+            implementation(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.coroutines.swing)
         }
     }
 }
@@ -105,14 +107,14 @@ compose.desktop {
                 TargetFormat.Deb,   // Debian/Ubuntu
                 TargetFormat.Rpm    // RedHat/Fedora
             )
-            
+
             // Application metadata
             packageName = kitPackageName
             packageVersion = kitVersion
             description = kitDescription
             copyright = kitCopyright
             vendor = kitVendor
-            
+
             // Required JVM modules
             modules(
                 "java.compiler",
@@ -139,7 +141,7 @@ compose.desktop {
                 debMaintainer = "lazyiones@gmail.com"
                 iconFile.set(project.file("launcher/icon.png"))
             }
-            
+
             // macOS-specific configuration
             macOS {
                 dmgPackageVersion = packageVersion
@@ -157,7 +159,7 @@ compose.desktop {
                     this.extraKeysRawXml = macExtraPlistKeys
                 }
             }
-            
+
             // Windows-specific configuration
             windows {
                 msiPackageVersion = packageVersion
@@ -172,7 +174,7 @@ compose.desktop {
                 iconFile.set(project.file("launcher/icon.ico"))
             }
         }
-        
+
         // ProGuard configuration for release builds
         buildTypes.release.proguard {
             version.set("7.9.1")

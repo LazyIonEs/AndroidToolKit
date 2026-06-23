@@ -1,36 +1,37 @@
 [versions]
 compose = "1.4.0"
 compose-compiler = "1.5.8"
-compose-plugin = "1.11.0"
+compose-plugin = "1.11.1"
 compose-material3 = "1.11.0-alpha07"
 navigation3 = "1.1.1"
 savedstate = "1.4.0"
 icons = "1.7.3"
 adaptive = "1.3.0-alpha07"
-lifecycle = "2.11.0-beta01"
+lifecycle = "2.11.0-beta02"
 junit = "4.13.2"
-kotlin = "2.3.21"
-apksig = "8.11.1"
-tools = "31.11.1"
-slf4j = "2.0.17"
-buildconfig = "6.0.9"
-commons-codec = "1.21.0"
-asm = "9.10"
-jna = "5.18.1"
-logging = "8.0.02"
-coroutines = "1.10.2"
-filekit = "0.14.1"
+kotlin = "2.4.0"
+apksig = "8.11.2"
+guava = "33.3.1-jre"
+tools = "32.2.1"
+slf4j = "2.0.18"
+buildconfig = "6.0.10"
+commons-codec = "1.22.0"
+asm = "9.10.1"
+jna = "5.19.1"
+logging = "8.0.4"
+coroutines = "1.11.0"
+filekit = "0.14.2"
 multiplatform-settings = "1.3.0"
 kotlinx-serialization-json = "1.11.0"
 kotlinx-datetime = "0.8.0"
-about-libraries = "14.2.1"
-coil = "3.4.0"
-zoomimage = "1.4.0"
+about-libraries = "15.0.0"
+coil = "3.5.0"
+zoomimage = "1.5.0-beta02"
 apktool = "2.12.1"
-ktor = "3.4.3"
-markdown = "0.41.0"
-logback = "1.5.32"
-compottie = "2.1.0"
+ktor = "3.5.0"
+markdown = "0.42.0"
+logback = "1.5.34"
+compottie = "2.2.3"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -55,6 +56,8 @@ lifecycle-viewmodel-navigation3 = { module = "org.jetbrains.androidx.lifecycle:l
 android-apksig = { module = "com.android.tools.build:apksig", version.ref = "apksig" }
 # https://mvnrepository.com/artifact/com.android.tools/sdk-common
 android-sdk-common = { module = "com.android.tools:sdk-common", version.ref = "tools" }
+# https://mvnrepository.com/artifact/com.google.guava/guava
+google-guava = { module = "com.google.guava:guava", version.ref = "guava" }
 # https://mvnrepository.com/artifact/com.android.tools.apkparser/binary-resources
 android-binary-resources = { module = "com.android.tools.apkparser:binary-resources", version.ref = "tools" }
 # https://mvnrepository.com/artifact/org.slf4j/slf4j-api
@@ -72,6 +75,7 @@ logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "loggin
 logback-core = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 # https://github.com/Kotlin/kotlinx.coroutines
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "coroutines" }
 # https://github.com/vinceglb/FileKit
 filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }
