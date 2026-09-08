@@ -466,8 +466,22 @@ private fun runCommand(command: Array<String>): Boolean {
     }
 }
 
-fun renameManifestPackage(file: File, minSdkVersion: String, targetSdkVersion: String) {
+fun renameManifestPackage(
+    file: File,
+    packageName: String,
+    minSdkVersion: String,
+    targetSdkVersion: String
+) {
     val doc = XmlUtils.loadDocument(file)
+    logger.info { "generateApktool ${doc.getUserData("package")}" }
+
+    val manifest = doc.firstChild
+    val attrs = manifest.attributes
+    val packageAttr = attrs.getNamedItem("package")
+    if (packageAttr != null) {
+        packageAttr.nodeValue = packageName
+    }
+
     // 查找 uses-sdk 节点
     val sdkElems = doc.getElementsByTagName("uses-sdk")
     if (sdkElems.length > 0) {

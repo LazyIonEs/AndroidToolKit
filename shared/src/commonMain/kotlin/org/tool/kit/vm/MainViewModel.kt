@@ -951,33 +951,33 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
         val outApktoolCacheDir = File(resourcesDir, "apktool")
         try {
             logger.info { "generateApktool 生成空包开始, 空包信息: $apkToolInfoState" }
-            val outApktoolFile = File(apkToolInfoState.outputPath, ConfigConstant.APKTOOL_FILE.name)
             val apkIcon = apkToolInfoState.icon
             val packageName = apkToolInfoState.packageName
             val targetSdkVersion = apkToolInfoState.targetSdkVersion
             val minSdkVersion = apkToolInfoState.minSdkVersion
-            val versionCode = apkToolInfoState.versionCode
+            val versionCode = apkToolInfoState.versionCode.toInt()
             val versionName = apkToolInfoState.versionName
             val appName = apkToolInfoState.appName
+            val outApktoolFile = File(apkToolInfoState.outputPath, "$appName.apk")
             val apkFile = ExtFile(ConfigConstant.APKTOOL_FILE)
-            val config = Config()
+            val config = Config(versionName)
             config.isAnalysisMode = true
             config.isForced = true
-            config.isDebugMode = true
+            config.isDebuggable = true
             logger.info { "generateApktool 开始解包" }
             // 开始解包
             val apkDecoder = ApkDecoder(apkFile, config)
-            val apkInfo = apkDecoder.decode(outApktoolCacheDir)
+            apkDecoder.decode(outApktoolCacheDir)
+            val apkInfo = apkDecoder.apkInfo
             // 解包完成
             logger.info { "generateApktool 解包完成, ApkInfo: $apkInfo" }
-            val apktoolYmlFile = File(outApktoolCacheDir, "apktool.yml")
             val androidManifestXmlFile = File(outApktoolCacheDir, "AndroidManifest.xml")
             // 删除Manifest中versionCode和versionName
             ResXmlUtils.removeManifestVersions(androidManifestXmlFile)
             logger.info { "generateApktool 删除Manifest中versionCode和versionName" }
             // 替换Manifest中minSdkVersion和targetSdkVersion
-            renameManifestPackage(androidManifestXmlFile, minSdkVersion, targetSdkVersion)
-            logger.info { "generateApktool 替换Manifest中minSdkVersion和targetSdkVersion" }
+            renameManifestPackage(androidManifestXmlFile, packageName, minSdkVersion, targetSdkVersion)
+            logger.info { "generateApktool 替换Manifest中package、minSdkVersion和targetSdkVersion" }
             // 替换strings中app_name的值
             val stringsFile = File(outApktoolCacheDir, "res/values/strings.xml")
             renameValueAppName(stringsFile, appName)
@@ -1000,8 +1000,7 @@ class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings:
             apkInfo.versionInfo.versionName = versionName
             apkInfo.sdkInfo.minSdkVersion = minSdkVersion
             apkInfo.sdkInfo.targetSdkVersion = targetSdkVersion
-            apkInfo.packageInfo.renameManifestPackage = packageName
-            apkInfo.save(apktoolYmlFile)
+            apkInfo.save(outApktoolCacheDir)
             logger.info { "generateApktool 替换部分信息到apktool.yml" }
             // 开始打包
             logger.info { "generateApktool 开始打包" }

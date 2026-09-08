@@ -25,7 +25,12 @@ dependencyResolutionManagement {
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://www.jetbrains.com/intellij-repository/releases")
-        maven("https://central.sonatype.com/repository/maven-snapshots/")
+        maven {
+            url = uri("https://jitpack.io")
+            content {
+                includeGroup("com.github.iBotPeaches.smali")
+            }
+        }
     }
 }
 
