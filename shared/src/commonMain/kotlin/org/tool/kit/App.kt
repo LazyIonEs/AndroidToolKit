@@ -117,7 +117,7 @@ private fun AppRoute() {
     }
 
     LaunchedEffect(Unit) {
-        if (appViewModel.legacyStartupCheckEnabled) {
+        if (appViewModel.startupUpdateEnabled()) {
             updateViewModel.onIntent(UpdateIntent.Check(showMessage = false))
         }
     }
