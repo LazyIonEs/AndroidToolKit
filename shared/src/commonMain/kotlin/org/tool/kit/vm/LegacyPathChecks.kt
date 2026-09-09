@@ -8,7 +8,7 @@ import org.tool.kit.core.validation.LatestRequest
 import org.tool.kit.domain.repository.StorageRepository
 
 enum class LegacyPathField {
-    APK_TOOL_OUTPUT, APK_TOOL_ICON, APK_TOOL_KEYSTORE, JUNK_OUTPUT
+    JUNK_OUTPUT
 }
 
 enum class PathKind { FILE, DIRECTORY }

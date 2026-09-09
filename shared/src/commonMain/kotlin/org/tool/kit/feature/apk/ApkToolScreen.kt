@@ -34,8 +34,6 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,13 +43,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
-import org.tool.kit.feature.ui.FileInputWithPicker
-import org.tool.kit.feature.ui.FolderInputWithPicker
+import org.tool.kit.feature.ui.FileInput
+import org.tool.kit.feature.ui.FolderInput
 import org.tool.kit.feature.ui.PasswordInput
 import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.feature.ui.UploadAnimate
-import org.tool.kit.feature.ui.dragAndDropTarget
-import org.tool.kit.model.FileSelectorType
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.apk_output_path
 import org.tool.kit.shared.generated.resources.apk_tool_sign_tips
@@ -71,108 +67,80 @@ import org.tool.kit.shared.generated.resources.key_store_file
 import org.tool.kit.shared.generated.resources.key_store_password
 import org.tool.kit.shared.generated.resources.signing_the_apk_after_it_is_generated
 import org.tool.kit.shared.generated.resources.start_generating
-import org.tool.kit.utils.isImage
-import org.tool.kit.utils.isKey
-import org.tool.kit.vm.MainViewModel
-import org.tool.kit.vm.LegacyPathField
-import kotlin.io.path.pathString
 
 @Composable
-fun ApkTool(viewModel: MainViewModel) {
-    LaunchedEffect(viewModel) { viewModel.refreshApkToolChecks() }
-    ApkToolBox(viewModel)
-}
-
-@Composable
-private fun ApkToolBox(viewModel: MainViewModel) {
-    var dragging by remember { mutableStateOf(false) }
+fun ApkToolScreen(state: ApkToolUiState, onIntent: (ApkToolIntent) -> Unit,
+    pickOutput: () -> Unit, pickIcon: () -> Unit, pickKey: () -> Unit,
+    dragging: Boolean, target: androidx.compose.ui.draganddrop.DragAndDropTarget) {
     Card(
         modifier = Modifier.fillMaxSize().dragAndDropTarget(
-            shouldStartDragAndDrop = accept@{ true }, target = dragAndDropTarget(dragging = {
-                dragging = it
-            }, onFinish = { result ->
-                result.onSuccess { fileList ->
-                    fileList.firstOrNull()?.let {
-                        val path = it.toAbsolutePath().pathString
-                        if (path.isImage) {
-                            viewModel.updateApkToolInfo(viewModel.apkToolInfoState.copy(icon = path))
-                        } else if (path.isKey) {
-                            val apkSignature = viewModel.apkToolInfoState.copy()
-                            apkSignature.keyStorePath = path
-                            viewModel.updateApkToolInfo(apkSignature)
-                        }
-                    }
-                }
-            })
+            shouldStartDragAndDrop = { true }, target = target
         ).padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
     ) {
-        val paths by viewModel.pathValidation.collectAsState()
-        val outputPathError = paths[LegacyPathField.APK_TOOL_OUTPUT]?.isError == true
-        val iconFileError = paths[LegacyPathField.APK_TOOL_ICON]?.isError == true
+        val outputPathError = state.validation.outputError
+        val iconFileError = state.validation.iconError
         LazyColumn(
             modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 Spacer(Modifier.size(8.dp))
-                FolderInputWithPicker(
-                    value = viewModel.apkToolInfoState.outputPath,
+                FolderInput(
+                    value = state.form.outputPath,
                     label = stringResource(Res.string.apk_output_path),
-                    isError = outputPathError,
+                    isError = outputPathError, onPickerRequest = pickOutput,
                     onValueChange = { path ->
-                        viewModel.updateApkToolInfo(viewModel.apkToolInfoState.copy(outputPath = path))
+                        onIntent(ApkToolIntent.OutputPathChanged(path))
                     })
             }
             item {
                 Spacer(Modifier.size(4.dp))
                 Box(Modifier.fillMaxSize().padding(start = 24.dp, end = 16.dp)) {
-                    FileInputWithPicker(
-                        value = viewModel.apkToolInfoState.icon,
+                    FileInput(
+                        value = state.form.icon,
                         label = stringResource(Res.string.icon_file),
                         isError = iconFileError,
                         modifier = Modifier.padding(end = 8.dp, bottom = 3.dp),
                         trailingIcon = null,
-                        FileSelectorType.IMAGE
+                        onPickerRequest = pickIcon
                     ) { path ->
-                        viewModel.updateApkToolInfo(viewModel.apkToolInfoState.copy(icon = path))
+                        onIntent(ApkToolIntent.IconPathChanged(path))
                     }
                 }
             }
             item {
                 Spacer(Modifier.size(4.dp))
                 StringInput(
-                    value = viewModel.apkToolInfoState.packageName,
+                    value = state.form.packageName,
                     label = stringResource(Res.string.apktool_package_name),
-                    isError = viewModel.apkToolInfoState.packageName.isBlank(),
+                    isError = state.form.packageName.isBlank(),
                     onValueChange = { packageName ->
-                        viewModel.updateApkToolInfo(viewModel.apkToolInfoState.copy(packageName = packageName))
+                        onIntent(ApkToolIntent.PackageNameChanged(packageName))
                     })
             }
             item {
                 Spacer(Modifier.size(4.dp))
-                SdkVersionInput(viewModel)
+                SdkVersionInput(state.form, onIntent)
             }
             item {
                 Spacer(Modifier.size(4.dp))
-                VersionInput(viewModel)
+                VersionInput(state.form, onIntent)
             }
             item {
                 Spacer(Modifier.size(4.dp))
                 StringInput(
-                    value = viewModel.apkToolInfoState.appName,
+                    value = state.form.appName,
                     label = stringResource(Res.string.apktool_app_name),
-                    isError = viewModel.apkToolInfoState.appName.isBlank(),
+                    isError = state.form.appName.isBlank(),
                     onValueChange = { appName ->
-                        viewModel.updateApkToolInfo(viewModel.apkToolInfoState.copy(appName = appName))
+                        onIntent(ApkToolIntent.AppNameChanged(appName))
                     })
             }
             item {
-                Sign(viewModel)
+                Sign(state, onIntent, pickKey)
             }
             item {
                 Spacer(Modifier.size(4.dp))
-                Generate(
-                    viewModel, outputPathError, iconFileError
-                )
+                Generate { onIntent(ApkToolIntent.Submit) }
                 Spacer(Modifier.size(16.dp))
             }
         }
@@ -181,19 +149,16 @@ private fun ApkToolBox(viewModel: MainViewModel) {
 }
 
 @Composable
-private fun SdkVersionInput(viewModel: MainViewModel) {
+private fun SdkVersionInput(form: ApkToolForm, onIntent: (ApkToolIntent) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 64.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val pattern = remember { Regex("^\\d+$") }
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp),
-            value = viewModel.apkToolInfoState.targetSdkVersion,
+            value = form.targetSdkVersion,
             onValueChange = { targetSdkVersion ->
-                if (targetSdkVersion.isEmpty() || targetSdkVersion.matches(pattern)) {
-                    viewModel.updateApkToolInfo(viewModel.apkToolInfoState.copy(targetSdkVersion = targetSdkVersion))
-                }
+                onIntent(ApkToolIntent.TargetSdkChanged(targetSdkVersion))
             },
             label = {
                 Text(
@@ -202,16 +167,14 @@ private fun SdkVersionInput(viewModel: MainViewModel) {
                 )
             },
             singleLine = true,
-            isError = viewModel.apkToolInfoState.targetSdkVersion.isBlank(),
+            isError = form.targetSdkVersion.isBlank(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(2f),
-            value = viewModel.apkToolInfoState.minSdkVersion,
+            value = form.minSdkVersion,
             onValueChange = { minSdkVersion ->
-                if (minSdkVersion.isEmpty() || minSdkVersion.matches(pattern)) {
-                    viewModel.updateApkToolInfo(viewModel.apkToolInfoState.copy(minSdkVersion = minSdkVersion))
-                }
+                onIntent(ApkToolIntent.MinSdkChanged(minSdkVersion))
             },
             label = {
                 Text(
@@ -220,26 +183,23 @@ private fun SdkVersionInput(viewModel: MainViewModel) {
                 )
             },
             singleLine = true,
-            isError = viewModel.apkToolInfoState.minSdkVersion.isBlank(),
+            isError = form.minSdkVersion.isBlank(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
     }
 }
 
 @Composable
-private fun VersionInput(viewModel: MainViewModel) {
+private fun VersionInput(form: ApkToolForm, onIntent: (ApkToolIntent) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 64.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val pattern = remember { Regex("^\\d+$") }
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp),
-            value = viewModel.apkToolInfoState.versionCode,
+            value = form.versionCode,
             onValueChange = { versionCode ->
-                if (versionCode.isEmpty() || versionCode.matches(pattern)) {
-                    viewModel.updateApkToolInfo(viewModel.apkToolInfoState.copy(versionCode = versionCode))
-                }
+                onIntent(ApkToolIntent.VersionCodeChanged(versionCode))
             },
             label = {
                 Text(
@@ -248,14 +208,14 @@ private fun VersionInput(viewModel: MainViewModel) {
                 )
             },
             singleLine = true,
-            isError = viewModel.apkToolInfoState.versionCode.isBlank(),
+            isError = form.versionCode.isBlank(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
         )
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp).weight(2f),
-            value = viewModel.apkToolInfoState.versionName,
+            value = form.versionName,
             onValueChange = { versionName ->
-                viewModel.updateApkToolInfo(viewModel.apkToolInfoState.copy(versionName = versionName))
+                onIntent(ApkToolIntent.VersionNameChanged(versionName))
             },
             label = {
                 Text(
@@ -264,15 +224,15 @@ private fun VersionInput(viewModel: MainViewModel) {
                 )
             },
             singleLine = true,
-            isError = viewModel.apkToolInfoState.versionName.isBlank(),
+            isError = form.versionName.isBlank(),
         )
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Sign(viewModel: MainViewModel) {
-    val enableSign = viewModel.apkToolInfoState.enableSign
+private fun Sign(state: ApkToolUiState, onIntent: (ApkToolIntent) -> Unit, pickKey: () -> Unit) {
+    val enableSign = state.form.enableSign
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 72.dp),
@@ -307,61 +267,49 @@ fun Sign(viewModel: MainViewModel) {
                 )
             }
             Switch(checked = enableSign, onCheckedChange = {
-                val apkSignature = viewModel.apkToolInfoState.copy(enableSign = it)
-                apkSignature.keyStorePath = ""
-                viewModel.updateApkToolInfo(apkSignature)
+                onIntent(ApkToolIntent.EnableSignChanged(it))
             })
         }
         AnimatedVisibility(enableSign) {
-            Signature(viewModel)
+            Signature(state, onIntent, pickKey)
         }
     }
 }
 
 @Composable
-fun Signature(viewModel: MainViewModel) {
-    val paths by viewModel.pathValidation.collectAsState()
-    val validation by viewModel.apkToolValidation.collectAsState()
-    val signatureError = paths[LegacyPathField.APK_TOOL_KEYSTORE]?.isError == true
-    val signaturePasswordError =
-        viewModel.apkToolInfoState.keyStorePassword.isNotBlank() && viewModel.apkToolInfoState.keyStoreAlisaList.isNullOrEmpty()
-    val signatureAlisaPasswordError =
-        !viewModel.apkToolInfoState.keyStoreAlisaList.isNullOrEmpty() && viewModel.apkToolInfoState.keyStoreAlisaPassword.isNotBlank() && validation.aliasPasswordValid == false
+private fun Signature(state: ApkToolUiState, onIntent: (ApkToolIntent) -> Unit, pickKey: () -> Unit) {
+    val signatureError = state.validation.keyError
+    val signaturePasswordError = state.storePasswordError
+    val signatureAlisaPasswordError = state.aliasPasswordError
     Column(modifier = Modifier.fillMaxWidth()) {
         Spacer(Modifier.size(6.dp))
         Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-            FileInputWithPicker(
-                value = viewModel.apkToolInfoState.keyStorePath,
+            FileInput(
+                value = state.form.credentials.path,
                 label = stringResource(Res.string.key_store_file),
                 isError = signatureError,
-                FileSelectorType.KEY
+                onPickerRequest = pickKey
             ) { keyStorePath ->
-                val apkSignature = viewModel.apkToolInfoState.copy()
-                apkSignature.keyStorePath = keyStorePath
-                viewModel.updateApkToolInfo(apkSignature)
+                onIntent(ApkToolIntent.KeyPathChanged(keyStorePath))
             }
         }
         Spacer(Modifier.size(6.dp))
         PasswordInput(
-            value = viewModel.apkToolInfoState.keyStorePassword,
+            value = state.form.credentials.storePassword,
             label = stringResource(Res.string.key_store_password),
             isError = signaturePasswordError
         ) { password ->
-            viewModel.updateApkToolStorePassword(password)
+            onIntent(ApkToolIntent.StorePasswordChanged(password))
         }
         Spacer(Modifier.size(6.dp))
-        SignatureAlisa(viewModel)
+        SignatureAlisa(state.form, onIntent)
         Spacer(Modifier.size(6.dp))
         PasswordInput(
-            value = viewModel.apkToolInfoState.keyStoreAlisaPassword,
+            value = state.form.credentials.aliasPassword,
             label = stringResource(Res.string.key_password),
             isError = signatureAlisaPasswordError
         ) { password ->
-            viewModel.updateApkToolInfo(
-                viewModel.apkToolInfoState.copy(
-                    keyStoreAlisaPassword = password
-                )
-            )
+            onIntent(ApkToolIntent.AliasPasswordChanged(password))
         }
     }
 }
@@ -371,11 +319,11 @@ fun Signature(viewModel: MainViewModel) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SignatureAlisa(viewModel: MainViewModel) {
+private fun SignatureAlisa(form: ApkToolForm, onIntent: (ApkToolIntent) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val options = viewModel.apkToolInfoState.keyStoreAlisaList
+    val options = form.credentials.aliases
     val selectedOptionText =
-        options?.getOrNull(viewModel.apkToolInfoState.keyStoreAlisaIndex) ?: ""
+        options?.getOrNull(form.credentials.aliasIndex) ?: ""
     ExposedDropdownMenuBox(
         modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 72.dp, bottom = 3.dp),
         expanded = expanded,
@@ -410,18 +358,7 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
                     },
                     onClick = {
                         val index = options.indexOf(selectionOption)
-                        if (index != viewModel.apkToolInfoState.keyStoreAlisaIndex) {
-                            viewModel.updateApkToolInfo(
-                                viewModel.apkToolInfoState.copy(
-                                    keyStoreAlisaPassword = ""
-                                )
-                            )
-                        }
-                        viewModel.updateApkToolInfo(
-                            viewModel.apkToolInfoState.copy(
-                                keyStoreAlisaIndex = index
-                            )
-                        )
+                        onIntent(ApkToolIntent.AliasChanged(index))
                         expanded = false
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -432,23 +369,8 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
 }
 
 @Composable
-private fun Generate(
-    viewModel: MainViewModel, outputPathError: Boolean, iconFileError: Boolean
-) {
-    Button(onClick = {
-        if (outputPathError || iconFileError
-            || viewModel.hasPendingPathChecks(LegacyPathField.APK_TOOL_OUTPUT, LegacyPathField.APK_TOOL_ICON)
-            || (viewModel.apkToolInfoState.enableSign && (viewModel.apkToolValidation.value.pending
-                || viewModel.hasPendingPathChecks(LegacyPathField.APK_TOOL_KEYSTORE)))) {
-            viewModel.updateSnackbarVisuals(Res.string.check_error)
-            return@Button
-        }
-        if (viewModel.apkToolInfoState.outputPath.isBlank() || viewModel.apkToolInfoState.packageName.isBlank() || viewModel.apkToolInfoState.targetSdkVersion.isBlank() || viewModel.apkToolInfoState.minSdkVersion.isBlank() || viewModel.apkToolInfoState.versionCode.isEmpty() || viewModel.apkToolInfoState.versionName.isBlank() || viewModel.apkToolInfoState.appName.isBlank()) {
-            viewModel.updateSnackbarVisuals(Res.string.check_empty)
-            return@Button
-        }
-        viewModel.generateApktool()
-    }) {
+private fun Generate(onSubmit: () -> Unit) {
+    Button(onClick = onSubmit) {
         Text(
             text = stringResource(Res.string.start_generating),
             style = MaterialTheme.typography.titleMedium,

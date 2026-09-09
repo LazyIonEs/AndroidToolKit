@@ -6,7 +6,6 @@ import org.junit.rules.TemporaryFolder
 import org.tool.kit.migration.LegacySigningForm as ApkSignature
 import org.tool.kit.model.JunkCodeInfo
 import org.tool.kit.model.JunkMode
-import org.tool.kit.model.Sign
 import org.tool.kit.model.SignaturePolicy
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -18,7 +17,7 @@ class LegacyFormCharacterizationTest {
 
     @Test fun sameKeyPathKeepsCredentialsAndChangedPathClearsOnlyDependentFields() {
         val aliases = arrayListOf("first", "second")
-        val sign = Sign(_keyStorePath = "old.jks", keyStorePolicy = SignaturePolicy.V4,
+        val sign = LegacySign(_keyStorePath = "old.jks", keyStorePolicy = SignaturePolicy.V4,
             keyStorePassword = "test-only", keyStoreAlisaList = aliases, keyStoreAlisaIndex = 1,
             keyStoreAlisaPassword = "test-only", v4SignatureOutputFileName = "custom.idsig")
         sign.keyStorePath = "old.jks"

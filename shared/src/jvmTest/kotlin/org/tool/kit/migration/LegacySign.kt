@@ -1,11 +1,14 @@
-package org.tool.kit.model
+package org.tool.kit.migration
+
+import org.tool.kit.model.SignaturePolicy
 
 /**
  * @author      : LazyIonEs
  * @description : 描述
  * @createDate  : 2026/1/29 09:45
  */
-open class Sign(
+/** Frozen pre-Phase 6 setter oracle; not production state. */
+open class LegacySign(
     protected open var _keyStorePath: String = "", // 密钥
     open var keyStorePolicy: SignaturePolicy = SignaturePolicy.V2, // 密钥策略
     open var keyStorePassword: String = "", // 密钥密码

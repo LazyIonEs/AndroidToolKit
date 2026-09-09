@@ -15,6 +15,8 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import org.tool.kit.App
+import org.tool.kit.domain.apk.*
+import org.tool.kit.domain.repository.*
 import org.tool.kit.di.desktopModules
 import org.tool.kit.domain.repository.ApkInformationRepository
 import org.tool.kit.domain.apk.ApkIconSource
@@ -37,7 +39,25 @@ class ApkToolUiTest {
         owner.setLifecycleState(Lifecycle.State.RESUMED)
         val fixture = File(System.getProperty("migration.fixtureRoot"), "building fixture.png").apply { writeText("fixture") }
         val requests = mutableListOf<org.tool.kit.domain.signing.SignApkRequest>()
+        val builds = mutableListOf<BuildApkRequest>()
         val container = koinApplication { modules(desktopModules() + module {
+            single<ApkBuildWorkspaces> { object : ApkBuildWorkspaces {
+                override suspend fun <T> use(request: BuildApkRequest, block: suspend (ApkBuildWorkspace) -> T): T =
+                    block(ApkBuildWorkspace("fixture-workspace", "${request.outputDirectory}/${request.outputFileName}"))
+            } }
+            single<ApkToolRepository> { object : ApkToolRepository {
+                override suspend fun decode(workspace: ApkBuildWorkspace, request: BuildApkRequest): ApkBuildSession {
+                    builds += request
+                    return object : ApkBuildSession {
+                        override suspend fun updateManifest() {}
+                        override suspend fun updateAppName() {}
+                        override suspend fun copyIcon() {}
+                        override suspend fun saveMetadata(versionCode: Int) {}
+                        override suspend fun build() {}
+                        override suspend fun outputSize() = 1000L
+                    }
+                }
+            } }
             single<org.tool.kit.domain.repository.ApkSigningRepository> { org.tool.kit.domain.repository.ApkSigningRepository { request ->
                 requests += request
                 org.tool.kit.domain.signing.SignApkOutcome.Success("/fixture/signed.apk", true)
@@ -48,11 +68,11 @@ class ApkToolUiTest {
                 override suspend fun generate(request: org.tool.kit.domain.keystore.GenerateKeyStoreRequest) = error("unused")
             } }
         }) }
-        lateinit var vm: org.tool.kit.vm.MainViewModel
+        lateinit var vm: org.tool.kit.feature.apk.ApkToolViewModel
         try {
             setContent { CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
                 KoinIsolatedContext(container) {
-                    val current = koinViewModel<org.tool.kit.vm.MainViewModel>()
+                    val current = koinViewModel<org.tool.kit.feature.apk.ApkToolViewModel>()
                     App()
                     SideEffect { vm = current }
                 }
@@ -61,15 +81,13 @@ class ApkToolUiTest {
             onNode(hasText("APK签名") and hasClickAction()).performClick()
             onNode(hasText("APK生成") and hasClickAction()).performClick()
             runOnIdle {
-                vm.updateApkToolInfo(vm.apkToolInfoState.copy(enableSign = true, icon = fixture.path,
-                    appName = "中文 Fixture", packageName = "org.fixture.phase6", targetSdkVersion = "32",
-                    minSdkVersion = "23", versionCode = "12", versionName = "2.3",
-                    _keyStorePath = fixture.path, keyStorePassword = "fixture-only",
-                    keyStoreAlisaList = arrayListOf("fixture", "second"), keyStoreAlisaPassword = "fixture-only"))
+                listOf(ApkToolIntent.EnableSignChanged(true), ApkToolIntent.IconPathChanged(fixture.path),
+                    ApkToolIntent.AppNameChanged("中文 Fixture"), ApkToolIntent.PackageNameChanged("org.fixture.phase6"),
+                    ApkToolIntent.TargetSdkChanged("32"), ApkToolIntent.MinSdkChanged("23"), ApkToolIntent.VersionCodeChanged("12"),
+                    ApkToolIntent.VersionNameChanged("2.3"), ApkToolIntent.KeyPathChanged(fixture.path),
+                    ApkToolIntent.StorePasswordChanged("fixture-only"), ApkToolIntent.AliasPasswordChanged("fixture-only")).forEach(vm::onIntent)
             }
-            waitUntil(timeoutMillis = 10_000) { !vm.apkToolValidation.value.pending &&
-                !vm.hasPendingPathChecks(org.tool.kit.vm.LegacyPathField.APK_TOOL_OUTPUT,
-                    org.tool.kit.vm.LegacyPathField.APK_TOOL_ICON, org.tool.kit.vm.LegacyPathField.APK_TOOL_KEYSTORE) }
+            waitUntil(timeoutMillis = 10_000) { !vm.uiState.value.validation.pending }
             waitForIdle()
             fun capture(name: String) {
                 val bitmap = onRoot().captureToImage()
@@ -84,19 +102,33 @@ class ApkToolUiTest {
             capture("enabled-bottom")
             onNode(hasText("密钥别名") and hasClickAction()).performClick()
             onNodeWithText("second").assertExists().performClick()
-            runOnIdle { assertEquals("", vm.apkToolInfoState.keyStoreAlisaPassword) }
+            runOnIdle { assertEquals("", vm.uiState.value.form.credentials.aliasPassword) }
             onNode(hasText("APK信息") and hasClickAction()).performClick()
             onNode(hasText("APK生成") and hasClickAction()).performClick()
             runOnIdle {
-                vm.updateApkToolInfo(vm.apkToolInfoState.copy(outputPath = "/missing output", icon = "/missing icon.png"))
+                vm.onIntent(ApkToolIntent.OutputPathChanged("/missing output"))
+                vm.onIntent(ApkToolIntent.IconPathChanged("/missing icon.png"))
             }
-            waitUntil(timeoutMillis = 10_000) { !vm.hasPendingPathChecks(
-                org.tool.kit.vm.LegacyPathField.APK_TOOL_OUTPUT, org.tool.kit.vm.LegacyPathField.APK_TOOL_ICON) }
+            waitUntil(timeoutMillis = 10_000) { !vm.uiState.value.validation.pending }
             capture("errors-top")
             onNode(hasScrollAction() and !hasSetTextAction()).performScrollToNode(hasText("开始生成"))
             onNodeWithText("开始生成").performClick()
             waitUntil(timeoutMillis = 5_000) { onAllNodesWithText("请检查Error项").fetchSemanticsNodes().isNotEmpty() }
-            assertTrue(requests.isEmpty())
+            assertTrue(requests.isEmpty()); assertTrue(builds.isEmpty())
+            runOnIdle {
+                vm.onIntent(ApkToolIntent.OutputPathChanged(fixture.parentFile.resolve("output").path))
+                vm.onIntent(ApkToolIntent.IconPathChanged(fixture.path))
+                vm.onIntent(ApkToolIntent.AliasPasswordChanged("fixture-only"))
+            }
+            waitUntil(timeoutMillis = 10_000) { !vm.uiState.value.validation.pending }
+            waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("请检查Error项").fetchSemanticsNodes().isEmpty() }
+            onNodeWithText("开始生成").performClick()
+            waitUntil(timeoutMillis = 10_000) { requests.size == 1 && !vm.uiState.value.busy }
+            assertEquals("中文 Fixture", builds.single().appName)
+            assertEquals("12", builds.single().versionCode)
+            assertEquals("second", requests.single().credentials.alias)
+            assertEquals(org.tool.kit.domain.signing.ApkSigningPolicy.V3, requests.single().policy)
+            assertTrue(requests.single().inputPath.endsWith("中文 Fixture.apk"))
         } finally { owner.viewModelStore.clear(); container.close() }
     }
 }

@@ -25,10 +25,8 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.tool.kit.constant.ConfigConstant
 import org.tool.kit.core.validation.LatestRequest
-import org.tool.kit.domain.repository.KeyStoreRepository
 import org.tool.kit.domain.repository.StorageCapacity
 import org.tool.kit.domain.repository.StorageRepository
-import org.tool.kit.model.ApkToolInfo
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.IconFactoryData
 import org.tool.kit.model.IconFactoryInfo
@@ -36,7 +34,6 @@ import org.tool.kit.model.JunkCodeInfo
 import org.tool.kit.model.JunkMode
 import org.tool.kit.model.PendingDeletionFile
 import org.tool.kit.model.Sequence
-import org.tool.kit.model.Sign
 import org.tool.kit.platform.RustException
 import org.tool.kit.platform.mozJpeg
 import org.tool.kit.platform.oxipng
@@ -74,10 +71,8 @@ private val logger = KotlinLogging.logger("MainViewModel")
 class MainViewModel(
     private val preferences: org.tool.kit.domain.preferences.PreferencesRepository,
     private val storage: StorageRepository,
-    keyStores: KeyStoreRepository,
     private val effects: org.tool.kit.feature.app.AppEffectSink,
     initialCapacity: StorageCapacity = StorageCapacity(0, 0),
-    private val buildApk: org.tool.kit.domain.usecase.BuildApkUseCase,
 ) :
     ViewModel() {
 
@@ -120,35 +115,21 @@ class MainViewModel(
     private var _currentFileSequence = mutableStateOf<Sequence>(Sequence.SIZE_LARGE_TO_SMALL)
     val currentFileSequence by _currentFileSequence
 
-    // 空包生成信息
-    private val _apkToolInfoState = mutableStateOf(ApkToolInfo())
-    val apkToolInfoState by _apkToolInfoState
-
-    // 空包生成UI状态
-    private val _apkToolInfoUIState = mutableStateOf<UIState>(UIState.WAIT)
-    val apkToolInfoUIState by _apkToolInfoUIState
-
     private val pathChecks = LegacyPathChecks(viewModelScope, storage)
     val pathValidation = pathChecks.state
     private val capacityRequest = LatestRequest(viewModelScope)
     private val _storageCapacity = MutableStateFlow(initialCapacity)
     val storageCapacity = _storageCapacity.asStateFlow()
 
-    private val apkToolChecks = LegacySignValidation(viewModelScope, storage, keyStores) { aliases ->
-        updateApkToolInfo(apkToolInfoState.copy(keyStoreAlisaList = aliases?.let(::ArrayList)))
-    }
-    val apkToolValidation = apkToolChecks.state
-
     init {
         // Compatibility bridge: remove one branch per Phase 4A/5/6/7/8 cutover.
-        // Three forms still belong to MainViewModel; migrated features own their subscriptions.
+        // Two forms still belong to MainViewModel; migrated features own their subscriptions.
         viewModelScope.launch {
             preferences.state.filter { it.ready }
                 .map { it.outputPathVersion to it.userData.defaultOutputPath }
                 .distinctUntilChanged().collect { (_, path) ->
                     updateJunkCodeInfo(junkCodeInfoState.copy(outputPath = path))
                     updateIconFactoryInfo(iconFactoryInfoState.copy(outputPath = path))
-                    updateApkToolInfo(apkToolInfoState.copy(outputPath = path))
                 }
         }
     }
@@ -157,21 +138,10 @@ class MainViewModel(
         capacityRequest.launch(block = { storage.readCapacity() }) { _storageCapacity.value = it }
     }
 
-    fun updateApkToolStorePassword(password: String) {
-        updateApkToolInfo(apkToolInfoState.copy(keyStorePassword = password))
-        apkToolChecks.passwordChanged(apkToolInfoState)
-    }
-
-
     fun hasPendingPathChecks(vararg fields: LegacyPathField): Boolean =
         fields.any { pathValidation.value[it]?.pending == true }
 
     fun refreshPathChecks(vararg fields: LegacyPathField) = pathChecks.refresh(*fields)
-
-    fun refreshApkToolChecks() {
-        refreshPathChecks(LegacyPathField.APK_TOOL_OUTPUT, LegacyPathField.APK_TOOL_ICON, LegacyPathField.APK_TOOL_KEYSTORE)
-        apkToolChecks.refreshAliasPassword(apkToolInfoState)
-    }
 
     /** Legacy icon editor commits only on the original release callbacks; remove in Phase 8. */
     fun saveIconFactoryData(iconFactoryData: IconFactoryData) {
@@ -206,34 +176,10 @@ class MainViewModel(
     }
 
     /**
-     * 修改ApkToolInfo
-     * @param apkToolInfo ApkToolInfo
-     * @see ApkToolInfo
-     */
-    fun updateApkToolInfo(apkToolInfo: ApkToolInfo) {
-        _apkToolInfoState.update { apkToolInfo }
-        pathChecks.validate(LegacyPathField.APK_TOOL_OUTPUT, apkToolInfo.outputPath, PathKind.DIRECTORY)
-        pathChecks.validate(LegacyPathField.APK_TOOL_ICON, apkToolInfo.icon, PathKind.FILE)
-        pathChecks.validate(LegacyPathField.APK_TOOL_KEYSTORE, apkToolInfo.keyStorePath, PathKind.FILE)
-        apkToolChecks.formChanged(apkToolInfo)
-    }
-
-    /**
      * 更新垃圾代码模式
      */
     fun saveJunkMode(junkMode: JunkMode) {
         preferences.change(PreferenceChange.JunkModeChanged(JunkPreference.valueOf(junkMode.name)))
-    }
-
-    private fun signingRequest(outputPath: String, apkPath: String, sign: Sign): org.tool.kit.domain.signing.SignApkRequest {
-        val snapshot = preferences.state.value
-        return org.tool.kit.domain.signing.SignApkRequest(apkPath, outputPath, "",
-            snapshot.userData.defaultSignerSuffix, snapshot.userData.duplicateFileRemoval,
-            snapshot.userData.alignFileSize, snapshot.isHuaweiAlignFileSize, ConfigConstant.APK.Huawei.path,
-            org.tool.kit.domain.signing.ApkSigningPolicy.valueOf(sign.keyStorePolicy.name),
-            sign.v4SignatureOutputFileName,
-            org.tool.kit.domain.signing.SigningCredentials(sign.keyStorePath, sign.keyStorePassword,
-                sign.keyStoreAlisaList?.getOrNull(sign.keyStoreAlisaIndex), sign.keyStoreAlisaPassword))
     }
 
     /**
@@ -303,28 +249,6 @@ class MainViewModel(
         } finally {
             _junkCodeUIState.update { UIState.WAIT }
         }
-    }
-
-    /**
-     * 生成自定义空包
-     */
-    fun generateApktool() = viewModelScope.launch {
-        if (apkToolInfoUIState == UIState.Loading) return@launch
-        val form = apkToolInfoState.copy()
-        val request = org.tool.kit.domain.apk.BuildApkRequest(form.outputPath, form.icon, form.packageName,
-            form.targetSdkVersion, form.minSdkVersion, form.versionCode, form.versionName, form.appName,
-            if (form.enableSign) signingRequest(form.outputPath, "", form) else null)
-        _apkToolInfoUIState.update { UIState.Loading }
-        try {
-            when (val result = buildApk(request)) {
-                is org.tool.kit.domain.apk.BuildApkOutcome.Success -> updateSnackbarVisuals(SnackbarMessage(
-                    UiMessage.Text(getString(Res.string.build_end, result.sizeBytes.formatFileSize())),
-                    actionLabel = getString(Res.string.jump), withDismissAction = true,
-                    duration = SnackbarDuration.Short, action = SnackbarAction.OpenDirectory(result.outputPath)))
-                is org.tool.kit.domain.apk.BuildApkOutcome.Failure -> updateSnackbarVisuals(result.message ?: getString(Res.string.build_failure))
-            }
-        } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
-        finally { _apkToolInfoUIState.update { UIState.WAIT } }
     }
 
     /**

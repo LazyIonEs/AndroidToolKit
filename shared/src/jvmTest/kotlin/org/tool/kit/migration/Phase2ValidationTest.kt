@@ -15,7 +15,8 @@ import org.tool.kit.domain.repository.KeyStoreRepository
 import org.tool.kit.domain.repository.PathMetadata
 import org.tool.kit.domain.repository.StorageCapacity
 import org.tool.kit.domain.repository.StorageRepository
-import org.tool.kit.model.ApkToolInfo as ApkSignature
+import org.tool.kit.feature.signature.SigningCredentialsUi
+import org.tool.kit.feature.signature.SigningCredentialsValidation
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.vm.*
 import org.tool.kit.core.validation.KeyAliasesValidation
@@ -51,12 +52,12 @@ class Phase2ValidationTest {
     @Test fun signingChecksRejectSlowPasswordAndPathResultsWithoutReloadingOnUnrelatedEdits() = runTest {
         val keys = DeferredKeys()
         var aliases: List<String>? = null
-        val checks = LegacySignValidation(backgroundScope, AllPathsExist, keys) { aliases = it }
-        var form = ApkSignature(_keyStorePath = "fixture", keyStorePassword = "store",
-            keyStoreAlisaList = arrayListOf("alias"), keyStoreAlisaPassword = "old")
+        val checks = SigningCredentialsValidation(backgroundScope, AllPathsExist, keys) { aliases = it }
+        var form = SigningCredentialsUi(path = "fixture", storePassword = "store",
+            aliases = listOf("alias"), aliasPassword = "old")
         checks.formChanged(form)
         runCurrent()
-        form = form.copy(keyStoreAlisaPassword = "new")
+        form = form.copy(aliasPassword = "new")
         checks.formChanged(form)
         runCurrent()
         keys.passwords[1].complete(false)
@@ -64,14 +65,14 @@ class Phase2ValidationTest {
         keys.passwords[0].complete(true)
         runCurrent()
         assertFalse(checks.state.value.aliasPasswordValid!!)
-        checks.formChanged(form.copy(outputPath = "unrelated-output"))
+        checks.formChanged(form.copy())
         runCurrent()
         assertEquals(2, keys.passwords.size)
 
         checks.passwordChanged(form)
         runCurrent()
         // Changing the store invalidates both request streams, even if the old FFI/provider ignores cancellation.
-        checks.formChanged(form.copy().also { it.keyStorePath = "new-store" })
+        checks.formChanged(SigningCredentialsUi(path = "new-store"))
         keys.aliases.single().complete(listOf("stale-alias"))
         keys.passwords.drop(2).forEach { it.complete(true) }
         runCurrent()
@@ -87,7 +88,7 @@ class Phase2ValidationTest {
             }
         }
         val paths = LegacyPathChecks(backgroundScope, storage)
-        val field = LegacyPathField.APK_TOOL_OUTPUT
+        val field = LegacyPathField.JUNK_OUTPUT
         paths.validate(field, "A", PathKind.DIRECTORY)
         runCurrent()
         repeat(20) { paths.validate(field, "A", PathKind.DIRECTORY) }
@@ -152,7 +153,7 @@ class Phase2ValidationTest {
             }
         }
         val checks = LegacyPathChecks(backgroundScope, storage)
-        val field = LegacyPathField.APK_TOOL_OUTPUT
+        val field = LegacyPathField.JUNK_OUTPUT
         checks.validate(field, "same-path", PathKind.DIRECTORY)
         runCurrent()
         assertTrue(checks.state.value.getValue(field).isError)
