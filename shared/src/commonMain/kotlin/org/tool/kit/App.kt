@@ -21,7 +21,6 @@ import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
@@ -45,7 +44,6 @@ import androidx.compose.ui.window.PopupPositionProvider
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
-import com.russhwolf.settings.ExperimentalSettingsApi
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -63,7 +61,12 @@ import org.tool.kit.feature.signature.navigation.apkSignatureEntry
 import org.tool.kit.feature.signature.navigation.signatureGenerationEntry
 import org.tool.kit.feature.signature.navigation.signatureInformationEntry
 import org.tool.kit.feature.ui.LoadingAnimate
-import org.tool.kit.feature.ui.UpdateDialog
+import org.tool.kit.feature.update.UpdateRoute
+import org.tool.kit.feature.update.UpdateViewModel
+import org.tool.kit.feature.update.UpdateIntent
+import org.tool.kit.feature.settings.SettingsViewModel
+import org.tool.kit.feature.app.*
+import org.koin.compose.koinInject
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.navigation.Navigator
 import org.tool.kit.navigation.TOP_LEVEL_NAV_ITEMS
@@ -92,7 +95,11 @@ fun App() {
 private fun AppRoute() {
     val windowOwner = checkNotNull(LocalViewModelStoreOwner.current)
     val viewModel = koinViewModel<MainViewModel>(viewModelStoreOwner = windowOwner)
-    val themeConfig by viewModel.themeConfig.collectAsState()
+    val appViewModel = koinViewModel<AppViewModel>(viewModelStoreOwner = windowOwner)
+    val settingsViewModel = koinViewModel<SettingsViewModel>(viewModelStoreOwner = windowOwner)
+    val updateViewModel = koinViewModel<UpdateViewModel>(viewModelStoreOwner = windowOwner)
+    val shell by appViewModel.uiState.collectAsState()
+    val themeConfig = shell.themeConfig
     val useDarkTheme = when (themeConfig) {
         DarkThemeConfig.LIGHT -> false
         DarkThemeConfig.DARK -> true
@@ -105,13 +112,13 @@ private fun AppRoute() {
 
     AppTheme(useDarkTheme) {
         CompositionLocalProvider(LocalIsAppDarkTheme provides useDarkTheme) {
-            MainContentScreen(viewModel, useDarkTheme)
+            MainContentScreen(viewModel, useDarkTheme, shell, settingsViewModel, updateViewModel, koinInject(), koinInject())
         }
     }
 
     LaunchedEffect(Unit) {
-        if (viewModel.isStartCheckUpdate.value) {
-            viewModel.checkUpdate(showMessage = false)
+        if (appViewModel.legacyStartupCheckEnabled) {
+            updateViewModel.onIntent(UpdateIntent.Check(showMessage = false))
         }
     }
 }
@@ -128,13 +135,9 @@ fun WindowIcon() = painterResource(Res.drawable.icon)
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun MainContentScreen(viewModel: MainViewModel, useDarkTheme: Boolean) {
+fun MainContentScreen(viewModel: MainViewModel, useDarkTheme: Boolean, shell: AppUiState,
+    settingsViewModel: SettingsViewModel, updateViewModel: UpdateViewModel, effects: AppEffectSink, actions: DesktopActionHandler) {
     val snackbarHostState = remember { SnackbarHostState() }
-    val userData by viewModel.userData.collectAsState()
-    LaunchedEffect(userData.defaultOutputPath) {
-        collectOutputPath(viewModel, userData.defaultOutputPath)
-    }
-
     val appState = rememberAppState()
 
     val navigator = remember { Navigator(appState.navigationState) }
@@ -154,8 +157,8 @@ fun MainContentScreen(viewModel: MainViewModel, useDarkTheme: Boolean) {
             modifier = Modifier.fillMaxSize().padding(innerPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            val isAlwaysShowLabel by viewModel.isAlwaysShowLabel.collectAsState()
-            val isShowJunkCode by viewModel.isShowJunkCode.collectAsState()
+            val isAlwaysShowLabel = shell.isAlwaysShowLabel
+            val isShowJunkCode = shell.isShowJunkCode
             AnimatedVisibility(viewModel.pendingDeletionFileList.isEmpty()) {
                 NavigationRail(Modifier.fillMaxHeight()) {
                     Column(
@@ -209,7 +212,7 @@ fun MainContentScreen(viewModel: MainViewModel, useDarkTheme: Boolean) {
                 junkCodeEntry(viewModel)
                 iconFactoryEntry(viewModel)
                 cleanerEntry(viewModel)
-                settingEntry(viewModel)
+                settingEntry(settingsViewModel, updateViewModel, actions)
             }
 
             NavDisplay(
@@ -219,17 +222,9 @@ fun MainContentScreen(viewModel: MainViewModel, useDarkTheme: Boolean) {
             )
         }
     }
-    val snackbarVisuals by viewModel.snackbarVisuals.collectAsState()
-    LaunchedEffect(snackbarVisuals) {
-        if (snackbarVisuals.message.isBlank()) return@LaunchedEffect
-        val snackbarResult = snackbarHostState.showSnackbar(snackbarVisuals)
-        when (snackbarResult) {
-            SnackbarResult.ActionPerformed -> snackbarVisuals.action?.invoke()
-            SnackbarResult.Dismissed -> Unit
-        }
-    }
+    AppEffectHost(effects, snackbarHostState, actions)
     LoadingAnimate(isShowLoading(viewModel), useDarkTheme)
-    UpdateDialog(viewModel)
+    UpdateRoute(updateViewModel, actions)
 }
 
 private fun isShowLoading(viewModel: MainViewModel) =
@@ -238,16 +233,6 @@ private fun isShowLoading(viewModel: MainViewModel) =
             || viewModel.keyStoreInfoUIState == UIState.Loading || viewModel.verifierState == UIState.Loading
             || (viewModel.fileClearUIState == UIState.Loading && viewModel.isClearing
             || viewModel.apkToolInfoUIState == UIState.Loading)
-
-fun collectOutputPath(viewModel: MainViewModel, defaultOutputPath: String) {
-    viewModel.apply {
-        updateApkSignature(viewModel.apkSignatureState.copy(outputPath = defaultOutputPath))
-        updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePath = defaultOutputPath))
-        updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = defaultOutputPath))
-        updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = defaultOutputPath))
-        updateApkToolInfo(viewModel.apkToolInfoState.copy(outputPath = defaultOutputPath))
-    }
-}
 
 @Composable
 private fun rememberRichTooltipPositionProvider(): PopupPositionProvider {

@@ -1,4 +1,4 @@
-package org.tool.kit.feature.setting
+package org.tool.kit.feature.settings
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
@@ -38,8 +38,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,19 +46,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.rememberWindowState
-import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
-import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
-import com.mikepenz.aboutlibraries.ui.compose.variant.LibraryDetailMode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.BuildConfig
-import org.tool.kit.feature.ui.FolderInputWithPicker
+import org.tool.kit.feature.ui.FolderInput
 import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.DestStoreSize
@@ -102,12 +93,6 @@ import org.tool.kit.shared.generated.resources.version_information
 import org.tool.kit.shared.generated.resources.view_log_file
 import org.tool.kit.shared.generated.resources.whether_to_always_show_the_navigation_bar_label
 import org.tool.kit.shared.generated.resources.whether_to_turn_off_file_alignment_function_when_signing_and_packaging_huawei_channel_package
-import org.tool.kit.utils.browseFileDirectory
-import org.tool.kit.utils.getLogFile
-import org.tool.kit.vm.MainViewModel
-import org.tool.kit.vm.LegacyPathField
-import java.awt.Desktop
-import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -117,22 +102,23 @@ import kotlin.time.Duration.Companion.milliseconds
  * @Version     : 1.0
  */
 @Composable
-fun SetUp(viewModel: MainViewModel) {
-    LaunchedEffect(viewModel) { viewModel.refreshPathChecks(LegacyPathField.SETTINGS_OUTPUT) }
-    val developerMode by viewModel.isEnableDeveloperMode.collectAsState()
+fun SettingsScreen(state: SettingsUiState, isCheckUpdate: Boolean, onIntent: (SettingsIntent) -> Unit,
+    onCheckUpdate: () -> Unit, onPickOutput: () -> Unit, onBrowse: (String) -> Unit, onOpenLog: () -> Unit,
+    librariesWindow: @Composable (() -> Unit) -> Unit) {
+    val developerMode = state.preferences.isEnableDeveloperMode
     Box(modifier = Modifier.padding(end = 14.dp)) {
         LazyColumn {
             item {
                 Spacer(Modifier.size(20.dp))
-                Conventional(viewModel)
+                Conventional(state, isCheckUpdate, onIntent, onCheckUpdate, onPickOutput)
             }
             item {
                 Spacer(Modifier.size(16.dp))
-                ApkSignatureSetUp(viewModel)
+                ApkSignatureSetUp(state, onIntent)
             }
             item {
                 Spacer(Modifier.size(16.dp))
-                KeyStore(viewModel)
+                KeyStore(state, onIntent)
             }
             item {
                 AnimatedVisibility(
@@ -142,13 +128,13 @@ fun SetUp(viewModel: MainViewModel) {
                 ) {
                     Column {
                         Spacer(Modifier.size(16.dp))
-                        DeveloperMode(viewModel)
+                        DeveloperMode(state, onIntent)
                     }
                 }
             }
             item {
                 Spacer(Modifier.size(16.dp))
-                About(viewModel)
+                About(state, onIntent, onBrowse, onOpenLog, librariesWindow)
                 Spacer(Modifier.size(20.dp))
             }
         }
@@ -160,10 +146,10 @@ fun SetUp(viewModel: MainViewModel) {
  */
 @Composable
 private fun ApkSignatureSetUp(
-    viewModel: MainViewModel
+    state: SettingsUiState, onIntent: (SettingsIntent) -> Unit
 ) {
-    val userData by viewModel.userData.collectAsState()
-    val draft by viewModel.settingsDraft.collectAsState()
+    val userData = state.preferences.userData
+
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -175,15 +161,15 @@ private fun ApkSignatureSetUp(
             )
             Spacer(Modifier.size(20.dp))
             StringInput(
-                value = draft.signerSuffix,
+                value = state.preferences.userData.defaultSignerSuffix,
                 label = stringResource(Res.string.signature_suffix),
-                isError = draft.signerSuffix.isBlank(),
-                onValueChange = viewModel::updateDefaultSignerSuffix)
+                isError = state.preferences.userData.defaultSignerSuffix.isBlank(),
+                onValueChange = { onIntent(SettingsIntent.SignerSuffix(it)) })
             Spacer(Modifier.size(3.dp))
             Text(
                 text = stringResource(
                     Res.string.signature_suffix_tips,
-                    draft.signerSuffix
+                    state.preferences.userData.defaultSignerSuffix
                 ),
                 modifier = Modifier.padding(horizontal = 24.dp),
                 style = MaterialTheme.typography.labelSmall
@@ -208,7 +194,7 @@ private fun ApkSignatureSetUp(
                 }
                 Switch(
                     checked = userData.duplicateFileRemoval,
-                    onCheckedChange = { viewModel.saveUserData(userData.copy(duplicateFileRemoval = it)) })
+                    onCheckedChange = { onIntent(SettingsIntent.DuplicateRemoval(it)) })
             }
             Row(
                 modifier = Modifier.fillMaxWidth()
@@ -230,7 +216,7 @@ private fun ApkSignatureSetUp(
                 }
                 Switch(
                     checked = userData.alignFileSize,
-                    onCheckedChange = { viewModel.saveUserData(userData.copy(alignFileSize = it)) })
+                    onCheckedChange = { onIntent(SettingsIntent.AlignFileSize(it)) })
             }
         }
     }
@@ -241,8 +227,8 @@ private fun ApkSignatureSetUp(
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun KeyStore(viewModel: MainViewModel) {
-    val userData by viewModel.userData.collectAsState()
+private fun KeyStore(state: SettingsUiState, onIntent: (SettingsIntent) -> Unit) {
+    val userData = state.preferences.userData
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -283,7 +269,7 @@ private fun KeyStore(viewModel: MainViewModel) {
                         ToggleButton(
                             checked = destStoreType == userData.destStoreType,
                             onCheckedChange = {
-                                viewModel.saveUserData(userData.copy(destStoreType = destStoreType))
+                                onIntent(SettingsIntent.StoreType(destStoreType))
                             },
                             modifier = Modifier.defaultMinSize(minWidth = 120.dp),
                             colors = ToggleButtonDefaults.elevatedToggleButtonColors(),
@@ -340,7 +326,7 @@ private fun KeyStore(viewModel: MainViewModel) {
                         ToggleButton(
                             checked = destStoreSize == userData.destStoreSize,
                             onCheckedChange = {
-                                viewModel.saveUserData(userData.copy(destStoreSize = destStoreSize))
+                                onIntent(SettingsIntent.StoreSize(destStoreSize))
                             },
                             modifier = Modifier.defaultMinSize(minWidth = 120.dp),
                             colors = ToggleButtonDefaults.elevatedToggleButtonColors(),
@@ -373,14 +359,14 @@ private fun KeyStore(viewModel: MainViewModel) {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun Conventional(
-    viewModel: MainViewModel
+    state: SettingsUiState, isCheckUpdate: Boolean, onIntent: (SettingsIntent) -> Unit, onCheckUpdate: () -> Unit, onPickOutput: () -> Unit
 ) {
-    val themeConfig by viewModel.themeConfig.collectAsState()
-    val draft by viewModel.settingsDraft.collectAsState()
-    val validation by viewModel.pathValidation.collectAsState()
-    val outPutError = validation[LegacyPathField.SETTINGS_OUTPUT]?.isError == true
-    val isStartCheckUpdate by viewModel.isStartCheckUpdate.collectAsState()
-    val isCheckUpdate by viewModel.checkUpdateState.collectAsState()
+    val themeConfig = DarkThemeConfig.valueOf(state.preferences.themeConfig.name)
+
+
+    val outPutError = state.outputPathError
+    val isStartCheckUpdate = state.preferences.isStartCheckUpdate
+
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -391,11 +377,12 @@ private fun Conventional(
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.size(12.dp))
-            FolderInputWithPicker(
-                value = draft.outputPath,
+            FolderInput(
+                value = state.preferences.userData.defaultOutputPath,
                 label = stringResource(Res.string.default_output_path),
                 isError = outPutError,
-                onValueChange = viewModel::updateDefaultOutputPath)
+                onPickerRequest = onPickOutput,
+                onValueChange = { onIntent(SettingsIntent.OutputPath(it)) })
             Spacer(Modifier.size(18.dp))
             Column {
                 Text(
@@ -413,7 +400,7 @@ private fun Conventional(
                         ToggleButton(
                             checked = themeConfig == theme,
                             onCheckedChange = {
-                                viewModel.saveThemeConfig(theme)
+                                onIntent(SettingsIntent.Theme(theme))
                             },
                             modifier = Modifier.weight(1f),
                             colors = ToggleButtonDefaults.elevatedToggleButtonColors(),
@@ -460,7 +447,7 @@ private fun Conventional(
                         ContainedLoadingIndicator()
                     } else {
                         Button(onClick = {
-                            viewModel.checkUpdate()
+                            onCheckUpdate()
                         }) {
                             Text(text = stringResource(Res.string.check_for_updates))
                         }
@@ -471,18 +458,18 @@ private fun Conventional(
                 title = stringResource(Res.string.start_check_update),
                 checked = isStartCheckUpdate,
                 onCheckedChange = {
-                    viewModel.saveStartCheckUpdate(!isStartCheckUpdate)
+                    onIntent(SettingsIntent.StartCheckUpdate(!isStartCheckUpdate))
                 })
         }
     }
 }
 
 @Composable
-private fun DeveloperMode(viewModel: MainViewModel) {
-    val developerMode by viewModel.isEnableDeveloperMode.collectAsState()
-    val isHuaweiAlignFileSize by viewModel.isHuaweiAlignFileSize.collectAsState()
-    val alwaysShowLabel by viewModel.isAlwaysShowLabel.collectAsState()
-    val showJunkCode by viewModel.isShowJunkCode.collectAsState()
+private fun DeveloperMode(state: SettingsUiState, onIntent: (SettingsIntent) -> Unit) {
+    val developerMode = state.preferences.isEnableDeveloperMode
+    val isHuaweiAlignFileSize = state.preferences.isHuaweiAlignFileSize
+    val alwaysShowLabel = state.preferences.isAlwaysShowLabel
+    val showJunkCode = state.preferences.isShowJunkCode
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.fillMaxWidth().padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -496,25 +483,25 @@ private fun DeveloperMode(viewModel: MainViewModel) {
                 title = stringResource(Res.string.enable_extended_options),
                 checked = developerMode,
                 onCheckedChange = {
-                    viewModel.saveDeveloperMode(!developerMode)
+                    onIntent(SettingsIntent.DeveloperMode(!developerMode))
                 })
             ExtensionsSwitch(
                 title = stringResource(Res.string.enable_garbage_code_generation_option),
                 checked = showJunkCode,
                 onCheckedChange = {
-                    viewModel.saveJunkCode(!showJunkCode)
+                    onIntent(SettingsIntent.ShowJunkCode(!showJunkCode))
                 })
             ExtensionsSwitch(
                 title = stringResource(Res.string.whether_to_always_show_the_navigation_bar_label),
                 checked = alwaysShowLabel,
                 onCheckedChange = {
-                    viewModel.saveIsAlwaysShowLabel(!alwaysShowLabel)
+                    onIntent(SettingsIntent.AlwaysShowLabel(!alwaysShowLabel))
                 })
             ExtensionsSwitch(
                 title = stringResource(Res.string.whether_to_turn_off_file_alignment_function_when_signing_and_packaging_huawei_channel_package),
                 checked = isHuaweiAlignFileSize,
                 onCheckedChange = {
-                    viewModel.saveIsHuaweiAlignFileSize(!isHuaweiAlignFileSize)
+                    onIntent(SettingsIntent.HuaweiAlignment(!isHuaweiAlignFileSize))
                 })
         }
     }
@@ -522,10 +509,10 @@ private fun DeveloperMode(viewModel: MainViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun About(viewModel: MainViewModel) {
+private fun About(state: SettingsUiState, onIntent: (SettingsIntent) -> Unit, onBrowse: (String) -> Unit, onOpenLog: () -> Unit, librariesWindow: @Composable (() -> Unit) -> Unit) {
     var isOpenLibraries by remember { mutableStateOf(false) }
     if (isOpenLibraries) {
-        AboutLibrariesWindow {
+        librariesWindow {
             isOpenLibraries = false
         }
     }
@@ -544,7 +531,7 @@ private fun About(viewModel: MainViewModel) {
                 value = BuildConfig.APP_NAME
             )
             VersionInfo {
-                viewModel.saveDeveloperMode(true)
+                onIntent(SettingsIntent.DeveloperMode(true))
             }
             TextAbout(
                 title = stringResource(Res.string.application_description),
@@ -572,21 +559,20 @@ private fun About(viewModel: MainViewModel) {
                 thickness = 2.dp
             )
             ClickAbout(text = stringResource(Res.string.source_code)) {
-                Desktop.getDesktop().browse(BuildConfig.APP_GITHUB_URI)
+                onBrowse(BuildConfig.APP_GITHUB_URI.toString())
             }
             ClickAbout(text = stringResource(Res.string.author)) {
-                Desktop.getDesktop().browse(BuildConfig.AUTHOR_GITHUB_URI)
+                onBrowse(BuildConfig.AUTHOR_GITHUB_URI.toString())
             }
             ClickAbout(text = stringResource(Res.string.license)) {
-                Desktop.getDesktop().browse(BuildConfig.APP_LICENSE_URI)
+                onBrowse(BuildConfig.APP_LICENSE_URI.toString())
             }
             ClickAbout(text = stringResource(Res.string.open_source_licenses)) {
                 isOpenLibraries = !isOpenLibraries
             }
-            val logFile = getLogFile()
-            if (logFile != null && logFile.exists()) {
+            if (state.logFilePath != null) {
                 ClickAbout(text = stringResource(Res.string.view_log_file)) {
-                    browseFileDirectory(logFile)
+                    onOpenLog()
                 }
             }
         }
@@ -676,27 +662,6 @@ private fun ClickAbout(text: String, onClick: () -> Unit) {
                 contentDescription = "ChevronRight",
             )
         }
-    }
-}
-
-@Composable
-private fun AboutLibrariesWindow(onCloseRequest: () -> Unit) {
-    val windowState = rememberWindowState(size = DpSize(800.dp, 600.dp))
-    Window(
-        onCloseRequest = onCloseRequest,
-        state = windowState,
-        title = "Open Source Licenses",
-        icon = painterResource(Res.drawable.icon),
-        alwaysOnTop = true
-    ) {
-        val libraries by produceLibraries {
-            Res.readBytes("files/aboutlibraries.json").decodeToString()
-        }
-        LibrariesContainer(
-            libraries = libraries,
-            modifier = Modifier.fillMaxSize(),
-            detailMode = LibraryDetailMode.Sheet
-        )
     }
 }
 

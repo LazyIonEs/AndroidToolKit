@@ -86,7 +86,7 @@ class Phase2ValidationTest {
             }
         }
         val paths = LegacyPathChecks(backgroundScope, storage)
-        val field = LegacyPathField.SETTINGS_OUTPUT
+        val field = LegacyPathField.SIGNING_OUTPUT
         paths.validate(field, "A", PathKind.DIRECTORY)
         runCurrent()
         repeat(20) { paths.validate(field, "A", PathKind.DIRECTORY) }
@@ -108,26 +108,35 @@ class Phase2ValidationTest {
 
     @Test fun settingsDraftsUpdateBeforeQueuedWritesAndFieldsDoNotOverwriteEachOther() = runTest {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
-        val source = PreferencesDataSource(MapSettings().toFlowSettings(Dispatchers.Unconfined))
-        val vm = MainViewModel(source, AllPathsExist, EmptyKeys)
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val settings = MapSettings()
+        val source = PreferencesDataSource(settings.toFlowSettings(Dispatchers.Unconfined), dispatcher)
+        val repository = org.tool.kit.data.repository.DefaultPreferencesRepository(source,
+            org.tool.kit.core.coroutine.AppDispatchers(dispatcher, dispatcher, dispatcher))
+        val sink = org.tool.kit.feature.app.AppEffectSink()
+        val vm = org.tool.kit.feature.settings.SettingsViewModel(repository, AllPathsExist, sink, RecordingDesktopActions())
         val store = ViewModelStore().also { it.put("phase2", vm) }
         try {
-            val old = source.userData.value
-            vm.updateDefaultOutputPath(" /draft/path ")
-            vm.updateDefaultSignerSuffix("-draft")
-            vm.updateDefaultOutputPath(" /latest/path ")
-            vm.updateDefaultSignerSuffix("")
-            vm.saveThemeConfig(DarkThemeConfig.DARK)
-            vm.saveUserData(old.copy(duplicateFileRemoval = false))
-            assertEquals(SettingsInputDraft(" /latest/path ", ""), vm.settingsDraft.value)
-            assertEquals(old, source.userData.value, "Persistence has not run yet")
+            vm.onIntent(org.tool.kit.feature.settings.SettingsIntent.OutputPath(" /draft/path "))
+            vm.onIntent(org.tool.kit.feature.settings.SettingsIntent.SignerSuffix("-draft"))
+            vm.onIntent(org.tool.kit.feature.settings.SettingsIntent.OutputPath(" /latest/path "))
+            vm.onIntent(org.tool.kit.feature.settings.SettingsIntent.SignerSuffix(""))
+            vm.onIntent(org.tool.kit.feature.settings.SettingsIntent.Theme(DarkThemeConfig.DARK))
+            vm.onIntent(org.tool.kit.feature.settings.SettingsIntent.DuplicateRemoval(false))
+            assertEquals(" /latest/path ", vm.uiState.value.preferences.userData.defaultOutputPath)
+            assertEquals("", vm.uiState.value.preferences.userData.defaultSignerSuffix)
+            assertEquals(0, settings.size, "Persistence has not run yet")
             runCurrent()
-            assertEquals(" /latest/path ", source.userData.value.defaultOutputPath)
-            assertEquals("", source.userData.value.defaultSignerSuffix)
-            assertFalse(source.userData.value.duplicateFileRemoval)
-            assertEquals(SettingsInputDraft(" /latest/path ", ""), vm.settingsDraft.value)
+            assertEquals(" /latest/path ", repository.state.value.userData.defaultOutputPath)
+            assertEquals("", repository.state.value.userData.defaultSignerSuffix)
+            assertFalse(repository.state.value.userData.duplicateFileRemoval)
+            assertEquals(" /latest/path ", vm.uiState.value.preferences.userData.defaultOutputPath)
+            assertEquals("", vm.uiState.value.preferences.userData.defaultSignerSuffix)
+            assertEquals("", settings.getString("user_data.defaultSignerSuffix", "missing"))
         } finally {
             store.clear()
+            repository.close()
+            sink.close()
             Dispatchers.resetMain()
         }
     }
@@ -142,7 +151,7 @@ class Phase2ValidationTest {
             }
         }
         val checks = LegacyPathChecks(backgroundScope, storage)
-        val field = LegacyPathField.SETTINGS_OUTPUT
+        val field = LegacyPathField.SIGNING_OUTPUT
         checks.validate(field, "same-path", PathKind.DIRECTORY)
         runCurrent()
         assertTrue(checks.state.value.getValue(field).isError)

@@ -24,11 +24,8 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,13 +38,9 @@ import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownTypography
 import com.mikepenz.markdown.model.markdownPadding
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.BuildConfig
-import org.tool.kit.model.Asset
 import org.tool.kit.model.DownloadState
-import org.tool.kit.model.Update
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.cancel
 import org.tool.kit.shared.generated.resources.connecting
@@ -58,14 +51,8 @@ import org.tool.kit.shared.generated.resources.exit_and_install
 import org.tool.kit.shared.generated.resources.prepare_for_installation
 import org.tool.kit.shared.generated.resources.release_time
 import org.tool.kit.shared.generated.resources.update
-import org.tool.kit.utils.downloadFile
 import org.tool.kit.utils.formatFileSize
-import org.tool.kit.vm.MainViewModel
-import java.awt.Desktop
-import java.io.File
 import kotlin.math.roundToInt
-import kotlin.system.exitProcess
-import org.tool.kit.app.shutdownAppSession
 
 /**
  * @author      : LazyIonEs
@@ -80,43 +67,16 @@ private val logger = KotlinLogging.logger("UpdateDialog")
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UpdateDialog(vm: MainViewModel) {
-    val update by vm.checkUpdateResult.collectAsState()
-    var downloadState by remember { mutableStateOf(DownloadState.START) }
-    var downloadProgress by remember { mutableStateOf(0f) }
-    var downloadedByte by remember { mutableStateOf(0L) }
-    var totalByte by remember { mutableStateOf(0L) }
-    val coroutineScope = rememberCoroutineScope()
-    var job: Job? = null
-    var downloadFile: File? = null
-    update?.let { update ->
-        if (update.assets.isNotEmpty()) {
-            val (selectedOption, onOptionSelected) = remember { mutableStateOf(update.assets[0]) }
-            val download: () -> Unit = {
-                job = coroutineScope.launch {
-                    val destFile = File(vm.userData.value.defaultOutputPath, selectedOption.name)
-                    downloadState = DownloadState.DOWNLOADING
-                    val result = downloadFile(
-                        selectedOption.browserDownloadUrl,
-                        destFile
-                    ) { downloaded, total ->
-                        downloadedByte = downloaded
-                        totalByte = total
-                        downloadProgress = if (total > 0) {
-                            (downloaded.toFloat() / total).coerceIn(0f, 1f)
-                        } else {
-                            0f
-                        }
-                    }
-                    if (result.isSuccess) {
-                        downloadFile = destFile
-                        downloadState = DownloadState.FINISH
-                    } else {
-                        downloadState = DownloadState.START
-                        vm.updateSnackbarVisuals(result.msg ?: return@launch)
-                    }
-                }
-            }
+fun UpdateDialog(uiState: org.tool.kit.feature.update.UpdateUiState, onIntent: (org.tool.kit.feature.update.UpdateIntent) -> Unit) {
+    val downloadState = uiState.downloadState
+    val downloadProgress = uiState.progress
+    val downloadedByte = uiState.downloadedBytes
+    val totalByte = uiState.totalBytes
+    val selectedOption = uiState.selectedAsset
+    if (uiState.visible) uiState.release?.let { update ->
+        if (update.assets.isNotEmpty() && selectedOption != null) {
+            val onOptionSelected: (org.tool.kit.domain.repository.UpdateAsset) -> Unit = { onIntent(org.tool.kit.feature.update.UpdateIntent.SelectAsset(it)) }
+            val download: () -> Unit = { onIntent(org.tool.kit.feature.update.UpdateIntent.Download) }
             AlertDialog(
                 icon = null, title = {
                     val title = when (downloadState) {
@@ -152,7 +112,7 @@ fun UpdateDialog(vm: MainViewModel) {
                     }
                 }, onDismissRequest = {
                     if (downloadState != DownloadState.DOWNLOADING) {
-                        vm.cancelUpdate()
+                        onIntent(org.tool.kit.feature.update.UpdateIntent.Dismiss)
                     }
                 }, confirmButton = {
                     AnimatedContent(downloadState) { state ->
@@ -163,17 +123,7 @@ fun UpdateDialog(vm: MainViewModel) {
 
                             DownloadState.DOWNLOADING -> Unit
                             DownloadState.FINISH -> TextButton(onClick = {
-                                vm.cancelUpdate()
-                                if (downloadFile != null && downloadFile.exists()) {
-                                    runCatching {
-                                        Desktop.getDesktop().open(downloadFile)
-                                    }.onFailure { e ->
-                                        logger.error(e) { "org.tool.kit.UpdateDialog 打开安装文件异常, 异常信息: ${e.message}" }
-                                    }.onSuccess {
-                                        shutdownAppSession()
-                                        exitProcess(0)
-                                    }
-                                }
+                                onIntent(org.tool.kit.feature.update.UpdateIntent.Install)
                             }) {
                                 Text(text = stringResource(Res.string.exit_and_install))
                             }
@@ -181,16 +131,7 @@ fun UpdateDialog(vm: MainViewModel) {
                     }
                 }, dismissButton = {
                     TextButton(onClick = {
-                        if (downloadState == DownloadState.DOWNLOADING) {
-                            job?.cancel()
-                            job = null
-                            downloadProgress = 0f
-                            downloadedByte = 0L
-                            totalByte = 0L
-                            downloadState = DownloadState.START
-                        } else {
-                            vm.cancelUpdate()
-                        }
+                        onIntent(org.tool.kit.feature.update.UpdateIntent.Cancel)
                     }) {
                         Text(text = stringResource(Res.string.cancel))
                     }
@@ -201,9 +142,9 @@ fun UpdateDialog(vm: MainViewModel) {
 
 @Composable
 private fun DownloadStartUI(
-    update: Update,
-    selectedOption: Asset,
-    onOptionSelected: (Asset) -> Unit
+    update: org.tool.kit.domain.repository.UpdateRelease,
+    selectedOption: org.tool.kit.domain.repository.UpdateAsset,
+    onOptionSelected: (org.tool.kit.domain.repository.UpdateAsset) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxWidth(),

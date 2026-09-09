@@ -9,8 +9,12 @@ import org.tool.kit.di.desktopModules
 
 private val logger = KotlinLogging.logger("org.tool.kit.main")
 fun main() {
-    startKoin { modules(desktopModules()) }
+    val container = startKoin { modules(desktopModules()) }
     try {
+        // main() is outside the EDT/composition; physical initialization runs on IO before Window creation.
+        kotlinx.coroutines.runBlocking(kotlinx.coroutines.Dispatchers.IO) {
+            container.koin.get<org.tool.kit.app.AppBootstrap>().prepare()
+        }
         application {
             Window(
                 onCloseRequest = {

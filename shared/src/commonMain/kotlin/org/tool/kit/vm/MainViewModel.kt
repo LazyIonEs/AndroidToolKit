@@ -25,15 +25,20 @@ import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
+import org.tool.kit.domain.preferences.PreferenceChange
+import org.tool.kit.domain.preferences.CopyPreference
+import org.tool.kit.domain.preferences.JunkPreference
+import org.tool.kit.feature.app.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.apache.commons.codec.digest.DigestUtils
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
-import org.tool.kit.BuildConfig
 import org.tool.kit.constant.ConfigConstant
-import org.tool.kit.data.source.PreferencesDataSource
 import org.tool.kit.core.validation.LatestRequest
 import org.tool.kit.domain.repository.KeyStoreRepository
 import org.tool.kit.domain.repository.StorageCapacity
@@ -41,8 +46,8 @@ import org.tool.kit.domain.repository.StorageRepository
 import org.tool.kit.model.ApkInformation
 import org.tool.kit.model.ApkSignature
 import org.tool.kit.model.ApkToolInfo
-import org.tool.kit.model.CopyMode
 import org.tool.kit.model.DarkThemeConfig
+import org.tool.kit.model.CopyMode
 import org.tool.kit.model.IconFactoryData
 import org.tool.kit.model.IconFactoryInfo
 import org.tool.kit.model.JunkCodeInfo
@@ -52,9 +57,6 @@ import org.tool.kit.model.PendingDeletionFile
 import org.tool.kit.model.Sequence
 import org.tool.kit.model.Sign
 import org.tool.kit.model.SignaturePolicy
-import org.tool.kit.model.SnackbarVisualsData
-import org.tool.kit.model.Update
-import org.tool.kit.model.UserData
 import org.tool.kit.model.Verifier
 import org.tool.kit.model.VerifierResult
 import org.tool.kit.platform.RustException
@@ -75,33 +77,26 @@ import org.tool.kit.shared.generated.resources.exec_command_error
 import org.tool.kit.shared.generated.resources.file_deletion_exception
 import org.tool.kit.shared.generated.resources.icon_creation_failed
 import org.tool.kit.shared.generated.resources.icon_generation_completed
-import org.tool.kit.shared.generated.resources.it_s_the_latest_version
 import org.tool.kit.shared.generated.resources.jump
-import org.tool.kit.shared.generated.resources.network_error
 import org.tool.kit.shared.generated.resources.output_file_already_exists
 import org.tool.kit.shared.generated.resources.scanning_anomalies
 import org.tool.kit.shared.generated.resources.signature_creation_failed
 import org.tool.kit.shared.generated.resources.signature_failed
 import org.tool.kit.shared.generated.resources.signature_verification_failed
-import org.tool.kit.shared.generated.resources.toolkit_extension_mode_is_enabled
 import org.tool.kit.utils.AndroidJunkGenerator
 import org.tool.kit.utils.ExternalCommand
 import org.tool.kit.utils.MultiAarGenerator
-import org.tool.kit.utils.WhileUiSubscribed
-import org.tool.kit.utils.browseFileDirectory
 import org.tool.kit.utils.extractAndroidManifest
 import org.tool.kit.utils.extractChannel
 import org.tool.kit.utils.extractIcon
 import org.tool.kit.utils.extractValue
 import org.tool.kit.utils.extractVersion
-import org.tool.kit.utils.filterByOS
 import org.tool.kit.utils.formatFileSize
 import org.tool.kit.utils.getFileLength
 import org.tool.kit.utils.getVerifier
 import org.tool.kit.utils.isJPEG
 import org.tool.kit.utils.isJPG
 import org.tool.kit.utils.isMac
-import org.tool.kit.utils.isNewVersion
 import org.tool.kit.utils.isPng
 import org.tool.kit.utils.isWindows
 import org.tool.kit.utils.renameManifestPackage
@@ -125,60 +120,20 @@ private val logger = KotlinLogging.logger("MainViewModel")
  * @Version     : 1.0
  */
 class MainViewModel(
-    private val preferences: PreferencesDataSource,
+    private val preferences: org.tool.kit.domain.preferences.PreferencesRepository,
     private val storage: StorageRepository,
     keyStores: KeyStoreRepository,
+    private val effects: org.tool.kit.feature.app.AppEffectSink,
+    initialCapacity: StorageCapacity = StorageCapacity(0, 0),
 ) :
     ViewModel() {
 
-    // 偏好设置
-    val themeConfig = preferences.themeConfig.stateIn(
-        scope = viewModelScope,
-        started = WhileUiSubscribed,
-        initialValue = PreferencesDataSource.DEFAULT_THEME_CONFIG
-    )
-
-    // 偏好设置
-    val userData = preferences.userData.stateIn(
-        scope = viewModelScope,
-        started = Eagerly,
-        initialValue = PreferencesDataSource.DEFAULT_USER_DATA
-    )
-
-    // 图标生成偏好设置
-    val iconFactoryData = preferences.iconFactoryData.stateIn(
-        scope = viewModelScope,
-        started = Eagerly,
-        initialValue = PreferencesDataSource.DEFAULT_ICON_FACTORY_DATA
-    )
-
-    // 偏好设置
-    val isShowJunkCode = preferences.isShowJunkCode.stateIn(
-        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
-    )
-
-    val isHuaweiAlignFileSize = preferences.isHuaweiAlignFileSize.stateIn(
-        scope = viewModelScope, started = Eagerly, initialValue = false
-    )
-
-    val isAlwaysShowLabel = preferences.isAlwaysShowLabel.stateIn(
-        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
-    )
-
-    val isEnableDeveloperMode = preferences.isEnableDeveloperMode.stateIn(
-        scope = viewModelScope, started = WhileUiSubscribed, initialValue = false
-    )
-
-    val isStartCheckUpdate = preferences.isStartCheckUpdate.stateIn(
-        scope = viewModelScope, started = Eagerly, initialValue = false
-    )
-
-    // 复制模式
-    val copyMode = preferences.copyMode.stateIn(
-        scope = viewModelScope,
-        started = Eagerly,
-        initialValue = PreferencesDataSource.DEFAULT_COPY_MODE
-    )
+    // Read-only legacy projections; remove each when its last feature migrates.
+    val themeConfig = preferences.state.map { DarkThemeConfig.valueOf(it.themeConfig.name) }.stateIn(viewModelScope, Eagerly, DarkThemeConfig.valueOf(preferences.state.value.themeConfig.name))
+    val userData = preferences.state.map { it.userData }.stateIn(viewModelScope, Eagerly, preferences.state.value.userData)
+    val iconFactoryData = preferences.state.map { it.iconFactoryData }.stateIn(viewModelScope, Eagerly, preferences.state.value.iconFactoryData)
+    val isHuaweiAlignFileSize = preferences.state.map { it.isHuaweiAlignFileSize }.stateIn(viewModelScope, Eagerly, preferences.state.value.isHuaweiAlignFileSize)
+    val copyMode = preferences.state.map { CopyMode.valueOf(it.copyMode.name) }.stateIn(viewModelScope, Eagerly, CopyMode.valueOf(preferences.state.value.copyMode.name))
 
     // 签名信息UI状态
     private val _verifierState = mutableStateOf<UIState>(UIState.WAIT)
@@ -212,12 +167,7 @@ class MainViewModel(
     private val _junkCodeUIState = mutableStateOf<UIState>(UIState.WAIT)
     val junkCodeUIState by _junkCodeUIState
 
-    // 垃圾代码模式
-    val junkMode = preferences.junkMode.stateIn(
-        scope = viewModelScope,
-        started = Eagerly,
-        initialValue = PreferencesDataSource.DEFAULT_JUNK_MODE
-    )
+    val junkMode = preferences.state.map { JunkMode.valueOf(it.junkMode.name) }.stateIn(viewModelScope, Eagerly, JunkMode.valueOf(preferences.state.value.junkMode.name))
 
     // 图标工厂信息
     private val _iconFactoryInfoState = mutableStateOf(IconFactoryInfo())
@@ -250,27 +200,10 @@ class MainViewModel(
     private val _apkToolInfoUIState = mutableStateOf<UIState>(UIState.WAIT)
     val apkToolInfoUIState by _apkToolInfoUIState
 
-    // 通知
-    private val _snackbarVisuals = MutableStateFlow(SnackbarVisualsData())
-    val snackbarVisuals = _snackbarVisuals.asStateFlow()
-
-    // 检查更新
-    private val _checkUpdateState = MutableStateFlow(false)
-    val checkUpdateState = _checkUpdateState.asStateFlow()
-
-    // 检查更新结果
-    private val _checkUpdateResult = MutableStateFlow<Update?>(null)
-    val checkUpdateResult = _checkUpdateResult.asStateFlow()
-
-    private val _settingsDraft = MutableStateFlow(preferences.userData.value.let {
-        SettingsInputDraft(it.defaultOutputPath, it.defaultSignerSuffix)
-    })
-    val settingsDraft = _settingsDraft.asStateFlow()
-
     private val pathChecks = LegacyPathChecks(viewModelScope, storage)
     val pathValidation = pathChecks.state
     private val capacityRequest = LatestRequest(viewModelScope)
-    private val _storageCapacity = MutableStateFlow(StorageCapacity(0, 0))
+    private val _storageCapacity = MutableStateFlow(initialCapacity)
     val storageCapacity = _storageCapacity.asStateFlow()
 
     private val signingChecks = LegacySignValidation(viewModelScope, storage, keyStores) { aliases ->
@@ -285,31 +218,23 @@ class MainViewModel(
     val signatureAliases = signatureAliasChecks.state
 
     init {
-        pathChecks.validate(LegacyPathField.SETTINGS_OUTPUT, settingsDraft.value.outputPath, PathKind.DIRECTORY)
+        // Compatibility bridge: remove one branch per Phase 4A/5/6/7/8 cutover.
+        // Exactly these five still belong to MainViewModel. No root callback writes them.
+        viewModelScope.launch {
+            preferences.state.filter { it.ready }
+                .map { it.outputPathVersion to it.userData.defaultOutputPath }
+                .distinctUntilChanged().collect { (_, path) ->
+                    updateApkSignature(apkSignatureState.copy(outputPath = path))
+                    updateSignatureGenerate(keyStoreInfoState.copy(keyStorePath = path))
+                    updateJunkCodeInfo(junkCodeInfoState.copy(outputPath = path))
+                    updateIconFactoryInfo(iconFactoryInfoState.copy(outputPath = path))
+                    updateApkToolInfo(apkToolInfoState.copy(outputPath = path))
+                }
+        }
     }
 
     fun refreshStorageCapacity() {
         capacityRequest.launch(block = { storage.readCapacity() }) { _storageCapacity.value = it }
-    }
-
-    fun updateDefaultOutputPath(path: String) {
-        _settingsDraft.update { it.copy(outputPath = path) }
-        pathChecks.validate(LegacyPathField.SETTINGS_OUTPUT, path, PathKind.DIRECTORY)
-        // Preserve the current immediate updates; the root's existing bridge still covers all five forms.
-        updateApkSignature(apkSignatureState.copy(outputPath = path))
-        updateSignatureGenerate(keyStoreInfoState.copy(keyStorePath = path))
-        updateJunkCodeInfo(junkCodeInfoState.copy(outputPath = path))
-        updateIconFactoryInfo(iconFactoryInfoState.copy(outputPath = path))
-        viewModelScope.launch {
-            preferences.saveUserData(preferences.userData.value.copy(defaultOutputPath = path))
-        }
-    }
-
-    fun updateDefaultSignerSuffix(suffix: String) {
-        _settingsDraft.update { it.copy(signerSuffix = suffix) }
-        viewModelScope.launch {
-            preferences.saveUserData(preferences.userData.value.copy(defaultSignerSuffix = suffix))
-        }
     }
 
     fun updateSigningStorePassword(password: String) {
@@ -340,104 +265,22 @@ class MainViewModel(
         apkToolChecks.refreshAliasPassword(apkToolInfoState)
     }
 
-    /**
-     * 更新主题
-     */
-    fun saveThemeConfig(themeConfig: DarkThemeConfig) {
-        viewModelScope.launch {
-            preferences.saveThemeConfig(themeConfig)
-        }
-    }
-
-    /**
-     * 更新用户偏好
-     */
-    fun saveUserData(userData: UserData) {
-        viewModelScope.launch {
-            // Remaining settings controls pass old DTO copies. They must not overwrite newer input drafts.
-            val draft = settingsDraft.value
-            preferences.saveUserData(userData.copy(defaultOutputPath = draft.outputPath, defaultSignerSuffix = draft.signerSuffix))
-        }
-    }
-
-    fun saveJunkCode(show: Boolean) {
-        viewModelScope.launch {
-            preferences.saveJunkCode(show)
-        }
-    }
-
-    fun saveIsAlwaysShowLabel(show: Boolean) {
-        viewModelScope.launch {
-            preferences.saveIsAlwaysShowLabel(show)
-        }
-    }
-
-    fun saveIsHuaweiAlignFileSize(show: Boolean) {
-        viewModelScope.launch {
-            preferences.saveIsHuaweiAlignFileSize(show)
-        }
-    }
-
-    fun saveStartCheckUpdate(show: Boolean) {
-        viewModelScope.launch {
-            preferences.saveStartCheckUpdate(show)
-        }
-    }
-
-    fun saveDeveloperMode(show: Boolean) {
-        if (show == isEnableDeveloperMode.value) return
-        viewModelScope.launch {
-            preferences.saveDeveloperMode(show)
-            if (show) {
-                updateSnackbarVisuals(Res.string.toolkit_extension_mode_is_enabled)
-            }
-        }
-    }
-
-    /**
-     * 更新图标生成偏好
-     */
+    /** Legacy icon editor commits only on the original release callbacks; remove in Phase 8. */
     fun saveIconFactoryData(iconFactoryData: IconFactoryData) {
-        viewModelScope.launch {
-            preferences.saveIconFactoryData(iconFactoryData)
-        }
+        preferences.change(PreferenceChange.IconSettings(iconFactoryData))
     }
 
     fun saveCopyMode(copyMode: CopyMode) {
+        preferences.change(PreferenceChange.CopyModeChanged(CopyPreference.valueOf(copyMode.name)))
+    }
+
+    private fun updateSnackbarVisuals(value: SnackbarMessage) {
         viewModelScope.launch {
-            preferences.saveCopyMode(copyMode)
+            if (!effects.send("legacy", value)) logger.debug { "Window effect sink closed" }
         }
     }
-
-    /**
-     * 显示快捷信息栏
-     * @param value SnackbarVisualsData
-     * @see SnackbarVisualsData
-     */
-    private fun updateSnackbarVisuals(value: SnackbarVisualsData) {
-        _snackbarVisuals.update { value }
-    }
-
-    /**
-     * 显示快捷信息栏
-     */
-    fun updateSnackbarVisuals(value: String) {
-        _snackbarVisuals.update { currentState ->
-            currentState.copy(message = value).reset()
-        }
-    }
-
-    /**
-     * 显示快捷信息栏
-     */
-    fun updateSnackbarVisuals(resource: StringResource) {
-        viewModelScope.launch(Dispatchers.Main) {
-            val string = getString(resource)
-            _snackbarVisuals.update { currentState ->
-                currentState.copy(message = string).reset()
-            }
-        }
-    }
+    fun updateSnackbarVisuals(value: String) = updateSnackbarVisuals(SnackbarMessage(UiMessage.Text(value)))
+    fun updateSnackbarVisuals(resource: StringResource) = updateSnackbarVisuals(SnackbarMessage(UiMessage.Resource(resource)))
 
     /**
      * 修改ApkSignature
@@ -498,9 +341,7 @@ class MainViewModel(
      * 更新垃圾代码模式
      */
     fun saveJunkMode(junkMode: JunkMode) {
-        viewModelScope.launch {
-            preferences.saveJunkMode(junkMode)
-        }
+        preferences.change(PreferenceChange.JunkModeChanged(JunkPreference.valueOf(junkMode.name)))
     }
 
     /**
@@ -547,14 +388,12 @@ class MainViewModel(
             logger.info { "apksSigner 多APK签名结束, 结果: $result" }
             if (result) {
                 val outputApk = resultList.last()
-                val snackbarVisualsData = SnackbarVisualsData(
-                    message = getString(Res.string.apk_is_signed_successfully),
+                val snackbarVisualsData = SnackbarMessage(
+                    message = UiMessage.Text(getString(Res.string.apk_is_signed_successfully)),
                     actionLabel = getString(Res.string.jump),
                     withDismissAction = true,
                     duration = SnackbarDuration.Short,
-                    action = {
-                        browseFileDirectory(outputApk)
-                    })
+                    action = SnackbarAction.OpenDirectory(outputApk?.path))
                 updateSnackbarVisuals(snackbarVisualsData)
             } else {
                 updateSnackbarVisuals(getString(Res.string.signature_failed))
@@ -651,14 +490,12 @@ class MainViewModel(
                             .build()
                     apkSigner.sign()
                     if (showUiState) {
-                        val snackbarVisualsData = SnackbarVisualsData(
-                            message = getString(Res.string.apk_is_signed_successfully),
+                        val snackbarVisualsData = SnackbarMessage(
+                            message = UiMessage.Text(getString(Res.string.apk_is_signed_successfully)),
                             actionLabel = getString(Res.string.jump),
                             withDismissAction = true,
                             duration = SnackbarDuration.Short,
-                            action = {
-                                browseFileDirectory(outputApk)
-                            })
+                            action = SnackbarAction.OpenDirectory(outputApk?.path))
                         updateSnackbarVisuals(snackbarVisualsData)
                     }
                     if (outputApk.exists()) {
@@ -792,14 +629,12 @@ class MainViewModel(
             )
             logger.info { "createSignature 生成签名结束, 结果: $result" }
             if (result) {
-                val snackbarVisualsData = SnackbarVisualsData(
-                    message = getString(Res.string.create_signature_successfully),
+                val snackbarVisualsData = SnackbarMessage(
+                    message = UiMessage.Text(getString(Res.string.create_signature_successfully)),
                     actionLabel = getString(Res.string.jump),
                     withDismissAction = true,
                     duration = SnackbarDuration.Short,
-                    action = {
-                        browseFileDirectory(outputFile)
-                    })
+                    action = SnackbarAction.OpenDirectory(outputFile.path))
                 updateSnackbarVisuals(snackbarVisualsData)
             } else {
                 updateSnackbarVisuals(Res.string.signature_creation_failed)
@@ -1018,14 +853,12 @@ class MainViewModel(
             }
             
             logger.info { "generateJunkCode 生成垃圾代码结束, 耗时: ${System.currentTimeMillis() - start}ms, aar大小: ${totalSize.formatFileSize()}, 输出路径: ${resultFile.absolutePath}" }
-            val snackbarVisualsData = SnackbarVisualsData(
-                message = getString(Res.string.build_end, totalSize.formatFileSize()),
+            val snackbarVisualsData = SnackbarMessage(
+                message = UiMessage.Text(getString(Res.string.build_end, totalSize.formatFileSize())),
                 actionLabel = getString(Res.string.jump),
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
-                action = {
-                    browseFileDirectory(resultFile)
-                })
+                action = SnackbarAction.OpenDirectory(resultFile.path))
             updateSnackbarVisuals(snackbarVisualsData)
         } catch (e: Exception) {
             logger.error(e) { "generateJunkCode 生成垃圾代码异常, 异常信息: ${e.message}" }
@@ -1109,14 +942,12 @@ class MainViewModel(
                     showUiState = false
                 )
             }
-            val snackbarVisualsData = SnackbarVisualsData(
-                message = getString(Res.string.build_end, outApktoolFile.length().formatFileSize()),
+            val snackbarVisualsData = SnackbarMessage(
+                message = UiMessage.Text(getString(Res.string.build_end, outApktoolFile.length().formatFileSize())),
                 actionLabel = getString(Res.string.jump),
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
-                action = {
-                    browseFileDirectory(outApktoolFile)
-                })
+                action = SnackbarAction.OpenDirectory(outApktoolFile.path))
             updateSnackbarVisuals(snackbarVisualsData)
         } catch (e: Exception) {
             logger.error(e) { "generateApktool 生成空包异常, 异常信息: ${e.message}" }
@@ -1227,14 +1058,12 @@ class MainViewModel(
         updateIconFactoryInfo(iconFactoryInfoState.copy(result = result))
         _iconFactoryUIState.update { UIState.WAIT }
         if (isSuccess) {
-            val snackbarVisualsData = SnackbarVisualsData(
-                message = getString(Res.string.icon_generation_completed),
+            val snackbarVisualsData = SnackbarMessage(
+                message = UiMessage.Text(getString(Res.string.icon_generation_completed)),
                 actionLabel = getString(Res.string.jump),
                 withDismissAction = true,
                 duration = SnackbarDuration.Short,
-                action = {
-                    browseFileDirectory(outputDir)
-                })
+                action = SnackbarAction.OpenDirectory(outputDir.path))
             updateSnackbarVisuals(snackbarVisualsData)
         } else {
             updateSnackbarVisuals(error)
@@ -1416,59 +1245,6 @@ class MainViewModel(
         return aapt
     }
 
-    /**
-     * 检查更新
-     */
-    fun checkUpdate(showMessage: Boolean = true) {
-        viewModelScope.launch {
-            val start = System.currentTimeMillis()
-            logger.info { "checkUpdate 检查更新开始" }
-            _checkUpdateState.update { true }
-            _checkUpdateResult.update { null }
-            val result = org.tool.kit.utils.checkUpdate()
-            _checkUpdateState.update { false }
-            logger.info { "checkUpdate 检查更新结束, 耗时: ${System.currentTimeMillis() - start}ms, 检查更新结果: $result" }
-            if (result.isSuccess) {
-                val githubRestLatestResult = result.data!!
-                val isHaveNewVersion =
-                    githubRestLatestResult.tagName.isNewVersion(BuildConfig.APP_VERSION)
-                logger.info { "checkUpdate 检查更新结果对比: 现版本: ${BuildConfig.APP_VERSION} 新版本: ${githubRestLatestResult.tagName}" }
-                if (isHaveNewVersion) {
-                    val list = githubRestLatestResult.assets.filterByOS()
-                    if (list?.isNotEmpty() == true) {
-                        logger.info { "checkUpdate 展示更新弹窗" }
-                        val version = githubRestLatestResult.tagName
-                        val htmlUrl = githubRestLatestResult.htmlUrl
-                        val createdAt = githubRestLatestResult.createdAt
-                        val body = githubRestLatestResult.body
-                        val update = Update(version, htmlUrl, createdAt, body, list)
-                        _checkUpdateResult.update { update }
-                    } else {
-                        if (showMessage) {
-                            updateSnackbarVisuals(Res.string.it_s_the_latest_version)
-                        }
-                    }
-                } else {
-                    if (showMessage) {
-                        updateSnackbarVisuals(Res.string.it_s_the_latest_version)
-                    }
-                }
-            } else {
-                if (showMessage) {
-                    updateSnackbarVisuals(result.msg ?: Res.string.network_error)
-                }
-            }
-        }
-    }
-
-    /**
-     * 取消更新
-     */
-    fun cancelUpdate() {
-        viewModelScope.launch {
-            _checkUpdateResult.update { null }
-        }
-    }
 }
 
 sealed interface UIState {

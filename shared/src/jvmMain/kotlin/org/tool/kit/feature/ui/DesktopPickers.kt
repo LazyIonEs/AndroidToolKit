@@ -93,3 +93,10 @@ actual fun DirectoryButton(value: String, expanded: Boolean, onDirectorySelector
         expanded = expanded
     )
 }
+
+@Composable
+actual fun rememberDirectoryPickerRequest(onSelected: (String) -> Unit): () -> Unit {
+    val currentOnSelected by rememberUpdatedState(onSelected)
+    val launcher = rememberDirectoryPickerLauncher { directory -> directory?.path?.let { currentOnSelected(it) } }
+    return { launcher.launch() }
+}

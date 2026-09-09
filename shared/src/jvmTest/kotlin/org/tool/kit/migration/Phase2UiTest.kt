@@ -102,7 +102,7 @@ class Phase2UiTest {
         suffix.performTextReplacement("-phase2-draft")
         for (index in 1..3) {
             runOnIdle {
-                vm.saveThemeConfig(if (index % 2 == 1) DarkThemeConfig.DARK else DarkThemeConfig.LIGHT)
+                container.koin.get<org.tool.kit.domain.preferences.PreferencesRepository>().change(org.tool.kit.domain.preferences.PreferenceChange.Theme(if (index % 2 == 1) org.tool.kit.domain.preferences.ThemePreference.DARK else org.tool.kit.domain.preferences.ThemePreference.LIGHT))
                 revision.intValue = index
             }
             waitUntil { composed == index }

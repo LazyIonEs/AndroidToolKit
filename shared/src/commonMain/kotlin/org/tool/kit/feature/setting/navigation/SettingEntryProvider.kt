@@ -2,18 +2,10 @@ package org.tool.kit.feature.setting.navigation
 
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
-import com.russhwolf.settings.ExperimentalSettingsApi
-import org.tool.kit.feature.setting.SetUp
-import org.tool.kit.vm.MainViewModel
+import org.tool.kit.feature.settings.*
+import org.tool.kit.feature.update.UpdateViewModel
+import org.tool.kit.feature.app.DesktopActionHandler
 
-/**
- * @author      : LazyIonEs
- * @description : 描述
- * @createDate  : 2026/1/20 17:14
- */
-@OptIn(ExperimentalSettingsApi::class)
-fun EntryProviderScope<NavKey>.settingEntry(viewModel: MainViewModel) {
-    entry<SettingNavKey> {
-        SetUp(viewModel = viewModel)
-    }
+fun EntryProviderScope<NavKey>.settingEntry(viewModel: SettingsViewModel, updates: UpdateViewModel, actions: DesktopActionHandler) {
+    entry<SettingNavKey> { SettingsRoute(viewModel, updates, actions) }
 }

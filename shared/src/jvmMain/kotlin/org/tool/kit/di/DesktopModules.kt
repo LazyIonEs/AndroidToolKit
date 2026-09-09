@@ -21,7 +21,9 @@ fun desktopModules(
 
 private fun desktopDataModule() = module {
     includes(dataModule())
+    single<org.tool.kit.domain.repository.UpdateRepository> { org.tool.kit.data.repository.JvmUpdateRepository(get()) }
     single<StorageRepository> { JvmStorageRepository(get<AppDispatchers>().io) }
     single<KeyStoreRepository> { JvmKeyStoreRepository(get<AppDispatchers>().io) }
+    single<org.tool.kit.feature.app.DesktopActionHandler> { org.tool.kit.platform.JvmDesktopActionHandler(get()) }
     single { DesktopFileSelection(get<AppDispatchers>().io) }
 }

@@ -28,7 +28,8 @@ import org.koin.viewmodel.resolveViewModel
 import org.tool.kit.App
 import org.tool.kit.app.AppSession
 import org.tool.kit.core.coroutine.AppDispatchers
-import org.tool.kit.data.source.PreferencesDataSource
+import org.tool.kit.domain.preferences.PreferencesRepository
+import org.tool.kit.domain.preferences.PreferenceChange
 import org.tool.kit.di.desktopModules
 import org.tool.kit.vm.MainViewModel
 import java.io.File
@@ -62,13 +63,14 @@ class KoinLifecycleTest {
             val b = resolve("window.b")
             assertSame(a, resolve("window.a"))
             assertNotSame(a, b)
-            val source = first.koin.get<PreferencesDataSource>()
-            assertSame(source, first.koin.get<PreferencesDataSource>())
-            assertNotSame(source, second.koin.get<PreferencesDataSource>())
+            val source = first.koin.get<PreferencesRepository>()
+            assertSame(source, first.koin.get<PreferencesRepository>())
+            assertNotSame(source, second.koin.get<PreferencesRepository>())
             assertSame(dispatchers, first.koin.get<AppDispatchers>())
             assertEquals(1, settingsCreations)
-            val changed = source.userData.value.copy(defaultSignerSuffix = "-shared-di")
-            source.saveUserData(changed)
+            runCurrent()
+            val changed = source.state.value.userData.copy(defaultSignerSuffix = "-shared-di")
+            source.change(PreferenceChange.SignerSuffix("-shared-di"))
             runCurrent()
             assertEquals(changed, a.userData.value)
             assertEquals(changed, b.userData.value)
@@ -92,7 +94,7 @@ class KoinLifecycleTest {
             modules(desktopModules() + module {
                 viewModel {
                     created.incrementAndGet()
-                    MainViewModel(get(), get(), get()).also { vm -> vm.addCloseable { cleared.incrementAndGet() } }
+                    MainViewModel(get(), get(), get(), get()).also { vm -> vm.addCloseable { cleared.incrementAndGet() } }
                 }
             })
         }

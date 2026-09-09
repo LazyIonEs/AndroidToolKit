@@ -36,3 +36,6 @@ expect fun DirectoryButton(value: String, expanded: Boolean, onDirectorySelector
 
 @Composable
 expect fun dragAndDropTarget(dragging: (Boolean) -> Unit, onFinish: (Result<List<Path>>) -> Unit): DragAndDropTarget
+
+@Composable
+expect fun rememberDirectoryPickerRequest(onSelected: (String) -> Unit): () -> Unit
