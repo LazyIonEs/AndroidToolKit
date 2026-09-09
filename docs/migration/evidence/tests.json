@@ -1,5 +1,5 @@
 {
-  "command": "./gradlew --offline --no-daemon :shared:compileKotlinJvm :composeApp:compileKotlinJvm :shared:jvmTest --console=plain",
+  "command": "./gradlew --offline --no-daemon :shared:jvmTest --rerun --console=plain",
   "total": 19,
   "suites": [
     {
@@ -7,7 +7,7 @@
       "tests": 1,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 1.98,
+      "time_seconds": 1.617,
       "cases": [
         "unsignedAndFiveSignaturePoliciesHaveTheExpectedSchemes[jvm]"
       ]
@@ -17,7 +17,7 @@
       "tests": 2,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 0.234,
+      "time_seconds": 0.172,
       "cases": [
         "fixtureTreeContainsTheDepthAndNameBoundariesRequiredForMigration[jvm]",
         "originalSizeRuleIncludesDirectoryMetadataAndNestedFiles[jvm]"
@@ -28,7 +28,7 @@
       "tests": 3,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 7.228,
+      "time_seconds": 6.956,
       "cases": [
         "lightNavigationRendersAllNinePages[jvm]",
         "darkNavigationRendersAllNinePages[jvm]",
@@ -40,7 +40,7 @@
       "tests": 2,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 0.259,
+      "time_seconds": 0.126,
       "cases": [
         "tinySingleArchiveContainsManifestClassesResourcesAndCleansItsWorkspace[jvm]",
         "tinyBatchRecreatesOnlyItsOutputSubdirectoryAndProducesDistinctArchives[jvm]"
@@ -51,7 +51,7 @@
       "tests": 1,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 0.61,
+      "time_seconds": 1.104,
       "cases": [
         "originalGeneratorProducesReadableStoresForAllTypeAndSizeCombinations[jvm]"
       ]
@@ -61,7 +61,7 @@
       "tests": 5,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 0.013,
+      "time_seconds": 0.004,
       "cases": [
         "clearingApkWithPrefixPreservesTheKnownLeadingHyphenDefect[jvm]",
         "junkMultiRangeWithEqualBoundsMatchesRepeatedSingleEstimate[jvm]",
@@ -75,7 +75,7 @@
       "tests": 4,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 0.047,
+      "time_seconds": 0.022,
       "cases": [
         "unknownPreferenceEnumsKeepTheExistingFallbacks[jvm]",
         "legacySerializerWritesPhysicalKeysAndNewInstanceReadsThem[jvm]",
@@ -88,7 +88,7 @@
       "tests": 1,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 0.65,
+      "time_seconds": 0.579,
       "cases": [
         "allFiveNativeFunctionsLoadAndProduceReadableImages[jvm]"
       ]

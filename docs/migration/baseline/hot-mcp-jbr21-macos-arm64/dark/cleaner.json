@@ -1,0 +1,533 @@
+[
+  {
+    "id": 1,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    },
+    "parentId": null
+  },
+  {
+    "id": 5,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    },
+    "parentId": 1
+  },
+  {
+    "id": 17,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 1144
+    },
+    "parentId": 5
+  },
+  {
+    "id": 18,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 1144
+    },
+    "parentId": 17
+  },
+  {
+    "id": 19,
+    "bounds": {
+      "x": 0,
+      "y": 8,
+      "width": 160,
+      "height": 1128
+    },
+    "parentId": 18
+  },
+  {
+    "id": 22,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 64,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 24,
+    "role": "Tab",
+    "text": "签名信息",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 64,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 22
+  },
+  {
+    "id": 34,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 177,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 36,
+    "role": "Tab",
+    "text": "APK信息",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 177,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 34
+  },
+  {
+    "id": 46,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 290,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 48,
+    "role": "Tab",
+    "text": "APK签名",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 290,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 46
+  },
+  {
+    "id": 58,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 403,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 60,
+    "role": "Tab",
+    "text": "签名生成",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 403,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 58
+  },
+  {
+    "id": 70,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 516,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 72,
+    "role": "Tab",
+    "text": "APK生成",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 516,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 70
+  },
+  {
+    "id": 82,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 629,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 84,
+    "role": "Tab",
+    "text": "垃圾代码",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 629,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 82
+  },
+  {
+    "id": 94,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 742,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 96,
+    "role": "Tab",
+    "text": "图标生成",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 742,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 94
+  },
+  {
+    "id": 108,
+    "role": "Tab",
+    "text": "缓存清理",
+    "selected": true,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 855,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 133,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 968,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 135,
+    "role": "Tab",
+    "text": "设置",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 968,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 133
+  },
+  {
+    "id": 1471,
+    "bounds": {
+      "x": 160,
+      "y": 0,
+      "width": 1440,
+      "height": 1144
+    },
+    "parentId": 5
+  },
+  {
+    "id": 1475,
+    "bounds": {
+      "x": 184,
+      "y": 24,
+      "width": 1392,
+      "height": 215
+    },
+    "parentId": 1471
+  },
+  {
+    "id": 1477,
+    "bounds": {
+      "x": 184,
+      "y": 24,
+      "width": 1392,
+      "height": 215
+    },
+    "parentId": 1475
+  },
+  {
+    "id": 1481,
+    "text": "总存储空间",
+    "bounds": {
+      "x": 216,
+      "y": 56,
+      "width": 124,
+      "height": 33
+    },
+    "parentId": 1477
+  },
+  {
+    "id": 1483,
+    "text": "494 GB",
+    "bounds": {
+      "x": 216,
+      "y": 95,
+      "width": 174,
+      "height": 64
+    },
+    "parentId": 1477
+  },
+  {
+    "id": 1485,
+    "text": "已使用空间",
+    "bounds": {
+      "x": 680,
+      "y": 56,
+      "width": 124,
+      "height": 33
+    },
+    "parentId": 1477
+  },
+  {
+    "id": 1487,
+    "text": "454.2 GB",
+    "bounds": {
+      "x": 680,
+      "y": 95,
+      "width": 213,
+      "height": 64
+    },
+    "parentId": 1477
+  },
+  {
+    "id": 1489,
+    "text": "可用空间",
+    "bounds": {
+      "x": 1144,
+      "y": 56,
+      "width": 99,
+      "height": 33
+    },
+    "parentId": 1477
+  },
+  {
+    "id": 1491,
+    "text": "40.2 GB",
+    "bounds": {
+      "x": 1144,
+      "y": 95,
+      "width": 183,
+      "height": 64
+    },
+    "parentId": 1477
+  },
+  {
+    "id": 1492,
+    "progressBar": {
+      "value": 0.9186504,
+      "range": [
+        0.0,
+        1.0
+      ],
+      "steps": 0
+    },
+    "bounds": {
+      "x": 216,
+      "y": 179,
+      "width": 1328,
+      "height": 48
+    },
+    "parentId": 1477
+  },
+  {
+    "id": 1493,
+    "bounds": {
+      "x": 160,
+      "y": 239,
+      "width": 1440,
+      "height": 905
+    },
+    "parentId": 1471
+  },
+  {
+    "id": 1496,
+    "role": "Image",
+    "contentDescription": "Lottie animation",
+    "bounds": {
+      "x": 0,
+      "y": 27,
+      "width": 934,
+      "height": 1025
+    },
+    "parentId": 1493
+  },
+  {
+    "id": 1499,
+    "text": "快速清理缓存目录",
+    "bounds": {
+      "x": 742,
+      "y": 507,
+      "width": 663,
+      "height": 104
+    },
+    "parentId": 1493
+  },
+  {
+    "id": 1501,
+    "text": "快速、深度扫描 Android 项目构建缓存目录\n批量删除构建缓存，释放磁盘空间\n选择 Android 项目或更上层目录",
+    "bounds": {
+      "x": 742,
+      "y": 659,
+      "width": 546,
+      "height": 122
+    },
+    "parentId": 1493
+  },
+  {
+    "id": 1504,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "parentId": 1471
+  },
+  {
+    "id": 1506,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 0,
+      "height": 0
+    },
+    "parentId": 1471
+  },
+  {
+    "id": 1507,
+    "bounds": {
+      "x": 1283,
+      "y": 1000,
+      "width": 317,
+      "height": 144
+    },
+    "parentId": 1471
+  },
+  {
+    "id": 1508,
+    "role": "Button",
+    "contentDescription": "选择文件夹",
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 1283,
+      "y": 1000,
+      "width": 285,
+      "height": 112
+    },
+    "parentId": 1507
+  },
+  {
+    "id": 7,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    },
+    "parentId": 1
+  },
+  {
+    "id": 8,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    },
+    "parentId": 7
+  }
+]

@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.githubBuildconfig) apply false
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.about.libraries) apply false
+    id("org.jetbrains.compose.hot-reload") version "1.2.0" apply false
 }
 
 // Root project tasks

@@ -1,0 +1,30 @@
+{
+  "initialize": {
+    "id": 1,
+    "result": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "tools": {
+          "listChanged": false
+        }
+      },
+      "serverInfo": {
+        "name": "compose-hot-reload",
+        "version": "1.2.0"
+      }
+    },
+    "jsonrpc": "2.0"
+  },
+  "status": {
+    "id": 4,
+    "result": {
+      "content": [
+        {
+          "text": "{\"connected\":true,\"buildContinuous\":false,\"reloadState\":\"ok\",\"lastError\":null,\"successfulReloads\":0,\"failedReloads\":0}",
+          "type": "text"
+        }
+      ]
+    },
+    "jsonrpc": "2.0"
+  }
+}

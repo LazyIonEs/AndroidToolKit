@@ -1,5 +1,6 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.compose.reload.gradle.ComposeHotRun
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -9,6 +10,9 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.about.libraries)
 }
+
+val migrationHotReload = providers.gradleProperty("migrationHotReload").map(String::toBoolean).getOrElse(false)
+if (migrationHotReload) apply(plugin = "org.jetbrains.compose.hot-reload")
 
 // Build properties
 val kitVersion: String by project
@@ -103,6 +107,7 @@ kotlin {
     // Java toolchain
     jvmToolchain {
         languageVersion.set(javaLanguageVersion)
+        if (migrationHotReload) vendor.set(JvmVendorSpec.JETBRAINS)
     }
 
     // Target configuration
@@ -340,4 +345,26 @@ tasks.withType<Test>().configureEach {
     systemProperty("migration.renderOutput", layout.buildDirectory.dir("migration/rendered").get().asFile.absolutePath)
     systemProperty("user.language", "zh")
     systemProperty("user.country", "CN")
+}
+
+if (migrationHotReload) {
+    tasks.register<ComposeHotRun>("baselineHotRun") {
+        group = "verification"
+        description = "Launch the isolated baseline with JetBrains Runtime 21 and Hot Reload MCP support."
+        dependsOn("jvmTestClasses", "rustTasks", prepareBaselineResources)
+        classpath(baselineTestCompilation.output.allOutputs)
+        mainClass.set("org.tool.kit.migration.BaselineDesktopKt")
+        workingDir(layout.buildDirectory.dir("migration"))
+        systemProperty("java.util.prefs.PreferencesFactory", "org.tool.kit.migration.IsolatedPreferencesFactory")
+        systemProperty("migration.fixtureRoot", layout.buildDirectory.dir("migration/fixtures").get().asFile.absolutePath)
+        systemProperty("migration.theme", providers.gradleProperty("migrationTheme").getOrElse("LIGHT"))
+        systemProperty("user.language", "zh")
+        systemProperty("user.country", "CN")
+        systemProperty("app.log.dir", layout.buildDirectory.dir("migration/logs").get().asFile.absolutePath)
+        javaLauncher.set(javaToolchains.launcherFor {
+            languageVersion.set(javaLanguageVersion)
+            vendor.set(JvmVendorSpec.JETBRAINS)
+        })
+        isAutoReloadEnabled.set(false)
+    }
 }

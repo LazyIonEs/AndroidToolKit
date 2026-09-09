@@ -19,8 +19,9 @@ Phase 0B 提交：`783544ec`。基线测试与观察记录独立提交，未进�
 8. 新增 3 项 Compose Desktop 测试：两套主题的九入口选中状态、签名前缀与密钥文件名切页后保留。测试直接挂载原 `App()`，使用测试场景提供的生命周期和 ViewModel owner。
 9. 导出 20 张原始无损软件渲染 PNG（九页 × 两主题、两张草稿回访图）与 18 份 semantics 文本，记录于 [软件渲染说明](baseline/software-macos-arm64/README.md)。无限动画受测试运行器策略影响，不能代替原生动画基线。
 10. 修复旧分支生成的动态库残留造成的增量 JAR 重复；独立提交 `5dcf5dd8`，验证见 Phase 0B。
+11. 按用户建议接入默认关闭的 Hot Reload MCP，用 JetBrains JDK 21 编译/启动隔离应用。完成 18 个实机主题/导航场景、10 对静态截图零差异、两个字段实机语义输入与切页保留；见 [MCP 补充验收](phase-00-mcp.md)。新增 38 张服务原始 PNG，包含重复帧。
 
-最新 19 项测试结果见 [tests.json](evidence/tests.json)，成功日志见 [phase0-ui-tests-success.txt](evidence/phase0-ui-tests-success.txt)。此前 16 项测试日志保留于 [phase0-tests-success.txt](evidence/phase0-tests-success.txt)。
+最新 19 项测试结果见 [tests.json](evidence/tests.json)，MCP 接入后显式重跑日志见 [phase0-after-hot-tests-success.txt](evidence/phase0-after-hot-tests-success.txt)。此前运行日志保留于 [phase0-ui-tests-success.txt](evidence/phase0-ui-tests-success.txt) 与 [phase0-tests-success.txt](evidence/phase0-tests-success.txt)。
 
 环境与原生库/既有七个 bundled APK fixture 的哈希见 [environment.json](environment.json)。
 
@@ -32,12 +33,12 @@ Phase 0B 提交：`783544ec`。基线测试与观察记录独立提交，未进�
 | G1 已加入的特征测试 | 通过（局部） | 19 项测试；不是九业务全部成功/失败/取消矩阵 |
 | 视觉资源冻结 | 通过 | `python3 scripts/migration/check_visual_assets.py` |
 | 九页明暗观察图 | 已采集 | `baseline/macos-arm64-{light,dark}/`，每图附 AX 文本 |
-| G3 无损逐像素基线 | **未通过** | 已有 800×572 无损软件渲染 PNG；尚未建立重复运行零像素差异。原生仍是 JPEG，磁盘容量与动画帧未冻结 |
+| G3 无损逐像素基线 | 局部通过，总门禁未通过 | MCP 原生窗口内容区 PNG；5 个静态页面 × 2 主题，同进程连续两次采集逐像素零差异。4 个动态页仍有帧差，磁盘容量/动画时钟未冻结；系统装饰仍缺无损证据 |
 | G4 导航与主题 | 局部通过 | 原顺序九入口均可切换，明暗切换有效 |
 | G4 FileKit | 局部通过 | 原生目录对话框实际打开；Cancel 后默认目录未变。完整选取/过滤/拖拽待验 |
-| G4 输入与切页保留 | 局部通过 | Compose semantics 输入证明两个字段切页保留；原生键盘输入未写入字段，剪贴板和 AX set_value 返回 -10005。不能据此判断应用丢状态，也未验证 Tab/快捷键/selection |
+| G4 输入与切页保留 | 局部通过 | 软件测试与实机 MCP 均证明两个字段切页保留；MCP type_text 是语义操作。OS 键盘、Tab/快捷键/selection 仍待验证；早期 AX/剪贴板失败记录保留 |
 | G4 原生交互录像 | **未完成** | 尚无符合矩阵的录像；截图不能替代 |
-| 动画固定关键帧 | **未完成** | 未建立固定时钟/相同资源帧的截图比较 |
+| 动画固定关键帧 | **未完成** | MCP 实机截图已显示原 Lottie 并记录动态帧差；未建立固定时钟/相同资源帧比较 |
 | 性能基线 | **未完成** | 未采集同 release 配置的 JFR/输入帧 p95/RSS/句柄/长任务数据 |
 | 完整业务 fixture 输出 | **未完成** | 多证书/损坏 APK、更新下载、进程取消等仍需补齐；已验证未签名/五策略 APK 与小规模单/多 AAR |
 | Windows / Linux 基线 | 待采集 | 本机 macOS 证据不能替代 |

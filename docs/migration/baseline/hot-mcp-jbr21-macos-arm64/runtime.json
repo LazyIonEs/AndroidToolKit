@@ -1,0 +1,17 @@
+{
+  "java.home": "/Users/lazyiones/.gradle/jdks/jetbrains_s_r_o_-21-aarch64-os_x.2/jbrsdk_jcef-21.0.6-osx-aarch64-b895.109/Contents/Home",
+  "java.vendor": "JetBrains s.r.o.",
+  "java.version": "21.0.6",
+  "java.runtime.version": "21.0.6+9-b895.109",
+  "java.vm.name": "OpenJDK 64-Bit Server VM",
+  "java.vm.vendor": "JetBrains s.r.o.",
+  "os.name": "Mac OS X",
+  "os.version": "26.6.2",
+  "os.arch": "aarch64",
+  "user.language": "zh",
+  "user.country": "CN",
+  "file.encoding": "UTF-8",
+  "sun.java.command": "org.tool.kit.migration.BaselineDesktopKt",
+  "java.util.prefs.PreferencesFactory": "org.tool.kit.migration.IsolatedPreferencesFactory",
+  "migration.fixtureRoot": "/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures"
+}
