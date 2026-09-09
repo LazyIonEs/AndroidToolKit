@@ -1,4 +1,4 @@
-package org.tool.kit.feature.signature
+package org.tool.kit.feature.keystore
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,22 +15,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
-import org.tool.kit.feature.ui.FolderInputWithPicker
+import org.tool.kit.feature.ui.FolderInput
 import org.tool.kit.feature.ui.IntInput
 import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.certificate
-import org.tool.kit.shared.generated.resources.check_empty
-import org.tool.kit.shared.generated.resources.check_error
 import org.tool.kit.shared.generated.resources.city_or_locality
 import org.tool.kit.shared.generated.resources.confirm_password
 import org.tool.kit.shared.generated.resources.country_code
@@ -46,9 +41,6 @@ import org.tool.kit.shared.generated.resources.organization
 import org.tool.kit.shared.generated.resources.organizational_unit
 import org.tool.kit.shared.generated.resources.state_or_province
 import org.tool.kit.shared.generated.resources.validity_period_unit_year
-import org.tool.kit.utils.isKey
-import org.tool.kit.vm.MainViewModel
-import org.tool.kit.vm.LegacyPathField
 
 /**
  * @Author      : LazyIonEs
@@ -57,57 +49,53 @@ import org.tool.kit.vm.LegacyPathField
  * @Version     : 1.0
  */
 @Composable
-fun SignatureGeneration(
-    viewModel: MainViewModel
+fun KeyStoreGenerationScreen(
+    state: KeyStoreGenerationUiState,
+    onIntent: (KeyStoreGenerationIntent) -> Unit,
+    onPickOutput: () -> Unit,
 ) {
-    LaunchedEffect(viewModel) { viewModel.refreshPathChecks(LegacyPathField.KEYSTORE_OUTPUT) }
-    GenerationBox(viewModel)
+    GenerationBox(state.form, state.validation, onIntent, onPickOutput)
 }
 
-/**
- * 签名生成
- */
 @Composable
 private fun GenerationBox(
-    viewModel: MainViewModel
+    form: KeyStoreForm,
+    validation: KeyStoreValidation,
+    onIntent: (KeyStoreGenerationIntent) -> Unit,
+    onPickOutput: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxSize().padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
     ) {
-        val paths by viewModel.pathValidation.collectAsState()
-        val keyStorePathError = paths[LegacyPathField.KEYSTORE_OUTPUT]?.isError == true
-        val keyStoreNameError =
-            viewModel.keyStoreInfoState.keyStoreName.isNotBlank() && !(viewModel.keyStoreInfoState.keyStoreName.isKey)
-        val keyStoreConfirmPasswordError =
-            viewModel.keyStoreInfoState.keyStoreConfirmPassword.isNotBlank() && viewModel.keyStoreInfoState.keyStorePassword != viewModel.keyStoreInfoState.keyStoreConfirmPassword
-        val keyStoreAlisaConfirmPasswordError =
-            viewModel.keyStoreInfoState.keyStoreAlisaConfirmPassword.isNotBlank() && viewModel.keyStoreInfoState.keyStoreAlisaPassword != viewModel.keyStoreInfoState.keyStoreAlisaConfirmPassword
         LazyColumn(
             modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 Spacer(Modifier.size(16.dp))
-                FolderInputWithPicker(
-                    value = viewModel.keyStoreInfoState.keyStorePath,
+                FolderInput(
+                    value = form.keyStorePath,
                     label = stringResource(Res.string.key_output_path),
-                    isError = keyStorePathError
+                    isError = validation.outputPathError,
+                    onPickerRequest = onPickOutput
                 ) { path ->
-                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePath = path))
+                    onIntent(KeyStoreGenerationIntent.OutputPathChanged(path))
                 }
             }
             item {
                 Spacer(Modifier.size(4.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.keyStoreName,
+                    value = form.keyStoreName,
                     label = stringResource(Res.string.key_file_name),
-                    isError = keyStoreNameError
+                    isError = validation.fileNameError
                 ) { name ->
-                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreName = name))
+                    onIntent(KeyStoreGenerationIntent.FileNameChanged(name))
                 }
             }
             item {
                 Spacer(Modifier.size(4.dp))
-                KeyStorePassword(viewModel, keyStoreConfirmPasswordError)
+                KeyStorePassword(form.keyStorePassword, form.keyStoreConfirmPassword, validation.storeConfirmationError,
+                    { onIntent(KeyStoreGenerationIntent.StorePasswordChanged(it)) },
+                    { onIntent(KeyStoreGenerationIntent.StoreConfirmationChanged(it)) })
             }
             item {
                 Spacer(Modifier.size(12.dp))
@@ -123,29 +111,27 @@ private fun GenerationBox(
                 }
                 Spacer(Modifier.size(12.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.keyStoreAlisa,
+                    value = form.keyStoreAlisa,
                     label = stringResource(Res.string.key_alias),
                     isError = false
                 ) { name ->
-                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreAlisa = name))
+                    onIntent(KeyStoreGenerationIntent.AliasChanged(name))
                 }
             }
             item {
                 Spacer(Modifier.size(4.dp))
-                KeyStoreAlisaPassword(viewModel, keyStoreAlisaConfirmPasswordError)
+                KeyStoreAlisaPassword(form.keyStoreAlisaPassword, form.keyStoreAlisaConfirmPassword, validation.aliasConfirmationError,
+                    { onIntent(KeyStoreGenerationIntent.AliasPasswordChanged(it)) },
+                    { onIntent(KeyStoreGenerationIntent.AliasConfirmationChanged(it)) })
             }
             item {
                 Spacer(Modifier.size(4.dp))
                 IntInput(
-                    value = viewModel.keyStoreInfoState.validityPeriod,
+                    value = form.validityPeriod,
                     label = stringResource(Res.string.validity_period_unit_year),
-                    isError = viewModel.keyStoreInfoState.validityPeriod.isBlank()
+                    isError = form.validityPeriod.isBlank()
                 ) { validityPeriod ->
-                    viewModel.updateSignatureGenerate(
-                        viewModel.keyStoreInfoState.copy(
-                            validityPeriod = validityPeriod
-                        )
-                    )
+                    onIntent(KeyStoreGenerationIntent.ValidityChanged(validityPeriod))
                 }
             }
             item {
@@ -162,80 +148,66 @@ private fun GenerationBox(
                 }
                 Spacer(Modifier.size(12.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.authorName,
+                    value = form.authorName,
                     label = stringResource(Res.string.first_and_last_name),
                     isError = false
                 ) { authorName ->
-                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(authorName = authorName))
+                    onIntent(KeyStoreGenerationIntent.AuthorNameChanged(authorName))
                 }
             }
             item {
                 Spacer(Modifier.size(2.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.organizationalUnit,
+                    value = form.organizationalUnit,
                     label = stringResource(Res.string.organizational_unit),
                     isError = false
                 ) { organizationalUnit ->
-                    viewModel.updateSignatureGenerate(
-                        viewModel.keyStoreInfoState.copy(
-                            organizationalUnit = organizationalUnit
-                        )
-                    )
+                    onIntent(KeyStoreGenerationIntent.OrganizationalUnitChanged(organizationalUnit))
                 }
             }
             item {
                 Spacer(Modifier.size(2.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.organizational,
+                    value = form.organizational,
                     label = stringResource(Res.string.organization),
                     isError = false
                 ) { organizational ->
-                    viewModel.updateSignatureGenerate(
-                        viewModel.keyStoreInfoState.copy(
-                            organizational = organizational
-                        )
-                    )
+                    onIntent(KeyStoreGenerationIntent.OrganizationChanged(organizational))
                 }
             }
             item {
                 Spacer(Modifier.size(2.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.city,
+                    value = form.city,
                     label = stringResource(Res.string.city_or_locality),
                     isError = false
                 ) { city ->
-                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(city = city))
+                    onIntent(KeyStoreGenerationIntent.CityChanged(city))
                 }
             }
             item {
                 Spacer(Modifier.size(2.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.province,
+                    value = form.province,
                     label = stringResource(Res.string.state_or_province),
                     isError = false
                 ) { province ->
-                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(province = province))
+                    onIntent(KeyStoreGenerationIntent.ProvinceChanged(province))
                 }
             }
             item {
                 Spacer(Modifier.size(2.dp))
                 StringInput(
-                    value = viewModel.keyStoreInfoState.countryCode,
+                    value = form.countryCode,
                     label = stringResource(Res.string.country_code),
                     isError = false
                 ) { countryCode ->
-                    viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(countryCode = countryCode))
+                    onIntent(KeyStoreGenerationIntent.CountryCodeChanged(countryCode))
                 }
             }
             item {
                 Spacer(Modifier.size(12.dp))
-                CreateSignature(
-                    viewModel,
-                    keyStorePathError,
-                    keyStoreNameError,
-                    keyStoreConfirmPasswordError,
-                    keyStoreAlisaConfirmPasswordError
-                )
+                CreateSignature { onIntent(KeyStoreGenerationIntent.Submit) }
                 Spacer(Modifier.size(24.dp))
             }
         }
@@ -247,23 +219,16 @@ private fun GenerationBox(
  */
 @Composable
 private fun KeyStorePassword(
-    viewModel: MainViewModel, keyStoreConfirmPasswordError: Boolean
+    password: String, confirmation: String, confirmationError: Boolean,
+    onPasswordChange: (String) -> Unit, onConfirmationChange: (String) -> Unit,
 ) {
     ConfirmPasswordTextField(
         title = stringResource(Res.string.key_password),
-        password = viewModel.keyStoreInfoState.keyStorePassword,
-        confirmPassword = viewModel.keyStoreInfoState.keyStoreConfirmPassword,
-        confirmPasswordError = keyStoreConfirmPasswordError,
-        onPasswordChange = { keyStorePassword ->
-            viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePassword = keyStorePassword))
-        },
-        onConfirmPasswordChange = { keyStoreConfirmPassword ->
-            viewModel.updateSignatureGenerate(
-                viewModel.keyStoreInfoState.copy(
-                    keyStoreConfirmPassword = keyStoreConfirmPassword
-                )
-            )
-        })
+        password = password,
+        confirmPassword = confirmation,
+        confirmPasswordError = confirmationError,
+        onPasswordChange = onPasswordChange,
+        onConfirmPasswordChange = onConfirmationChange)
 }
 
 /**
@@ -271,78 +236,30 @@ private fun KeyStorePassword(
  */
 @Composable
 private fun KeyStoreAlisaPassword(
-    viewModel: MainViewModel, keyStoreAlisaConfirmPasswordError: Boolean
+    password: String, confirmation: String, confirmationError: Boolean,
+    onPasswordChange: (String) -> Unit, onConfirmationChange: (String) -> Unit,
 ) {
     ConfirmPasswordTextField(
         title = stringResource(Res.string.key_alias_password),
-        password = viewModel.keyStoreInfoState.keyStoreAlisaPassword,
-        confirmPassword = viewModel.keyStoreInfoState.keyStoreAlisaConfirmPassword,
-        confirmPasswordError = keyStoreAlisaConfirmPasswordError,
-        onPasswordChange = { keyStoreAlisaPassword ->
-            viewModel.updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStoreAlisaPassword = keyStoreAlisaPassword))
-        },
-        onConfirmPasswordChange = { keyStoreAlisaConfirmPassword ->
-            viewModel.updateSignatureGenerate(
-                viewModel.keyStoreInfoState.copy(
-                    keyStoreAlisaConfirmPassword = keyStoreAlisaConfirmPassword
-                )
-            )
-        })
+        password = password,
+        confirmPassword = confirmation,
+        confirmPasswordError = confirmationError,
+        onPasswordChange = onPasswordChange,
+        onConfirmPasswordChange = onConfirmationChange)
 }
 
 /**
  * 创建签名按钮
  */
 @Composable
-private fun CreateSignature(
-    viewModel: MainViewModel,
-    keyStorePathError: Boolean,
-    keyStoreNameError: Boolean,
-    keyStoreConfirmPasswordError: Boolean,
-    keyStoreAlisaConfirmPasswordError: Boolean
-) {
-    Button(onClick = {
-        if (keyStorePathError || viewModel.hasPendingPathChecks(LegacyPathField.KEYSTORE_OUTPUT) ||
-            keyStoreNameError ||
-            keyStoreConfirmPasswordError ||
-            keyStoreAlisaConfirmPasswordError
-        ) {
-            viewModel.updateSnackbarVisuals(Res.string.check_error)
-            return@Button
-        }
-        createSignature(viewModel)
-    }) {
+private fun CreateSignature(onSubmit: () -> Unit) {
+    Button(onClick = onSubmit) {
         Text(
             text = stringResource(Res.string.create_key_store),
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = 48.dp)
         )
     }
-}
-
-/**
- * 创建签名
- */
-private fun createSignature(viewModel: MainViewModel) {
-    if (viewModel.keyStoreInfoState.keyStorePath.isBlank() ||
-        viewModel.keyStoreInfoState.keyStoreName.isBlank() ||
-        viewModel.keyStoreInfoState.keyStorePassword.isBlank() ||
-        viewModel.keyStoreInfoState.keyStoreConfirmPassword.isBlank() ||
-        viewModel.keyStoreInfoState.keyStoreAlisa.isBlank() ||
-        viewModel.keyStoreInfoState.keyStoreAlisaPassword.isBlank() ||
-        viewModel.keyStoreInfoState.keyStoreAlisaConfirmPassword.isBlank() ||
-        viewModel.keyStoreInfoState.validityPeriod.isBlank() ||
-        viewModel.keyStoreInfoState.authorName.isBlank() ||
-        viewModel.keyStoreInfoState.organizationalUnit.isBlank() ||
-        viewModel.keyStoreInfoState.organizational.isBlank() ||
-        viewModel.keyStoreInfoState.city.isBlank() ||
-        viewModel.keyStoreInfoState.province.isBlank() ||
-        viewModel.keyStoreInfoState.countryCode.isBlank()
-    ) {
-        viewModel.updateSnackbarVisuals(Res.string.check_empty)
-        return
-    }
-    viewModel.createSignature()
 }
 
 @Composable

@@ -52,7 +52,6 @@ import org.tool.kit.model.IconFactoryData
 import org.tool.kit.model.IconFactoryInfo
 import org.tool.kit.model.JunkCodeInfo
 import org.tool.kit.model.JunkMode
-import org.tool.kit.model.KeyStoreInfo
 import org.tool.kit.model.PendingDeletionFile
 import org.tool.kit.model.Sequence
 import org.tool.kit.model.Sign
@@ -72,7 +71,6 @@ import org.tool.kit.shared.generated.resources.apk_signature_verification_failed
 import org.tool.kit.shared.generated.resources.build_end
 import org.tool.kit.shared.generated.resources.build_failure
 import org.tool.kit.shared.generated.resources.cleanup_complete
-import org.tool.kit.shared.generated.resources.create_signature_successfully
 import org.tool.kit.shared.generated.resources.exec_command_error
 import org.tool.kit.shared.generated.resources.file_deletion_exception
 import org.tool.kit.shared.generated.resources.icon_creation_failed
@@ -80,7 +78,6 @@ import org.tool.kit.shared.generated.resources.icon_generation_completed
 import org.tool.kit.shared.generated.resources.jump
 import org.tool.kit.shared.generated.resources.output_file_already_exists
 import org.tool.kit.shared.generated.resources.scanning_anomalies
-import org.tool.kit.shared.generated.resources.signature_creation_failed
 import org.tool.kit.shared.generated.resources.signature_failed
 import org.tool.kit.shared.generated.resources.signature_verification_failed
 import org.tool.kit.utils.AndroidJunkGenerator
@@ -147,14 +144,6 @@ class MainViewModel(
     private val _apkSignatureUIState = mutableStateOf<UIState>(UIState.WAIT)
     val apkSignatureUIState by _apkSignatureUIState
 
-    // 签名生成信息
-    private val _keyStoreInfoState = mutableStateOf(KeyStoreInfo())
-    val keyStoreInfoState by _keyStoreInfoState
-
-    // 签名生成UI状态
-    private val _keyStoreInfoUIState = mutableStateOf<UIState>(UIState.WAIT)
-    val keyStoreInfoUIState by _keyStoreInfoUIState
-
     // Apk信息UI状态
     private val _apkInformationState = mutableStateOf<UIState>(UIState.WAIT)
     val apkInformationState by _apkInformationState
@@ -219,13 +208,12 @@ class MainViewModel(
 
     init {
         // Compatibility bridge: remove one branch per Phase 4A/5/6/7/8 cutover.
-        // Exactly these five still belong to MainViewModel. No root callback writes them.
+        // These four still belong to MainViewModel. KeyStore generation owns its own subscription.
         viewModelScope.launch {
             preferences.state.filter { it.ready }
                 .map { it.outputPathVersion to it.userData.defaultOutputPath }
                 .distinctUntilChanged().collect { (_, path) ->
                     updateApkSignature(apkSignatureState.copy(outputPath = path))
-                    updateSignatureGenerate(keyStoreInfoState.copy(keyStorePath = path))
                     updateJunkCodeInfo(junkCodeInfoState.copy(outputPath = path))
                     updateIconFactoryInfo(iconFactoryInfoState.copy(outputPath = path))
                     updateApkToolInfo(apkToolInfoState.copy(outputPath = path))
@@ -293,16 +281,6 @@ class MainViewModel(
         pathChecks.validate(LegacyPathField.SIGNING_OUTPUT, apkSignature.outputPath, PathKind.DIRECTORY)
         pathChecks.validate(LegacyPathField.SIGNING_KEYSTORE, apkSignature.keyStorePath, PathKind.FILE)
         signingChecks.formChanged(apkSignature)
-    }
-
-    /**
-     * 修改SignatureGenerate
-     * @param keyStoreInfo KeyStoreInfo
-     * @see KeyStoreInfo
-     */
-    fun updateSignatureGenerate(keyStoreInfo: KeyStoreInfo) {
-        _keyStoreInfoState.update { keyStoreInfo }
-        pathChecks.validate(LegacyPathField.KEYSTORE_OUTPUT, keyStoreInfo.keyStorePath, PathKind.DIRECTORY)
     }
 
     /**
@@ -604,44 +582,6 @@ class MainViewModel(
             logger.error(e) { "apkInformation 获取APK信息异常, 异常信息: ${e.message}" }
             updateSnackbarVisuals(e.message ?: getString(Res.string.apk_parsing_failed))
             _apkInformationState.update { UIState.WAIT }
-        }
-    }
-
-    /**
-     * 生成签名
-     */
-    private val generateKeyStore = org.tool.kit.domain.usecase.GenerateKeyStoreUseCase(keyStores)
-
-    fun createSignature() = viewModelScope.launch {
-        try {
-            val destStoreType = userData.value.destStoreType
-            val destStoreSize = userData.value.destStoreSize.size
-            val form = keyStoreInfoState
-            _keyStoreInfoUIState.update { UIState.Loading }
-            val result = generateKeyStore(org.tool.kit.domain.keystore.GenerateKeyStoreRequest(
-                form.keyStorePath, form.keyStoreName, form.keyStorePassword, form.keyStoreAlisaPassword,
-                form.keyStoreAlisa, form.validityPeriod, form.authorName, form.organizationalUnit,
-                form.organizational, form.city, form.province, form.countryCode,
-                org.tool.kit.domain.keystore.KeyStoreFormat.valueOf(destStoreType.name), destStoreSize))
-            if (result is org.tool.kit.domain.keystore.GenerateKeyStoreOutcome.Success) {
-                val snackbarVisualsData = SnackbarMessage(
-                    message = UiMessage.Text(getString(Res.string.create_signature_successfully)),
-                    actionLabel = getString(Res.string.jump),
-                    withDismissAction = true,
-                    duration = SnackbarDuration.Short,
-                    action = SnackbarAction.OpenDirectory(result.outputPath))
-                updateSnackbarVisuals(snackbarVisualsData)
-            } else {
-                val message = (result as org.tool.kit.domain.keystore.GenerateKeyStoreOutcome.Failure).message
-                updateSnackbarVisuals(message ?: getString(Res.string.signature_creation_failed))
-            }
-        } catch (e: kotlinx.coroutines.CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            logger.error(e) { "createSignature 生成签名异常, 异常信息: ${e.message}" }
-            updateSnackbarVisuals(e.message ?: getString(Res.string.signature_creation_failed))
-        } finally {
-            _keyStoreInfoUIState.update { UIState.WAIT }
         }
     }
 

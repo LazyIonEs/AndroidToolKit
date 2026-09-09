@@ -15,6 +15,8 @@ import org.tool.kit.domain.preferences.*
 import org.tool.kit.feature.app.AppEffectSink
 import org.tool.kit.feature.settings.*
 import org.tool.kit.model.*
+import org.tool.kit.feature.keystore.*
+import org.tool.kit.domain.usecase.GenerateKeyStoreUseCase
 import org.tool.kit.vm.MainViewModel
 import kotlin.test.*
 import java.util.concurrent.Executors
@@ -65,12 +67,13 @@ class Phase3PreferencesTest {
         val sink = AppEffectSink()
         val vm = SettingsViewModel(repository, AllPathsExist, sink, RecordingDesktopActions())
         val legacy = MainViewModel(repository, AllPathsExist, EmptyKeys, sink)
-        val store = ViewModelStore().also { it.put("settings", vm); it.put("legacy", legacy) }
-        fun paths() = listOf(legacy.apkSignatureState.outputPath, legacy.keyStoreInfoState.keyStorePath,
+        val keys = KeyStoreGenerationViewModel(GenerateKeyStoreUseCase(EmptyKeys), repository, AllPathsExist, sink)
+        val store = ViewModelStore().also { it.put("settings", vm); it.put("legacy", legacy); it.put("keys", keys) }
+        fun paths() = listOf(legacy.apkSignatureState.outputPath, keys.uiState.value.form.keyStorePath,
             legacy.junkCodeInfoState.outputPath, legacy.iconFactoryInfoState.outputPath, legacy.apkToolInfoState.outputPath)
         fun chooseCustomPaths() {
             legacy.updateApkSignature(legacy.apkSignatureState.copy(outputPath = "sign custom"))
-            legacy.updateSignatureGenerate(legacy.keyStoreInfoState.copy(keyStorePath = "key custom"))
+            keys.onIntent(KeyStoreGenerationIntent.OutputPathChanged("key custom"))
             legacy.updateJunkCodeInfo(legacy.junkCodeInfoState.copy(outputPath = "junk custom"))
             legacy.updateIconFactoryInfo(legacy.iconFactoryInfoState.copy(outputPath = "icon custom"))
             legacy.updateApkToolInfo(legacy.apkToolInfoState.copy(outputPath = "apk tool custom"))
@@ -102,10 +105,12 @@ class Phase3PreferencesTest {
             assertEquals(repository.state.value.userData, actual.read().userData)
             assertEquals("suffix 29", vm.uiState.value.preferences.userData.defaultSignerSuffix)
             val later = MainViewModel(repository, AllPathsExist, EmptyKeys, sink)
+            val laterKeys = KeyStoreGenerationViewModel(GenerateKeyStoreUseCase(EmptyKeys), repository, AllPathsExist, sink)
             store.put("later", later)
+            store.put("laterKeys", laterKeys)
             runCurrent()
             assertEquals(" output 29 ", later.apkToolInfoState.outputPath)
-            assertEquals(" output 29 ", later.keyStoreInfoState.keyStorePath)
+            assertEquals(" output 29 ", laterKeys.uiState.value.form.keyStorePath)
         } finally { store.clear(); repository.close(); sink.close(); Dispatchers.resetMain() }
     }
 
