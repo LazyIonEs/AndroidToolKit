@@ -1,0 +1,10 @@
+{
+  "app": "/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/baseline-bundle-qd_7jfu0/app/AndroidToolKitBaseline.app",
+  "checks": [
+    "native directory picker accepts phase3-output and returns its exact path",
+    "native picker Cancel preserves the previous path",
+    "Open Source Licenses window opens with library contents and closes normally",
+    "native version-row double click enables ToolKit extension mode and displays the original snackbar"
+  ],
+  "screenshots": "Raw computer-use captures; no picker directory listing is stored"
+}
