@@ -21,6 +21,12 @@ fun desktopModules(
 
 private fun desktopDataModule() = module {
     includes(dataModule())
+    single<org.tool.kit.core.process.ProcessRunner> { org.tool.kit.data.process.JvmProcessRunner(get<AppDispatchers>().io) }
+    single { org.tool.kit.data.source.Aapt2Locator() }
+    single { org.tool.kit.data.source.Aapt2DataSource(get(), get(), get<AppDispatchers>().io) }
+    single { org.tool.kit.data.source.ApkIconDataSource(get<AppDispatchers>().io) }
+    single<org.tool.kit.domain.repository.ApkInformationRepository> { org.tool.kit.data.repository.JvmApkInformationRepository(get(), get(), get<AppDispatchers>().io) }
+    single<org.tool.kit.feature.apk.ApkIconDecoder> { org.tool.kit.platform.JvmApkIconDecoder(get<AppDispatchers>().io) }
     single<org.tool.kit.domain.repository.UpdateRepository> { org.tool.kit.data.repository.JvmUpdateRepository(get()) }
     single<org.tool.kit.feature.app.ClipboardWriter> { org.tool.kit.platform.JvmClipboardWriter(get<AppDispatchers>().main) }
     single<StorageRepository> { JvmStorageRepository(get<AppDispatchers>().io) }

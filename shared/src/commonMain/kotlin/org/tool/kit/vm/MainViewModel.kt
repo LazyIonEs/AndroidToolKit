@@ -112,6 +112,8 @@ class MainViewModel(
     keyStores: KeyStoreRepository,
     private val effects: org.tool.kit.feature.app.AppEffectSink,
     initialCapacity: StorageCapacity = StorageCapacity(0, 0),
+    private val readApk: org.tool.kit.domain.usecase.ReadApkInformationUseCase? = null,
+    private val iconDecoder: org.tool.kit.feature.apk.ApkIconDecoder? = null,
 ) :
     ViewModel() {
 
@@ -477,87 +479,18 @@ class MainViewModel(
      * @param input 输入APK路径
      */
     fun apkInformation(input: String) = viewModelScope.launch(Dispatchers.IO) {
-        logger.info { "apkInformation 获取APK信息开始, APK文件路径: $input" }
+        _apkInformationState.update { UIState.Loading }
         try {
-            val aapt = getAapt2File()
-            _apkInformationState.update { UIState.Loading }
-
-            val stdinStream = "".byteInputStream()
-            val stdoutStream = ByteArrayOutputStream()
-            val stderrStream = ByteArrayOutputStream()
-
-            val exitValue = withContext(Dispatchers.IO) {
-                ExternalCommand(aapt.absolutePath).execute(
-                    listOf("dump", "badging", input),
-                    stdinStream, stdoutStream, stderrStream
-                )
-            }
-
-            logger.info { "apkInformation 获取APK信息中, 执行命令结束, 退出码: $exitValue" }
-
-            if (exitValue != 0) {
-                // 执行命令出现错误
-                throw InterruptedException(getString(Res.string.exec_command_error))
-            }
-
-            val converted = StringUtil.convertLineSeparators(stdoutStream.toString("UTF-8"))
-
-            logger.info { "apkInformation 获取APK信息中, 获取结果: $converted" }
-
-            val lines = StringUtil.split(converted, "\n", true, true)
-
-            val apkInformation = ApkInformation()
-            val apkFile = File(input)
-            apkInformation.size = apkFile.length()
-            apkInformation.md5 = DigestUtils.md5Hex(FileInputStream(apkFile))
-
-            val androidManifest = extractAndroidManifest(aapt, input)
-
-            lines.forEach { line ->
-                if (line.startsWith("application-icon-640:")) {
-                    val path = (line.split("application-icon-640:").getOrNull(1) ?: "").trim()
-                        .replace("'", "")
-                    apkInformation.icon = extractIcon(androidManifest, input, path)
-                } else if (line.startsWith("application:")) {
-                    apkInformation.label = extractValue(line, "label")
-                    val iconPath = extractValue(line, "icon")
-                    if (apkInformation.icon == null && !iconPath.endsWith(".xml")) {
-                        apkInformation.icon = extractIcon(androidManifest, input, iconPath)
-                    }
-                } else if (line.startsWith("package:")) {
-                    apkInformation.packageName = extractValue(line, "name")
-                    apkInformation.versionCode = extractValue(line, "versionCode")
-                    apkInformation.versionName = extractValue(line, "versionName")
-                    apkInformation.compileSdkVersion = extractValue(line, "compileSdkVersion")
-                } else if (line.startsWith("targetSdkVersion:")) {
-                    apkInformation.targetSdkVersion = extractVersion(line, "targetSdkVersion")
-                } else if (line.startsWith("sdkVersion:")) {
-                    apkInformation.minSdkVersion = extractVersion(line, "sdkVersion")
-                } else if (line.startsWith("uses-permission:")) {
-                    if (apkInformation.usesPermissionList == null) {
-                        apkInformation.usesPermissionList = ArrayList()
-                    }
-                    apkInformation.usesPermissionList?.add(extractValue(line, "name"))
-                } else if (line.startsWith("native-code:")) {
-                    apkInformation.nativeCode =
-                        (line.split("native-code:").getOrNull(1) ?: "").trim().replace("'", "")
-                }
-            }
-
-            val channel = extractChannel(androidManifest)
-            apkInformation.channel = channel
-
-            logger.info { "apkInformation 获取APK信息结束, APK信息: $apkInformation" }
-
-            if (apkInformation.isBlank()) {
-                updateSnackbarVisuals(Res.string.apk_parsing_failed)
-                _apkInformationState.update { UIState.WAIT }
-            } else {
-                _apkInformationState.update { UIState.Success(apkInformation) }
-            }
-        } catch (e: Exception) {
-            logger.error(e) { "apkInformation 获取APK信息异常, 异常信息: ${e.message}" }
-            updateSnackbarVisuals(e.message ?: getString(Res.string.apk_parsing_failed))
+            val data = checkNotNull(readApk)(input).getOrThrow()
+            val model = ApkInformation(data.label, data.icon?.let { checkNotNull(iconDecoder).decode(it) },
+                data.size, data.md5, data.packageName, data.versionCode, data.versionName,
+                data.compileSdkVersion, data.minSdkVersion, data.targetSdkVersion,
+                data.usesPermissionList?.let(::ArrayList), data.nativeCode, data.channel)
+            _apkInformationState.update { UIState.Success(model) }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+        catch (error: Exception) {
+            updateSnackbarVisuals(if (error is org.tool.kit.domain.apk.ApkCommandFailed) getString(Res.string.exec_command_error)
+                else error.message ?: getString(Res.string.apk_parsing_failed))
             _apkInformationState.update { UIState.WAIT }
         }
     }
