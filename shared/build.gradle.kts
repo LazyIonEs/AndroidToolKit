@@ -219,6 +219,16 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.coroutines.swing)
         }
+
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
+            implementation(libs.multiplatform.settings.test)
+        }
+        jvmTest.dependencies {
+            implementation(libs.kotlin.test.junit)
+            implementation(libs.junit)
+        }
     }
 }
 
@@ -281,3 +291,43 @@ fun currentOs(): OS {
 
 // Export library definitions for aboutlibraries
 tasks.getByName("copyNonXmlValueResourcesForCommonMain").dependsOn("exportLibraryDefinitions")
+
+// Test-only launch: reuse the unchanged UI with an isolated PreferencesFactory.
+val baselineTestCompilation = kotlin.targets.getByName("jvm").compilations.getByName("test")
+val prepareBaselineResources = tasks.register<Sync>("prepareBaselineResources") {
+    from(rootProject.layout.projectDirectory.dir("composeApp/resources"))
+    into(layout.buildDirectory.dir("migration/resources"))
+}
+tasks.register("baselineClasspath") {
+    group = "verification"
+    description = "Export the isolated desktop harness classpath for native baseline packaging."
+    dependsOn("jvmTestClasses", prepareBaselineResources)
+    inputs.files(baselineTestCompilation.output.allOutputs, baselineTestCompilation.runtimeDependencyFiles)
+    val destination = layout.buildDirectory.file("migration/classpath.txt")
+    outputs.file(destination)
+    doLast {
+        destination.get().asFile.writeText(files(baselineTestCompilation.output.allOutputs,
+            baselineTestCompilation.runtimeDependencyFiles).asPath)
+    }
+}
+tasks.register<JavaExec>("baselineDesktop") {
+    group = "verification"
+    description = "Launch the migration baseline UI with in-memory preferences and fixture output."
+    dependsOn("jvmTestClasses", "rustTasks", prepareBaselineResources)
+    classpath(baselineTestCompilation.output.allOutputs, baselineTestCompilation.runtimeDependencyFiles)
+    mainClass.set("org.tool.kit.migration.BaselineDesktopKt")
+    workingDir(layout.buildDirectory.dir("migration"))
+    systemProperty("java.util.prefs.PreferencesFactory", "org.tool.kit.migration.IsolatedPreferencesFactory")
+    systemProperty("migration.fixtureRoot", layout.buildDirectory.dir("migration/fixtures").get().asFile.absolutePath)
+    systemProperty("migration.theme", providers.gradleProperty("migrationTheme").getOrElse("LIGHT"))
+    systemProperty("user.language", "zh")
+    systemProperty("user.country", "CN")
+    systemProperty("apple.awt.application.name", "AndroidToolKit Migration Baseline")
+    systemProperty("app.log.dir", layout.buildDirectory.dir("migration/logs").get().asFile.absolutePath)
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(javaLanguageVersion) })
+}
+
+tasks.withType<Test>().configureEach {
+    systemProperty("java.util.prefs.PreferencesFactory", "org.tool.kit.migration.IsolatedPreferencesFactory")
+    systemProperty("migration.apkTemplate", rootProject.file("composeApp/resources/common/apktool.apk").absolutePath)
+}

@@ -1,0 +1,85 @@
+{
+  "command": "./gradlew --offline --no-daemon :shared:jvmTest --console=plain",
+  "total": 16,
+  "suites": [
+    {
+      "name": "ApkSigningFixtureTest[jvm]",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 1.674,
+      "cases": [
+        "unsignedAndFiveSignaturePoliciesHaveTheExpectedSchemes[jvm]"
+      ]
+    },
+    {
+      "name": "CleanerFixtureTest[jvm]",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 0.167,
+      "cases": [
+        "fixtureTreeContainsTheDepthAndNameBoundariesRequiredForMigration[jvm]",
+        "originalSizeRuleIncludesDirectoryMetadataAndNestedFiles[jvm]"
+      ]
+    },
+    {
+      "name": "JunkArchiveFixtureTest[jvm]",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 0.144,
+      "cases": [
+        "tinySingleArchiveContainsManifestClassesResourcesAndCleansItsWorkspace[jvm]",
+        "tinyBatchRecreatesOnlyItsOutputSubdirectoryAndProducesDistinctArchives[jvm]"
+      ]
+    },
+    {
+      "name": "KeyStoreFixtureTest[jvm]",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 0.457,
+      "cases": [
+        "originalGeneratorProducesReadableStoresForAllTypeAndSizeCombinations[jvm]"
+      ]
+    },
+    {
+      "name": "LegacyFormCharacterizationTest[jvm]",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 0.017,
+      "cases": [
+        "clearingApkWithPrefixPreservesTheKnownLeadingHyphenDefect[jvm]",
+        "junkMultiRangeWithEqualBoundsMatchesRepeatedSingleEstimate[jvm]",
+        "existingApkAndPrefixDeriveV4NameButSamePathKeepsManualName[jvm]",
+        "sameKeyPathKeepsCredentialsAndChangedPathClearsOnlyDependentFields[jvm]",
+        "junkNamingUsesUnderscoresAndTheOriginalFixedVersion[jvm]"
+      ]
+    },
+    {
+      "name": "LegacyPreferencesCharacterizationTest[jvm]",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 0.066,
+      "cases": [
+        "unknownPreferenceEnumsKeepTheExistingFallbacks[jvm]",
+        "legacySerializerWritesPhysicalKeysAndNewInstanceReadsThem[jvm]",
+        "emptySettingsPreserveOriginalDefaults[jvm]",
+        "iconSettingsRoundTripRetainsEnumOrdinalsAndEveryParameter[jvm]"
+      ]
+    },
+    {
+      "name": "NativeFixtureTest[jvm]",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 0.553,
+      "cases": [
+        "allFiveNativeFunctionsLoadAndProduceReadableImages[jvm]"
+      ]
+    }
+  ]
+}
