@@ -1,0 +1,50 @@
+[
+  {
+    "file": "dark/no-icon-permission-channel.png",
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  {
+    "file": "dark/result-bottom.png",
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  {
+    "file": "dark/result-top.png",
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  {
+    "file": "light/no-icon-permission-channel.png",
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  {
+    "file": "light/result-bottom.png",
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  {
+    "file": "light/result-top.png",
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  }
+]

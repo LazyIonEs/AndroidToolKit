@@ -1,0 +1,49 @@
+Window: "AndroidToolKit", App: BaselineDesktopKt.
+0 标准窗口 AndroidToolKit, Secondary Actions: Raise
+	1 未知 (selectable) 0
+		2 container (selectable) 0
+			3 container (selectable) 0
+				4 未知 (selectable) 0
+					5 container (selectable) 0
+						6 container (selectable) 0
+							7 未知 (selectable) 0
+								8 单选按钮 (selectable) 签名信息
+							9 单选按钮 (selectable) APK信息
+							10 未知 (selectable) 0
+								11 单选按钮 (selectable) APK签名
+							12 未知 (selectable) 0
+								13 单选按钮 (selectable) 签名生成
+							14 未知 (selectable) 0
+								15 单选按钮 (selectable) APK生成
+							16 未知 (selectable) 0
+								17 单选按钮 (selectable) 垃圾代码
+							18 未知 (selectable) 0
+								19 单选按钮 (selectable) 图标生成
+							20 未知 (selectable) 0
+								21 单选按钮 (selectable) 缓存清理
+							22 未知 (selectable) 0
+								23 单选按钮 (selectable) 设置
+				24 未知 (selectable) 0
+					25 未知 (selectable) 0
+						26 container (selectable) 0
+							27 滚动区 (selectable) 0
+								28 文本 (selectable) 应用名称：, HelloAndroid
+								29 文本 (selectable) 版本：, 1.0
+								30 文本 (selectable) 版本号：, 1
+								31 文本 (selectable) 包名：, com.lazyiones.helloandroid
+								32 文本 (selectable) 编译SDK版本：, 30
+								33 文本 (selectable) 最小SDK版本：, 21
+								34 文本 (selectable) 目标SDK版本：, 30
+								35 文本 (selectable) ABIs：,
+								36 文本 (selectable) 文件MD5：, e4211c3ac04c1e42b8fc3447951b1bc5
+								37 文本 (selectable) 大小：, 3.6 MB
+							38 未知 (selectable) app icon
+					39 按钮 (selectable) 上传APK
+	40 关闭按钮
+	41 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	42 最小化按钮
+	43 文本 AndroidToolKit
+44 menu bar
+	45 AndroidToolKitBaseline
+
+The focused UI element is 1 未知 (selectable)

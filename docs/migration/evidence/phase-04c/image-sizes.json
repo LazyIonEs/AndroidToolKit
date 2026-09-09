@@ -1,0 +1,442 @@
+[
+  {
+    "path": "after/dark/no-icon-permission-channel.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "after/dark/result-bottom.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "after/dark/result-top.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "after/light/no-icon-permission-channel.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "after/light/result-bottom.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "after/light/result-top.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "before/dark/no-icon-permission-channel.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "before/dark/result-bottom.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "before/dark/result-top.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "before/light/no-icon-permission-channel.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "before/light/result-bottom.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "before/light/result-top.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/dark/apk-signature.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/dark/apk-tool.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/dark/junk-code.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/dark/keystore-generation.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/dark/settings.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/custom-path-retained.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/default-path-0.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/default-path-1.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/default-path-2.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/default-path-3.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/keystore-returned.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/settings-final-inputs.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/signing-returned.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/light/apk-signature.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/light/apk-tool.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/light/junk-code.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/light/keystore-generation.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/light/settings.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp-initial-corner-difference/apk-signature-repeat.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp-initial-corner-difference/apk-signature.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "native/after-dark-result.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/after-dark-zoom.jpg",
+    "size": [
+      450,
+      450
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/after-light-result.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/after-light-zoom.jpg",
+    "size": [
+      450,
+      450
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/before-dark-result.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/before-dark-zoom.jpg",
+    "size": [
+      450,
+      450
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/before-light-result.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/before-light-zoom.jpg",
+    "size": [
+      450,
+      450
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/cancel-keeps-result.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/clipboard-md5.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/corrupt-apk-fallback.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/no-icon-result.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/retry-success.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "software/dark/apk-signature.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/dark/apk-tool.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/dark/junk-code.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/dark/keystore-generation.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/dark/settings.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/light/apk-signature.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/light/apk-tool.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/light/junk-code.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/light/keystore-generation.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/light/settings.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  }
+]

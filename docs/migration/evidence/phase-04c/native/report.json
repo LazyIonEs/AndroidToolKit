@@ -1,0 +1,33 @@
+{
+  "result": "passed",
+  "platform": "macOS arm64",
+  "runtime": "JetBrains JDK 21.0.6",
+  "window": {
+    "title": "Zoom Image",
+    "sizeDp": [
+      450,
+      450
+    ],
+    "capturedSize": [
+      450,
+      450
+    ],
+    "alwaysOnTop": true,
+    "alwaysOnTopVerification": "Unchanged source declaration; native focus behavior was not used as a separate proof."
+  },
+  "checks": [
+    "FileKit selection of the Chinese/space APK path",
+    "Original and final light/dark APK results and Zoom Image windows inspected",
+    "Closing image preview preserves the APK result",
+    "Cancelling FileKit preserves the existing result",
+    "Result retained through navigation and theme change",
+    "MD5 copied through actual Cmd+V and checked character-for-character",
+    "No-icon APK keeps fields and omits app icon",
+    "Corrupt APK returns to idle Lottie with original command error",
+    "Retry with valid APK restores fields and icon",
+    "Both original and final isolated native applications closed"
+  ],
+  "clipboardExactValue": "e4211c3ac04c1e42b8fc3447951b1bc5",
+  "imageComparison": "Native tool returns lossy JPEGs; these are visual/size checks, not zero-pixel golden assertions. Pixel equality of extracted icons is checked separately by real JVM tests.",
+  "interactionRetries": "Fresh AX state, separate path-sheet confirmation and a 500ms native-sheet settling delay were needed after stale or transitional native states. Product code was not changed for these tool retries."
+}
