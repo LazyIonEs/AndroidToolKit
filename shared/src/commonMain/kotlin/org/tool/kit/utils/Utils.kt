@@ -19,7 +19,6 @@ import org.jetbrains.skia.Image
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.tool.kit.model.FileSelectorType
-import org.tool.kit.model.Verifier
 import org.w3c.dom.Node
 import java.awt.Desktop
 import java.io.ByteArrayOutputStream
@@ -30,8 +29,6 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.security.MessageDigest
 import java.security.SecureRandom
-import java.security.cert.X509Certificate
-import java.security.interfaces.RSAPublicKey
 import java.util.zip.ZipFile
 
 /**

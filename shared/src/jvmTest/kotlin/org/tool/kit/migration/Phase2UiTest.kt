@@ -124,7 +124,7 @@ class Phase2UiTest {
             TestContext {
                 val current = koinViewModel<MainViewModel>()
                 val tick = revision.intValue
-                AppTheme(dark.value) { ClearBuild(current) }
+                AppTheme(dark.value) { ClearBuild(current, signatureHasResult = false) }
                 SideEffect { vm = current; composed = tick }
             }
         }

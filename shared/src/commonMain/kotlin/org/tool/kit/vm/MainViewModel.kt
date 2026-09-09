@@ -12,7 +12,6 @@ import brut.androlib.Config
 import brut.androlib.res.xml.ResXmlUtils
 import brut.directory.ExtFile
 import com.android.apksig.ApkSigner
-import com.android.apksig.ApkVerifier
 import com.android.apksig.KeyConfig
 import com.android.ide.common.signing.KeystoreHelper
 import com.intellij.openapi.util.text.StringUtil
@@ -29,7 +28,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import org.tool.kit.domain.preferences.PreferenceChange
-import org.tool.kit.domain.preferences.CopyPreference
 import org.tool.kit.domain.preferences.JunkPreference
 import org.tool.kit.feature.app.*
 import kotlinx.coroutines.launch
@@ -47,7 +45,6 @@ import org.tool.kit.model.ApkInformation
 import org.tool.kit.model.ApkSignature
 import org.tool.kit.model.ApkToolInfo
 import org.tool.kit.model.DarkThemeConfig
-import org.tool.kit.model.CopyMode
 import org.tool.kit.model.IconFactoryData
 import org.tool.kit.model.IconFactoryInfo
 import org.tool.kit.model.JunkCodeInfo
@@ -56,8 +53,6 @@ import org.tool.kit.model.PendingDeletionFile
 import org.tool.kit.model.Sequence
 import org.tool.kit.model.Sign
 import org.tool.kit.model.SignaturePolicy
-import org.tool.kit.model.Verifier
-import org.tool.kit.model.VerifierResult
 import org.tool.kit.platform.RustException
 import org.tool.kit.platform.mozJpeg
 import org.tool.kit.platform.oxipng
@@ -67,7 +62,6 @@ import org.tool.kit.platform.resizePng
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.apk_is_signed_successfully
 import org.tool.kit.shared.generated.resources.apk_parsing_failed
-import org.tool.kit.shared.generated.resources.apk_signature_verification_failed
 import org.tool.kit.shared.generated.resources.build_end
 import org.tool.kit.shared.generated.resources.build_failure
 import org.tool.kit.shared.generated.resources.cleanup_complete
@@ -79,7 +73,6 @@ import org.tool.kit.shared.generated.resources.jump
 import org.tool.kit.shared.generated.resources.output_file_already_exists
 import org.tool.kit.shared.generated.resources.scanning_anomalies
 import org.tool.kit.shared.generated.resources.signature_failed
-import org.tool.kit.shared.generated.resources.signature_verification_failed
 import org.tool.kit.utils.AndroidJunkGenerator
 import org.tool.kit.utils.ExternalCommand
 import org.tool.kit.utils.MultiAarGenerator
@@ -103,8 +96,6 @@ import org.tool.kit.utils.update
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
-import java.security.KeyStore
-import java.security.cert.X509Certificate
 import kotlin.coroutines.resume
 
 private val logger = KotlinLogging.logger("MainViewModel")
@@ -121,7 +112,6 @@ class MainViewModel(
     keyStores: KeyStoreRepository,
     private val effects: org.tool.kit.feature.app.AppEffectSink,
     initialCapacity: StorageCapacity = StorageCapacity(0, 0),
-    private val signatureVerification: org.tool.kit.domain.usecase.VerifySignatureUseCase? = null,
 ) :
     ViewModel() {
 
@@ -130,11 +120,6 @@ class MainViewModel(
     val userData = preferences.state.map { it.userData }.stateIn(viewModelScope, Eagerly, preferences.state.value.userData)
     val iconFactoryData = preferences.state.map { it.iconFactoryData }.stateIn(viewModelScope, Eagerly, preferences.state.value.iconFactoryData)
     val isHuaweiAlignFileSize = preferences.state.map { it.isHuaweiAlignFileSize }.stateIn(viewModelScope, Eagerly, preferences.state.value.isHuaweiAlignFileSize)
-    val copyMode = preferences.state.map { CopyMode.valueOf(it.copyMode.name) }.stateIn(viewModelScope, Eagerly, CopyMode.valueOf(preferences.state.value.copyMode.name))
-
-    // 签名信息UI状态
-    private val _verifierState = mutableStateOf<UIState>(UIState.WAIT)
-    val verifierState by _verifierState
 
     // APK签名信息
     private val _apkSignatureState = mutableStateOf(ApkSignature())
@@ -203,8 +188,6 @@ class MainViewModel(
         updateApkToolInfo(apkToolInfoState.copy(keyStoreAlisaList = aliases?.let(::ArrayList)))
     }
     val apkToolValidation = apkToolChecks.state
-    private val signatureAliasChecks = KeyAliasesValidation(viewModelScope, keyStores)
-    val signatureAliases = signatureAliasChecks.state
 
     init {
         // Compatibility bridge: remove one branch per Phase 4A/5/6/7/8 cutover.
@@ -235,8 +218,6 @@ class MainViewModel(
         apkToolChecks.passwordChanged(apkToolInfoState)
     }
 
-    fun validateSignatureAliases(path: String, password: String) = signatureAliasChecks.validate(path, password)
-    fun resetSignatureAliases() = signatureAliasChecks.reset()
 
     fun hasPendingPathChecks(vararg fields: LegacyPathField): Boolean =
         fields.any { pathValidation.value[it]?.pending == true }
@@ -256,10 +237,6 @@ class MainViewModel(
     /** Legacy icon editor commits only on the original release callbacks; remove in Phase 8. */
     fun saveIconFactoryData(iconFactoryData: IconFactoryData) {
         preferences.change(PreferenceChange.IconSettings(iconFactoryData))
-    }
-
-    fun saveCopyMode(copyMode: CopyMode) {
-        preferences.change(PreferenceChange.CopyModeChanged(CopyPreference.valueOf(copyMode.name)))
     }
 
     private fun updateSnackbarVisuals(value: SnackbarMessage) {
@@ -584,32 +561,6 @@ class MainViewModel(
             _apkInformationState.update { UIState.WAIT }
         }
     }
-
-    fun signerVerifier(input: String, password: String, alisa: String) = viewModelScope.launch {
-        _verifierState.update { UIState.Loading }
-        checkNotNull(signatureVerification).certificate(input, password, alisa).fold(
-            onSuccess = { value -> _verifierState.update { UIState.Success(value.toLegacy()) } },
-            onFailure = { error ->
-                updateSnackbarVisuals(error.message ?: getString(Res.string.signature_verification_failed))
-                _verifierState.update { UIState.WAIT }
-            })
-    }
-
-    fun apkVerifier(input: String) = viewModelScope.launch {
-        _verifierState.update { UIState.Loading }
-        checkNotNull(signatureVerification).apk(input).fold(
-            onSuccess = { value -> _verifierState.update { UIState.Success(value.toLegacy()) } },
-            onFailure = { error ->
-                updateSnackbarVisuals(error.message ?: getString(Res.string.apk_signature_verification_failed))
-                _verifierState.update { UIState.WAIT }
-            })
-    }
-
-    private fun org.tool.kit.domain.signature.SignatureVerification.toLegacy() =
-        VerifierResult(isSuccess, isApk, path, name, ArrayList(data.map {
-            Verifier(it.version, it.subject, it.validFrom, it.validUntil, it.publicKeyType,
-                it.modulus, it.signatureType, it.md5, it.sha1, it.sha256)
-        }))
 
     /**
      * 生成垃圾代码 aar

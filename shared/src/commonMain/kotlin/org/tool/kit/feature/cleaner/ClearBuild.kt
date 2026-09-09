@@ -118,14 +118,14 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 @Composable
-fun ClearBuild(viewModel: MainViewModel) {
+fun ClearBuild(viewModel: MainViewModel, signatureHasResult: Boolean) {
     LaunchedEffect(viewModel) { viewModel.refreshStorageCapacity() }
-    ClearMain(viewModel)
+    ClearMain(viewModel, signatureHasResult)
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ClearMain(viewModel: MainViewModel) {
+private fun ClearMain(viewModel: MainViewModel, signatureHasResult: Boolean) {
     val capacity by viewModel.storageCapacity.collectAsState()
     Box(Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
@@ -140,7 +140,7 @@ private fun ClearMain(viewModel: MainViewModel) {
         ) {
             DirectoryButton(
                 value = stringResource(Res.string.select_folder),
-                expanded = viewModel.verifierState !is UIState.Success,
+                expanded = !signatureHasResult,
             ) { directory ->
                 viewModel.scanPendingDeletionFileList(directory)
             }

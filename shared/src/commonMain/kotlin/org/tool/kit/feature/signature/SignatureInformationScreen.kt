@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -60,10 +59,6 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,14 +75,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.feature.ui.FileButton
-import org.tool.kit.feature.ui.rememberFilePickerRequest
 import org.tool.kit.feature.ui.UploadAnimate
-import org.tool.kit.feature.ui.dragAndDropTarget
 import org.tool.kit.model.CopyMode
-import org.tool.kit.model.DarkThemeConfig
-import org.tool.kit.model.FileSelectorType
-import org.tool.kit.model.Verifier
-import org.tool.kit.model.VerifierResult
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+import org.tool.kit.feature.signature.SignatureInformationIntent.*
+import org.tool.kit.domain.signature.CertificateInformation
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.cancel
 import org.tool.kit.shared.generated.resources.confirm
@@ -100,12 +92,6 @@ import org.tool.kit.shared.generated.resources.upload
 import org.tool.kit.shared.generated.resources.upload_apk_signature_file
 import org.tool.kit.shared.generated.resources.wrong_key_store_password
 import org.tool.kit.utils.LottieAnimation
-import org.tool.kit.utils.copy
-import org.tool.kit.utils.isApk
-import org.tool.kit.utils.isKey
-import org.tool.kit.vm.MainViewModel
-import org.tool.kit.vm.UIState
-import kotlin.io.path.pathString
 
 /**
  * @Author      : LazyIonEs
@@ -114,29 +100,25 @@ import kotlin.io.path.pathString
  * @Version     : 1.0
  */
 @Composable
-fun SignatureInformation(
-    viewModel: MainViewModel
+fun SignatureInformationScreen(
+    state: SignatureInformationUiState,
+    useDarkTheme: Boolean,
+    onIntent: (SignatureInformationIntent) -> Unit,
+    onPickFile: () -> Unit,
+    dragging: Boolean,
+    dropTarget: DragAndDropTarget,
 ) {
-    val signaturePath = remember { mutableStateOf("") }
-    if (viewModel.verifierState == UIState.WAIT) {
-        SignatureLottie(viewModel)
-    }
-    SignatureList(viewModel)
-    SignatureBox(viewModel, signaturePath)
-    SignatureDialog(viewModel, signaturePath)
+    if (state.phase == VerificationPhase.Idle) SignatureLottie(useDarkTheme)
+    SignatureList(state.result, onIntent)
+    SignatureBox(state.phase, state.copyMode, onIntent, onPickFile, dragging, dropTarget)
+    SignatureDialog(state.passwordDialog, onIntent)
 }
 
 /**
  * 主页动画
  */
 @Composable
-private fun SignatureLottie(viewModel: MainViewModel) {
-    val themeConfig by viewModel.themeConfig.collectAsState()
-    val useDarkTheme = when (themeConfig) {
-        DarkThemeConfig.LIGHT -> false
-        DarkThemeConfig.DARK -> true
-        DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
-    }
+private fun SignatureLottie(useDarkTheme: Boolean) {
     Box(
         modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
     ) {
@@ -157,33 +139,20 @@ private fun SignatureLottie(viewModel: MainViewModel) {
 )
 @Composable
 private fun SignatureBox(
-    viewModel: MainViewModel, signaturePath: MutableState<String>
+    phase: VerificationPhase, copyMode: CopyMode,
+    onIntent: (SignatureInformationIntent) -> Unit, onPickFile: () -> Unit,
+    dragging: Boolean, dropTarget: DragAndDropTarget,
 ) {
-    var dragging by remember { mutableStateOf(false) }
-    val copyMode by viewModel.copyMode.collectAsState()
     UploadAnimate(dragging)
     Box(
         modifier = Modifier.fillMaxSize()
             .dragAndDropTarget(
-                shouldStartDragAndDrop = accept@{ true }, target = dragAndDropTarget(dragging = {
-                    dragging = it
-                }, onFinish = { result ->
-                    result.onSuccess { fileList ->
-                        fileList.firstOrNull()?.let {
-                            val path = it.toAbsolutePath().pathString
-                            if (path.isApk) {
-                                viewModel.apkVerifier(path)
-                            } else if (path.isKey) {
-                                signaturePath.value = path
-                            }
-                        }
-                    }
-                })
+                shouldStartDragAndDrop = { true }, target = dropTarget
             ), contentAlignment = Alignment.TopCenter
     ) {
         Row(modifier = Modifier.align(Alignment.BottomEnd)) {
             AnimatedVisibility(
-                visible = viewModel.verifierState == UIState.WAIT,
+                visible = phase == VerificationPhase.Idle,
             ) {
                 FileButton(
                     value = if (dragging) {
@@ -192,36 +161,21 @@ private fun SignatureBox(
                         stringResource(Res.string.upload_apk_signature_file)
                     },
                     expanded = true,
-                    FileSelectorType.KEY,
-                    FileSelectorType.APK
-                ) { path ->
-                    if (path.isApk) {
-                        viewModel.apkVerifier(path)
-                    } else if (path.isKey) {
-                        signaturePath.value = path
-                    }
-                }
+                    onClick = onPickFile
+                )
             }
             AnimatedVisibility(
-                visible = viewModel.verifierState is UIState.Success,
+                visible = phase == VerificationPhase.Result,
                 modifier = Modifier.padding(end = 16.dp, bottom = 8.dp)
             ) {
                 Box(modifier = Modifier.wrapContentSize()) {
                     var checked by remember { mutableStateOf(false) }
-                    val type = arrayOf(FileSelectorType.KEY, FileSelectorType.APK)
-                    val requestFile = rememberFilePickerRequest(*type) { path ->
-                        if (path.isApk) {
-                            viewModel.apkVerifier(path)
-                        } else if (path.isKey) {
-                            signaturePath.value = path
-                        }
-                    }
                     val size = SplitButtonDefaults.SmallContainerHeight
                     SplitButtonLayout(
                         leadingButton = {
                             SplitButtonDefaults.LeadingButton(
                                 onClick = {
-                                    requestFile()
+                                    onPickFile()
                                 },
                                 modifier = Modifier.heightIn(size),
                                 shapes = SplitButtonDefaults.leadingButtonShapesFor(size),
@@ -295,7 +249,7 @@ private fun SignatureBox(
                             DropdownMenuItem(
                                 text = { Text(stringResource(mode.title)) },
                                 onClick = {
-                                    viewModel.saveCopyMode(mode)
+                                    onIntent(CopyModeChanged(mode))
                                 },
                                 leadingIcon = {
                                     AnimatedVisibility(copyMode == mode) {
@@ -325,26 +279,25 @@ private fun SignatureBox(
  */
 @Composable
 private fun SignatureList(
-    viewModel: MainViewModel
+    result: VerifierResultUi?, onIntent: (SignatureInformationIntent) -> Unit
 ) {
-    val uiState = viewModel.verifierState
     AnimatedVisibility(
-        visible = uiState is UIState.Success, enter = fadeIn(), exit = fadeOut()
+        visible = result != null, enter = fadeIn(), exit = fadeOut()
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(end = 14.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (uiState is UIState.Success) {
+            if (result != null) {
                 item { Spacer(Modifier.size(6.dp)) }
-                items((uiState.result as VerifierResult).data) { verifier ->
+                items(result.data) { verifier ->
                     Column(Modifier.padding(vertical = 8.dp)) {
                         Card(
                             border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
                             modifier = Modifier.padding(vertical = 4.dp).fillMaxWidth()
                         ) {
-                            if (uiState.result.isApk) {
+                            if (result.isApk) {
                                 Text(
                                     "Valid APK signature V${verifier.version} found",
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
@@ -362,9 +315,9 @@ private fun SignatureList(
                                 )
                             }
                         }
-                        SignatureListTop(verifier, viewModel)
-                        SignatureListCenter(verifier, viewModel)
-                        SignatureListBottom(verifier, viewModel)
+                        SignatureListTop(verifier) { onIntent(CopyText(it)) }
+                        SignatureListCenter(verifier) { onIntent(CopyText(it)) }
+                        SignatureListBottom(verifier) { onIntent(CopyFingerprint(it)) }
                     }
                 }
                 item { Spacer(Modifier.size(40.dp)) }
@@ -379,18 +332,11 @@ private fun SignatureList(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SignatureDialog(
-    viewModel: MainViewModel, signaturePath: MutableState<String>
+    dialog: PasswordDialogState?, onIntent: (SignatureInformationIntent) -> Unit
 ) {
-    if (signaturePath.value.isNotBlank()) {
-        val password = remember { mutableStateOf("") }
-        val aliasesState by viewModel.signatureAliases.collectAsState()
-        val options = aliasesState.aliases
-        var alisa by remember { mutableStateOf("") }
-        DisposableEffect(viewModel, signaturePath.value) {
-            viewModel.resetSignatureAliases()
-            onDispose { viewModel.resetSignatureAliases() }
-        }
-        LaunchedEffect(aliasesState) { alisa = options?.getOrNull(0) ?: "" }
+    if (dialog != null) {
+        val options = dialog.aliases
+        val alisa = dialog.selectedAlias
         AlertDialog(icon = {
             Icon(Icons.Rounded.Password, contentDescription = "Password")
         }, title = {
@@ -403,10 +349,9 @@ private fun SignatureDialog(
             ) {
                 OutlinedTextField(
                     modifier = Modifier.padding(vertical = 4.dp),
-                    value = password.value,
+                    value = dialog.password,
                     onValueChange = { value ->
-                        password.value = value
-                        viewModel.validateSignatureAliases(signaturePath.value, value)
+                        onIntent(PasswordChanged(value))
                     },
                     label = {
                         Text(
@@ -451,7 +396,7 @@ private fun SignatureDialog(
                                     )
                                 },
                                 onClick = {
-                                    alisa = selectionOption
+                                    onIntent(AliasSelected(selectionOption))
                                     expanded = false
                                 },
                                 contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -461,23 +406,16 @@ private fun SignatureDialog(
                 }
             }
         }, onDismissRequest = {
-            signaturePath.value = ""
+            onIntent(DismissPasswordDialog)
         }, confirmButton = {
             TextButton(onClick = {
-                if (alisa.isNotBlank() && !viewModel.signatureAliases.value.pending) {
-                    viewModel.signerVerifier(
-                        signaturePath.value, password.value, alisa
-                    )
-                    signaturePath.value = ""
-                } else {
-                    viewModel.updateSnackbarVisuals(Res.string.wrong_key_store_password)
-                }
+                onIntent(VerifyCertificate)
             }) {
                 Text(text = stringResource(Res.string.confirm))
             }
         }, dismissButton = {
             TextButton(onClick = {
-                signaturePath.value = ""
+                onIntent(DismissPasswordDialog)
             }) {
                 Text(text = stringResource(Res.string.cancel))
             }
@@ -490,7 +428,7 @@ private fun SignatureDialog(
  */
 @Composable
 private fun SignatureListTop(
-    verifier: Verifier, viewModel: MainViewModel
+    verifier: CertificateInformation, onCopy: (String) -> Unit
 ) {
     Card(
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
@@ -500,7 +438,7 @@ private fun SignatureListTop(
             modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp)
         ) {
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                copy(verifier.subject, viewModel)
+                onCopy(verifier.subject)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp),
@@ -519,7 +457,7 @@ private fun SignatureListTop(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                copy(verifier.validFrom, viewModel)
+                onCopy(verifier.validFrom)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp),
@@ -538,7 +476,7 @@ private fun SignatureListTop(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                copy(verifier.validUntil, viewModel)
+                onCopy(verifier.validUntil)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp),
@@ -565,7 +503,7 @@ private fun SignatureListTop(
  */
 @Composable
 private fun SignatureListCenter(
-    verifier: Verifier, viewModel: MainViewModel
+    verifier: CertificateInformation, onCopy: (String) -> Unit
 ) {
     Card(
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
@@ -575,7 +513,7 @@ private fun SignatureListCenter(
             modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp)
         ) {
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                copy(verifier.publicKeyType, viewModel)
+                onCopy(verifier.publicKeyType)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp),
@@ -594,7 +532,7 @@ private fun SignatureListCenter(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                copy(verifier.modulus, viewModel)
+                onCopy(verifier.modulus)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp),
@@ -613,7 +551,7 @@ private fun SignatureListCenter(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                copy(verifier.signatureType, viewModel)
+                onCopy(verifier.signatureType)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp),
@@ -639,9 +577,8 @@ private fun SignatureListCenter(
  */
 @Composable
 private fun SignatureListBottom(
-    verifier: Verifier, viewModel: MainViewModel
+    verifier: CertificateInformation, onCopy: (String) -> Unit
 ) {
-    val copyMode by viewModel.copyMode.collectAsState()
     Card(
         border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline),
         modifier = Modifier.padding(top = 4.dp, bottom = 8.dp).fillMaxWidth()
@@ -650,7 +587,7 @@ private fun SignatureListBottom(
             modifier = Modifier.padding(vertical = 14.dp, horizontal = 10.dp)
         ) {
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                copy(verifier.md5, copyMode, viewModel)
+                onCopy(verifier.md5)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp),
@@ -669,7 +606,7 @@ private fun SignatureListBottom(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                copy(verifier.sha1, copyMode, viewModel)
+                onCopy(verifier.sha1)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp),
@@ -688,7 +625,7 @@ private fun SignatureListBottom(
             }
             Spacer(Modifier.size(16.dp))
             Card(modifier = Modifier.fillMaxWidth(), onClick = {
-                copy(verifier.sha256, copyMode, viewModel)
+                onCopy(verifier.sha256)
             }) {
                 Row(
                     modifier = Modifier.padding(6.dp),

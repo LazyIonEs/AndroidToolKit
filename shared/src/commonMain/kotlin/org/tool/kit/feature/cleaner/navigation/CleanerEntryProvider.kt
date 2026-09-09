@@ -12,8 +12,8 @@ import org.tool.kit.vm.MainViewModel
  * @createDate  : 2026/1/20 17:14
  */
 @OptIn(ExperimentalSettingsApi::class)
-fun EntryProviderScope<NavKey>.cleanerEntry(viewModel: MainViewModel) {
+fun EntryProviderScope<NavKey>.cleanerEntry(viewModel: MainViewModel, signatureHasResult: Boolean) {
     entry<CleanerNavKey> {
-        ClearBuild(viewModel = viewModel)
+        ClearBuild(viewModel = viewModel, signatureHasResult = signatureHasResult)
     }
 }

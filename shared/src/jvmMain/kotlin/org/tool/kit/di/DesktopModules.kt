@@ -22,6 +22,7 @@ fun desktopModules(
 private fun desktopDataModule() = module {
     includes(dataModule())
     single<org.tool.kit.domain.repository.UpdateRepository> { org.tool.kit.data.repository.JvmUpdateRepository(get()) }
+    single<org.tool.kit.feature.app.ClipboardWriter> { org.tool.kit.platform.JvmClipboardWriter(get<AppDispatchers>().main) }
     single<StorageRepository> { JvmStorageRepository(get<AppDispatchers>().io) }
     single<org.tool.kit.domain.repository.SignatureRepository> { org.tool.kit.data.repository.JvmSignatureRepository(get<AppDispatchers>().io) }
     single<KeyStoreRepository> { JvmKeyStoreRepository(get<AppDispatchers>().io) }

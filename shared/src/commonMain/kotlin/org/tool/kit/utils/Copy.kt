@@ -19,10 +19,6 @@ fun copy(value: String, viewModel: MainViewModel) {
     copy(value) { viewModel.updateSnackbarVisuals(Res.string.copied_to_clipboard) }
 }
 
-fun copy(value: String, copyMode: CopyMode, viewModel: MainViewModel) {
-    copy(value, copyMode) { viewModel.updateSnackbarVisuals(Res.string.copied_to_clipboard) }
-}
-
 fun copy(value: String, onCopied: () -> Unit) {
     writeClipboard(value)
     onCopied()

@@ -18,7 +18,7 @@ import org.tool.kit.App
 import org.tool.kit.di.desktopModules
 import org.tool.kit.domain.repository.SignatureRepository
 import org.tool.kit.domain.signature.*
-import org.tool.kit.vm.MainViewModel
+import org.tool.kit.feature.signature.*
 import java.io.File
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -44,17 +44,17 @@ class SignatureInformationUiTest {
                 override suspend fun verifyCertificate(path: String, password: String, alias: String) = Result.success(signatureFixture)
             } }
         }) }
-        lateinit var vm: MainViewModel
+        lateinit var vm: SignatureInformationViewModel
         try {
             setContent { CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
                 KoinIsolatedContext(container) {
-                    val current = koinViewModel<MainViewModel>()
+                    val current = koinViewModel<SignatureInformationViewModel>()
                     App()
                     SideEffect { vm = current }
                 }
             } }
             waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("APK签名").fetchSemanticsNodes().isNotEmpty() }
-            runOnIdle { vm.apkVerifier("/fixture.apk") }
+            runOnIdle { vm.onIntent(SignatureInformationIntent.VerifyApk("/fixture.apk")) }
             waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("Valid APK signature V1 found").fetchSemanticsNodes().isNotEmpty() }
             waitForIdle()
             fun capture(name: String) {

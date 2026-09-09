@@ -18,6 +18,7 @@ import org.tool.kit.domain.repository.StorageRepository
 import org.tool.kit.model.ApkSignature
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.vm.*
+import org.tool.kit.core.validation.KeyAliasesValidation
 import androidx.lifecycle.ViewModelStore
 import kotlin.test.*
 
