@@ -95,7 +95,7 @@ compose.desktop {
         )
 
         // Depend on Rust build tasks
-        this@application.dependsOn("rustTasks")
+        this@application.dependsOn(":shared:rustTasks")
 
         // Native distributions configuration
         nativeDistributions {

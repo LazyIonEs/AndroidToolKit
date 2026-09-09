@@ -1,0 +1,11 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+Configuration on demand is an incubating feature.
+Type-safe project accessors is an incubating feature.
+:shared:buildRustLibrary SKIPPED
+:shared:copyRustLibrary SKIPPED
+:shared:generateRustBindings SKIPPED
+:shared:rustTasks SKIPPED
+
+BUILD SUCCESSFUL in 5s
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.5.1/userguide/configuration_cache_enabling.html

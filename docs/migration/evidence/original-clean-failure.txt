@@ -1,0 +1,128 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+Configuration on demand is an incubating feature.
+Type-safe project accessors is an incubating feature.
+
+> Configure project :shared
+Rust library copied successfully
+
+> Task :shared:cleanJvmTest UP-TO-DATE
+> Task :composeApp:cleanJvmTest UP-TO-DATE
+> Task :shared:cleanAllTests UP-TO-DATE
+> Task :composeApp:cleanAllTests UP-TO-DATE
+> Task :shared:cleanSwiftImportFingerprintArtifacts
+> Task :composeApp:cleanSwiftImportFingerprintArtifacts
+> Task :composeApp:clean
+> Task :shared:clean
+
+> Task :shared:checkJvmMainComposeLibrariesCompatibility
+w: Skiko dependencies' versions are incompatible.
+    io.github.panpf.zoomimage:zoomimage-core-desktop:1.7.0-alpha01
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.150.1
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :shared:dependencies  --configuration jvmRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Note: Skiko is considered implementation detail in Compose Multiplatform and might be incompatible across versions.
+Please align Skiko dependencies to the same version. If possible, avoid direct Skiko references and use Compose APIs instead.
+
+
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:convertXmlValueResourcesForCommonMain
+> Task :shared:exportLibraryDefinitions UP-TO-DATE
+> Task :shared:copyNonXmlValueResourcesForCommonMain
+> Task :shared:prepareComposeResourcesTaskForCommonMain UP-TO-DATE
+> Task :shared:generateResourceAccessorsForCommonMain
+> Task :shared:convertXmlValueResourcesForJvmMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForJvmMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForJvmMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForJvmMain NO-SOURCE
+> Task :shared:generateActualResourceCollectorsForJvmMain
+> Task :shared:generateBuildConfigClasses
+> Task :shared:generateComposeResClass
+> Task :shared:generateExpectResourceCollectorsForCommonMain
+> Task :shared:generateJvmMainBuildConfigClasses SKIPPED
+
+> Task :composeApp:checkJvmMainComposeLibrariesCompatibility
+w: Skiko dependencies' versions are incompatible.
+    io.github.panpf.zoomimage:zoomimage-core-desktop:1.7.0-alpha01
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.150.1
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :composeApp:dependencies  --configuration jvmRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Note: Skiko is considered implementation detail in Compose Multiplatform and might be incompatible across versions.
+Please align Skiko dependencies to the same version. If possible, avoid direct Skiko references and use Compose APIs instead.
+
+
+> Task :composeApp:kmpPartiallyResolvedDependenciesChecker
+> Task :composeApp:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :composeApp:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForCommonMain SKIPPED
+> Task :composeApp:convertXmlValueResourcesForJvmMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForJvmMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForJvmMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForJvmMain SKIPPED
+> Task :composeApp:generateActualResourceCollectorsForJvmMain SKIPPED
+> Task :composeApp:generateComposeResClass SKIPPED
+> Task :composeApp:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :shared:assembleJvmMainResources
+> Task :shared:jvmProcessResources
+> Task :shared:processJvmMainResources SKIPPED
+
+> Task :shared:compileKotlinJvm
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:5:8 Unresolved reference 'uniffi'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:6:8 Unresolved reference 'uniffi'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:7:8 Unresolved reference 'uniffi'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:8:8 Unresolved reference 'uniffi'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:9:8 Unresolved reference 'uniffi'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:10:8 Unresolved reference 'uniffi'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:23:9 No value passed for parameter 'width'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:23:9 No value passed for parameter 'height'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:24:61 No parameter with name 'dstWidth' found.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:24:79 No parameter with name 'dstHeight' found.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:26:17 Unresolved reference 'ToolKitRustException'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:28:31 Unresolved reference 'message'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:42:9 No value passed for parameter 'width'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:42:9 No value passed for parameter 'height'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:43:61 No parameter with name 'dstWidth' found.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:43:79 No parameter with name 'dstHeight' found.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:45:17 Unresolved reference 'ToolKitRustException'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:47:31 Unresolved reference 'message'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:74:23 Argument type mismatch: actual type is 'UByte', but 'Int' was expected.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:75:22 Argument type mismatch: actual type is 'UByte', but 'Int' was expected.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:77:22 Argument type mismatch: actual type is 'UByte', but 'Int' was expected.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:79:17 Unresolved reference 'ToolKitRustException'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:81:31 Unresolved reference 'message'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:101:22 Argument type mismatch: actual type is 'UByte', but 'Int' was expected.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:103:17 Unresolved reference 'ToolKitRustException'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:105:31 Unresolved reference 'message'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:122:17 Unresolved reference 'ToolKitRustException'.
+e: file://<PROJECT>/shared/src/jvmMain/kotlin/org/tool/kit/platform/RustFileDealWithFactory.kt:124:31 Unresolved reference 'message'.
+
+> Task :shared:compileKotlinJvm FAILED
+
+[Incubating] Problems report is available at: file://<PROJECT>/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':shared:compileKotlinJvm' (registered in build file 'shared/build.gradle.kts').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 19s
+22 actionable tasks: 18 executed, 4 up-to-date
