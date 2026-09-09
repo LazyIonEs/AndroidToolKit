@@ -5,5 +5,5 @@ import org.koin.dsl.module
 import org.tool.kit.vm.MainViewModel
 
 fun viewModelModule() = module {
-    viewModel { MainViewModel(get()) }
+    viewModel { MainViewModel(get(), get(), get()) }
 }

@@ -38,6 +38,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,7 +60,7 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.BuildConfig
-import org.tool.kit.feature.ui.FolderInput
+import org.tool.kit.feature.ui.FolderInputWithPicker
 import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.DestStoreSize
@@ -104,6 +105,7 @@ import org.tool.kit.shared.generated.resources.whether_to_turn_off_file_alignmen
 import org.tool.kit.utils.browseFileDirectory
 import org.tool.kit.utils.getLogFile
 import org.tool.kit.vm.MainViewModel
+import org.tool.kit.vm.LegacyPathField
 import java.awt.Desktop
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
@@ -116,6 +118,7 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 @Composable
 fun SetUp(viewModel: MainViewModel) {
+    LaunchedEffect(viewModel) { viewModel.refreshPathChecks(LegacyPathField.SETTINGS_OUTPUT) }
     val developerMode by viewModel.isEnableDeveloperMode.collectAsState()
     Box(modifier = Modifier.padding(end = 14.dp)) {
         LazyColumn {
@@ -160,7 +163,7 @@ private fun ApkSignatureSetUp(
     viewModel: MainViewModel
 ) {
     val userData by viewModel.userData.collectAsState()
-    var signerSuffix by mutableStateOf(userData.defaultSignerSuffix)
+    val draft by viewModel.settingsDraft.collectAsState()
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
             Spacer(Modifier.size(4.dp))
@@ -172,18 +175,15 @@ private fun ApkSignatureSetUp(
             )
             Spacer(Modifier.size(20.dp))
             StringInput(
-                value = signerSuffix,
+                value = draft.signerSuffix,
                 label = stringResource(Res.string.signature_suffix),
-                isError = userData.defaultSignerSuffix.isBlank(),
-                onValueChange = { suffix ->
-                    signerSuffix = suffix
-                    viewModel.saveUserData(userData.copy(defaultSignerSuffix = suffix))
-                })
+                isError = draft.signerSuffix.isBlank(),
+                onValueChange = viewModel::updateDefaultSignerSuffix)
             Spacer(Modifier.size(3.dp))
             Text(
                 text = stringResource(
                     Res.string.signature_suffix_tips,
-                    userData.defaultSignerSuffix
+                    draft.signerSuffix
                 ),
                 modifier = Modifier.padding(horizontal = 24.dp),
                 style = MaterialTheme.typography.labelSmall
@@ -375,11 +375,10 @@ private fun KeyStore(viewModel: MainViewModel) {
 private fun Conventional(
     viewModel: MainViewModel
 ) {
-    val userData by viewModel.userData.collectAsState()
     val themeConfig by viewModel.themeConfig.collectAsState()
-    var outputPath by mutableStateOf(userData.defaultOutputPath)
-    val outPutError =
-        userData.defaultOutputPath.isNotBlank() && !File(userData.defaultOutputPath).isDirectory
+    val draft by viewModel.settingsDraft.collectAsState()
+    val validation by viewModel.pathValidation.collectAsState()
+    val outPutError = validation[LegacyPathField.SETTINGS_OUTPUT]?.isError == true
     val isStartCheckUpdate by viewModel.isStartCheckUpdate.collectAsState()
     val isCheckUpdate by viewModel.checkUpdateState.collectAsState()
     Card(Modifier.fillMaxWidth()) {
@@ -392,20 +391,11 @@ private fun Conventional(
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.size(12.dp))
-            FolderInput(
-                value = outputPath,
+            FolderInputWithPicker(
+                value = draft.outputPath,
                 label = stringResource(Res.string.default_output_path),
                 isError = outPutError,
-                onValueChange = { path ->
-                    outputPath = path
-                    viewModel.apply {
-                        saveUserData(userData.copy(defaultOutputPath = path))
-                        updateApkSignature(viewModel.apkSignatureState.copy(outputPath = outputPath))
-                        updateSignatureGenerate(viewModel.keyStoreInfoState.copy(keyStorePath = outputPath))
-                        updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = outputPath))
-                        updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = outputPath))
-                    }
-                })
+                onValueChange = viewModel::updateDefaultOutputPath)
             Spacer(Modifier.size(18.dp))
             Column {
                 Text(

@@ -49,7 +49,8 @@ def main():
     for source in (ROOT / "composeApp/resources/common",
                    ROOT / f"composeApp/resources/macos-{'arm64' if platform.machine() == 'arm64' else 'x64'}"):
         shutil.copytree(source, resources, dirs_exist_ok=True)
-    java_home = Path(subprocess.check_output(["/usr/libexec/java_home", "-v", "21"], text=True).strip())
+    java_home = Path(os.environ.get("MIGRATION_JAVA_HOME") or
+                     subprocess.check_output(["/usr/libexec/java_home", "-v", "21"], text=True).strip())
     command = [str(java_home / "bin/jpackage"), "--type", "app-image", "--input", str(inputs),
                "--dest", str(stage / "app"), "--name", "AndroidToolKitBaseline",
                "--main-jar", "baseline.jar", "--main-class", "org.tool.kit.migration.BaselineDesktopKt",

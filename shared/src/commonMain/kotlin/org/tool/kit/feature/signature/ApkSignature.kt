@@ -32,6 +32,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,8 +43,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.constant.ConfigConstant
-import org.tool.kit.feature.ui.FileInput
-import org.tool.kit.feature.ui.FolderInput
+import org.tool.kit.feature.ui.FileInputWithPicker
+import org.tool.kit.feature.ui.FolderInputWithPicker
 import org.tool.kit.feature.ui.PasswordInput
 import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.feature.ui.UploadAnimate
@@ -64,7 +66,7 @@ import org.tool.kit.shared.generated.resources.v4_signature_output_file_name
 import org.tool.kit.utils.isApk
 import org.tool.kit.utils.isKey
 import org.tool.kit.vm.MainViewModel
-import java.io.File
+import org.tool.kit.vm.LegacyPathField
 import kotlin.io.path.pathString
 
 /**
@@ -75,6 +77,7 @@ import kotlin.io.path.pathString
  */
 @Composable
 fun ApkSignature(viewModel: MainViewModel) {
+    LaunchedEffect(viewModel) { viewModel.refreshSigningChecks() }
     SignatureCard(viewModel)
     SignatureBox(viewModel)
 }
@@ -125,17 +128,16 @@ private fun SignatureBox(
 
 @Composable
 private fun SignatureCard(viewModel: MainViewModel) {
-    val isApkError =
-        viewModel.apkSignatureState.apkPath.isNotBlank() && !File(viewModel.apkSignatureState.apkPath).isFile
+    val paths by viewModel.pathValidation.collectAsState()
+    val validation by viewModel.signingValidation.collectAsState()
+    val isApkError = paths[LegacyPathField.SIGNING_APK]?.isError == true
     val apkError = isApkError && viewModel.apkSignatureState.apkPath != ConfigConstant.APK.All.path
-    val outputError =
-        viewModel.apkSignatureState.outputPath.isNotBlank() && !File(viewModel.apkSignatureState.outputPath).isDirectory
-    val signatureError =
-        viewModel.apkSignatureState.keyStorePath.isNotBlank() && !File(viewModel.apkSignatureState.keyStorePath).isFile
+    val outputError = paths[LegacyPathField.SIGNING_OUTPUT]?.isError == true
+    val signatureError = paths[LegacyPathField.SIGNING_KEYSTORE]?.isError == true
     val signaturePasswordError =
         viewModel.apkSignatureState.keyStorePassword.isNotBlank() && viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty()
     val signatureAlisaPasswordError =
-        !viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty() && viewModel.apkSignatureState.keyStoreAlisaPassword.isNotBlank() && !viewModel.verifyAlisaPassword(viewModel.apkSignatureState)
+        !viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty() && viewModel.apkSignatureState.keyStoreAlisaPassword.isNotBlank() && validation.aliasPasswordValid == false
     Card(
         modifier = Modifier.fillMaxSize()
             .padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
@@ -150,7 +152,7 @@ private fun SignatureCard(viewModel: MainViewModel) {
             }
             item {
                 Spacer(Modifier.size(6.dp))
-                FolderInput(
+                FolderInputWithPicker(
                     value = viewModel.apkSignatureState.outputPath,
                     label = stringResource(Res.string.output_path),
                     isError = outputError
@@ -177,7 +179,7 @@ private fun SignatureCard(viewModel: MainViewModel) {
             item {
                 Spacer(Modifier.size(6.dp))
                 Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                    FileInput(
+                    FileInputWithPicker(
                         value = viewModel.apkSignatureState.keyStorePath,
                         label = stringResource(Res.string.key_store_file),
                         isError = signatureError,
@@ -196,17 +198,7 @@ private fun SignatureCard(viewModel: MainViewModel) {
                     label = stringResource(Res.string.key_store_password),
                     isError = signaturePasswordError
                 ) { password ->
-                    viewModel.updateApkSignature(viewModel.apkSignatureState.copy(keyStorePassword = password))
-                    if (viewModel.apkSignatureState.keyStorePath.isNotBlank() && File(viewModel.apkSignatureState.keyStorePath).isFile) {
-                        viewModel.updateApkSignature(
-                            viewModel.apkSignatureState.copy(
-                                keyStoreAlisaList = viewModel.verifyAlisa(
-                                    viewModel.apkSignatureState.keyStorePath,
-                                    viewModel.apkSignatureState.keyStorePassword
-                                )
-                            )
-                        )
-                    }
+                    viewModel.updateSigningStorePassword(password)
                 }
             }
             item {
@@ -261,7 +253,7 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
         } else {
             viewModel.apkSignatureState.apkPath
         }
-        FileInput(
+        FileInputWithPicker(
             value = value,
             label = stringResource(Res.string.apk_file),
             isError = apkError,
@@ -453,7 +445,9 @@ private fun Signature(
     signatureAlisaPasswordError: Boolean
 ) {
     Button(onClick = {
-        if (apkError || outputError || signatureError || signaturePasswordError || signatureAlisaPasswordError) {
+        if (apkError || outputError || signatureError || signaturePasswordError || signatureAlisaPasswordError
+            || viewModel.signingValidation.value.pending
+            || viewModel.hasPendingPathChecks(LegacyPathField.SIGNING_APK, LegacyPathField.SIGNING_OUTPUT, LegacyPathField.SIGNING_KEYSTORE)) {
             viewModel.updateSnackbarVisuals(Res.string.check_error)
             return@Button
         }

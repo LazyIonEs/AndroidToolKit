@@ -15,13 +15,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
-import org.tool.kit.feature.ui.FolderInput
+import org.tool.kit.feature.ui.FolderInputWithPicker
 import org.tool.kit.feature.ui.IntInput
 import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.shared.generated.resources.Res
@@ -45,7 +48,7 @@ import org.tool.kit.shared.generated.resources.state_or_province
 import org.tool.kit.shared.generated.resources.validity_period_unit_year
 import org.tool.kit.utils.isKey
 import org.tool.kit.vm.MainViewModel
-import java.io.File
+import org.tool.kit.vm.LegacyPathField
 
 /**
  * @Author      : LazyIonEs
@@ -57,6 +60,7 @@ import java.io.File
 fun SignatureGeneration(
     viewModel: MainViewModel
 ) {
+    LaunchedEffect(viewModel) { viewModel.refreshPathChecks(LegacyPathField.KEYSTORE_OUTPUT) }
     GenerationBox(viewModel)
 }
 
@@ -70,8 +74,8 @@ private fun GenerationBox(
     Card(
         modifier = Modifier.fillMaxSize().padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
     ) {
-        val keyStorePathError =
-            viewModel.keyStoreInfoState.keyStorePath.isNotBlank() && !File(viewModel.keyStoreInfoState.keyStorePath).isDirectory
+        val paths by viewModel.pathValidation.collectAsState()
+        val keyStorePathError = paths[LegacyPathField.KEYSTORE_OUTPUT]?.isError == true
         val keyStoreNameError =
             viewModel.keyStoreInfoState.keyStoreName.isNotBlank() && !(viewModel.keyStoreInfoState.keyStoreName.isKey)
         val keyStoreConfirmPasswordError =
@@ -83,7 +87,7 @@ private fun GenerationBox(
         ) {
             item {
                 Spacer(Modifier.size(16.dp))
-                FolderInput(
+                FolderInputWithPicker(
                     value = viewModel.keyStoreInfoState.keyStorePath,
                     label = stringResource(Res.string.key_output_path),
                     isError = keyStorePathError
@@ -298,7 +302,7 @@ private fun CreateSignature(
     keyStoreAlisaConfirmPasswordError: Boolean
 ) {
     Button(onClick = {
-        if (keyStorePathError ||
+        if (keyStorePathError || viewModel.hasPendingPathChecks(LegacyPathField.KEYSTORE_OUTPUT) ||
             keyStoreNameError ||
             keyStoreConfirmPasswordError ||
             keyStoreAlisaConfirmPasswordError
@@ -384,4 +388,3 @@ private fun ConfirmPasswordTextField(
         )
     }
 }
-

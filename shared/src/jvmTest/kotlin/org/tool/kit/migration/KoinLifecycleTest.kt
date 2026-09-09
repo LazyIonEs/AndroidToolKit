@@ -92,7 +92,7 @@ class KoinLifecycleTest {
             modules(desktopModules() + module {
                 viewModel {
                     created.incrementAndGet()
-                    MainViewModel(get()).also { vm -> vm.addCloseable { cleared.incrementAndGet() } }
+                    MainViewModel(get(), get(), get()).also { vm -> vm.addCloseable { cleared.incrementAndGet() } }
                 }
             })
         }

@@ -1,0 +1,28 @@
+{
+  "checks": [
+    "18 navigation/theme selections without UI exceptions",
+    "settings output and suffix survive theme change and navigation",
+    "valid store password loads original alias",
+    "wrong store password clears aliases",
+    "new valid password restores aliases",
+    "alias password field accepts input"
+  ],
+  "status": {
+    "connected": true,
+    "buildContinuous": false,
+    "reloadState": "ok",
+    "lastError": null,
+    "successfulReloads": 0,
+    "failedReloads": 0
+  },
+  "windows": [
+    {
+      "id": "d12f9d3d-527c-40b6-bd23-247b3d03467f",
+      "title": "AndroidToolKit",
+      "x": 48,
+      "y": 81,
+      "width": 800,
+      "height": 600
+    }
+  ]
+}

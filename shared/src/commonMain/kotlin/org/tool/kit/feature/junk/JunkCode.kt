@@ -31,6 +31,7 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -40,7 +41,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.stringResource
-import org.tool.kit.feature.ui.FolderInput
+import org.tool.kit.feature.ui.FolderInputWithPicker
 import org.tool.kit.feature.ui.IntInput
 import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.model.JunkMode
@@ -58,7 +59,7 @@ import org.tool.kit.shared.generated.resources.start_generating
 import org.tool.kit.shared.generated.resources.suffix
 import org.tool.kit.utils.generateSecureToken
 import org.tool.kit.vm.MainViewModel
-import java.io.File
+import org.tool.kit.vm.LegacyPathField
 
 /**
  * @Author      : LazyIonEs
@@ -68,6 +69,7 @@ import java.io.File
  */
 @Composable
 fun JunkCode(viewModel: MainViewModel) {
+    LaunchedEffect(viewModel) { viewModel.refreshPathChecks(LegacyPathField.JUNK_OUTPUT) }
     JunkCodeBox(viewModel)
 }
 
@@ -77,15 +79,15 @@ private fun JunkCodeBox(viewModel: MainViewModel) {
         modifier = Modifier.fillMaxSize()
             .padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
     ) {
-        val outputPathError =
-            viewModel.junkCodeInfoState.outputPath.isNotBlank() && !File(viewModel.junkCodeInfoState.outputPath).isDirectory
+        val paths by viewModel.pathValidation.collectAsState()
+        val outputPathError = paths[LegacyPathField.JUNK_OUTPUT]?.isError == true
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 Spacer(Modifier.size(16.dp))
-                FolderInput(
+                FolderInputWithPicker(
                     value = viewModel.junkCodeInfoState.outputPath,
                     label = stringResource(Res.string.aar_output_path),
                     isError = outputPathError,
@@ -414,7 +416,7 @@ private fun Generate(
             modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp)
         )
         Button(onClick = {
-            if (outputPathError) {
+            if (outputPathError || viewModel.hasPendingPathChecks(LegacyPathField.JUNK_OUTPUT)) {
                 viewModel.updateSnackbarVisuals(Res.string.check_error)
                 return@Button
             }

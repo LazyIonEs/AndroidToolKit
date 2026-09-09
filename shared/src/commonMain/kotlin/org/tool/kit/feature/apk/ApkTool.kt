@@ -34,6 +34,8 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,8 +45,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
-import org.tool.kit.feature.ui.FileInput
-import org.tool.kit.feature.ui.FolderInput
+import org.tool.kit.feature.ui.FileInputWithPicker
+import org.tool.kit.feature.ui.FolderInputWithPicker
 import org.tool.kit.feature.ui.PasswordInput
 import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.feature.ui.UploadAnimate
@@ -72,11 +74,12 @@ import org.tool.kit.shared.generated.resources.start_generating
 import org.tool.kit.utils.isImage
 import org.tool.kit.utils.isKey
 import org.tool.kit.vm.MainViewModel
-import java.io.File
+import org.tool.kit.vm.LegacyPathField
 import kotlin.io.path.pathString
 
 @Composable
 fun ApkTool(viewModel: MainViewModel) {
+    LaunchedEffect(viewModel) { viewModel.refreshApkToolChecks() }
     ApkToolBox(viewModel)
 }
 
@@ -103,16 +106,15 @@ private fun ApkToolBox(viewModel: MainViewModel) {
             })
         ).padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
     ) {
-        val outputPathError =
-            viewModel.apkToolInfoState.outputPath.isNotBlank() && !File(viewModel.apkToolInfoState.outputPath).isDirectory
-        val iconFileError =
-            viewModel.apkToolInfoState.icon.isNotBlank() && !File(viewModel.apkToolInfoState.icon).isFile
+        val paths by viewModel.pathValidation.collectAsState()
+        val outputPathError = paths[LegacyPathField.APK_TOOL_OUTPUT]?.isError == true
+        val iconFileError = paths[LegacyPathField.APK_TOOL_ICON]?.isError == true
         LazyColumn(
             modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 Spacer(Modifier.size(8.dp))
-                FolderInput(
+                FolderInputWithPicker(
                     value = viewModel.apkToolInfoState.outputPath,
                     label = stringResource(Res.string.apk_output_path),
                     isError = outputPathError,
@@ -123,7 +125,7 @@ private fun ApkToolBox(viewModel: MainViewModel) {
             item {
                 Spacer(Modifier.size(4.dp))
                 Box(Modifier.fillMaxSize().padding(start = 24.dp, end = 16.dp)) {
-                    FileInput(
+                    FileInputWithPicker(
                         value = viewModel.apkToolInfoState.icon,
                         label = stringResource(Res.string.icon_file),
                         isError = iconFileError,
@@ -318,16 +320,17 @@ fun Sign(viewModel: MainViewModel) {
 
 @Composable
 fun Signature(viewModel: MainViewModel) {
-    val signatureError =
-        viewModel.apkToolInfoState.keyStorePath.isNotBlank() && !File(viewModel.apkToolInfoState.keyStorePath).isFile
+    val paths by viewModel.pathValidation.collectAsState()
+    val validation by viewModel.apkToolValidation.collectAsState()
+    val signatureError = paths[LegacyPathField.APK_TOOL_KEYSTORE]?.isError == true
     val signaturePasswordError =
         viewModel.apkToolInfoState.keyStorePassword.isNotBlank() && viewModel.apkToolInfoState.keyStoreAlisaList.isNullOrEmpty()
     val signatureAlisaPasswordError =
-        !viewModel.apkToolInfoState.keyStoreAlisaList.isNullOrEmpty() && viewModel.apkToolInfoState.keyStoreAlisaPassword.isNotBlank() && !viewModel.verifyAlisaPassword(viewModel.apkToolInfoState)
+        !viewModel.apkToolInfoState.keyStoreAlisaList.isNullOrEmpty() && viewModel.apkToolInfoState.keyStoreAlisaPassword.isNotBlank() && validation.aliasPasswordValid == false
     Column(modifier = Modifier.fillMaxWidth()) {
         Spacer(Modifier.size(6.dp))
         Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-            FileInput(
+            FileInputWithPicker(
                 value = viewModel.apkToolInfoState.keyStorePath,
                 label = stringResource(Res.string.key_store_file),
                 isError = signatureError,
@@ -344,17 +347,7 @@ fun Signature(viewModel: MainViewModel) {
             label = stringResource(Res.string.key_store_password),
             isError = signaturePasswordError
         ) { password ->
-            viewModel.updateApkToolInfo(viewModel.apkToolInfoState.copy(keyStorePassword = password))
-            if (viewModel.apkToolInfoState.keyStorePath.isNotBlank() && File(viewModel.apkToolInfoState.keyStorePath).isFile) {
-                viewModel.updateApkToolInfo(
-                    viewModel.apkToolInfoState.copy(
-                        keyStoreAlisaList = viewModel.verifyAlisa(
-                            viewModel.apkToolInfoState.keyStorePath,
-                            viewModel.apkToolInfoState.keyStorePassword
-                        )
-                    )
-                )
-            }
+            viewModel.updateApkToolStorePassword(password)
         }
         Spacer(Modifier.size(6.dp))
         SignatureAlisa(viewModel)
@@ -443,7 +436,10 @@ private fun Generate(
     viewModel: MainViewModel, outputPathError: Boolean, iconFileError: Boolean
 ) {
     Button(onClick = {
-        if (outputPathError || iconFileError) {
+        if (outputPathError || iconFileError
+            || viewModel.hasPendingPathChecks(LegacyPathField.APK_TOOL_OUTPUT, LegacyPathField.APK_TOOL_ICON)
+            || (viewModel.apkToolInfoState.enableSign && (viewModel.apkToolValidation.value.pending
+                || viewModel.hasPendingPathChecks(LegacyPathField.APK_TOOL_KEYSTORE)))) {
             viewModel.updateSnackbarVisuals(Res.string.check_error)
             return@Button
         }

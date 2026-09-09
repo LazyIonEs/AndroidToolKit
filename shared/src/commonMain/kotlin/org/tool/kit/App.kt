@@ -99,11 +99,13 @@ private fun AppRoute() {
         DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
     }
 
-    logger.info { "启动App, 应用版本号: ${BuildConfig.APP_VERSION}" }
+    LaunchedEffect(Unit) {
+        logger.info { "启动App, 应用版本号: ${BuildConfig.APP_VERSION}" }
+    }
 
     AppTheme(useDarkTheme) {
         CompositionLocalProvider(LocalIsAppDarkTheme provides useDarkTheme) {
-            MainContentScreen(viewModel)
+            MainContentScreen(viewModel, useDarkTheme)
         }
     }
 
@@ -126,7 +128,7 @@ fun WindowIcon() = painterResource(Res.drawable.icon)
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
-fun MainContentScreen(viewModel: MainViewModel) {
+fun MainContentScreen(viewModel: MainViewModel, useDarkTheme: Boolean) {
     val snackbarHostState = remember { SnackbarHostState() }
     val userData by viewModel.userData.collectAsState()
     LaunchedEffect(userData.defaultOutputPath) {
@@ -226,7 +228,7 @@ fun MainContentScreen(viewModel: MainViewModel) {
             SnackbarResult.Dismissed -> Unit
         }
     }
-    LoadingAnimate(isShowLoading(viewModel), viewModel)
+    LoadingAnimate(isShowLoading(viewModel), useDarkTheme)
     UpdateDialog(viewModel)
 }
 

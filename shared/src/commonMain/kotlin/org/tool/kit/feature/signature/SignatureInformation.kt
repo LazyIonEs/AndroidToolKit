@@ -60,8 +60,10 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,12 +78,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import io.github.vinceglb.filekit.dialogs.FileKitMode
-import io.github.vinceglb.filekit.dialogs.FileKitType
-import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
-import io.github.vinceglb.filekit.path
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.feature.ui.FileButton
+import org.tool.kit.feature.ui.rememberFilePickerRequest
 import org.tool.kit.feature.ui.UploadAnimate
 import org.tool.kit.feature.ui.dragAndDropTarget
 import org.tool.kit.model.CopyMode
@@ -101,11 +100,9 @@ import org.tool.kit.shared.generated.resources.upload
 import org.tool.kit.shared.generated.resources.upload_apk_signature_file
 import org.tool.kit.shared.generated.resources.wrong_key_store_password
 import org.tool.kit.utils.LottieAnimation
-import org.tool.kit.utils.checkFile
 import org.tool.kit.utils.copy
 import org.tool.kit.utils.isApk
 import org.tool.kit.utils.isKey
-import org.tool.kit.utils.toFileExtensions
 import org.tool.kit.vm.MainViewModel
 import org.tool.kit.vm.UIState
 import kotlin.io.path.pathString
@@ -212,16 +209,11 @@ private fun SignatureBox(
                 Box(modifier = Modifier.wrapContentSize()) {
                     var checked by remember { mutableStateOf(false) }
                     val type = arrayOf(FileSelectorType.KEY, FileSelectorType.APK)
-                    val launcher = rememberFilePickerLauncher(
-                        type = FileKitType.File(type.toFileExtensions()),
-                        mode = FileKitMode.Single
-                    ) { file ->
-                        if (type.checkFile(file?.path ?: return@rememberFilePickerLauncher)) {
-                            if (file.path.isApk) {
-                                viewModel.apkVerifier(file.path)
-                            } else if (file.path.isKey) {
-                                signaturePath.value = file.path
-                            }
+                    val requestFile = rememberFilePickerRequest(*type) { path ->
+                        if (path.isApk) {
+                            viewModel.apkVerifier(path)
+                        } else if (path.isKey) {
+                            signaturePath.value = path
                         }
                     }
                     val size = SplitButtonDefaults.SmallContainerHeight
@@ -229,7 +221,7 @@ private fun SignatureBox(
                         leadingButton = {
                             SplitButtonDefaults.LeadingButton(
                                 onClick = {
-                                    launcher.launch()
+                                    requestFile()
                                 },
                                 modifier = Modifier.heightIn(size),
                                 shapes = SplitButtonDefaults.leadingButtonShapesFor(size),
@@ -391,8 +383,14 @@ private fun SignatureDialog(
 ) {
     if (signaturePath.value.isNotBlank()) {
         val password = remember { mutableStateOf("") }
-        var options by remember { mutableStateOf<ArrayList<String>?>(null) }
-        var alisa by remember { mutableStateOf(options?.getOrNull(0) ?: "") }
+        val aliasesState by viewModel.signatureAliases.collectAsState()
+        val options = aliasesState.aliases
+        var alisa by remember { mutableStateOf("") }
+        DisposableEffect(viewModel, signaturePath.value) {
+            viewModel.resetSignatureAliases()
+            onDispose { viewModel.resetSignatureAliases() }
+        }
+        LaunchedEffect(aliasesState) { alisa = options?.getOrNull(0) ?: "" }
         AlertDialog(icon = {
             Icon(Icons.Rounded.Password, contentDescription = "Password")
         }, title = {
@@ -408,12 +406,7 @@ private fun SignatureDialog(
                     value = password.value,
                     onValueChange = { value ->
                         password.value = value
-                        options = viewModel.verifyAlisa(signaturePath.value, value)
-                        alisa = if (!options.isNullOrEmpty()) {
-                            options?.getOrNull(0) ?: ""
-                        } else {
-                            ""
-                        }
+                        viewModel.validateSignatureAliases(signaturePath.value, value)
                     },
                     label = {
                         Text(
@@ -471,7 +464,7 @@ private fun SignatureDialog(
             signaturePath.value = ""
         }, confirmButton = {
             TextButton(onClick = {
-                if (alisa.isNotBlank()) {
+                if (alisa.isNotBlank() && !viewModel.signatureAliases.value.pending) {
                     viewModel.signerVerifier(
                         signaturePath.value, password.value, alisa
                     )

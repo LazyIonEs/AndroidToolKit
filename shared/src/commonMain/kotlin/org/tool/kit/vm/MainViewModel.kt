@@ -34,6 +34,10 @@ import org.jetbrains.compose.resources.getString
 import org.tool.kit.BuildConfig
 import org.tool.kit.constant.ConfigConstant
 import org.tool.kit.data.source.PreferencesDataSource
+import org.tool.kit.core.validation.LatestRequest
+import org.tool.kit.domain.repository.KeyStoreRepository
+import org.tool.kit.domain.repository.StorageCapacity
+import org.tool.kit.domain.repository.StorageRepository
 import org.tool.kit.model.ApkInformation
 import org.tool.kit.model.ApkSignature
 import org.tool.kit.model.ApkToolInfo
@@ -120,7 +124,11 @@ private val logger = KotlinLogging.logger("MainViewModel")
  * @Description : MainViewModel
  * @Version     : 1.0
  */
-class MainViewModel(private val preferences: PreferencesDataSource) :
+class MainViewModel(
+    private val preferences: PreferencesDataSource,
+    private val storage: StorageRepository,
+    keyStores: KeyStoreRepository,
+) :
     ViewModel() {
 
     // 偏好设置
@@ -254,6 +262,84 @@ class MainViewModel(private val preferences: PreferencesDataSource) :
     private val _checkUpdateResult = MutableStateFlow<Update?>(null)
     val checkUpdateResult = _checkUpdateResult.asStateFlow()
 
+    private val _settingsDraft = MutableStateFlow(preferences.userData.value.let {
+        SettingsInputDraft(it.defaultOutputPath, it.defaultSignerSuffix)
+    })
+    val settingsDraft = _settingsDraft.asStateFlow()
+
+    private val pathChecks = LegacyPathChecks(viewModelScope, storage)
+    val pathValidation = pathChecks.state
+    private val capacityRequest = LatestRequest(viewModelScope)
+    private val _storageCapacity = MutableStateFlow(StorageCapacity(0, 0))
+    val storageCapacity = _storageCapacity.asStateFlow()
+
+    private val signingChecks = LegacySignValidation(viewModelScope, storage, keyStores) { aliases ->
+        updateApkSignature(apkSignatureState.copy(keyStoreAlisaList = aliases?.let(::ArrayList)))
+    }
+    val signingValidation = signingChecks.state
+    private val apkToolChecks = LegacySignValidation(viewModelScope, storage, keyStores) { aliases ->
+        updateApkToolInfo(apkToolInfoState.copy(keyStoreAlisaList = aliases?.let(::ArrayList)))
+    }
+    val apkToolValidation = apkToolChecks.state
+    private val signatureAliasChecks = KeyAliasesValidation(viewModelScope, keyStores)
+    val signatureAliases = signatureAliasChecks.state
+
+    init {
+        pathChecks.validate(LegacyPathField.SETTINGS_OUTPUT, settingsDraft.value.outputPath, PathKind.DIRECTORY)
+    }
+
+    fun refreshStorageCapacity() {
+        capacityRequest.launch(block = { storage.readCapacity() }) { _storageCapacity.value = it }
+    }
+
+    fun updateDefaultOutputPath(path: String) {
+        _settingsDraft.update { it.copy(outputPath = path) }
+        pathChecks.validate(LegacyPathField.SETTINGS_OUTPUT, path, PathKind.DIRECTORY)
+        // Preserve the current immediate updates; the root's existing bridge still covers all five forms.
+        updateApkSignature(apkSignatureState.copy(outputPath = path))
+        updateSignatureGenerate(keyStoreInfoState.copy(keyStorePath = path))
+        updateJunkCodeInfo(junkCodeInfoState.copy(outputPath = path))
+        updateIconFactoryInfo(iconFactoryInfoState.copy(outputPath = path))
+        viewModelScope.launch {
+            preferences.saveUserData(preferences.userData.value.copy(defaultOutputPath = path))
+        }
+    }
+
+    fun updateDefaultSignerSuffix(suffix: String) {
+        _settingsDraft.update { it.copy(signerSuffix = suffix) }
+        viewModelScope.launch {
+            preferences.saveUserData(preferences.userData.value.copy(defaultSignerSuffix = suffix))
+        }
+    }
+
+    fun updateSigningStorePassword(password: String) {
+        updateApkSignature(apkSignatureState.copy(keyStorePassword = password))
+        signingChecks.passwordChanged(apkSignatureState)
+    }
+
+    fun updateApkToolStorePassword(password: String) {
+        updateApkToolInfo(apkToolInfoState.copy(keyStorePassword = password))
+        apkToolChecks.passwordChanged(apkToolInfoState)
+    }
+
+    fun validateSignatureAliases(path: String, password: String) = signatureAliasChecks.validate(path, password)
+    fun resetSignatureAliases() = signatureAliasChecks.reset()
+
+    fun hasPendingPathChecks(vararg fields: LegacyPathField): Boolean =
+        fields.any { pathValidation.value[it]?.pending == true }
+
+    fun refreshPathChecks(vararg fields: LegacyPathField) = pathChecks.refresh(*fields)
+
+    fun refreshSigningChecks() {
+        refreshPathChecks(LegacyPathField.SIGNING_APK, LegacyPathField.SIGNING_OUTPUT, LegacyPathField.SIGNING_KEYSTORE)
+        signingChecks.refreshAliasPassword(apkSignatureState)
+    }
+
+    fun refreshApkToolChecks() {
+        refreshPathChecks(LegacyPathField.APK_TOOL_OUTPUT, LegacyPathField.APK_TOOL_ICON, LegacyPathField.APK_TOOL_KEYSTORE)
+        apkToolChecks.refreshAliasPassword(apkToolInfoState)
+    }
+
     /**
      * 更新主题
      */
@@ -268,7 +354,9 @@ class MainViewModel(private val preferences: PreferencesDataSource) :
      */
     fun saveUserData(userData: UserData) {
         viewModelScope.launch {
-            preferences.saveUserData(userData)
+            // Remaining settings controls pass old DTO copies. They must not overwrite newer input drafts.
+            val draft = settingsDraft.value
+            preferences.saveUserData(userData.copy(defaultOutputPath = draft.outputPath, defaultSignerSuffix = draft.signerSuffix))
         }
     }
 
@@ -358,6 +446,10 @@ class MainViewModel(private val preferences: PreferencesDataSource) :
      */
     fun updateApkSignature(apkSignature: ApkSignature) {
         _apkSignatureState.update { apkSignature }
+        pathChecks.validate(LegacyPathField.SIGNING_APK, apkSignature.apkPath, PathKind.FILE)
+        pathChecks.validate(LegacyPathField.SIGNING_OUTPUT, apkSignature.outputPath, PathKind.DIRECTORY)
+        pathChecks.validate(LegacyPathField.SIGNING_KEYSTORE, apkSignature.keyStorePath, PathKind.FILE)
+        signingChecks.formChanged(apkSignature)
     }
 
     /**
@@ -367,6 +459,7 @@ class MainViewModel(private val preferences: PreferencesDataSource) :
      */
     fun updateSignatureGenerate(keyStoreInfo: KeyStoreInfo) {
         _keyStoreInfoState.update { keyStoreInfo }
+        pathChecks.validate(LegacyPathField.KEYSTORE_OUTPUT, keyStoreInfo.keyStorePath, PathKind.DIRECTORY)
     }
 
     /**
@@ -376,6 +469,7 @@ class MainViewModel(private val preferences: PreferencesDataSource) :
      */
     fun updateJunkCodeInfo(junkCodeInfo: JunkCodeInfo) {
         _junkCodeInfoState.update { junkCodeInfo }
+        pathChecks.validate(LegacyPathField.JUNK_OUTPUT, junkCodeInfo.outputPath, PathKind.DIRECTORY)
     }
 
     /**
@@ -394,6 +488,10 @@ class MainViewModel(private val preferences: PreferencesDataSource) :
      */
     fun updateApkToolInfo(apkToolInfo: ApkToolInfo) {
         _apkToolInfoState.update { apkToolInfo }
+        pathChecks.validate(LegacyPathField.APK_TOOL_OUTPUT, apkToolInfo.outputPath, PathKind.DIRECTORY)
+        pathChecks.validate(LegacyPathField.APK_TOOL_ICON, apkToolInfo.icon, PathKind.FILE)
+        pathChecks.validate(LegacyPathField.APK_TOOL_KEYSTORE, apkToolInfo.keyStorePath, PathKind.FILE)
+        apkToolChecks.formChanged(apkToolInfo)
     }
 
     /**
@@ -1144,54 +1242,6 @@ class MainViewModel(private val preferences: PreferencesDataSource) :
     }
 
     /**
-     * 验证签名
-     * @param path 签名路径
-     * @param password 签名密码
-     */
-    fun verifyAlisa(path: String, password: String): ArrayList<String>? {
-        var fileInputStream: FileInputStream? = null
-        try {
-            val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
-            fileInputStream = FileInputStream(path)
-            keyStore.load(fileInputStream, password.toCharArray())
-            val aliases = keyStore.aliases()
-            val list = ArrayList<String>()
-            while (aliases.hasMoreElements()) {
-                list.add(aliases.nextElement())
-            }
-            return list
-        } catch (e: Exception) {
-            logger.error(e) { "verifyAlisa 验证签名异常, 异常信息: ${e.message}" }
-        } finally {
-            fileInputStream?.close()
-        }
-        return null
-    }
-
-    /**
-     * 验证别名密码
-     */
-    fun verifyAlisaPassword(sign: Sign): Boolean {
-        var fileInputStream: FileInputStream? = null
-        try {
-            val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
-            fileInputStream = FileInputStream(sign.keyStorePath)
-            keyStore.load(fileInputStream, sign.keyStorePassword.toCharArray())
-            val alisa = sign.keyStoreAlisaList?.getOrNull(sign.keyStoreAlisaIndex)
-            if (keyStore.containsAlias(alisa)) {
-                val key = keyStore.getKey(alisa, sign.keyStoreAlisaPassword.toCharArray())
-                return key != null
-            }
-        } catch (e: Exception) {
-            logger.error(e) { "verifyAlisaPassword 验证别名密码异常, 异常信息: ${e.message}" }
-            return false
-        } finally {
-            fileInputStream?.close()
-        }
-        return false
-    }
-
-    /**
      * 扫描自定义文件夹
      */
     fun scanPendingDeletionFileList(directory: File) {
@@ -1228,6 +1278,7 @@ class MainViewModel(private val preferences: PreferencesDataSource) :
             logger.info { "scanPendingDeletionFileList 扫描自定义文件夹结束, 耗时: ${System.currentTimeMillis() - start}ms, 扫描目录数: ${_pendingDeletionFileList.size}, 扫描文件总大小: ${totalLength.formatFileSize()}" }
             withContext(Dispatchers.Main) {
                 _fileClearUIState.update { UIState.WAIT }
+                refreshStorageCapacity()
                 if (_pendingDeletionFileList.isEmpty()) {
                     updateSnackbarVisuals(Res.string.scanning_anomalies)
                 }
@@ -1328,6 +1379,7 @@ class MainViewModel(private val preferences: PreferencesDataSource) :
             withContext(Dispatchers.Main) {
                 isClearing = false
                 _fileClearUIState.update { UIState.WAIT }
+                refreshStorageCapacity()
                 val message = if (errorCount == 0) {
                     // 全部删除成功
                     getString(Res.string.cleanup_complete, clearLength.formatFileSize())

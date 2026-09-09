@@ -55,6 +55,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -76,6 +77,7 @@ import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.feature.ui.DirectoryButton
+import org.tool.kit.domain.repository.StorageCapacity
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.Sequence
 import org.tool.kit.shared.generated.resources.Res
@@ -117,15 +119,17 @@ import kotlin.time.Instant
 
 @Composable
 fun ClearBuild(viewModel: MainViewModel) {
+    LaunchedEffect(viewModel) { viewModel.refreshStorageCapacity() }
     ClearMain(viewModel)
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ClearMain(viewModel: MainViewModel) {
+    val capacity by viewModel.storageCapacity.collectAsState()
     Box(Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            ClearBuildPreview(viewModel)
+            ClearBuildPreview(viewModel, capacity)
             ClearBuildList(viewModel)
         }
         AnimatedVisibility(
@@ -145,17 +149,10 @@ private fun ClearMain(viewModel: MainViewModel) {
 }
 
 @Composable
-private fun ClearBuildPreview(viewModel: MainViewModel) {
-    // 总空间
-    var totalSpace = 0L
-    // 可用空间
-    var usableSpace = 0L
-    File.listRoots()?.forEach { fileRoot ->
-        totalSpace += fileRoot.totalSpace
-        usableSpace += fileRoot.usableSpace
-    }
-    // 已使用空间
-    val usedSpace = totalSpace - usableSpace
+private fun ClearBuildPreview(viewModel: MainViewModel, capacity: StorageCapacity) {
+    val totalSpace = capacity.totalBytes
+    val usableSpace = capacity.usableBytes
+    val usedSpace = capacity.usedBytes
     Column(modifier = Modifier.fillMaxWidth()) {
         ElevatedCard(
             modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 12.dp)
@@ -202,7 +199,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                         }
                     }
                     LinearProgressIndicator(
-                        progress = { usedSpace.toFloat() / totalSpace.toFloat() },
+                        progress = { if (totalSpace == 0L) 0f else usedSpace.toFloat() / totalSpace.toFloat() },
                         modifier = Modifier.fillMaxWidth()
                             .padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 16.dp),
                         color = MaterialTheme.colorScheme.primary
@@ -259,7 +256,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel) {
                             )
                         }
                         Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
-                            val percentage =
+                            val percentage = if (totalSpace == 0L) java.math.BigDecimal("0.0") else
                                 checkedTotalLength.toBigDecimal().multiply(100.toBigDecimal())
                                     .divide(totalSpace.toBigDecimal(), 1, RoundingMode.HALF_UP)
                             Text(

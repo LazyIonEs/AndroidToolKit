@@ -82,7 +82,7 @@ import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.constant.ConfigConstant
 import org.tool.kit.feature.ui.FileButton
-import org.tool.kit.feature.ui.FolderInput
+import org.tool.kit.feature.ui.FolderInputWithPicker
 import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.feature.ui.UploadAnimate
 import org.tool.kit.model.DarkThemeConfig
@@ -415,7 +415,7 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
     ) {
         item {
             Spacer(Modifier.size(8.dp))
-            FolderInput(
+            FolderInputWithPicker(
                 value = viewModel.iconFactoryInfoState.outputPath,
                 label = stringResource(Res.string.icon_output_path),
                 isError = false,

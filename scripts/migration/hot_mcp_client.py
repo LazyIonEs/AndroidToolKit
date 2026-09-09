@@ -86,7 +86,10 @@ def main():
                     raise RuntimeError(response)
                 return response["result"]["content"]
 
-            if "--smoke" in sys.argv[2:]:
+            if "--phase2-smoke" in sys.argv[2:]:
+                from hot_mcp_phase2 import smoke_phase2
+                smoke_phase2(call_tool, output, root)
+            elif "--smoke" in sys.argv[2:]:
                 from hot_mcp_scenarios import capture_baseline
                 capture_baseline(call_tool, output)
             else:
