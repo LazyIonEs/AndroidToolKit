@@ -1,0 +1,410 @@
+[
+  {
+    "path": "after/dark/result-bottom.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "after/dark/result-top.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "after/light/result-bottom.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "after/light/result-top.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "before/dark/result-bottom.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "before/dark/result-top.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "before/light/result-bottom.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "before/light/result-top.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/dark/apk-signature.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/dark/apk-tool.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/dark/junk-code.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/dark/keystore-generation.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/dark/settings.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/custom-path-retained.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/default-path-0.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/default-path-1.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/default-path-2.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/default-path-3.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/keystore-returned.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/settings-final-inputs.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/interactions/signing-returned.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/light/apk-signature.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/light/apk-tool.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/light/junk-code.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/light/keystore-generation.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "mcp/light/settings.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "native/aliases.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/apk-next-signers.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/apk-result.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/apk-settled.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/apk-v3.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/clipboard-lowercase-colon.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/clipboard-lowercase-no-colon.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/clipboard-uppercase-colon.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/clipboard-uppercase-no-colon.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/copy-modes.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/copy-notification.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/keystore-result.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/keystore-settled.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/picker-cancelled.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "native/wrong-password.jpg",
+    "size": [
+      800,
+      600
+    ],
+    "format": "JPEG"
+  },
+  {
+    "path": "software/dark/apk-signature.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/dark/apk-tool.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/dark/junk-code.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/dark/keystore-generation.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/dark/settings.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/light/apk-signature.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/light/apk-tool.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/light/junk-code.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/light/keystore-generation.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  },
+  {
+    "path": "software/light/settings.png",
+    "size": [
+      800,
+      572
+    ],
+    "format": "PNG"
+  }
+]

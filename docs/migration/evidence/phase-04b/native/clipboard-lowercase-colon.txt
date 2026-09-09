@@ -1,0 +1,4 @@
+The following is a diff from the previous accessibility tree for Window: "AndroidToolKit" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 55-71, 73-76, 78-80, 84
+~							92 文本栏 (selectable, settable) Description: 输出文件前缀(选填), Value: 7c:d8:45:1a:b4:eb:8d:7e:a4:ca:71:a6:e8:2a:33:2b
+The focused UI element is 1 未知 (selectable)

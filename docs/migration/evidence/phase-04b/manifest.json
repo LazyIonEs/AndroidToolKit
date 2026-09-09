@@ -1,0 +1,447 @@
+[
+  {
+    "path": "after/dark/result-bottom.png",
+    "bytes": 50245,
+    "sha256": "c0c44aeda3cb904f492fea2e14ec70b779068cad43321d92659341c45b41aa8c"
+  },
+  {
+    "path": "after/dark/result-top.png",
+    "bytes": 50919,
+    "sha256": "863ee52d1b6d10490cc41f63aaa69abbc11b83ece7a92ca8b88a86e58b15d403"
+  },
+  {
+    "path": "after/light/result-bottom.png",
+    "bytes": 49072,
+    "sha256": "21651467dec986d28dc892a4abc7fe6856e35a7e101881a0b4901de67ddf783a"
+  },
+  {
+    "path": "after/light/result-top.png",
+    "bytes": 49867,
+    "sha256": "a5b86dfeb7895a7933c7188e9222fb065114aba5e3c4a9fd12a3b7acb5dec678"
+  },
+  {
+    "path": "before/dark/result-bottom.png",
+    "bytes": 50245,
+    "sha256": "c0c44aeda3cb904f492fea2e14ec70b779068cad43321d92659341c45b41aa8c"
+  },
+  {
+    "path": "before/dark/result-top.png",
+    "bytes": 50919,
+    "sha256": "863ee52d1b6d10490cc41f63aaa69abbc11b83ece7a92ca8b88a86e58b15d403"
+  },
+  {
+    "path": "before/light/result-bottom.png",
+    "bytes": 49072,
+    "sha256": "21651467dec986d28dc892a4abc7fe6856e35a7e101881a0b4901de67ddf783a"
+  },
+  {
+    "path": "before/light/result-top.png",
+    "bytes": 49867,
+    "sha256": "a5b86dfeb7895a7933c7188e9222fb065114aba5e3c4a9fd12a3b7acb5dec678"
+  },
+  {
+    "path": "before-ui.txt",
+    "bytes": 4820,
+    "sha256": "b7af46b94c051977fed18946968baed5badda8ff01b96c6a21b2811f8cbf81fd"
+  },
+  {
+    "path": "boundaries.json",
+    "bytes": 870,
+    "sha256": "43f64c6838fc8ff172b4b685cd23886740c3644605e1c4a67345b702d94cd1e0"
+  },
+  {
+    "path": "cutover-tests.txt",
+    "bytes": 7696,
+    "sha256": "269999a8e9a261fa7f93d5fadc1816a6e54d79a168621c33761ef94943c1eac5"
+  },
+  {
+    "path": "extract-compile.txt",
+    "bytes": 5892,
+    "sha256": "ed971c9b2a22000a2d41a20a4e9df5e05487f92ee62a053615ffbaaea8de72ce"
+  },
+  {
+    "path": "image-sizes.json",
+    "bytes": 5930,
+    "sha256": "6af9f1a399dc81d7d28f964de410623846158186c03872d19c65c4183db24ccd"
+  },
+  {
+    "path": "jbr21-launch.txt",
+    "bytes": 7274,
+    "sha256": "21caea2c5cc151ae5146d91a19d2ee338e92fb9b6c1e37577081382dc69d6d42"
+  },
+  {
+    "path": "mcp/dark/apk-signature.png",
+    "bytes": 51873,
+    "sha256": "4c81df534de250e4a3cd0355340926897a81105344afaf4156608076b97f1b1e"
+  },
+  {
+    "path": "mcp/dark/apk-tool.png",
+    "bytes": 54993,
+    "sha256": "466e0f7ecf0421fc24c574d143e0e3d5d9b1799f967e09350b1fc4a43f1f4ca4"
+  },
+  {
+    "path": "mcp/dark/junk-code.png",
+    "bytes": 57295,
+    "sha256": "74140dab63307bd21d21e5d7ddc971cfde7686d2d12fd1e39c9d4befaa77f9d6"
+  },
+  {
+    "path": "mcp/dark/keystore-generation.png",
+    "bytes": 45314,
+    "sha256": "3e03c3440d643c5a9ca5d9f1c823f66f444214e501b2abb8e0a55b6830040adf"
+  },
+  {
+    "path": "mcp/dark/settings.png",
+    "bytes": 59692,
+    "sha256": "91a68607021cf696c341a427b57748b0198227fb50c9cbc1c82b5a54191d3fff"
+  },
+  {
+    "path": "mcp/interactions/custom-path-retained.json",
+    "bytes": 8676,
+    "sha256": "29dfb972adacffe33107185f4408ebb3598df09dab17176886a4803190443425"
+  },
+  {
+    "path": "mcp/interactions/custom-path-retained.png",
+    "bytes": 53965,
+    "sha256": "d8e78ab3d37fa5722d0e93a40953f9536a4e979447fdd9359b6998b1284f6efe"
+  },
+  {
+    "path": "mcp/interactions/default-path-0.json",
+    "bytes": 8642,
+    "sha256": "4b0ca82c5a102d797bd9859bc9793884792150791ea22d2c8c2c3abb17df6497"
+  },
+  {
+    "path": "mcp/interactions/default-path-0.png",
+    "bytes": 55967,
+    "sha256": "0e2aa06617d2ccf2ee7fd2929966d4afc61fa7d38e1bf3358a811077c6d8e597"
+  },
+  {
+    "path": "mcp/interactions/default-path-1.json",
+    "bytes": 7550,
+    "sha256": "6f67497e6060c102c6ef1ee0b015a4c2bbcd993bb487b55c7be66fcafb5af6b1"
+  },
+  {
+    "path": "mcp/interactions/default-path-1.png",
+    "bytes": 47797,
+    "sha256": "d4e662dd0e7f1815fa0060961121024d3791c700ee75306a1ff219a9efa262bd"
+  },
+  {
+    "path": "mcp/interactions/default-path-2.json",
+    "bytes": 8266,
+    "sha256": "2a4d991968739c17afd050b3b61d7eb295447708e37878f7a24951ff111d60e4"
+  },
+  {
+    "path": "mcp/interactions/default-path-2.png",
+    "bytes": 56347,
+    "sha256": "5e236f65b86fa6906e1f48b88c0ae2245803fd4bfb825a62ae551b8b5d880c12"
+  },
+  {
+    "path": "mcp/interactions/default-path-3.json",
+    "bytes": 8648,
+    "sha256": "9f5adab8c1134bdeb1b7e92b4af84178d283a5a93d1d14df884f5c65ea636233"
+  },
+  {
+    "path": "mcp/interactions/default-path-3.png",
+    "bytes": 57919,
+    "sha256": "173e240a6868d438f077d2ad93c0ece36ca719eacff4ec05fee0ce6b30ae7cef"
+  },
+  {
+    "path": "mcp/interactions/keystore-returned.png",
+    "bytes": 46929,
+    "sha256": "d2dcfcc99958bfc6f123a54ea71b399e51b848450355f5aaed434218bc347d2b"
+  },
+  {
+    "path": "mcp/interactions/settings-final-inputs.json",
+    "bytes": 8932,
+    "sha256": "cf45dd949be0539959bfe89caaaecc8f3c851adbd4151049664165f3bf59bf1c"
+  },
+  {
+    "path": "mcp/interactions/settings-final-inputs.png",
+    "bytes": 62526,
+    "sha256": "128e58a71103c72db27e4013a498b531abd053b60ce614fdd51c1ab4eef394a6"
+  },
+  {
+    "path": "mcp/interactions/signing-returned.png",
+    "bytes": 53975,
+    "sha256": "9edc8affb8c56f39afceeacdd8aaefb6c515c96776c5c60f62e30eaf91bad4ef"
+  },
+  {
+    "path": "mcp/light/apk-signature.png",
+    "bytes": 53941,
+    "sha256": "5945c559b1ab0176e85e366ce8b880500538573fb153314e5fc91e4c8164213d"
+  },
+  {
+    "path": "mcp/light/apk-tool.png",
+    "bytes": 56454,
+    "sha256": "7c3efabb8c274ddbad61886ec80ed5e9208948b60737b623a1974010c887fe9c"
+  },
+  {
+    "path": "mcp/light/junk-code.png",
+    "bytes": 58054,
+    "sha256": "90ebfefa9ad50b81ea2a178bf3889f48e45a26ec7e96541a8ad61439d07837b1"
+  },
+  {
+    "path": "mcp/light/keystore-generation.png",
+    "bytes": 46259,
+    "sha256": "4c6bef9abbb5d889ef2be9fd1680ca3ea319051860188572b0194c91aff9a4c5"
+  },
+  {
+    "path": "mcp/light/settings.png",
+    "bytes": 61089,
+    "sha256": "ad0f32b78f9f1b88dde8e25e8ef9a56a5700e24382ca29364f4756529ee05e7c"
+  },
+  {
+    "path": "mcp-report.json",
+    "bytes": 4431,
+    "sha256": "f36b50050a6ebea62b23704d88ec53312ab5df61bd38d364e179885b1478b889"
+  },
+  {
+    "path": "mcp-smoke.txt",
+    "bytes": 2068,
+    "sha256": "84da89e093e3bbec8de901552201128abe660b0380baa26495871d4d2112b7a6"
+  },
+  {
+    "path": "mcp-static-comparison.json",
+    "bytes": 19093,
+    "sha256": "b9399fe993f403b84e0440c6275c7f3fb8dbfad8c9936c99311dbad9df73621a"
+  },
+  {
+    "path": "native/Phase4BFixtures.java",
+    "bytes": 2122,
+    "sha256": "e49424b23974a958b7ea25a9e5dd3af25d794e7222b8ad4089e7a704129c64dd"
+  },
+  {
+    "path": "native/aliases.jpg",
+    "bytes": 52067,
+    "sha256": "5c818d1c0429b852870f6b5258dc5bf9442caf803143be9f27ebbef7323314de"
+  },
+  {
+    "path": "native/aliases.txt",
+    "bytes": 402,
+    "sha256": "7c79af7fecd3957d712e96f77557f2399d4534d31135b3047296173ee92e0c84"
+  },
+  {
+    "path": "native/apk-next-signers.jpg",
+    "bytes": 117655,
+    "sha256": "3ff9f58e9e5ba63977ee52f961022fc4a2a472879b65b0aaa8f9af532a9158d6"
+  },
+  {
+    "path": "native/apk-next-signers.txt",
+    "bytes": 923,
+    "sha256": "4304c8d89eb5172f89bc612da53e7412bfb5aacd65a4b48df05717f05f0fba4f"
+  },
+  {
+    "path": "native/apk-result.jpg",
+    "bytes": 112212,
+    "sha256": "6871495cc53d2eabe7d1e7816c59f95263e5f68a10b3b4c950983612c73c8370"
+  },
+  {
+    "path": "native/apk-result.txt",
+    "bytes": 2347,
+    "sha256": "b768084a9a187f30f11852837276d555ca02d2c320071f1051e3a625e5b69859"
+  },
+  {
+    "path": "native/apk-settled.jpg",
+    "bytes": 113230,
+    "sha256": "2bd1d77f4e39b4810a2fbdd55280c6c56b7f90ec2c84a28b72697083371e9d10"
+  },
+  {
+    "path": "native/apk-settled.txt",
+    "bytes": 278,
+    "sha256": "04decffe9a264226594fbbc9bae7b93190e8fde6301f4d0963a40839d864d511"
+  },
+  {
+    "path": "native/apk-v3.jpg",
+    "bytes": 116581,
+    "sha256": "cace02743939b9b964fb9847beb35294f3ca7751293e15d4ce9cba23c9a5d5f2"
+  },
+  {
+    "path": "native/apk-v3.txt",
+    "bytes": 859,
+    "sha256": "f3df01f06c197731a605242dcf916fbd3ff9ba50016123b0e581b8205ad45e6a"
+  },
+  {
+    "path": "native/clipboard-lowercase-colon.jpg",
+    "bytes": 78408,
+    "sha256": "376abf63c8c6a5ab47efea1dbf7912e648c24078ddf973c1c203b548807f4823"
+  },
+  {
+    "path": "native/clipboard-lowercase-colon.txt",
+    "bytes": 435,
+    "sha256": "c37c0827ab06dbfebe957daa59d44c9e48bd1838fce38388cdf2a460f5d8d13e"
+  },
+  {
+    "path": "native/clipboard-lowercase-no-colon.jpg",
+    "bytes": 77584,
+    "sha256": "ea3c6f339f9455770e6b136ebef563614c1f5a7b1be470c17cdaedc4cc2fdc07"
+  },
+  {
+    "path": "native/clipboard-lowercase-no-colon.txt",
+    "bytes": 2271,
+    "sha256": "97fd3d1ab26ac855908798ab20730164890cf17c2a703374aaab6bc6768059d7"
+  },
+  {
+    "path": "native/clipboard-uppercase-colon.jpg",
+    "bytes": 78421,
+    "sha256": "38c9f285fead89aa47486d3684d5a92adffd81a47b7e05aba52c186c621f9d8f"
+  },
+  {
+    "path": "native/clipboard-uppercase-colon.txt",
+    "bytes": 423,
+    "sha256": "a49eb0492d847d907ee2d0def22a42f65f613022f51c64c1380d1ff8461a7358"
+  },
+  {
+    "path": "native/clipboard-uppercase-no-colon.jpg",
+    "bytes": 77695,
+    "sha256": "8a7b8d48301084fa2724a714b5be3ac9b8fe1b9a40d5b93cb0fa3cf2c93a3574"
+  },
+  {
+    "path": "native/clipboard-uppercase-no-colon.txt",
+    "bytes": 2271,
+    "sha256": "6c5cfc9a27984e214f071722b797d864181b7500016d6e3fb29e601b13234b52"
+  },
+  {
+    "path": "native/copy-modes.jpg",
+    "bytes": 120276,
+    "sha256": "5d6c51242098ba74ba128a7a64c20e4d5620f9aa379d7e341e37f8dd47aef44c"
+  },
+  {
+    "path": "native/copy-modes.txt",
+    "bytes": 604,
+    "sha256": "b58c61035cbaa1ff7c47be4bcb16330dddeb05bdaf202c0cce3db05f9624e91e"
+  },
+  {
+    "path": "native/copy-notification.jpg",
+    "bytes": 118128,
+    "sha256": "5e1575605e875ddb7701f5fa13a9aab33a4a28a5f9e6b8c4ece8c8af4aff2eee"
+  },
+  {
+    "path": "native/copy-notification.txt",
+    "bytes": 318,
+    "sha256": "0ae3d40109a106b3f33c0aff02b40824061d5c8e68faa8d1374ba1ac9254d75a"
+  },
+  {
+    "path": "native/fixtures.txt",
+    "bytes": 643,
+    "sha256": "e4c2986ab9da4651c676db4600eba97f3394658a807a8902587c8437de95b5d7"
+  },
+  {
+    "path": "native/keystore-result.jpg",
+    "bytes": 40535,
+    "sha256": "07bb13f53eb1eee4e6d66100c697c72f660bb9b70455fe3bb68bc0bbad9dea40"
+  },
+  {
+    "path": "native/keystore-result.txt",
+    "bytes": 1143,
+    "sha256": "58b1ecf91f4e91ae6ed3c6ccfccd6968d20b7003043a8ebf042b610357472db5"
+  },
+  {
+    "path": "native/keystore-settled.jpg",
+    "bytes": 113805,
+    "sha256": "45fea8dbb93c32e742a20d697bab0bc6b4ef6e74cfd12687f65c48fd8a33caf4"
+  },
+  {
+    "path": "native/keystore-settled.txt",
+    "bytes": 236,
+    "sha256": "603364e26afb1eb4a716f1956e24c98e83ac392922b663641e7b189d00c5b44a"
+  },
+  {
+    "path": "native/picker-cancelled.jpg",
+    "bytes": 113640,
+    "sha256": "7febb22ad90a95855c8cbc5ec3d40164d5c3a75d675ebc420c2d3ab4b6817154"
+  },
+  {
+    "path": "native/picker-cancelled.txt",
+    "bytes": 2229,
+    "sha256": "b294bc303a55c09810766cb36dc63cf37a4ce6e4f2a8c48dc8d1e98c2b18eff0"
+  },
+  {
+    "path": "native/report.json",
+    "bytes": 1865,
+    "sha256": "398b2b25d1f95c8cce55cd19a6fe8525322173138d701d3e2d1e96f2a539900f"
+  },
+  {
+    "path": "native/wrong-password.jpg",
+    "bytes": 54613,
+    "sha256": "e9a139bc270a4765b03a4d54c5d9e3edc090d7ccac9ab2eaf010c3d715eac933"
+  },
+  {
+    "path": "native/wrong-password.txt",
+    "bytes": 367,
+    "sha256": "eefac4acaa0d8c7e4ffc0f4a3a947131940e7a0453586b601edb0987262d2fcc"
+  },
+  {
+    "path": "native-bundle.txt",
+    "bytes": 141,
+    "sha256": "f844d9b2d56d93a7ce2ba2bcaa7814fc8034dd2ce7fad5788b5b1ebaa830ff5a"
+  },
+  {
+    "path": "result-comparison.json",
+    "bytes": 287,
+    "sha256": "d73501f7ec17a948c0a67f5759f27a2a33dad491b77f3f4a0d395c97a1a30b32"
+  },
+  {
+    "path": "software/dark/apk-signature.png",
+    "bytes": 49270,
+    "sha256": "c1a072d7e73d130dc3009ca26686051380ffc502e45a33f010aab354c1e149a2"
+  },
+  {
+    "path": "software/dark/apk-tool.png",
+    "bytes": 53156,
+    "sha256": "46e2b3109ca63fba993557e3bfc99eb2b864800a1eb57923341469fc1ab61f81"
+  },
+  {
+    "path": "software/dark/junk-code.png",
+    "bytes": 54558,
+    "sha256": "262e226cbe393288dbd2d7fa96522ed089a7228e63dbe6c4cfe95f10854a64d9"
+  },
+  {
+    "path": "software/dark/keystore-generation.png",
+    "bytes": 44434,
+    "sha256": "5916217557d3ab1e2e655a4b68525b38a433c7c2da2f106667169d70668a395b"
+  },
+  {
+    "path": "software/dark/settings.png",
+    "bytes": 57173,
+    "sha256": "2430eead1ea5f7bdbd9e35a8d04f0fbfee14ba195525e282507a211d267dbaa4"
+  },
+  {
+    "path": "software/light/apk-signature.png",
+    "bytes": 49870,
+    "sha256": "6efff78f58cbd7790663f7a2a15c11f5f61a6f54e7a4dd5948496d5f39211a4f"
+  },
+  {
+    "path": "software/light/apk-tool.png",
+    "bytes": 53496,
+    "sha256": "f93a60566a930e5a456c49d7adea1f03a1f87905ee6a2f8f380f95000ccadf1c"
+  },
+  {
+    "path": "software/light/junk-code.png",
+    "bytes": 54510,
+    "sha256": "d5c188650fd45d3024787839647a1411b82c665d409ae485e5be29c4ce22e252"
+  },
+  {
+    "path": "software/light/keystore-generation.png",
+    "bytes": 44492,
+    "sha256": "040df527202afb50c634c933e79712a1f822ed07da702b7c3d4dd3a64d4bc286"
+  },
+  {
+    "path": "software/light/settings.png",
+    "bytes": 57088,
+    "sha256": "377d65bf300f99af42d4000b1fd50b3f09f87f37375c93e38d53ca6dc7234662"
+  },
+  {
+    "path": "software-static-comparison.json",
+    "bytes": 1702,
+    "sha256": "f20cceb95e36bb6344330fed7dcdc4505b4aa8b1027f7882966b28f63823f5dd"
+  },
+  {
+    "path": "tests.json",
+    "bytes": 10255,
+    "sha256": "1946ba9669310ec8916b52e131554719fbd21cdd7c10d14a4e7fe045cf2ae537"
+  },
+  {
+    "path": "tests.txt",
+    "bytes": 6731,
+    "sha256": "66a627215af8ed62765663147b38ee9fc38666255d0de74e445f9804b1d423c1"
+  }
+]

@@ -1,0 +1,6 @@
+directory=/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/phase4b-native-dk5zf_dn
+keystore=/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/phase4b-native-dk5zf_dn/双别名 fixture.jks
+apk=/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/phase4b-native-dk5zf_dn/已签名 fixture.apk
+MD5=7C:D8:45:1A:B4:EB:8D:7E:A4:CA:71:A6:E8:2A:33:2B
+SHA-1=29:4A:4A:C7:81:B4:B1:EC:A4:1E:91:97:21:32:63:9D:DE:96:E6:06
+SHA-256=65:03:B5:C9:A5:F9:C8:A6:8C:92:6F:3F:15:1B:73:E4:BD:C7:B7:38:40:8E:6A:6F:42:91:2F:67:E9:2F:43:BF

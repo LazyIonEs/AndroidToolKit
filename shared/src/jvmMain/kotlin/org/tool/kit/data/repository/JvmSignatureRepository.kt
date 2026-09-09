@@ -2,10 +2,9 @@ package org.tool.kit.data.repository
 
 import com.android.apksig.ApkVerifier
 import io.github.oshai.kotlinlogging.KotlinLogging
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.tool.kit.domain.signature.CertificateInformation
 import org.tool.kit.domain.signature.SignatureVerification
+import org.tool.kit.data.source.mapApkVerification
 import org.tool.kit.data.source.toCertificateInformation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
@@ -24,97 +23,14 @@ private val logger = KotlinLogging.logger("SignatureRepository")
 class JvmSignatureRepository(private val io: CoroutineDispatcher) : SignatureRepository {
     /**
      * APK签名信息
-     * @param input 输入APK的路径
+     * @param path 输入APK的路径
      */
     override suspend fun verifyApk(path: String): Result<SignatureVerification> = withContext(io) {
-        val list = ArrayList<CertificateInformation>()
         val inputFile = File(path)
-        val path = inputFile.path
-        val name = inputFile.name
         logger.info { "apkVerifier 获取APK签名信息开始, APK文件路径: $path" }
         try {
             val result = ApkVerifier.Builder(inputFile).build().verify()
-            var error = ""
-            val isSuccess = result.isVerified
-
-            result.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                .forEach {
-                    error += it.toString() + "\n"
-                }
-
-            if (result.v1SchemeSigners.isNotEmpty()) {
-                for (signer in result.v1SchemeSigners) {
-                    val cert = signer.certificate ?: continue
-                    if (signer.certificate.type == "X.509") {
-                        list.add(cert.toCertificateInformation("1"))
-                    }
-                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                        .forEach {
-                            error += it.toString() + "\n"
-                        }
-                }
-            }
-
-            if (result.v2SchemeSigners.isNotEmpty()) {
-                for (signer in result.v2SchemeSigners) {
-                    val cert = signer.certificate ?: continue
-                    if (signer.certificate.type == "X.509") {
-                        list.add(cert.toCertificateInformation("2"))
-                    }
-                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                        .forEach {
-                            error += it.toString() + "\n"
-                        }
-                }
-            }
-
-            if (result.v3SchemeSigners.isNotEmpty()) {
-                for (signer in result.v3SchemeSigners) {
-                    val cert = signer.certificate ?: continue
-                    if (signer.certificate.type == "X.509") {
-                        list.add(cert.toCertificateInformation("3"))
-                    }
-                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                        .forEach {
-                            error += it.toString() + "\n"
-                        }
-                }
-            }
-
-            if (result.v31SchemeSigners.isNotEmpty()) {
-                for (signer in result.v3SchemeSigners) {
-                    val cert = signer.certificate ?: continue
-                    if (signer.certificate.type == "X.509") {
-                        list.add(cert.toCertificateInformation("3.1"))
-                    }
-                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                        .forEach {
-                            error += it.toString() + "\n"
-                        }
-                }
-            }
-
-            if (result.v4SchemeSigners.isNotEmpty()) {
-                for (signer in result.v4SchemeSigners) {
-                    val cert = signer.certificate ?: continue
-                    if (signer.certificate.type == "X.509") {
-                        list.add(cert.toCertificateInformation("4"))
-                    }
-                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                        .forEach {
-                            error += it.toString() + "\n"
-                        }
-                }
-            }
-
-            if (isSuccess || list.isNotEmpty()) {
-                val apkVerifierResult = SignatureVerification(isSuccess, true, path, name, list.toList())
-                logger.info { "apkVerifier 获取APK签名信息结束, 结果: $apkVerifierResult" }
-                Result.success(apkVerifierResult)
-            } else {
-                logger.error { "apkVerifier 获取APK签名信息异常, 异常信息: $error" }
-                Result.failure(Exception(error.takeUnless { it.isBlank() }))
-            }
+            mapApkVerification(result, inputFile)
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (e: Exception) {

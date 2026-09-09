@@ -1,0 +1,7 @@
+The following is a diff from the previous accessibility tree for Window: "AndroidToolKit" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
++		44 container (selectable) 0
++			45 未知 (selectable) 0
++				46 container (selectable) 0
++					47 滚动区 (selectable) 0
++						48 文本 (selectable) second
++						49 文本 (selectable) first

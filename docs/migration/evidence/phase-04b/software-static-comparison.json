@@ -1,0 +1,102 @@
+[
+  {
+    "path": "light/apk-signature.png",
+    "changedPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "bounds": null,
+    "allChangesInBottomCorners": true
+  },
+  {
+    "path": "light/keystore-generation.png",
+    "changedPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "bounds": null,
+    "allChangesInBottomCorners": true
+  },
+  {
+    "path": "light/apk-tool.png",
+    "changedPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "bounds": null,
+    "allChangesInBottomCorners": true
+  },
+  {
+    "path": "light/junk-code.png",
+    "changedPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "bounds": null,
+    "allChangesInBottomCorners": true
+  },
+  {
+    "path": "light/settings.png",
+    "changedPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "bounds": null,
+    "allChangesInBottomCorners": true
+  },
+  {
+    "path": "dark/apk-signature.png",
+    "changedPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "bounds": null,
+    "allChangesInBottomCorners": true
+  },
+  {
+    "path": "dark/keystore-generation.png",
+    "changedPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "bounds": null,
+    "allChangesInBottomCorners": true
+  },
+  {
+    "path": "dark/apk-tool.png",
+    "changedPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "bounds": null,
+    "allChangesInBottomCorners": true
+  },
+  {
+    "path": "dark/junk-code.png",
+    "changedPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "bounds": null,
+    "allChangesInBottomCorners": true
+  },
+  {
+    "path": "dark/settings.png",
+    "changedPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "bounds": null,
+    "allChangesInBottomCorners": true
+  }
+]
