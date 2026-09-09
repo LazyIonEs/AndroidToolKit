@@ -1,0 +1,25 @@
+{
+  "screen": "shared/src/commonMain/kotlin/org/tool/kit/feature/keystore/KeyStoreGenerationScreen.kt",
+  "screenForbiddenReferences": [
+    "ViewModel",
+    "koin",
+    "Repository",
+    "MutableState",
+    "collectAsState",
+    "java.io",
+    "File("
+  ],
+  "domainFiles": [
+    "domain/keystore/GenerateKeyStore.kt",
+    "domain/usecase/GenerateKeyStoreUseCase.kt"
+  ],
+  "oldOwnerSymbolsRemoved": [
+    "keyStoreInfoState",
+    "keyStoreInfoUIState",
+    "updateSignatureGenerate",
+    "fun createSignature",
+    "KEYSTORE_OUTPUT"
+  ],
+  "result": "passed",
+  "scope": "Targeted text checks plus manual review of state, IO and callbacks; not a whole-repository architecture certificate."
+}
