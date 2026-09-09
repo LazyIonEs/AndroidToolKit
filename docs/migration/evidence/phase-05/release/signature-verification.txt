@@ -1,0 +1,7 @@
+PASS: phase5-中文 unsigned-sign.apk V4 [true, true, true, true]
+PASS: phase5-oppo-sign.apk V2 [true, true, false, false]
+PASS: phase5-vivo-sign.apk V2 [true, true, false, false]
+PASS: phase5-huawei-sign.apk V2 [true, true, false, false]
+PASS: phase5-xiaomi-sign.apk V2 [true, true, false, false]
+PASS: phase5-qq-sign.apk V2 [true, true, false, false]
+PASS: phase5-honor-sign.apk V2 [true, true, false, false]

@@ -1,0 +1,42 @@
+[
+  {
+    "name": "phase5-honor-sign.apk",
+    "size": 3006464,
+    "sha256": "9d733336f8aefe709f53b5d4968d19ae28fbc74fae766d8f54a9e3d45e827719"
+  },
+  {
+    "name": "phase5-huawei-sign.apk",
+    "size": 12835,
+    "sha256": "0bd37aabff05955e6864d699635c13f74b5a3f5a03bcdb40077753ab079814bc"
+  },
+  {
+    "name": "phase5-oppo-sign.apk",
+    "size": 45056,
+    "sha256": "677c4163b329b622da68b57a6424a5599598402a41dcc436c3ccc5a5861069dd"
+  },
+  {
+    "name": "phase5-qq-sign.apk",
+    "size": 16384,
+    "sha256": "607114e01657507faf64c6fb211a36d1c909eed19b02576a7c15391348d85db5"
+  },
+  {
+    "name": "phase5-vivo-sign.apk",
+    "size": 12288,
+    "sha256": "eba62c90b4e57681c20481215d3cb374e402e2fc9f531ee6c019de8da522af5e"
+  },
+  {
+    "name": "phase5-xiaomi-sign.apk",
+    "size": 12288,
+    "sha256": "3eb26b14a94844c5c61a61b45f44d3f784ca109c6753247d611b8d40acc7f3b8"
+  },
+  {
+    "name": "phase5-中文 unsigned-sign.apk",
+    "size": 3559424,
+    "sha256": "b72105e1496f974f25001ca3a93cda01d7785f886b92009dd05cf9b9704837d7"
+  },
+  {
+    "name": "phase5-中文 unsigned.apk.idsig",
+    "size": 34331,
+    "sha256": "209edc5d84a79ed24aa9c308de2cfb64b14e6fc9616f895ec8d6dfc00b65738a"
+  }
+]

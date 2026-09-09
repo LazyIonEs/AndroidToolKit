@@ -1,0 +1,430 @@
+{
+  "total": {
+    "tests": 123,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "suite": "ApkInformationUiTest[jvm]",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "darkResult[jvm]",
+        "lightResult[jvm]"
+      ]
+    },
+    {
+      "suite": "ApkInformationViewModelTest[jvm]",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "rawCopyPreservesEveryCharacterAndAcknowledgesOnlySuccessfulWrite[jvm]",
+        "latestInputWinsAfterSlowUncooperativeResultAndBusyIsReleased[jvm]",
+        "dropKeepsOriginalCaseSensitiveSuffixRule[jvm]",
+        "emptyCommandAndExceptionFailuresReturnIdleAndRepeatOriginalSnackbar[jvm]",
+        "clearCancelsProcessRequestAndRejectsLateCopyAndResult[jvm]"
+      ]
+    },
+    {
+      "suite": "ApkSigningFixtureTest[jvm]",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "unsignedAndFiveSignaturePoliciesHaveTheExpectedSchemes[jvm]",
+        "cancellationBeforeIoDoesNotDeleteExistingOutputOrReportFailure[jvm]"
+      ]
+    },
+    {
+      "suite": "ApkSigningUiTest[jvm]",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "darkResult[jvm]",
+        "lightResult[jvm]"
+      ]
+    },
+    {
+      "suite": "ApkSigningViewModelTest[jvm]",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "droppedFilesPickFirstApkAndKeyAndUseSameResetAndNameRules[jvm]",
+        "submitFreezesAllFieldsAndSettingsAndRejectsDuplicates[jvm]",
+        "partialBatchFailureOrMissingOutputUsesOriginalGenericFailure[jvm]",
+        "closedWindowDropsNonCooperativeCompletionAndCancellationEffects[jvm]",
+        "requiredAndInvalidFieldsUseCheckErrorBeforeSigning[jvm]",
+        "latePathAndNameResultsCannotOverrideNewPrefixManualNameOrNewPath[jvm]",
+        "allExpandsInPresetOrderAndOneNotificationTargetsLastInput[jvm]",
+        "staleAliasesAndPasswordValidationCannotCommitAfterKeyChange[jvm]",
+        "singleFailureKeepsMessageIncludingEmptyStringAndRetryClearsBusy[jvm]"
+      ]
+    },
+    {
+      "suite": "CertificateMappingTest[jvm]",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "droppedFilesAreFilteredAsAWholeThenOnlyFirstSurvivorIsConsidered[jvm]",
+        "emptyStoresHaveNoAliasesAndMalformedAndUnsignedApksUseOriginalFallback[jvm]",
+        "rotatedApkPreservesTheKnownV31CertificateDuplicationInsteadOfFixingItDuringMigration[jvm]",
+        "onlyTheLegacyErrorSetIsDisplayedAndPreservesItsTrailingNewline[jvm]",
+        "realSignedApkKeepsVersionOrderAndV4RequiresTheSameExplicitSidecarAsBefore[jvm]",
+        "ecCertificateKeepsOriginalEmptyRsaOnlyPublicKeyFields[jvm]",
+        "jksAndPkcs12KeepEveryOriginalCertificateFieldAndWrongPasswordBehavior[jvm]",
+        "multipleSignersKeepTheirOrderAndCertificatesStillDisplayWhenVerificationFails[jvm]"
+      ]
+    },
+    {
+      "suite": "CleanerFixtureTest[jvm]",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "fixtureTreeContainsTheDepthAndNameBoundariesRequiredForMigration[jvm]",
+        "originalSizeRuleIncludesDirectoryMetadataAndNestedFiles[jvm]"
+      ]
+    },
+    {
+      "suite": "ComposeBaselineTest[jvm]",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "lightNavigationRendersAllNinePages[jvm]",
+        "darkNavigationRendersAllNinePages[jvm]",
+        "signingAndKeyStoreDraftsSurviveTopLevelNavigation[jvm]"
+      ]
+    },
+    {
+      "suite": "JunkArchiveFixtureTest[jvm]",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "tinySingleArchiveContainsManifestClassesResourcesAndCleansItsWorkspace[jvm]",
+        "tinyBatchRecreatesOnlyItsOutputSubdirectoryAndProducesDistinctArchives[jvm]"
+      ]
+    },
+    {
+      "suite": "JvmApkInformationRepositoryTest[jvm]",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "actualResourceTablePathAndDirectIconMatchFrozenOriginalPixels[jvm]",
+        "realAaptParsesChineseSpaceQuotePathAndMatchesFixedTemplateFields[jvm]",
+        "bundledUnsignedApkPreservesPermissionOrderAndApplicationIconFallback[jvm]",
+        "missingAndCorruptIconsRemainValidApkInformationAndBrokenApkUsesCommandFailure[jvm]"
+      ]
+    },
+    {
+      "suite": "JvmProcessRunnerTest[jvm]",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "argumentsWorkingDirectoryStdinAndBothOutputsPreserveExactValues[jvm]",
+        "timeoutReapsTheOwnedProcessAndItsChild[jvm]",
+        "cancellationReapsTheOwnedProcessAndItsChildAndDoesNotBecomeAnExitResult[jvm]",
+        "nonzeroExitAndLargeStderrAreFullyDrained[jvm]",
+        "outputBufferIsBoundedWhilePipesContinueDraining[jvm]"
+      ]
+    },
+    {
+      "suite": "KeyStoreFixtureTest[jvm]",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "originalGeneratorProducesReadableStoresForAllTypeAndSizeCombinations[jvm]"
+      ]
+    },
+    {
+      "suite": "KeyStoreGenerationDataTest[jvm]",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "generationDispatchesBeforeTouchingOutputAndCancellationBeforeIoEntryCanRetry[jvm]",
+        "jks1024MatchesOriginalStructure[jvm]",
+        "jks2048MatchesOriginalStructure[jvm]",
+        "pkcs121024MatchesOriginalStructure[jvm]",
+        "pkcs122048MatchesOriginalStructure[jvm]",
+        "existingStoreRetainsOtherAliasesAndFailureDoesNotSilentlyCreateParentDirectories[jvm]",
+        "invalidValidityAndDnKeepOriginalFailureMessages[jvm]"
+      ]
+    },
+    {
+      "suite": "KeyStoreGenerationUiTest[jvm]",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "actualFieldsSubmitTheExpectedRequestAndWindowOwnerKeepsTheDraftAcrossThemeAndNavigation[jvm]"
+      ]
+    },
+    {
+      "suite": "KeyStoreGenerationViewModelTest[jvm]",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "oldPathValidationCannotOverwriteNewInputAndRefreshRechecksTheSamePath[jvm]",
+        "failedAndExceptionalJobsClearBusyAndAllowRetryWithDistinctEffects[jvm]",
+        "clearingWindowCancelsOwnedJobAndIgnoresNonCooperativeLateResult[jvm]",
+        "allFieldsKeepRawInputAndOriginalValidationAndRequiredBoundaries[jvm]",
+        "submitRechecksCapturedDirectoryWhilePendingAndRejectsChangedDiskState[jvm]",
+        "submitCapturesFormAndSettingsOnceAndDuplicateSubmitDoesNotStartAnotherJob[jvm]"
+      ]
+    },
+    {
+      "suite": "KoinLifecycleTest[jvm]",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "ownerKeysKeepViewModelsWhilePreferencesStayUniquePerContainer[jvm]",
+        "shutdownIsIdempotentAcrossCloseAndFinally[jvm]",
+        "recompositionKeepsTheWindowViewModelAndOwnerClearsItOnce[jvm]"
+      ]
+    },
+    {
+      "suite": "LegacyFormCharacterizationTest[jvm]",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "clearingApkWithPrefixPreservesTheKnownLeadingHyphenDefect[jvm]",
+        "junkMultiRangeWithEqualBoundsMatchesRepeatedSingleEstimate[jvm]",
+        "existingApkAndPrefixDeriveV4NameButSamePathKeepsManualName[jvm]",
+        "sameKeyPathKeepsCredentialsAndChangedPathClearsOnlyDependentFields[jvm]",
+        "junkNamingUsesUnderscoresAndTheOriginalFixedVersion[jvm]"
+      ]
+    },
+    {
+      "suite": "LegacyPreferencesCharacterizationTest[jvm]",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "unknownPreferenceEnumsKeepTheExistingFallbacks[jvm]",
+        "legacySerializerWritesPhysicalKeysAndNewInstanceReadsThem[jvm]",
+        "emptySettingsPreserveOriginalDefaults[jvm]",
+        "iconSettingsRoundTripRetainsEnumOrdinalsAndEveryParameter[jvm]"
+      ]
+    },
+    {
+      "suite": "NativeFixtureTest[jvm]",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "allFiveNativeFunctionsLoadAndProduceReadableImages[jvm]"
+      ]
+    },
+    {
+      "suite": "Phase2PlatformTest[jvm]",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "fingerprintFormattingKeepsAllFourModes[jvm]",
+        "repositoryLoadsBothStoreTypesAndPreservesFailureResults[jvm]",
+        "fileSelectionRetainsUriOrderSymlinksAndOriginalPickerAcceptance[jvm]"
+      ]
+    },
+    {
+      "suite": "Phase2UiTest[jvm]",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "settingsInputsSurviveRecompositionThemeChangesAndNavigation[jvm]",
+        "capacityIsReadOnEntryAndExplicitRefreshButNotThemeRecomposition[jvm]",
+        "stableDropTargetUsesLatestCallbacksAndKeepsSynchronousAcceptance[jvm]"
+      ]
+    },
+    {
+      "suite": "Phase2ValidationTest[jvm]",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "pathQueriesAreDeduplicatedAndRejectLateResultsForTheSameText[jvm]",
+        "explicitPageRefreshRechecksAPathThatChangedOnDisk[jvm]",
+        "settingsDraftsUpdateBeforeQueuedWritesAndFieldsDoNotOverwriteEachOther[jvm]",
+        "signingChecksRejectSlowPasswordAndPathResultsWithoutReloadingOnUnrelatedEdits[jvm]",
+        "aliasesRejectOlderAAfterAToBToAAndAfterDialogClose[jvm]"
+      ]
+    },
+    {
+      "suite": "Phase3IconCommitTest[jvm]",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "compressionSliderPublishesPreferencesOnlyAfterPointerRelease[jvm]"
+      ]
+    },
+    {
+      "suite": "Phase3PreferencesTest[jvm]",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "settingsValidationRejectsOldPathAndRefreshRechecksTheSameDirectory[jvm]",
+        "heldDiskWriteCannotRollBackLaterInputAndFiveLegacyFormsReceiveOnePathVersion[jvm]",
+        "failedFieldIsRetriedBeforeLaterWritesCanAcknowledgePersistence[jvm]",
+        "realPhysicalAccessRunsOnInjectedIoAndNoKeysChangeOnRead[jvm]",
+        "oldPhysicalFixtureLoadsBeforeFirstVisibleSnapshotAndQueuedFieldsKeepUntouchedValues[jvm]"
+      ]
+    },
+    {
+      "suite": "Phase3StartupTest[jvm]",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "disabledStartupStaysSilentEvenIfTheSettingIsEnabledLater[jvm]",
+        "enabledStartupWaitsForReadyAndRunsOnlyOnceAcrossPreferenceAndThemeChanges[jvm]"
+      ]
+    },
+    {
+      "suite": "Phase3UiTest[jvm]",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "developerEntryStillRequiresTwoClicksWithinTheDefaultWindow[jvm]",
+        "duplicateSnackbarReplacesCurrentAndNativeActionRunsOnceOutsideReplacementJob[jvm]",
+        "failedNativeOpenDismissesWithoutExitingOrReplayingOnRecomposition[jvm]",
+        "finishedDownloadSurvivesRecompositionAndInstallationExitsOnlyAfterOpenSucceeds[jvm]"
+      ]
+    },
+    {
+      "suite": "Phase3UpdateTest[jvm]",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "cancellationWaitsForOldCleanupAndRejectsNonCooperativeProgressBeforeReusingOutput[jvm]",
+        "duplicateChecksAndDownloadsRunOnceUnknownLengthAndFailureCanRetry[jvm]",
+        "checksKeepManualSilentLatestErrorAndOrderedAssetsSemantics[jvm]"
+      ]
+    },
+    {
+      "suite": "Phase3UpdateTransportTest[jvm]",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "realCancellationClosesOldTransferBeforeRetryReusesTheSameOutput[jvm]",
+        "checkTransportRetainsEffectiveLegacyHeadersRateLimitAndMalformedResponseMapping[jvm]",
+        "realDownloadKeepsKnownUnknownLengthAndFailureCleanup[jvm]",
+        "assetOrderArchitectureCaseAndNumericVersionRulesRemainFrozen[jvm]"
+      ]
+    },
+    {
+      "suite": "ReadApkInformationUseCaseTest[jvm]",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "sourceBytesCannotBeMutatedExternally[jvm]",
+        "commandArgumentsExitFallbackTimeoutAndCancellation[jvm]",
+        "preservesSequentialIconFallbackAndXmlExclusion[jvm]",
+        "fieldsChannelPermissionsAndSeparators[jvm]",
+        "fourFieldBlankRuleAndPermissionDuplicates[jvm]"
+      ]
+    },
+    {
+      "suite": "SignApkUseCaseTest[jvm]",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "batchUsesImmutableRequestsAndInputOrderDespiteCompletionOrder[jvm]",
+        "namesPreserveBlankAndNonblankPrefixAndSuffixExactly[jvm]",
+        "schemeMatrixAndHuaweiAlignmentAreExplicit[jvm]",
+        "partialFailureRemainsInItsInputPosition[jvm]",
+        "cancellationCancelsAllChildrenWithoutReturningFailure[jvm]"
+      ]
+    },
+    {
+      "suite": "SignatureInformationUiTest[jvm]",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "darkResult[jvm]",
+        "lightResult[jvm]"
+      ]
+    },
+    {
+      "suite": "SignatureInformationViewModelTest[jvm]",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "failureFallbacksBlankExceptionTextAndSameMessageRetryKeepOriginalRules[jvm]",
+        "certificateRequiresResolvedAliasAndCapturesCredentialsBeforeClosing[jvm]",
+        "clearedWindowRejectsLateVerificationAndClipboardCompletionAndReleasesState[jvm]",
+        "aliasesRejectSlowFileAndPasswordResultsAndClosingResetsSessionOnly[jvm]",
+        "apkResultsRetainFailedFlagAndOldRequestsCannotReplaceNewestResult[jvm]",
+        "fourCopyFormatsAreExactAndEachNotificationWaitsForClipboardAcknowledgement[jvm]"
+      ]
+    },
+    {
+      "suite": "SigningFormReducerTest[jvm]",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "cases": [
+        "explicitV4NameAndSamePathOrPrefixDoNotRederive[jvm]",
+        "credentialsResetOnlyForDifferentKeyAndDifferentAlias[jvm]",
+        "pathAndPrefixSetterMatrixMatchesFrozenLegacyIncludingBlankAndMissingPaths[jvm]"
+      ]
+    }
+  ]
+}

@@ -17,7 +17,9 @@ original = cfg.with_suffix(".cfg.original")
 if original.exists():
     raise SystemExit("Already isolated; rebuild the disposable bundle for another run")
 work = root / "shared/build/migration/release-smoke"
-classes = work / "classes"
+# Keep bootstrap preferences separate from the native test entry classes.
+# Reusing the native directory can shadow the entry on the bootstrap loader.
+classes = work / "preferences-classes"
 classes.mkdir(parents=True, exist_ok=True)
 output = root / "shared/build/migration/fixtures/output"
 output.mkdir(parents=True, exist_ok=True)

@@ -1,0 +1,509 @@
+[
+  {
+    "id": 1,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    }
+  },
+  {
+    "id": 5,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    }
+  },
+  {
+    "id": 17,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 1144
+    }
+  },
+  {
+    "id": 18,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 1144
+    }
+  },
+  {
+    "id": 19,
+    "bounds": {
+      "x": 0,
+      "y": 8,
+      "width": 160,
+      "height": 1128
+    }
+  },
+  {
+    "id": 22,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 64,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 24,
+    "role": "Tab",
+    "text": "签名信息",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 64,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 34,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 177,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 36,
+    "role": "Tab",
+    "text": "APK信息",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 177,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 46,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 290,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 48,
+    "role": "Tab",
+    "text": "APK签名",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 290,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 60,
+    "role": "Tab",
+    "text": "签名生成",
+    "selected": true,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 403,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 70,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 516,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 72,
+    "role": "Tab",
+    "text": "APK生成",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 516,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 82,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 629,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 84,
+    "role": "Tab",
+    "text": "垃圾代码",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 629,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 94,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 742,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 96,
+    "role": "Tab",
+    "text": "图标生成",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 742,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 106,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 855,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 108,
+    "role": "Tab",
+    "text": "缓存清理",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 855,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 118,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 968,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 120,
+    "role": "Tab",
+    "text": "设置",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 968,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 2844,
+    "bounds": {
+      "x": 160,
+      "y": 0,
+      "width": 1440,
+      "height": 1144
+    }
+  },
+  {
+    "id": 2845,
+    "bounds": {
+      "x": 160,
+      "y": 40,
+      "width": 1412,
+      "height": 1064
+    }
+  },
+  {
+    "id": 2847,
+    "bounds": {
+      "x": 160,
+      "y": 40,
+      "width": 1412,
+      "height": 1064
+    }
+  },
+  {
+    "id": 2851,
+    "text": "密钥输出路径",
+    "editableText": "/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/phase3-output",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 72,
+      "width": 1220,
+      "height": 128
+    }
+  },
+  {
+    "id": 2861,
+    "role": "Button",
+    "contentDescription": "FolderOpen",
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 1452,
+      "y": 99,
+      "width": 80,
+      "height": 80
+    }
+  },
+  {
+    "id": 2866,
+    "text": "密钥文件名称",
+    "editableText": "phase0-mcp-test.jks",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 214,
+      "width": 1220,
+      "height": 128
+    }
+  },
+  {
+    "id": 2879,
+    "text": "密钥密码",
+    "focused": false,
+    "password": true,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 356,
+      "width": 594,
+      "height": 130
+    }
+  },
+  {
+    "id": 2889,
+    "text": "确认密码",
+    "focused": false,
+    "password": true,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 834,
+      "y": 356,
+      "width": 594,
+      "height": 130
+    }
+  },
+  {
+    "id": 2902,
+    "text": "密钥",
+    "bounds": {
+      "x": 208,
+      "y": 516,
+      "width": 57,
+      "height": 40
+    }
+  },
+  {
+    "id": 2905,
+    "text": "密钥别名",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 580,
+      "width": 1220,
+      "height": 130
+    }
+  },
+  {
+    "id": 2918,
+    "text": "别名密码",
+    "focused": false,
+    "password": true,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 724,
+      "width": 594,
+      "height": 130
+    }
+  },
+  {
+    "id": 2928,
+    "text": "确认密码",
+    "focused": false,
+    "password": true,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 834,
+      "y": 724,
+      "width": 594,
+      "height": 130
+    }
+  },
+  {
+    "id": 2940,
+    "text": "有效期（单位：年）",
+    "editableText": "25",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 868,
+      "width": 1220,
+      "height": 128
+    }
+  },
+  {
+    "id": 2953,
+    "text": "证书",
+    "bounds": {
+      "x": 208,
+      "y": 1026,
+      "width": 57,
+      "height": 40
+    }
+  },
+  {
+    "id": 2956,
+    "text": "作者名称",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 1090,
+      "width": 1220,
+      "height": 14
+    }
+  },
+  {
+    "id": 7,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    }
+  },
+  {
+    "id": 8,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    }
+  }
+]

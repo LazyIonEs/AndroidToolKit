@@ -1,0 +1,50 @@
+[
+  {
+    "image": "dark/errors-top.png",
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ]
+  },
+  {
+    "image": "dark/v4-bottom.png",
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ]
+  },
+  {
+    "image": "dark/v4-top.png",
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ]
+  },
+  {
+    "image": "light/errors-top.png",
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ]
+  },
+  {
+    "image": "light/v4-bottom.png",
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ]
+  },
+  {
+    "image": "light/v4-top.png",
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ]
+  }
+]
