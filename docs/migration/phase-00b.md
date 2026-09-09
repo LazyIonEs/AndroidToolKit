@@ -42,6 +42,17 @@
 
 保留的旧警告：ZoomImage/Skiko 版本冲突、UniFFI 两处 unused expression、`rememberModalBottomSheetState` 废弃。
 
+## 增量迁移补充验证
+
+从旧构建分支切换回来时，`shared/build/classes/kotlin/jvm/main/libuniffi_toolkit.dylib` 可能残留。
+它与新的 generated resources 重复，导致 `jvmJar` 报重复 entry。新增 `removeLegacyRustLibrary`，
+在资源复制前仅删除旧任务生成的这一平台对应文件，不使用 duplicatesStrategy 掩盖来源冲突。
+
+将 Cargo 当前输出复制到上述旧路径后，重新运行两模块编译和完整测试成功（26s）。
+旧路径消失，JAR 根目录动态库恰好一个，SHA-256 与 Cargo 输出相等。
+这是有旧 build 输出的增量回归，不替代前面的干净编译证据。
+完整日志见 [phase0-ui-tests-success.txt](evidence/phase0-ui-tests-success.txt)。
+
 ## 所有权和回滚
 
 本阶段没有页面状态、VM owner、偏好或 UI-session 变更；`MainViewModel` 仍是原唯一写入者。

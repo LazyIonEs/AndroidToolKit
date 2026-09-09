@@ -75,10 +75,15 @@ val generateRustBindings = tasks.register<Exec>("generateRustBindings") {
     inputs.files(rustInputs)
     outputs.dir(rustGeneratedSource)
 }
+val removeLegacyRustLibrary = tasks.register<Delete>("removeLegacyRustLibrary") {
+    // The old build copied this generated resource into Kotlin class output. It can
+    // survive an incremental migration or a branch switch and duplicate the new resource.
+    delete(layout.buildDirectory.file("classes/kotlin/jvm/main/$packagedRustLibraryName"))
+}
 val copyRustLibrary = tasks.register<Sync>("copyRustLibrary") {
     group = "build"
     description = "Package the native library at the classpath root expected by UniFFI."
-    dependsOn(buildRustLibrary)
+    dependsOn(buildRustLibrary, removeLegacyRustLibrary)
     from(rustReleaseDir.file(rustLibraryName)) { rename { packagedRustLibraryName } }
     into(layout.buildDirectory.dir("generated/rustResources"))
 }
