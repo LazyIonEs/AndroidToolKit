@@ -90,7 +90,6 @@ import org.tool.kit.utils.extractValue
 import org.tool.kit.utils.extractVersion
 import org.tool.kit.utils.formatFileSize
 import org.tool.kit.utils.getFileLength
-import org.tool.kit.utils.getVerifier
 import org.tool.kit.utils.isJPEG
 import org.tool.kit.utils.isJPG
 import org.tool.kit.utils.isMac
@@ -122,6 +121,7 @@ class MainViewModel(
     keyStores: KeyStoreRepository,
     private val effects: org.tool.kit.feature.app.AppEffectSink,
     initialCapacity: StorageCapacity = StorageCapacity(0, 0),
+    private val signatureVerification: org.tool.kit.domain.usecase.VerifySignatureUseCase? = null,
 ) :
     ViewModel() {
 
@@ -585,158 +585,31 @@ class MainViewModel(
         }
     }
 
-    /**
-     * 签名信息
-     * @param input 输入签名的路径
-     * @param password 签名密码
-     * @param alisa 签名别名
-     */
-    fun signerVerifier(input: String, password: String, alisa: String) =
-        viewModelScope.launch(Dispatchers.IO) {
-            logger.info { "signerVerifier 获取签名信息开始, 签名文件路径: $input 签名密码: $password 签名别名: $alisa" }
-            _verifierState.update { UIState.Loading }
-            var fileInputStream: FileInputStream? = null
-            val inputFile = File(input)
-            try {
-                val list = ArrayList<Verifier>()
-                val keyStore = KeyStore.getInstance(KeyStore.getDefaultType())
-                fileInputStream = FileInputStream(inputFile)
-                keyStore.load(fileInputStream, password.toCharArray())
-                val cert = keyStore.getCertificate(alisa)
-                logger.error { "signerVerifier 获取签名信息结束, 判断是否是X509Certificate类型: ${cert.type}" }
-                if (cert.type == "X.509") {
-                    cert as X509Certificate
-                    list.add(cert.getVerifier(cert.version.toString()))
-                    val apkVerifierResult = VerifierResult(
-                        isSuccess = true,
-                        isApk = false,
-                        path = input,
-                        name = inputFile.name,
-                        data = list
-                    )
-                    logger.error { "signerVerifier 获取签名信息结束, 结果: $apkVerifierResult" }
-                    _verifierState.update { UIState.Success(apkVerifierResult) }
-                } else {
-                    throw Exception("Key Certificate Type Is Not X509Certificate")
-                }
-            } catch (e: Exception) {
-                logger.error { "signerVerifier 获取签名信息异常, 异常信息: ${e.message}" }
-                updateSnackbarVisuals(
-                    e.message ?: getString(Res.string.signature_verification_failed)
-                )
-                _verifierState.update { UIState.WAIT }
-            } finally {
-                fileInputStream?.close()
-            }
-        }
-
-    /**
-     * APK签名信息
-     * @param input 输入APK的路径
-     */
-    fun apkVerifier(input: String) = viewModelScope.launch(Dispatchers.IO) {
+    fun signerVerifier(input: String, password: String, alisa: String) = viewModelScope.launch {
         _verifierState.update { UIState.Loading }
-        val list = ArrayList<Verifier>()
-        val inputFile = File(input)
-        val path = inputFile.path
-        val name = inputFile.name
-        val verifier: ApkVerifier = ApkVerifier.Builder(inputFile).build()
-        logger.info { "apkVerifier 获取APK签名信息开始, APK文件路径: $input" }
-        try {
-            val result = verifier.verify()
-            var error = ""
-            val isSuccess = result.isVerified
-
-            result.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                .forEach {
-                    error += it.toString() + "\n"
-                }
-
-            if (result.v1SchemeSigners.isNotEmpty()) {
-                for (signer in result.v1SchemeSigners) {
-                    val cert = signer.certificate ?: continue
-                    if (signer.certificate.type == "X.509") {
-                        list.add(cert.getVerifier("1"))
-                    }
-                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                        .forEach {
-                            error += it.toString() + "\n"
-                        }
-                }
-            }
-
-            if (result.v2SchemeSigners.isNotEmpty()) {
-                for (signer in result.v2SchemeSigners) {
-                    val cert = signer.certificate ?: continue
-                    if (signer.certificate.type == "X.509") {
-                        list.add(cert.getVerifier("2"))
-                    }
-                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                        .forEach {
-                            error += it.toString() + "\n"
-                        }
-                }
-            }
-
-            if (result.v3SchemeSigners.isNotEmpty()) {
-                for (signer in result.v3SchemeSigners) {
-                    val cert = signer.certificate ?: continue
-                    if (signer.certificate.type == "X.509") {
-                        list.add(cert.getVerifier("3"))
-                    }
-                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                        .forEach {
-                            error += it.toString() + "\n"
-                        }
-                }
-            }
-
-            if (result.v31SchemeSigners.isNotEmpty()) {
-                for (signer in result.v3SchemeSigners) {
-                    val cert = signer.certificate ?: continue
-                    if (signer.certificate.type == "X.509") {
-                        list.add(cert.getVerifier("3.1"))
-                    }
-                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                        .forEach {
-                            error += it.toString() + "\n"
-                        }
-                }
-            }
-
-            if (result.v4SchemeSigners.isNotEmpty()) {
-                for (signer in result.v4SchemeSigners) {
-                    val cert = signer.certificate ?: continue
-                    if (signer.certificate.type == "X.509") {
-                        list.add(cert.getVerifier("4"))
-                    }
-                    signer.errors.filter { it.issue == ApkVerifier.Issue.JAR_SIG_UNPROTECTED_ZIP_ENTRY }
-                        .forEach {
-                            error += it.toString() + "\n"
-                        }
-                }
-            }
-
-            if (isSuccess || list.isNotEmpty()) {
-                val apkVerifierResult = VerifierResult(isSuccess, true, path, name, list)
-                _verifierState.update { UIState.Success(apkVerifierResult) }
-                logger.info { "apkVerifier 获取APK签名信息结束, 结果: $apkVerifierResult" }
-            } else {
-                if (error.isBlank()) {
-                    error = getString(Res.string.apk_signature_verification_failed)
-                }
-                updateSnackbarVisuals(error)
+        checkNotNull(signatureVerification).certificate(input, password, alisa).fold(
+            onSuccess = { value -> _verifierState.update { UIState.Success(value.toLegacy()) } },
+            onFailure = { error ->
+                updateSnackbarVisuals(error.message ?: getString(Res.string.signature_verification_failed))
                 _verifierState.update { UIState.WAIT }
-                logger.error { "apkVerifier 获取APK签名信息异常, 异常信息: $error" }
-            }
-        } catch (e: Exception) {
-            logger.error(e) { "apkVerifier 获取APK签名信息异常, 异常信息: ${e.message}" }
-            updateSnackbarVisuals(
-                e.message ?: getString(Res.string.apk_signature_verification_failed)
-            )
-            _verifierState.update { UIState.WAIT }
-        }
+            })
     }
+
+    fun apkVerifier(input: String) = viewModelScope.launch {
+        _verifierState.update { UIState.Loading }
+        checkNotNull(signatureVerification).apk(input).fold(
+            onSuccess = { value -> _verifierState.update { UIState.Success(value.toLegacy()) } },
+            onFailure = { error ->
+                updateSnackbarVisuals(error.message ?: getString(Res.string.apk_signature_verification_failed))
+                _verifierState.update { UIState.WAIT }
+            })
+    }
+
+    private fun org.tool.kit.domain.signature.SignatureVerification.toLegacy() =
+        VerifierResult(isSuccess, isApk, path, name, ArrayList(data.map {
+            Verifier(it.version, it.subject, it.validFrom, it.validUntil, it.publicKeyType,
+                it.modulus, it.signatureType, it.md5, it.sha1, it.sha256)
+        }))
 
     /**
      * 生成垃圾代码 aar

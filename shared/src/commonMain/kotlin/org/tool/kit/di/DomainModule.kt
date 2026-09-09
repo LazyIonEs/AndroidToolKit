@@ -5,4 +5,5 @@ import org.tool.kit.domain.usecase.GenerateKeyStoreUseCase
 
 fun domainModule() = module {
     factory { GenerateKeyStoreUseCase(get()) }
+    factory { org.tool.kit.domain.usecase.VerifySignatureUseCase(get()) }
 }
