@@ -170,11 +170,13 @@ internal object AllPathsExist : StorageRepository {
 }
 
 internal object EmptyKeys : KeyStoreRepository {
+    override suspend fun generate(request: org.tool.kit.domain.keystore.GenerateKeyStoreRequest): org.tool.kit.domain.keystore.GenerateKeyStoreOutcome = error("Unexpected key generation")
     override suspend fun loadAliases(path: String, password: String): List<String>? = null
     override suspend fun validateAliasPassword(path: String, storePassword: String, alias: String?, password: String) = false
 }
 
 private class DeferredKeys : KeyStoreRepository {
+    override suspend fun generate(request: org.tool.kit.domain.keystore.GenerateKeyStoreRequest): org.tool.kit.domain.keystore.GenerateKeyStoreOutcome = error("Unexpected key generation")
     val aliases = mutableListOf<CompletableDeferred<List<String>?>>()
     val passwords = mutableListOf<CompletableDeferred<Boolean>>()
     override suspend fun loadAliases(path: String, password: String): List<String>? = withContext(NonCancellable) {

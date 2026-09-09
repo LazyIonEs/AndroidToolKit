@@ -610,40 +610,39 @@ class MainViewModel(
     /**
      * 生成签名
      */
-    fun createSignature() = viewModelScope.launch(Dispatchers.IO) {
+    private val generateKeyStore = org.tool.kit.domain.usecase.GenerateKeyStoreUseCase(keyStores)
+
+    fun createSignature() = viewModelScope.launch {
         try {
             val destStoreType = userData.value.destStoreType
             val destStoreSize = userData.value.destStoreSize.size
-            logger.info { "createSignature 生成签名开始, 签名信息: $keyStoreInfoState 签名类型: ${destStoreType.name} 密钥大小: $destStoreSize" }
+            val form = keyStoreInfoState
             _keyStoreInfoUIState.update { UIState.Loading }
-            val outputFile = File(keyStoreInfoState.keyStorePath, keyStoreInfoState.keyStoreName)
-            val result = KeystoreHelper.createNewStore(
-                destStoreType.name,
-                outputFile,
-                keyStoreInfoState.keyStorePassword,
-                keyStoreInfoState.keyStoreAlisaPassword,
-                keyStoreInfoState.keyStoreAlisa,
-                "CN=${keyStoreInfoState.authorName},OU=${keyStoreInfoState.organizationalUnit},O=${keyStoreInfoState.organizational},L=${keyStoreInfoState.city},S=${keyStoreInfoState.province}, C=${keyStoreInfoState.countryCode}",
-                keyStoreInfoState.validityPeriod.toInt(),
-                destStoreSize
-            )
-            logger.info { "createSignature 生成签名结束, 结果: $result" }
-            if (result) {
+            val result = generateKeyStore(org.tool.kit.domain.keystore.GenerateKeyStoreRequest(
+                form.keyStorePath, form.keyStoreName, form.keyStorePassword, form.keyStoreAlisaPassword,
+                form.keyStoreAlisa, form.validityPeriod, form.authorName, form.organizationalUnit,
+                form.organizational, form.city, form.province, form.countryCode,
+                org.tool.kit.domain.keystore.KeyStoreFormat.valueOf(destStoreType.name), destStoreSize))
+            if (result is org.tool.kit.domain.keystore.GenerateKeyStoreOutcome.Success) {
                 val snackbarVisualsData = SnackbarMessage(
                     message = UiMessage.Text(getString(Res.string.create_signature_successfully)),
                     actionLabel = getString(Res.string.jump),
                     withDismissAction = true,
                     duration = SnackbarDuration.Short,
-                    action = SnackbarAction.OpenDirectory(outputFile.path))
+                    action = SnackbarAction.OpenDirectory(result.outputPath))
                 updateSnackbarVisuals(snackbarVisualsData)
             } else {
-                updateSnackbarVisuals(Res.string.signature_creation_failed)
+                val message = (result as org.tool.kit.domain.keystore.GenerateKeyStoreOutcome.Failure).message
+                updateSnackbarVisuals(message ?: getString(Res.string.signature_creation_failed))
             }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
         } catch (e: Exception) {
             logger.error(e) { "createSignature 生成签名异常, 异常信息: ${e.message}" }
             updateSnackbarVisuals(e.message ?: getString(Res.string.signature_creation_failed))
+        } finally {
+            _keyStoreInfoUIState.update { UIState.WAIT }
         }
-        _keyStoreInfoUIState.update { UIState.WAIT }
     }
 
     /**

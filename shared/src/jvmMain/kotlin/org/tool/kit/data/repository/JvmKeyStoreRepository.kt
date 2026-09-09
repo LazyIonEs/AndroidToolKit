@@ -9,7 +9,10 @@ import java.security.KeyStore
 
 private val logger = KotlinLogging.logger("KeyStoreRepository")
 
-class JvmKeyStoreRepository(private val io: CoroutineDispatcher) : KeyStoreRepository {
+class JvmKeyStoreRepository(private val io: CoroutineDispatcher,
+    private val source: org.tool.kit.data.source.JvmKeyStoreDataSource = org.tool.kit.data.source.JvmKeyStoreDataSource(io)) : KeyStoreRepository {
+    override suspend fun generate(request: org.tool.kit.domain.keystore.GenerateKeyStoreRequest) = source.generate(request)
+
     override suspend fun loadAliases(path: String, password: String): List<String>? = withContext(io) {
         try {
             val store = KeyStore.getInstance(KeyStore.getDefaultType())
