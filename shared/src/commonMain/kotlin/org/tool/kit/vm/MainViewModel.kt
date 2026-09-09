@@ -6,11 +6,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import brut.androlib.ApkBuilder
-import brut.androlib.ApkDecoder
-import brut.androlib.Config
-import brut.androlib.res.xml.ResXmlUtils
-import brut.directory.ExtFile
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -64,8 +59,6 @@ import org.tool.kit.utils.getFileLength
 import org.tool.kit.utils.isJPEG
 import org.tool.kit.utils.isJPG
 import org.tool.kit.utils.isPng
-import org.tool.kit.utils.renameManifestPackage
-import org.tool.kit.utils.renameValueAppName
 import org.tool.kit.utils.resourcesDir
 import org.tool.kit.utils.update
 import java.io.File
@@ -84,7 +77,7 @@ class MainViewModel(
     keyStores: KeyStoreRepository,
     private val effects: org.tool.kit.feature.app.AppEffectSink,
     initialCapacity: StorageCapacity = StorageCapacity(0, 0),
-    private val signApk: org.tool.kit.domain.usecase.SignApkUseCase,
+    private val buildApk: org.tool.kit.domain.usecase.BuildApkUseCase,
 ) :
     ViewModel() {
 
@@ -243,11 +236,6 @@ class MainViewModel(
                 sign.keyStoreAlisaList?.getOrNull(sign.keyStoreAlisaIndex), sign.keyStoreAlisaPassword))
     }
 
-    /** Temporary ApkTool adapter, removed when BuildApkUseCase takes ownership in Phase 6. */
-    private suspend fun legacySignForApkTool(outputPath: String, apkPath: String, sign: Sign): File? =
-        (signApk(signingRequest(outputPath, apkPath, sign)) as? org.tool.kit.domain.signing.SignApkOutcome.Success)
-            ?.takeIf { it.outputExists }?.let { File(it.outputPath) }
-
     /**
      * 生成垃圾代码 aar
      */
@@ -320,90 +308,23 @@ class MainViewModel(
     /**
      * 生成自定义空包
      */
-    fun generateApktool() = viewModelScope.launch(Dispatchers.IO) {
+    fun generateApktool() = viewModelScope.launch {
+        if (apkToolInfoUIState == UIState.Loading) return@launch
+        val form = apkToolInfoState.copy()
+        val request = org.tool.kit.domain.apk.BuildApkRequest(form.outputPath, form.icon, form.packageName,
+            form.targetSdkVersion, form.minSdkVersion, form.versionCode, form.versionName, form.appName,
+            if (form.enableSign) signingRequest(form.outputPath, "", form) else null)
         _apkToolInfoUIState.update { UIState.Loading }
-        val outApktoolCacheDir = File(resourcesDir, "apktool")
         try {
-            logger.info { "generateApktool 生成空包开始, 空包信息: $apkToolInfoState" }
-            val apkIcon = apkToolInfoState.icon
-            val packageName = apkToolInfoState.packageName
-            val targetSdkVersion = apkToolInfoState.targetSdkVersion
-            val minSdkVersion = apkToolInfoState.minSdkVersion
-            val versionCode = apkToolInfoState.versionCode.toInt()
-            val versionName = apkToolInfoState.versionName
-            val appName = apkToolInfoState.appName
-            val outApktoolFile = File(apkToolInfoState.outputPath, "$appName.apk")
-            val apkFile = ExtFile(ConfigConstant.APKTOOL_FILE)
-            val config = Config(versionName)
-            config.isAnalysisMode = true
-            config.isForced = true
-            config.isDebuggable = true
-            logger.info { "generateApktool 开始解包" }
-            // 开始解包
-            val apkDecoder = ApkDecoder(apkFile, config)
-            apkDecoder.decode(outApktoolCacheDir)
-            val apkInfo = apkDecoder.apkInfo
-            // 解包完成
-            logger.info { "generateApktool 解包完成, ApkInfo: $apkInfo" }
-            val androidManifestXmlFile = File(outApktoolCacheDir, "AndroidManifest.xml")
-            // 删除Manifest中versionCode和versionName
-            ResXmlUtils.removeManifestVersions(androidManifestXmlFile)
-            logger.info { "generateApktool 删除Manifest中versionCode和versionName" }
-            // 替换Manifest中minSdkVersion和targetSdkVersion
-            renameManifestPackage(androidManifestXmlFile, packageName, minSdkVersion, targetSdkVersion)
-            logger.info { "generateApktool 替换Manifest中package、minSdkVersion和targetSdkVersion" }
-            // 替换strings中app_name的值
-            val stringsFile = File(outApktoolCacheDir, "res/values/strings.xml")
-            renameValueAppName(stringsFile, appName)
-            logger.info { "generateApktool 替换strings中app_name的值" }
-            // 替换icon
-            if (apkIcon.isNotBlank()) {
-                val apkIconFile = File(apkIcon)
-                val suffix = apkIconFile.extension
-                val densities = ConfigConstant.ICON_FILE_LIST
-                for (density in densities.withIndex()) {
-                    val targetFolderFile = File(outApktoolCacheDir, "res/mipmap-${density.value}")
-                    targetFolderFile.deleteRecursively()
-                    val targetFile = File(targetFolderFile, "ic_launcher.${suffix}")
-                    apkIconFile.copyTo(targetFile, overwrite = true)
-                }
-                logger.info { "generateApktool 替换icon" }
+            when (val result = buildApk(request)) {
+                is org.tool.kit.domain.apk.BuildApkOutcome.Success -> updateSnackbarVisuals(SnackbarMessage(
+                    UiMessage.Text(getString(Res.string.build_end, result.sizeBytes.formatFileSize())),
+                    actionLabel = getString(Res.string.jump), withDismissAction = true,
+                    duration = SnackbarDuration.Short, action = SnackbarAction.OpenDirectory(result.outputPath)))
+                is org.tool.kit.domain.apk.BuildApkOutcome.Failure -> updateSnackbarVisuals(result.message ?: getString(Res.string.build_failure))
             }
-            // 替换部分信息到apktool.yml
-            apkInfo.versionInfo.versionCode = versionCode
-            apkInfo.versionInfo.versionName = versionName
-            apkInfo.sdkInfo.minSdkVersion = minSdkVersion
-            apkInfo.sdkInfo.targetSdkVersion = targetSdkVersion
-            apkInfo.save(outApktoolCacheDir)
-            logger.info { "generateApktool 替换部分信息到apktool.yml" }
-            // 开始打包
-            logger.info { "generateApktool 开始打包" }
-            val outApktoolCacheDirExt = ExtFile(outApktoolCacheDir)
-            val apkBuilder = ApkBuilder(outApktoolCacheDirExt, config)
-            apkBuilder.build(outApktoolFile)
-            logger.info { "generateApktool 打包完成" }
-            if (apkToolInfoState.enableSign) {
-                logger.info { "generateApktool 开始签名" }
-                legacySignForApkTool(
-                    outputPath = apkToolInfoState.outputPath,
-                    apkPath = outApktoolFile.path,
-                    sign = apkToolInfoState
-                )
-            }
-            val snackbarVisualsData = SnackbarMessage(
-                message = UiMessage.Text(getString(Res.string.build_end, outApktoolFile.length().formatFileSize())),
-                actionLabel = getString(Res.string.jump),
-                withDismissAction = true,
-                duration = SnackbarDuration.Short,
-                action = SnackbarAction.OpenDirectory(outApktoolFile.path))
-            updateSnackbarVisuals(snackbarVisualsData)
-        } catch (e: Exception) {
-            logger.error(e) { "generateApktool 生成空包异常, 异常信息: ${e.message}" }
-            updateSnackbarVisuals(e.message ?: getString(Res.string.build_failure))
-        } finally {
-            outApktoolCacheDir.deleteRecursively()
-            _apkToolInfoUIState.update { UIState.WAIT }
-        }
+        } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+        finally { _apkToolInfoUIState.update { UIState.WAIT } }
     }
 
     /**

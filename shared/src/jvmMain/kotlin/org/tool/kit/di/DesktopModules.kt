@@ -21,6 +21,8 @@ fun desktopModules(
 
 private fun desktopDataModule() = module {
     includes(dataModule())
+    single<org.tool.kit.domain.repository.ApkToolRepository> { org.tool.kit.data.source.JvmApkToolDataSource(org.tool.kit.constant.ConfigConstant.APKTOOL_FILE, get<AppDispatchers>().io) }
+    single<org.tool.kit.domain.repository.ApkBuildWorkspaces> { org.tool.kit.data.source.JvmApkBuildWorkspaces(java.io.File(org.tool.kit.utils.resourcesDir), get<AppDispatchers>().io) }
     single { org.tool.kit.feature.signature.SigningPresets(
         org.tool.kit.constant.ConfigConstant.APK.entries.map { org.tool.kit.feature.signature.SigningPreset(it.title, it.path) },
         org.tool.kit.constant.ConfigConstant.APK.All.path, org.tool.kit.constant.ConfigConstant.APK.Huawei.path) }
