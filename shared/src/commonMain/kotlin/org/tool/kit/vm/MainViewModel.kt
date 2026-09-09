@@ -14,7 +14,6 @@ import brut.directory.ExtFile
 import com.android.apksig.ApkSigner
 import com.android.apksig.KeyConfig
 import com.android.ide.common.signing.KeystoreHelper
-import com.intellij.openapi.util.text.StringUtil
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -33,7 +32,6 @@ import org.tool.kit.feature.app.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
-import org.apache.commons.codec.digest.DigestUtils
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.tool.kit.constant.ConfigConstant
@@ -41,7 +39,6 @@ import org.tool.kit.core.validation.LatestRequest
 import org.tool.kit.domain.repository.KeyStoreRepository
 import org.tool.kit.domain.repository.StorageCapacity
 import org.tool.kit.domain.repository.StorageRepository
-import org.tool.kit.model.ApkInformation
 import org.tool.kit.model.ApkSignature
 import org.tool.kit.model.ApkToolInfo
 import org.tool.kit.model.DarkThemeConfig
@@ -61,11 +58,9 @@ import org.tool.kit.platform.resizeFir
 import org.tool.kit.platform.resizePng
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.apk_is_signed_successfully
-import org.tool.kit.shared.generated.resources.apk_parsing_failed
 import org.tool.kit.shared.generated.resources.build_end
 import org.tool.kit.shared.generated.resources.build_failure
 import org.tool.kit.shared.generated.resources.cleanup_complete
-import org.tool.kit.shared.generated.resources.exec_command_error
 import org.tool.kit.shared.generated.resources.file_deletion_exception
 import org.tool.kit.shared.generated.resources.icon_creation_failed
 import org.tool.kit.shared.generated.resources.icon_generation_completed
@@ -74,28 +69,17 @@ import org.tool.kit.shared.generated.resources.output_file_already_exists
 import org.tool.kit.shared.generated.resources.scanning_anomalies
 import org.tool.kit.shared.generated.resources.signature_failed
 import org.tool.kit.utils.AndroidJunkGenerator
-import org.tool.kit.utils.ExternalCommand
 import org.tool.kit.utils.MultiAarGenerator
-import org.tool.kit.utils.extractAndroidManifest
-import org.tool.kit.utils.extractChannel
-import org.tool.kit.utils.extractIcon
-import org.tool.kit.utils.extractValue
-import org.tool.kit.utils.extractVersion
 import org.tool.kit.utils.formatFileSize
 import org.tool.kit.utils.getFileLength
 import org.tool.kit.utils.isJPEG
 import org.tool.kit.utils.isJPG
-import org.tool.kit.utils.isMac
 import org.tool.kit.utils.isPng
-import org.tool.kit.utils.isWindows
 import org.tool.kit.utils.renameManifestPackage
 import org.tool.kit.utils.renameValueAppName
 import org.tool.kit.utils.resourcesDir
-import org.tool.kit.utils.resourcesDirWithOs
 import org.tool.kit.utils.update
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.FileInputStream
 import kotlin.coroutines.resume
 
 private val logger = KotlinLogging.logger("MainViewModel")
@@ -112,8 +96,6 @@ class MainViewModel(
     keyStores: KeyStoreRepository,
     private val effects: org.tool.kit.feature.app.AppEffectSink,
     initialCapacity: StorageCapacity = StorageCapacity(0, 0),
-    private val readApk: org.tool.kit.domain.usecase.ReadApkInformationUseCase? = null,
-    private val iconDecoder: org.tool.kit.feature.apk.ApkIconDecoder? = null,
 ) :
     ViewModel() {
 
@@ -130,10 +112,6 @@ class MainViewModel(
     // Apk签名UI状态
     private val _apkSignatureUIState = mutableStateOf<UIState>(UIState.WAIT)
     val apkSignatureUIState by _apkSignatureUIState
-
-    // Apk信息UI状态
-    private val _apkInformationState = mutableStateOf<UIState>(UIState.WAIT)
-    val apkInformationState by _apkInformationState
 
     // 垃圾代码生成信息
     private val _junkCodeInfoState = mutableStateOf(JunkCodeInfo())
@@ -474,26 +452,6 @@ class MainViewModel(
             }
         }
 
-    /**
-     * APK信息
-     * @param input 输入APK路径
-     */
-    fun apkInformation(input: String) = viewModelScope.launch(Dispatchers.IO) {
-        _apkInformationState.update { UIState.Loading }
-        try {
-            val data = checkNotNull(readApk)(input).getOrThrow()
-            val model = ApkInformation(data.label, data.icon?.let { checkNotNull(iconDecoder).decode(it) },
-                data.size, data.md5, data.packageName, data.versionCode, data.versionName,
-                data.compileSdkVersion, data.minSdkVersion, data.targetSdkVersion,
-                data.usesPermissionList?.let(::ArrayList), data.nativeCode, data.channel)
-            _apkInformationState.update { UIState.Success(model) }
-        } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
-        catch (error: Exception) {
-            updateSnackbarVisuals(if (error is org.tool.kit.domain.apk.ApkCommandFailed) getString(Res.string.exec_command_error)
-                else error.message ?: getString(Res.string.apk_parsing_failed))
-            _apkInformationState.update { UIState.WAIT }
-        }
-    }
 
     /**
      * 生成垃圾代码 aar
@@ -921,25 +879,6 @@ class MainViewModel(
      */
     fun isAllFileUnchecked(): Boolean = _pendingDeletionFileList.none { file -> file.checked }
 
-    /**
-     * 获取aapt2文件路径
-     */
-    private fun getAapt2File(): File {
-        val aapt = File(
-            resourcesDirWithOs, if (isWindows) {
-                "aapt2.exe"
-            } else if (isMac) {
-                "aapt2"
-            } else {
-                "aapt2"
-            }
-        )
-        if (!aapt.canExecute()) {
-            aapt.setExecutable(true)
-        }
-        logger.info { "getAapt2File 获取aapt2文件路径: ${aapt.absolutePath}, aapt2可执行: ${aapt.canExecute()}" }
-        return aapt
-    }
 
 }
 

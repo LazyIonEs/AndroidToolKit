@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,11 +20,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asSkiaBitmap
@@ -39,10 +38,6 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.feature.ui.FileButton
 import org.tool.kit.feature.ui.UploadAnimate
-import org.tool.kit.feature.ui.dragAndDropTarget
-import org.tool.kit.model.ApkInformation
-import org.tool.kit.model.DarkThemeConfig
-import org.tool.kit.model.FileSelectorType
 import org.tool.kit.shared.generated.resources.ABIs
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.app_name
@@ -61,13 +56,8 @@ import org.tool.kit.shared.generated.resources.version
 import org.tool.kit.shared.generated.resources.version_code
 import org.tool.kit.theme.AppTheme
 import org.tool.kit.utils.LottieAnimation
-import org.tool.kit.utils.copy
 import org.tool.kit.utils.formatFileSize
 import org.tool.kit.utils.getImageRequest
-import org.tool.kit.utils.isApk
-import org.tool.kit.vm.MainViewModel
-import org.tool.kit.vm.UIState
-import kotlin.io.path.pathString
 
 /**
  * @Author      : LazyIonEs
@@ -76,25 +66,24 @@ import kotlin.io.path.pathString
  * @Version     : 1.0
  */
 @Composable
-fun ApkInformation(viewModel: MainViewModel) {
-    if (viewModel.apkInformationState == UIState.WAIT) {
-        ApkInformationLottie(viewModel)
-    }
-    ApkInformationBox(viewModel)
-    ApkDraggingBox(viewModel)
+fun ApkInformationScreen(
+    state: ApkInformationUiState,
+    useDarkTheme: Boolean,
+    onIntent: (ApkInformationIntent) -> Unit,
+    onPickFile: () -> Unit,
+    dragging: Boolean,
+    dropTarget: DragAndDropTarget,
+) {
+    if (state.phase == ApkInformationPhase.Idle) ApkInformationLottie(useDarkTheme)
+    ApkInformationBox(state, useDarkTheme) { onIntent(ApkInformationIntent.CopyText(it)) }
+    ApkDraggingBox(state.phase == ApkInformationPhase.Idle, onPickFile, dragging, dropTarget)
 }
 
 /**
  * 主页动画
  */
 @Composable
-private fun ApkInformationLottie(viewModel: MainViewModel) {
-    val themeConfig by viewModel.themeConfig.collectAsState()
-    val useDarkTheme = when (themeConfig) {
-        DarkThemeConfig.LIGHT -> false
-        DarkThemeConfig.DARK -> true
-        DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
-    }
+private fun ApkInformationLottie(useDarkTheme: Boolean) {
     Box(
         modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
     ) {
@@ -108,25 +97,13 @@ private fun ApkInformationLottie(viewModel: MainViewModel) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ApkDraggingBox(viewModel: MainViewModel) {
-    var dragging by remember { mutableStateOf(false) }
+private fun ApkDraggingBox(expanded: Boolean, onPickFile: () -> Unit, dragging: Boolean, dropTarget: DragAndDropTarget) {
     UploadAnimate(dragging)
     Box(
         modifier = Modifier.fillMaxSize()
             .dragAndDropTarget(
                 shouldStartDragAndDrop = accept@{ true },
-                target = dragAndDropTarget(dragging = {
-                    dragging = it
-                }, onFinish = { result ->
-                    result.onSuccess { fileList ->
-                        fileList.firstOrNull()?.let {
-                            val path = it.toAbsolutePath().pathString
-                            if (path.isApk) {
-                                viewModel.apkInformation(path)
-                            }
-                        }
-                    }
-                })
+                target = dropTarget
             )
     ) {
         Box(
@@ -137,10 +114,8 @@ private fun ApkDraggingBox(viewModel: MainViewModel) {
                     stringResource(Res.string.let_go)
                 } else {
                     stringResource(Res.string.upload_apk)
-                }, expanded = viewModel.apkInformationState == UIState.WAIT, FileSelectorType.APK
-            ) { path ->
-                viewModel.apkInformation(path)
-            }
+                }, expanded = expanded, onClick = onPickFile
+            )
         }
     }
 }
@@ -148,11 +123,12 @@ private fun ApkDraggingBox(viewModel: MainViewModel) {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ApkInformationBox(
-    viewModel: MainViewModel
+    state: ApkInformationUiState,
+    useDarkTheme: Boolean,
+    onCopy: (String) -> Unit,
 ) {
-    val uiState = viewModel.apkInformationState
     AnimatedVisibility(
-        visible = uiState is UIState.Success, enter = fadeIn(), exit = fadeOut()
+        visible = state.phase == ApkInformationPhase.Result, enter = fadeIn(), exit = fadeOut()
     ) {
         Card(
             modifier = Modifier.fillMaxSize().padding(top = 14.dp, bottom = 14.dp, end = 14.dp),
@@ -161,82 +137,81 @@ private fun ApkInformationBox(
             Box(
                 modifier = Modifier.fillMaxSize().padding(vertical = 12.dp)
             ) {
-                if (uiState is UIState.Success) {
-                    val apkInformation = uiState.result as ApkInformation
+                state.result?.let { apkInformation ->
                     LazyColumn {
                         item {
                             AppInfoItem(
                                 stringResource(Res.string.app_name),
                                 apkInformation.label,
-                                viewModel
+                                onCopy
                             )
                         }
                         item {
                             AppInfoItem(
                                 stringResource(Res.string.version),
                                 apkInformation.versionName,
-                                viewModel
+                                onCopy
                             )
                         }
                         item {
                             AppInfoItem(
                                 stringResource(Res.string.version_code),
                                 apkInformation.versionCode,
-                                viewModel
+                                onCopy
                             )
                         }
                         item {
                             AppInfoItem(
                                 stringResource(Res.string.package_name),
                                 apkInformation.packageName,
-                                viewModel
+                                onCopy
                             )
                         }
                         item {
                             AppInfoItem(
                                 stringResource(Res.string.compile_sdk_version),
                                 apkInformation.compileSdkVersion,
-                                viewModel
+                                onCopy
                             )
                         }
                         item {
                             AppInfoItem(
                                 stringResource(Res.string.minimum_sdk_version),
                                 apkInformation.minSdkVersion,
-                                viewModel
+                                onCopy
                             )
                         }
                         item {
                             AppInfoItem(
                                 stringResource(Res.string.target_sdk_version),
                                 apkInformation.targetSdkVersion,
-                                viewModel
+                                onCopy
                             )
                         }
                         item {
                             AppInfoItem(
                                 stringResource(Res.string.ABIs),
                                 apkInformation.nativeCode,
-                                viewModel
+                                onCopy
                             )
                         }
                         item {
                             AppInfoItem(
                                 stringResource(Res.string.file_md5),
                                 apkInformation.md5,
-                                viewModel
+                                onCopy
                             )
                         }
                         item {
                             AppInfoItem(
                                 stringResource(Res.string.size),
                                 apkInformation.size.formatFileSize(scale = 1, withInterval = true),
-                                viewModel
+                                onCopy
                             )
                         }
                         apkInformation.channel?.let { channel ->
                             item {
-                                AppInfoItem(stringResource(Res.string.channel), channel, viewModel)
+                                AppInfoItem(stringResource(Res.string.channel), channel, onCopy)
                             }
                         }
                         item {
@@ -255,12 +230,6 @@ private fun ApkInformationBox(
                                 icon = painterResource(Res.drawable.icon),
                                 alwaysOnTop = true
                             ) {
-                                val themeConfig by viewModel.themeConfig.collectAsState()
-                                val useDarkTheme = when (themeConfig) {
-                                    DarkThemeConfig.LIGHT -> false
-                                    DarkThemeConfig.DARK -> true
-                                    DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
-                                }
                                 AppTheme(useDarkTheme) {
                                     Surface(color = MaterialTheme.colorScheme.background) {
                                         CoilZoomAsyncImage(
@@ -290,9 +259,9 @@ private fun ApkInformationBox(
 }
 
 @Composable
-private fun AppInfoItem(title: String, value: String, viewModel: MainViewModel) {
+private fun AppInfoItem(title: String, value: String, onCopy: (String) -> Unit) {
     Card(modifier = Modifier.padding(horizontal = 12.dp).height(36.dp), onClick = {
-        copy(value, viewModel)
+        onCopy(value)
     }) {
         Row(
             modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp)
@@ -312,7 +281,7 @@ private fun AppInfoItem(title: String, value: String, viewModel: MainViewModel) 
 }
 
 @Composable
-private fun PermissionsList(permissions: ArrayList<String>?) {
+private fun PermissionsList(permissions: List<String>?) {
     permissions?.let {
         Column(
             modifier = Modifier.padding(horizontal = 12.dp),

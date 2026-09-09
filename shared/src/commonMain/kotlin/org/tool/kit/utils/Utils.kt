@@ -1,21 +1,13 @@
 package org.tool.kit.utils
 
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.toComposeImageBitmap
 import brut.xml.XmlUtils
 import ch.qos.logback.classic.LoggerContext
 import ch.qos.logback.core.FileAppender
-import com.google.devrel.gmscore.tools.apk.arsc.ResourceFile
-import com.google.devrel.gmscore.tools.apk.arsc.ResourceIdentifier
-import com.google.devrel.gmscore.tools.apk.arsc.ResourceTableChunk
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.github.vinceglb.filekit.FileKit
 import io.github.vinceglb.filekit.downloadsDir
 import io.github.vinceglb.filekit.path
 import io.ktor.client.request.get
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import org.jetbrains.skia.Image
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.tool.kit.model.FileSelectorType
@@ -27,7 +19,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.zip.ZipFile
 
@@ -115,109 +106,6 @@ val resourcesDirWithOs: String = System.getProperty("compose.application.resourc
 
 val resourcesDirWithCommon: String = System.getProperty("compose.application.resources.dir")
     ?: File(File(System.getProperty("user.dir"), "resources"), "common").absolutePath
-
-fun extractValue(line: String, attribute: String): String {
-    val pattern = Regex("$attribute='([^']*)'")
-    val matchResult = pattern.find(line)
-    return matchResult?.groups?.get(1)?.value ?: ""
-}
-
-fun extractVersion(line: String, attribute: String): String {
-    val pattern = Regex("$attribute:'(\\d+)'")
-    val matchResult = pattern.find(line)
-    return matchResult?.groups?.get(1)?.value ?: ""
-}
-
-suspend fun extractAndroidManifest(aapt: File, apkPath: String): String? =
-    withContext(Dispatchers.IO) {
-        try {
-            val stdinStream = "".byteInputStream()
-            val stdoutStream = ByteArrayOutputStream()
-            val stderrStream = ByteArrayOutputStream()
-
-            val exitValue = withContext(Dispatchers.IO) {
-                ExternalCommand(aapt.absolutePath).execute(
-                    listOf("dump", "xmltree", apkPath, "--file", "AndroidManifest.xml"),
-                    stdinStream, stdoutStream, stderrStream
-                )
-            }
-            if (exitValue != 0) {
-                // 执行命令出现错误
-                return@withContext null
-            }
-            val result = stdoutStream.toString("UTF-8").trimIndent()
-            return@withContext result
-        } catch (e: Exception) {
-            logger.error(e) { "extractAndroidManifest 提取AndroidManifest异常, 异常信息: ${e.message}" }
-        }
-        return@withContext null
-    }
-
-fun extractChannel(text: String?): String? {
-    if (text.isNullOrBlank()) return null
-    val regex =
-        """A: http://schemas\.android\.com/apk/res/android:name\(0x[0-9a-fA-F]{8}\)="UMENG_CHANNEL" \(Raw: "UMENG_CHANNEL"\)\s+A: http://schemas\.android\.com/apk/res/android:value\(0x[0-9a-fA-F]{8}\)="([^"]+)"""".toRegex()
-    return regex.find(text)?.groupValues?.getOrNull(1)
-}
-
-suspend fun extractIcon(text: String?, apkPath: String, iconPath: String): ImageBitmap? =
-    withContext(Dispatchers.IO) {
-        try {
-            if (iconPath.endsWith(".xml")) {
-                if (text == null) {
-                    return@withContext null
-                }
-                // 正则表达式匹配 "A: http://schemas.android.com/apk/res/android:icon" 后面的十六进制值
-                val regex =
-                    """A: http://schemas.android.com/apk/res/android:icon\(0x[0-9a-fA-F]+\)=@0x([0-9a-fA-F]+)""".toRegex()
-                // 查找匹配
-                regex.find(text)?.let { matchResult ->
-                    val resourceId =
-                        matchResult.groupValues[1].toIntOrNull(16) ?: return@withContext null
-                    return@withContext extractBitmapFromResourceTable(apkPath, resourceId)
-                }
-            } else {
-                return@withContext processIconFromZip(apkPath, iconPath)
-            }
-        } catch (e: Exception) {
-            logger.error(e) { "extractIcon 提取图标异常, 异常信息: ${e.message}" }
-        }
-        return@withContext null
-    }
-
-private fun extractBitmapFromResourceTable(apkPath: String, resourceId: Int): ImageBitmap? {
-    val binaryResourceIdentifier = ResourceIdentifier.create(resourceId)
-
-    ZipFile(apkPath).use { zipFile ->
-        val inputStream = zipFile.getZipFileInputStream("resources.arsc") ?: return null
-        val resourceFile = ResourceFile.fromInputStream(inputStream)
-
-        val resourceTable = resourceFile.chunks.firstOrNull() as? ResourceTableChunk ?: return null
-
-        val blamer = ArscBlamer(resourceTable).apply { blame() }
-
-        val matchingTypeChunk = blamer.getTypeChunks().lastOrNull { typeChunk ->
-            typeChunk.containsResource(binaryResourceIdentifier) &&
-                    typeChunk.configuration.density() in listOf(160, 240, 320, 480, 640)
-        } ?: return null
-
-        val entry = matchingTypeChunk.entries[binaryResourceIdentifier.entryId()] ?: return null
-        if (entry.isComplex) return null
-
-        val resourcePath = resourceTable.stringPool.getString(entry.value()?.data() ?: 0)
-        val resourceBytes = zipFile.getZipFileData(resourcePath) ?: return null
-
-        return Image.makeFromEncoded(resourceBytes).toComposeImageBitmap()
-    }
-}
-
-private fun processIconFromZip(apkPath: String, iconPath: String): ImageBitmap? {
-    ZipFile(apkPath).use { zipFile ->
-        return zipFile.getZipFileData(iconPath)?.let { bytes ->
-            Image.makeFromEncoded(bytes).toComposeImageBitmap()
-        }
-    }
-}
 
 fun ZipFile.getZipFileData(path: String): ByteArray? {
     val zipEntry = this.getEntry(path) ?: return null

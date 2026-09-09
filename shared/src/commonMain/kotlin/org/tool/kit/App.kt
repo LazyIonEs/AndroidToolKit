@@ -98,6 +98,7 @@ fun App() {
 private fun AppRoute() {
     val windowOwner = checkNotNull(LocalViewModelStoreOwner.current)
     val viewModel = koinViewModel<MainViewModel>(viewModelStoreOwner = windowOwner)
+    val apkInformationViewModel = koinViewModel<org.tool.kit.feature.apk.ApkInformationViewModel>(viewModelStoreOwner = windowOwner)
     val signatureViewModel = koinViewModel<SignatureInformationViewModel>(viewModelStoreOwner = windowOwner)
     val keyStoreViewModel = koinViewModel<KeyStoreGenerationViewModel>(viewModelStoreOwner = windowOwner)
     val appViewModel = koinViewModel<AppViewModel>(viewModelStoreOwner = windowOwner)
@@ -117,7 +118,7 @@ private fun AppRoute() {
 
     AppTheme(useDarkTheme) {
         CompositionLocalProvider(LocalIsAppDarkTheme provides useDarkTheme) {
-            MainContentScreen(viewModel, useDarkTheme, shell, settingsViewModel, updateViewModel, keyStoreViewModel, signatureViewModel, koinInject(), koinInject())
+            MainContentScreen(viewModel, useDarkTheme, shell, settingsViewModel, updateViewModel, keyStoreViewModel, signatureViewModel, apkInformationViewModel, koinInject(), koinInject())
         }
     }
 
@@ -141,7 +142,7 @@ fun WindowIcon() = painterResource(Res.drawable.icon)
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
 @Composable
 fun MainContentScreen(viewModel: MainViewModel, useDarkTheme: Boolean, shell: AppUiState,
-    settingsViewModel: SettingsViewModel, updateViewModel: UpdateViewModel, keyStoreViewModel: KeyStoreGenerationViewModel, signatureViewModel: SignatureInformationViewModel, effects: AppEffectSink, actions: DesktopActionHandler) {
+    settingsViewModel: SettingsViewModel, updateViewModel: UpdateViewModel, keyStoreViewModel: KeyStoreGenerationViewModel, signatureViewModel: SignatureInformationViewModel, apkInformationViewModel: org.tool.kit.feature.apk.ApkInformationViewModel, effects: AppEffectSink, actions: DesktopActionHandler) {
     val signatureHasResult by signatureViewModel.hasResult.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val appState = rememberAppState()
@@ -211,7 +212,7 @@ fun MainContentScreen(viewModel: MainViewModel, useDarkTheme: Boolean, shell: Ap
 
             val entryProvider = entryProvider {
                 signatureInformationEntry(signatureViewModel)
-                apkInformationEntry(viewModel)
+                apkInformationEntry(apkInformationViewModel)
                 apkSignatureEntry(viewModel)
                 signatureGenerationEntry(keyStoreViewModel)
                 apkToolEntry(viewModel)
@@ -231,13 +232,14 @@ fun MainContentScreen(viewModel: MainViewModel, useDarkTheme: Boolean, shell: Ap
     AppEffectHost(effects, snackbarHostState, actions)
     val signatureBusy by signatureViewModel.busy.collectAsStateWithLifecycle()
     val keyStoreBusy by keyStoreViewModel.busy.collectAsStateWithLifecycle()
-    LoadingAnimate(isShowLoading(viewModel) || keyStoreBusy || signatureBusy, useDarkTheme)
+    val apkInformationBusy by apkInformationViewModel.busy.collectAsStateWithLifecycle()
+    LoadingAnimate(isShowLoading(viewModel) || keyStoreBusy || signatureBusy || apkInformationBusy, useDarkTheme)
     UpdateRoute(updateViewModel, actions)
 }
 
 private fun isShowLoading(viewModel: MainViewModel) =
     viewModel.junkCodeUIState == UIState.Loading || viewModel.iconFactoryUIState == UIState.Loading
-            || viewModel.apkSignatureUIState == UIState.Loading || viewModel.apkInformationState == UIState.Loading
+            || viewModel.apkSignatureUIState == UIState.Loading
             || (viewModel.fileClearUIState == UIState.Loading && viewModel.isClearing
             || viewModel.apkToolInfoUIState == UIState.Loading)
 

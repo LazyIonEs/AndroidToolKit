@@ -1,9 +1,6 @@
 package org.tool.kit.utils
 
 import org.tool.kit.model.CopyMode
-import org.tool.kit.shared.generated.resources.Res
-import org.tool.kit.shared.generated.resources.copied_to_clipboard
-import org.tool.kit.vm.MainViewModel
 import java.awt.Toolkit
 import java.awt.datatransfer.Clipboard
 import java.awt.datatransfer.StringSelection
@@ -14,10 +11,6 @@ import java.awt.datatransfer.StringSelection
  * @Description : 描述
  * @Version     : 1.0
  */
-
-fun copy(value: String, viewModel: MainViewModel) {
-    copy(value) { viewModel.updateSnackbarVisuals(Res.string.copied_to_clipboard) }
-}
 
 fun copy(value: String, onCopied: () -> Unit) {
     writeClipboard(value)

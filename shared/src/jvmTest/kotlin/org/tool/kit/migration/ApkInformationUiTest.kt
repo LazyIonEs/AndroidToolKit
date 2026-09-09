@@ -18,8 +18,7 @@ import org.tool.kit.App
 import org.tool.kit.di.desktopModules
 import org.tool.kit.domain.repository.ApkInformationRepository
 import org.tool.kit.domain.apk.ApkIconSource
-import org.tool.kit.vm.MainViewModel
-import org.tool.kit.vm.UIState
+import org.tool.kit.feature.apk.*
 import java.io.File
 import java.io.ByteArrayOutputStream
 import java.awt.image.BufferedImage
@@ -40,22 +39,29 @@ class ApkInformationUiTest {
         prepareBaselinePreferences(File(checkNotNull(System.getProperty("migration.fixtureRoot"))), theme)
         val owner = DefaultArchitectureComponentsOwner(enforceMainThread = false)
         owner.setLifecycleState(Lifecycle.State.RESUMED)
+        val copied = mutableListOf<String>()
+        var decodedIcons = 0
         val repository = FixtureApkRepository().apply { images = mapOf("res/icon.png" to apkFixtureIcon()) }
         val container = koinApplication { modules(desktopModules() + module {
             single<ApkInformationRepository> { repository }
+            single<ApkIconDecoder> { ApkIconDecoder { source ->
+                decodedIcons++
+                org.tool.kit.platform.JvmApkIconDecoder(kotlinx.coroutines.Dispatchers.IO).decode(source)
+            } }
+            single<org.tool.kit.feature.app.ClipboardWriter> { org.tool.kit.feature.app.ClipboardWriter { copied += it } }
         }) }
-        lateinit var vm: MainViewModel
+        lateinit var vm: ApkInformationViewModel
         try {
             setContent { CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
                 KoinIsolatedContext(container) {
-                    val current = koinViewModel<MainViewModel>()
+                    val current = koinViewModel<ApkInformationViewModel>()
                     App()
                     SideEffect { vm = current }
                 }
             } }
             waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("APK签名").fetchSemanticsNodes().isNotEmpty() }
             onNode(hasText("APK信息") and hasClickAction()).performClick()
-            runOnIdle { vm.apkInformation("/中文 空格.apk") }
+            runOnIdle { vm.onIntent(ApkInformationIntent.ReadApk("/中文 空格.apk")) }
             waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("测试 APK").fetchSemanticsNodes().isNotEmpty() }
             waitUntil(timeoutMillis = 10_000) { onAllNodesWithContentDescription("app icon").fetchSemanticsNodes().isNotEmpty() }
             waitForIdle()
@@ -76,13 +82,17 @@ class ApkInformationUiTest {
             runOnIdle {
                 repository.output = "application: label='无图标 APK' icon='adaptive.xml'"
                 repository.xml = null
-                vm.apkInformation("/no-icon.apk")
+                vm.onIntent(ApkInformationIntent.ReadApk("/no-icon.apk"))
             }
             waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("无图标 APK").fetchSemanticsNodes().isNotEmpty() }
             waitForIdle()
             onNodeWithContentDescription("app icon").assertDoesNotExist()
             onNodeWithText("android.permission.CAMERA").assertDoesNotExist()
             capture("no-icon-permission-channel")
+            onNodeWithText("无图标 APK").performClick()
+            waitUntil(timeoutMillis = 5_000) { copied.isNotEmpty() }
+            assertEquals(listOf("无图标 APK"), copied)
+            assertEquals(1, decodedIcons, "Recomposition, scrolling and navigation do not decode icons again")
         } finally { owner.viewModelStore.clear(); container.close() }
     }
 }
