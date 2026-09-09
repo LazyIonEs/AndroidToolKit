@@ -66,7 +66,7 @@ class Phase3PreferencesTest {
         }, AppDispatchers(dispatcher, dispatcher, dispatcher))
         val sink = AppEffectSink()
         val vm = SettingsViewModel(repository, AllPathsExist, sink, RecordingDesktopActions())
-        val legacy = MainViewModel(repository, AllPathsExist, EmptyKeys, sink)
+        val legacy = MainViewModel(repository, AllPathsExist, EmptyKeys, sink, signApk = org.tool.kit.domain.usecase.SignApkUseCase { error("Unexpected signing") })
         val keys = KeyStoreGenerationViewModel(GenerateKeyStoreUseCase(EmptyKeys), repository, AllPathsExist, sink)
         val store = ViewModelStore().also { it.put("settings", vm); it.put("legacy", legacy); it.put("keys", keys) }
         fun paths() = listOf(legacy.apkSignatureState.outputPath, keys.uiState.value.form.keyStorePath,
@@ -104,7 +104,7 @@ class Phase3PreferencesTest {
             assertEquals(repository.state.value.revision, repository.state.value.persistedRevision)
             assertEquals(repository.state.value.userData, actual.read().userData)
             assertEquals("suffix 29", vm.uiState.value.preferences.userData.defaultSignerSuffix)
-            val later = MainViewModel(repository, AllPathsExist, EmptyKeys, sink)
+            val later = MainViewModel(repository, AllPathsExist, EmptyKeys, sink, signApk = org.tool.kit.domain.usecase.SignApkUseCase { error("Unexpected signing") })
             val laterKeys = KeyStoreGenerationViewModel(GenerateKeyStoreUseCase(EmptyKeys), repository, AllPathsExist, sink)
             store.put("later", later)
             store.put("laterKeys", laterKeys)

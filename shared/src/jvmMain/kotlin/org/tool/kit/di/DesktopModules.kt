@@ -21,6 +21,7 @@ fun desktopModules(
 
 private fun desktopDataModule() = module {
     includes(dataModule())
+    single<org.tool.kit.domain.repository.ApkSigningRepository> { org.tool.kit.data.source.JvmApkSignerDataSource(get<AppDispatchers>().io) }
     single<org.tool.kit.core.process.ProcessRunner> { org.tool.kit.data.process.JvmProcessRunner(get<AppDispatchers>().io) }
     single { org.tool.kit.data.source.Aapt2Locator() }
     single { org.tool.kit.data.source.Aapt2DataSource(get(), get(), get<AppDispatchers>().io) }

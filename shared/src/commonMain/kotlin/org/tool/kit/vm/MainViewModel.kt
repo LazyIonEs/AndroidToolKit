@@ -11,9 +11,6 @@ import brut.androlib.ApkDecoder
 import brut.androlib.Config
 import brut.androlib.res.xml.ResXmlUtils
 import brut.directory.ExtFile
-import com.android.apksig.ApkSigner
-import com.android.apksig.KeyConfig
-import com.android.ide.common.signing.KeystoreHelper
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -30,7 +27,6 @@ import org.tool.kit.domain.preferences.PreferenceChange
 import org.tool.kit.domain.preferences.JunkPreference
 import org.tool.kit.feature.app.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
@@ -80,7 +76,6 @@ import org.tool.kit.utils.renameValueAppName
 import org.tool.kit.utils.resourcesDir
 import org.tool.kit.utils.update
 import java.io.File
-import kotlin.coroutines.resume
 
 private val logger = KotlinLogging.logger("MainViewModel")
 
@@ -96,6 +91,7 @@ class MainViewModel(
     keyStores: KeyStoreRepository,
     private val effects: org.tool.kit.feature.app.AppEffectSink,
     initialCapacity: StorageCapacity = StorageCapacity(0, 0),
+    private val signApk: org.tool.kit.domain.usecase.SignApkUseCase,
 ) :
     ViewModel() {
 
@@ -283,7 +279,7 @@ class MainViewModel(
      * APK签名
      */
     fun apkSigner() {
-        logger.info { "apkSigner 进行APK签名, 签名信息: $apkSignatureState" }
+        logger.info { "apkSigner 进行APK签名" }
         if (apkSignatureState.apkPath == ConfigConstant.APK.All.path) {
             apksSigner()
         } else {
@@ -344,113 +340,49 @@ class MainViewModel(
     /**
      * APK签名
      */
-    suspend fun suspendApkSigner(
-        outputPath: String,
-        apkPath: String,
-        sign: Sign,
-        outputPrefix: String = "",
-        showUiState: Boolean = true
-    ) =
-        suspendCancellableCoroutine { coroutine ->
-            viewModelScope.launch(Dispatchers.IO) {
-                var resultFile: File? = null
-                try {
-                    val signerSuffix = userData.value.defaultSignerSuffix
-                    val flagDelete = userData.value.duplicateFileRemoval
-                    val isAlignFileSize = (if (isHuaweiAlignFileSize.value)
-                        userData.value.alignFileSize && apkPath != ConfigConstant.APK.Huawei.path
-                    else
-                        userData.value.alignFileSize) || sign.keyStorePolicy == SignaturePolicy.V4
-                    logger.info { "suspendApkSigner APK签名开始, APK文件路径: $apkPath 开启文件对齐: $isAlignFileSize 签名策略: ${sign.keyStorePolicy.title}" }
-                    if (showUiState) {
-                        _apkSignatureUIState.update { UIState.Loading }
-                    }
-                    val inputApk = File(apkPath)
-                    val outputPrefix = outputPrefix
-                    val outputApk = if (outputPrefix.isNotBlank()) {
-                        File(
-                            outputPath,
-                            "${outputPrefix}-${inputApk.nameWithoutExtension}${signerSuffix}.apk"
-                        )
-                    } else {
-                        File(outputPath, "${inputApk.nameWithoutExtension}${signerSuffix}.apk")
-                    }
+    private fun signingRequest(outputPath: String, apkPath: String, sign: Sign, outputPrefix: String = "") =
+        org.tool.kit.domain.signing.SignApkRequest(apkPath, outputPath, outputPrefix,
+            preferences.state.value.userData.defaultSignerSuffix,
+            preferences.state.value.userData.duplicateFileRemoval,
+            preferences.state.value.userData.alignFileSize,
+            preferences.state.value.isHuaweiAlignFileSize, ConfigConstant.APK.Huawei.path,
+            org.tool.kit.domain.signing.ApkSigningPolicy.valueOf(sign.keyStorePolicy.name),
+            sign.v4SignatureOutputFileName,
+            org.tool.kit.domain.signing.SigningCredentials(sign.keyStorePath, sign.keyStorePassword,
+                sign.keyStoreAlisaList?.getOrNull(sign.keyStoreAlisaIndex), sign.keyStoreAlisaPassword))
 
-                    if (outputApk.exists()) {
-                        if (flagDelete) {
-                            outputApk.delete()
-                        } else {
-                            val message =
-                                getString(Res.string.output_file_already_exists, outputApk.name)
-                            throw Exception(message)
-                        }
-                    }
-                    val key = File(sign.keyStorePath)
-                    val v1SigningEnabled =
-                        sign.keyStorePolicy == SignaturePolicy.V1 || sign.keyStorePolicy == SignaturePolicy.V2
-                                || sign.keyStorePolicy == SignaturePolicy.V3 || sign.keyStorePolicy == SignaturePolicy.V4
-                    val v2SigningEnabled =
-                        sign.keyStorePolicy == SignaturePolicy.V2 || sign.keyStorePolicy == SignaturePolicy.V2Only
-                                || sign.keyStorePolicy == SignaturePolicy.V3 || sign.keyStorePolicy == SignaturePolicy.V4
-                    val v3SigningEnabled =
-                        sign.keyStorePolicy == SignaturePolicy.V3 || sign.keyStorePolicy == SignaturePolicy.V4
-                    val v4SigningEnabled = sign.keyStorePolicy == SignaturePolicy.V4
-                    val v4SignatureOutputFile = File(outputPath, sign.v4SignatureOutputFileName)
-                    val alisa =
-                        sign.keyStoreAlisaList?.getOrNull(sign.keyStoreAlisaIndex)
-                    val certificateInfo = KeystoreHelper.getCertificateInfo(
-                        "JKS",
-                        key,
-                        sign.keyStorePassword,
-                        sign.keyStoreAlisaPassword,
-                        alisa
-                    )
-                    val privateKey = certificateInfo.key
-                    val certificate = certificateInfo.certificate
-                    val keyConfig = KeyConfig.Jca(privateKey)
-                    val signerConfig =
-                        ApkSigner.SignerConfig.Builder("CERT", keyConfig, listOf(certificate))
-                            .build()
-                    val signerBuild = ApkSigner.Builder(listOf(signerConfig))
-                    val apkSigner =
-                        signerBuild.setInputApk(inputApk).setOutputApk(outputApk)
-                            .setAlignFileSize(isAlignFileSize)
-                            .setV1SigningEnabled(v1SigningEnabled)
-                            .setV2SigningEnabled(v2SigningEnabled)
-                            .setV3SigningEnabled(v3SigningEnabled)
-                            .setV4SigningEnabled(v4SigningEnabled)
-                            .setV4SignatureOutputFile(v4SignatureOutputFile)
-                            .setV4ErrorReportingEnabled(true)
-                            .setAlignmentPreserved(!isAlignFileSize)
-                            .build()
-                    apkSigner.sign()
-                    if (showUiState) {
-                        val snackbarVisualsData = SnackbarMessage(
-                            message = UiMessage.Text(getString(Res.string.apk_is_signed_successfully)),
-                            actionLabel = getString(Res.string.jump),
-                            withDismissAction = true,
-                            duration = SnackbarDuration.Short,
-                            action = SnackbarAction.OpenDirectory(outputApk?.path))
-                        updateSnackbarVisuals(snackbarVisualsData)
-                    }
-                    if (outputApk.exists()) {
-                        resultFile = outputApk
-                    }
-                    logger.info { "suspendApkSigner APK签名结束, APK输出文件路径: ${resultFile?.absolutePath}" }
-                } catch (e: Exception) {
-                    logger.error(e) { "suspendApkSigner APK签名异常, 异常信息: ${e.message}" }
-                    if (showUiState) {
-                        updateSnackbarVisuals(e.message ?: getString(Res.string.signature_failed))
-                    }
-                    resultFile = null
-                } finally {
-                    if (showUiState) {
-                        _apkSignatureUIState.update { UIState.WAIT }
-                    }
-                    coroutine.resume(resultFile)
+    /** Temporary ApkTool adapter, removed when BuildApkUseCase takes ownership in Phase 6. */
+    private suspend fun legacySignForApkTool(outputPath: String, apkPath: String, sign: Sign): File? =
+        (signApk(signingRequest(outputPath, apkPath, sign)) as? org.tool.kit.domain.signing.SignApkOutcome.Success)
+            ?.takeIf { it.outputExists }?.let { File(it.outputPath) }
+
+    private suspend fun suspendApkSigner(
+        outputPath: String, apkPath: String, sign: Sign, outputPrefix: String = "", showUiState: Boolean = true
+    ): File? {
+        val request = signingRequest(outputPath, apkPath, sign, outputPrefix)
+        if (showUiState) _apkSignatureUIState.update { UIState.Loading }
+        try {
+            return when (val outcome = signApk(request)) {
+                is org.tool.kit.domain.signing.SignApkOutcome.Success -> {
+                    if (showUiState) updateSnackbarVisuals(SnackbarMessage(
+                        UiMessage.Text(getString(Res.string.apk_is_signed_successfully)),
+                        actionLabel = getString(Res.string.jump), withDismissAction = true,
+                        duration = SnackbarDuration.Short, action = SnackbarAction.OpenDirectory(outcome.outputPath)))
+                    if (outcome.outputExists) File(outcome.outputPath) else null
+                }
+                is org.tool.kit.domain.signing.SignApkOutcome.OutputAlreadyExists -> {
+                    if (showUiState) updateSnackbarVisuals(getString(Res.string.output_file_already_exists, outcome.fileName))
+                    null
+                }
+                is org.tool.kit.domain.signing.SignApkOutcome.Failure -> {
+                    if (showUiState) updateSnackbarVisuals(outcome.message ?: getString(Res.string.signature_failed))
+                    null
                 }
             }
+        } finally {
+            if (showUiState) _apkSignatureUIState.update { UIState.WAIT }
         }
+    }
 
 
     /**
@@ -589,11 +521,10 @@ class MainViewModel(
             logger.info { "generateApktool 打包完成" }
             if (apkToolInfoState.enableSign) {
                 logger.info { "generateApktool 开始签名" }
-                suspendApkSigner(
+                legacySignForApkTool(
                     outputPath = apkToolInfoState.outputPath,
                     apkPath = outApktoolFile.path,
-                    sign = apkToolInfoState,
-                    showUiState = false
+                    sign = apkToolInfoState
                 )
             }
             val snackbarVisualsData = SnackbarMessage(
