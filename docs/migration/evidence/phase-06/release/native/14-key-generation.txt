@@ -1,0 +1,48 @@
+Window: "AndroidToolKit", App: AndroidToolKit.
+0 标准窗口 AndroidToolKit, Secondary Actions: Raise
+	1 未知 (selectable) 0
+		2 container (selectable) 0
+			3 container (selectable) 0
+				4 未知 (selectable) 0
+					5 container (selectable) 0
+						6 container (selectable) 0
+							7 未知 (selectable) 0
+								8 单选按钮 (selectable) 签名信息
+							9 未知 (selectable) 0
+								10 单选按钮 (selectable) APK信息
+							11 未知 (selectable) 0
+								12 单选按钮 (selectable) APK签名
+							13 单选按钮 (selectable) 签名生成
+							14 未知 (selectable) 0
+								15 单选按钮 (selectable) APK生成
+							16 未知 (selectable) 0
+								17 单选按钮 (selectable) 垃圾代码
+							18 未知 (selectable) 0
+								19 单选按钮 (selectable) 图标生成
+							20 未知 (selectable) 0
+								21 单选按钮 (selectable) 缓存清理
+							22 未知 (selectable) 0
+								23 单选按钮 (selectable) 设置
+				24 未知 (selectable) 0
+					25 container (selectable) 0
+						26 滚动区 (selectable) 0
+							27 文本栏 (selectable, settable) Description: 密钥输出路径, Value: /Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/output
+							28 按钮 (selectable) FolderOpen
+							29 文本栏 (selectable, settable) Description: 密钥文件名称, Value: sign.jks
+							30 文本栏 (selectable, settable) 密钥密码
+							31 文本栏 (selectable, settable) 确认密码
+							32 文本 (selectable) 密钥
+							33 文本栏 (selectable, settable) 密钥别名
+							34 文本栏 (selectable, settable) 别名密码
+							35 文本栏 (selectable, settable) 确认密码
+							36 文本栏 (selectable, settable) Description: 有效期（单位：年）, Value: 25
+							37 文本 (selectable) 证书
+							38 文本栏 (selectable, settable) 作者名称
+	39 关闭按钮
+	40 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	41 最小化按钮
+	42 文本 AndroidToolKit
+43 menu bar
+	44 AndroidToolKit
+
+The focused UI element is 1 未知 (selectable)

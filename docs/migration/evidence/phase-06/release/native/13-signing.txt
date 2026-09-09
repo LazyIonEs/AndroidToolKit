@@ -1,0 +1,52 @@
+Window: "AndroidToolKit", App: AndroidToolKit.
+0 标准窗口 AndroidToolKit, Secondary Actions: Raise
+	1 未知 (selectable) 0
+		2 container (selectable) 0
+			3 container (selectable) 0
+				4 未知 (selectable) 0
+					5 container (selectable) 0
+						6 container (selectable) 0
+							7 未知 (selectable) 0
+								8 单选按钮 (selectable) 签名信息
+							9 未知 (selectable) 0
+								10 单选按钮 (selectable) APK信息
+							11 单选按钮 (selectable) APK签名
+							12 未知 (selectable) 0
+								13 单选按钮 (selectable) 签名生成
+							14 未知 (selectable) 0
+								15 单选按钮 (selectable) APK生成
+							16 未知 (selectable) 0
+								17 单选按钮 (selectable) 垃圾代码
+							18 未知 (selectable) 0
+								19 单选按钮 (selectable) 图标生成
+							20 未知 (selectable) 0
+								21 单选按钮 (selectable) 缓存清理
+							22 未知 (selectable) 0
+								23 单选按钮 (selectable) 设置
+				24 未知 (selectable) 0
+					25 container (selectable) 0
+						26 滚动区 (selectable) 0
+							27 弹出式按钮 (selectable) APK文件
+							28 按钮 (selectable) FolderOpen
+							29 文本栏 (selectable, settable) Description: 输出路径, Value: /Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/output
+							30 按钮 (selectable) FolderOpen
+							31 文本栏 (selectable, settable) 输出文件前缀(选填)
+							32 文本 (selectable) 签名策略：
+							33 文本 (selectable) APK Signature Scheme V2，包含V1
+							34 复选框 (selectable) V1
+							35 复选框 (selectable) Done icon
+							36 复选框 (selectable) V2 Only
+							37 复选框 (selectable) V3
+							38 复选框 (selectable) V4
+							39 文本栏 (selectable, settable) 密钥文件路径
+							40 按钮 (selectable) FolderOpen
+							41 文本栏 (selectable, settable) 密钥库密码
+							42 弹出式按钮 (selectable) 密钥别名
+	43 关闭按钮
+	44 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	45 最小化按钮
+	46 文本 AndroidToolKit
+47 menu bar
+	48 AndroidToolKit
+
+The focused UI element is 1 未知 (selectable)

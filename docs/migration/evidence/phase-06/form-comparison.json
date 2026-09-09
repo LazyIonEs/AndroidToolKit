@@ -1,0 +1,44 @@
+{
+  "dark/enabled-bottom.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ]
+  },
+  "dark/enabled-top.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ]
+  },
+  "dark/errors-top.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ]
+  },
+  "light/enabled-bottom.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ]
+  },
+  "light/enabled-top.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ]
+  },
+  "light/errors-top.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ]
+  }
+}

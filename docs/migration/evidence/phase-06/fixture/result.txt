@@ -1,0 +1,4 @@
+Legacy/current badging, manifest and five 17x13 icon payloads equal.
+Unsigned + V1/V2/V3 signed outputs verified.
+Wrong signing password preserves original build success.
+Read-only template, three sequential builds and private-cache cleanup passed.

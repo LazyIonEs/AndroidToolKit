@@ -1,0 +1,149 @@
+[
+  {
+    "file": "Phase6 空包.apk",
+    "policy": "UNSIGNED",
+    "bytes": 3564263,
+    "sha256": "f7fad9ef59c75d23832fa39abd8e8ebb638b78f84d27d5fe88d09922a79bb400",
+    "icons": [
+      {
+        "entry": "res/mipmap-mdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      },
+      {
+        "entry": "res/mipmap-hdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      },
+      {
+        "entry": "res/mipmap-xxxhdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      },
+      {
+        "entry": "res/mipmap-xxhdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      },
+      {
+        "entry": "res/mipmap-xhdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      }
+    ],
+    "verification": "PASS: Phase6 空包.apk UNSIGNED [false, false, false, false]"
+  },
+  {
+    "file": "Phase6 签名.apk",
+    "policy": "UNSIGNED",
+    "bytes": 3564263,
+    "sha256": "e5e082425c3c2400be049ed2f16d7f6c94b83338f153b23dc51ec80da53143a9",
+    "icons": [
+      {
+        "entry": "res/mipmap-mdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      },
+      {
+        "entry": "res/mipmap-hdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      },
+      {
+        "entry": "res/mipmap-xxxhdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      },
+      {
+        "entry": "res/mipmap-xxhdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      },
+      {
+        "entry": "res/mipmap-xhdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      }
+    ],
+    "verification": "PASS: Phase6 签名.apk UNSIGNED [false, false, false, false]"
+  },
+  {
+    "file": "Phase6 签名-sign.apk",
+    "policy": "V3",
+    "bytes": 3629056,
+    "sha256": "a092493e6dd1208699b4e17356ed1ad511f665e32a3dd78d9ab8ad382df7f442",
+    "icons": [
+      {
+        "entry": "res/mipmap-mdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      },
+      {
+        "entry": "res/mipmap-hdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      },
+      {
+        "entry": "res/mipmap-xxxhdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      },
+      {
+        "entry": "res/mipmap-xxhdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      },
+      {
+        "entry": "res/mipmap-xhdpi/ic_launcher.png",
+        "dimensions": [
+          37,
+          29
+        ],
+        "sha256": "05c944e8802e9e1c8570bb39c5f9da9cb8ed65b3cda8e2236a6ab8d3fa867e23"
+      }
+    ],
+    "verification": "PASS: Phase6 签名-sign.apk V3 [true, true, true, false]"
+  }
+]

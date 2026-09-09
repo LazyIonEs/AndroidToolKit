@@ -1,0 +1,3 @@
+PASS: Phase6 空包.apk UNSIGNED [false, false, false, false]
+PASS: Phase6 签名.apk UNSIGNED [false, false, false, false]
+PASS: Phase6 签名-sign.apk V3 [true, true, true, false]

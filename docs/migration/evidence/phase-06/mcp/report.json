@@ -1,0 +1,252 @@
+{
+  "windows": [
+    {
+      "id": "e1381c2e-5fdc-4e29-865f-fdb44fe70fe2",
+      "title": "AndroidToolKit",
+      "x": 48,
+      "y": 81,
+      "width": 800,
+      "height": 600
+    }
+  ],
+  "captures": [
+    {
+      "theme": "light",
+      "page": "signature-information",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 28222,
+      "bounds": [
+        141,
+        137,
+        730,
+        457
+      ]
+    },
+    {
+      "theme": "light",
+      "page": "apk-information",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 21691,
+      "bounds": [
+        218,
+        78,
+        678,
+        445
+      ]
+    },
+    {
+      "theme": "light",
+      "page": "apk-signature",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 0,
+      "bounds": null
+    },
+    {
+      "theme": "light",
+      "page": "keystore-generation",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 0,
+      "bounds": null
+    },
+    {
+      "theme": "light",
+      "page": "apk-tool",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 0,
+      "bounds": null
+    },
+    {
+      "theme": "light",
+      "page": "junk-code",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 0,
+      "bounds": null
+    },
+    {
+      "theme": "light",
+      "page": "icon-factory",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 1082,
+      "bounds": [
+        561,
+        222,
+        642,
+        384
+      ]
+    },
+    {
+      "theme": "light",
+      "page": "cleaner",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 22023,
+      "bounds": [
+        145,
+        268,
+        304,
+        451
+      ]
+    },
+    {
+      "theme": "light",
+      "page": "settings",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 0,
+      "bounds": null
+    },
+    {
+      "theme": "dark",
+      "page": "signature-information",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 26190,
+      "bounds": [
+        142,
+        137,
+        730,
+        457
+      ]
+    },
+    {
+      "theme": "dark",
+      "page": "apk-information",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 21841,
+      "bounds": [
+        218,
+        78,
+        678,
+        445
+      ]
+    },
+    {
+      "theme": "dark",
+      "page": "apk-signature",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 0,
+      "bounds": null
+    },
+    {
+      "theme": "dark",
+      "page": "keystore-generation",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 0,
+      "bounds": null
+    },
+    {
+      "theme": "dark",
+      "page": "apk-tool",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 0,
+      "bounds": null
+    },
+    {
+      "theme": "dark",
+      "page": "junk-code",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 0,
+      "bounds": null
+    },
+    {
+      "theme": "dark",
+      "page": "icon-factory",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 1053,
+      "bounds": [
+        566,
+        218,
+        635,
+        382
+      ]
+    },
+    {
+      "theme": "dark",
+      "page": "cleaner",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 22029,
+      "bounds": [
+        145,
+        268,
+        304,
+        451
+      ]
+    },
+    {
+      "theme": "dark",
+      "page": "settings",
+      "size": [
+        800,
+        572
+      ],
+      "repeated_changed_pixels": 0,
+      "bounds": null
+    }
+  ],
+  "checks": [
+    "18 navigation selections",
+    "18 captures without UI exceptions",
+    "10 static pairs have zero changed pixels",
+    "signing draft retained",
+    "keystore filename retained",
+    "successive settings inputs retain original whitespace",
+    "four visible legacy output fields receive the changed default (all five covered by VM tests)",
+    "theme and suffix changes do not overwrite a custom signing folder"
+  ],
+  "final_status": {
+    "connected": true,
+    "buildContinuous": false,
+    "reloadState": "ok",
+    "lastError": null,
+    "successfulReloads": 0,
+    "failedReloads": 0
+  }
+}

@@ -10,6 +10,7 @@ public final class VerifyApkSignature {
         String policy = args[0];
         File apk = new File(args[1]);
         List<Boolean> expected = switch (policy) {
+            case "UNSIGNED" -> List.of(false, false, false, false);
             case "V1" -> List.of(true, false, false, false);
             case "V2" -> List.of(true, true, false, false);
             case "V2Only" -> List.of(false, true, false, false);
@@ -24,7 +25,8 @@ public final class VerifyApkSignature {
         ApkVerifier.Result result = builder.build().verify();
         List<Boolean> actual = List.of(result.isVerifiedUsingV1Scheme(), result.isVerifiedUsingV2Scheme(),
             result.isVerifiedUsingV3Scheme(), result.isVerifiedUsingV4Scheme());
-        if (!result.isVerified() || !expected.equals(actual)) {
+        boolean shouldVerify = !policy.equals("UNSIGNED");
+        if (result.isVerified() != shouldVerify || !expected.equals(actual)) {
             throw new AssertionError(apk.getName() + ": " + actual + " " + result.getErrors());
         }
         System.out.println("PASS: " + apk.getName() + " " + policy + " " + actual);

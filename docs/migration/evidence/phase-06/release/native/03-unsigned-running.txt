@@ -1,0 +1,53 @@
+Window: "AndroidToolKit", App: AndroidToolKit.
+0 标准窗口 AndroidToolKit, Secondary Actions: Raise
+	1 未知 (selectable) 0
+		2 container (selectable) 0
+			3 container (selectable) 0
+				4 未知 (selectable) 0
+					5 container (selectable) 0
+						6 container (selectable) 0
+							7 未知 (selectable) 0
+								8 单选按钮 (selectable) 签名信息
+							9 未知 (selectable) 0
+								10 单选按钮 (selectable) APK信息
+							11 未知 (selectable) 0
+								12 单选按钮 (selectable) APK签名
+							13 未知 (selectable) 0
+								14 单选按钮 (selectable) 签名生成
+							15 单选按钮 (selectable) APK生成
+							16 未知 (selectable) 0
+								17 单选按钮 (selectable) 垃圾代码
+							18 未知 (selectable) 0
+								19 单选按钮 (selectable) 图标生成
+							20 未知 (selectable) 0
+								21 单选按钮 (selectable) 缓存清理
+							22 未知 (selectable) 0
+								23 单选按钮 (selectable) 设置
+				24 未知 (selectable) 0
+					25 container (selectable) 0
+						26 滚动区 (selectable) 0
+							27 文本栏 (selectable, settable) Description: APK输出路径, Value: /Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/phase6-native/output
+							28 按钮 (selectable) FolderOpen
+							29 文本栏 (selectable, settable) Description: 图标文件, Value: /Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/phase6-native/中文 icon.png
+							30 按钮 (selectable) FolderOpen
+							31 文本栏 (selectable, settable) Description: 包名, Value: org.fixture.phase6
+							32 文本栏 (selectable, settable) Description: TargetSdkVersion, Value: 32
+							33 文本栏 (selectable, settable) Description: MinSdkVersion, Value: 23
+							34 文本栏 (selectable, settable) Description: VersionCode, Value: 12
+							35 文本栏 (selectable, settable) Description: VersionName, Value: 2.3
+							36 文本栏 (selectable, settable) Description: 应用名称, Value: Phase6 空包
+							37 文本 (selectable) APK生成后立即签名
+							38 未知 (selectable) Help
+							39 文本 (selectable) 默认使用V3签名策略(包含V1与V2)
+							40 复选框 (selectable)
+							41 按钮 (selectable) 开始生成
+			42 未知 (selectable) 0
+				43 未知 (selectable) Lottie animation
+	44 关闭按钮
+	45 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	46 最小化按钮
+	47 文本 AndroidToolKit
+48 menu bar
+	49 AndroidToolKit
+
+The focused UI element is 1 未知 (selectable)
