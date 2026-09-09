@@ -1,0 +1,253 @@
+Printing with useUnmergedTree = 'false'
+Node #912 at (l=0.0, t=0.0, r=800.0, b=572.0)px
+IsTraversalGroup = 'true'
+ |-Node #913 at (l=0.0, t=0.0, r=800.0, b=572.0)px
+   IsContainer = 'true'
+   Shape = 'RectangleShape'
+    |-Node #922 at (l=0.0, t=0.0, r=80.0, b=572.0)px
+    |  |-Node #923 at (l=0.0, t=0.0, r=80.0, b=572.0)px
+    |    IsContainer = 'true'
+    |    Shape = 'RectangleShape'
+    |     |-Node #924 at (l=0.0, t=4.0, r=80.0, b=568.0)px
+    |       IsTraversalGroup = 'true'
+    |       [SelectableGroup]
+    |        |-Node #927 at (l=0.0, t=34.0, r=80.0, b=90.0)px
+    |        | Actions = [OnLongClick]
+    |        | MergeDescendants = 'true'
+    |        |  |-Node #929 at (l=0.0, t=34.0, r=80.0, b=90.0)px
+    |        |    Focused = 'false'
+    |        |    Role = 'Tab'
+    |        |    Selected = 'false'
+    |        |    Text = '[签名信息]'
+    |        |    Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+    |        |    MergeDescendants = 'true'
+    |        |-Node #939 at (l=0.0, t=90.0, r=80.0, b=146.0)px
+    |        | Actions = [OnLongClick]
+    |        | MergeDescendants = 'true'
+    |        |  |-Node #941 at (l=0.0, t=90.0, r=80.0, b=146.0)px
+    |        |    Focused = 'false'
+    |        |    Role = 'Tab'
+    |        |    Selected = 'false'
+    |        |    Text = '[APK信息]'
+    |        |    Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+    |        |    MergeDescendants = 'true'
+    |        |-Node #953 at (l=0.0, t=146.0, r=80.0, b=202.0)px
+    |        | Focused = 'true'
+    |        | Role = 'Tab'
+    |        | Selected = 'true'
+    |        | Text = '[APK签名]'
+    |        | Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+    |        | MergeDescendants = 'true'
+    |        |-Node #963 at (l=0.0, t=202.0, r=80.0, b=258.0)px
+    |        | Actions = [OnLongClick]
+    |        | MergeDescendants = 'true'
+    |        |  |-Node #965 at (l=0.0, t=202.0, r=80.0, b=258.0)px
+    |        |    Focused = 'false'
+    |        |    Role = 'Tab'
+    |        |    Selected = 'false'
+    |        |    Text = '[签名生成]'
+    |        |    Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+    |        |    MergeDescendants = 'true'
+    |        |-Node #975 at (l=0.0, t=258.0, r=80.0, b=314.0)px
+    |        | Actions = [OnLongClick]
+    |        | MergeDescendants = 'true'
+    |        |  |-Node #977 at (l=0.0, t=258.0, r=80.0, b=314.0)px
+    |        |    Focused = 'false'
+    |        |    Role = 'Tab'
+    |        |    Selected = 'false'
+    |        |    Text = '[APK生成]'
+    |        |    Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+    |        |    MergeDescendants = 'true'
+    |        |-Node #987 at (l=0.0, t=314.0, r=80.0, b=370.0)px
+    |        | Actions = [OnLongClick]
+    |        | MergeDescendants = 'true'
+    |        |  |-Node #989 at (l=0.0, t=314.0, r=80.0, b=370.0)px
+    |        |    Focused = 'false'
+    |        |    Role = 'Tab'
+    |        |    Selected = 'false'
+    |        |    Text = '[垃圾代码]'
+    |        |    Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+    |        |    MergeDescendants = 'true'
+    |        |-Node #999 at (l=0.0, t=370.0, r=80.0, b=426.0)px
+    |        | Actions = [OnLongClick]
+    |        | MergeDescendants = 'true'
+    |        |  |-Node #1001 at (l=0.0, t=370.0, r=80.0, b=426.0)px
+    |        |    Focused = 'false'
+    |        |    Role = 'Tab'
+    |        |    Selected = 'false'
+    |        |    Text = '[图标生成]'
+    |        |    Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+    |        |    MergeDescendants = 'true'
+    |        |-Node #1011 at (l=0.0, t=426.0, r=80.0, b=482.0)px
+    |        | Actions = [OnLongClick]
+    |        | MergeDescendants = 'true'
+    |        |  |-Node #1013 at (l=0.0, t=426.0, r=80.0, b=482.0)px
+    |        |    Focused = 'false'
+    |        |    Role = 'Tab'
+    |        |    Selected = 'false'
+    |        |    Text = '[缓存清理]'
+    |        |    Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+    |        |    MergeDescendants = 'true'
+    |        |-Node #1038 at (l=0.0, t=482.0, r=80.0, b=538.0)px
+    |          Actions = [OnLongClick]
+    |          MergeDescendants = 'true'
+    |           |-Node #1040 at (l=0.0, t=482.0, r=80.0, b=538.0)px
+    |             Focused = 'false'
+    |             Role = 'Tab'
+    |             Selected = 'false'
+    |             Text = '[设置]'
+    |             Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+    |             MergeDescendants = 'true'
+    |-Node #1089 at (l=80.0, t=0.0, r=800.0, b=572.0)px
+       |-Node #1090 at (l=80.0, t=20.0, r=786.0, b=552.0)px
+         IsContainer = 'true'
+         Shape = 'RoundedCornerShape(topStart = CornerSize(size = 12.0.dp), topEnd = CornerSize(size = 12.0.dp), bottomEnd = CornerSize(size = 12.0.dp), bottomStart = CornerSize(size = 12.0.dp))'
+          |-Node #1092 at (l=80.0, t=20.0, r=786.0, b=552.0)px
+            CollectionInfo = 'CollectionInfo(rowCount=9, columnCount=1)'
+            IsTraversalGroup = 'true'
+            Shape = 'androidx.compose.foundation.VerticalScrollableClipShape@2f521c4'
+            VerticalScrollAxisRange = 'ScrollAxisRange(value=0.0, maxValue=100.0, reverseScrolling=false)'
+            Actions = [GetScrollViewportLength, IndexForKey, ScrollBy, ScrollByOffset, ScrollToIndex]
+             |-Node #1098 at (l=104.0, t=36.0, r=714.0, b=101.0)px
+             | ContentDataType = 'PlatformContentDataType(type=1)'
+             | EditableText = ''
+             | Focused = 'false'
+             | ImeAction = 'Default'
+             | InputText = ''
+             | IsEditable = 'true'
+             | Role = 'DropdownList'
+             | Text = '[APK文件]'
+             | TextSelectionRange = 'TextRange(0, 0)'
+             | Actions = [ClearTextSubstitution, GetTextLayoutResult, InsertTextAtCursor, OnClick, OnFillData, OnLongClick, PasteText, PerformImeAction, RequestFocus, SetSelection, SetText, SetTextSubstitution, ShowTextSubstitution]
+             | MergeDescendants = 'true'
+             |-Node #1110 at (l=726.0, t=50.0, r=766.0, b=90.0)px
+             | ContentDescription = '[FolderOpen]'
+             | Focused = 'false'
+             | Role = 'Button'
+             | Shape = 'RoundedCornerShape(topStart = CornerSize(size = 12.0.dp), topEnd = CornerSize(size = 12.0.dp), bottomEnd = CornerSize(size = 12.0.dp), bottomStart = CornerSize(size = 12.0.dp))'
+             | Actions = [OnClick, RequestFocus]
+             | MergeDescendants = 'true'
+             |-Node #1116 at (l=104.0, t=110.0, r=714.0, b=174.0)px
+             | ContentDataType = 'PlatformContentDataType(type=1)'
+             | EditableText = '/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/output'
+             | Focused = 'false'
+             | ImeAction = 'Default'
+             | InputText = '/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/output'
+             | IsEditable = 'true'
+             | Text = '[输出路径]'
+             | TextSelectionRange = 'TextRange(0, 0)'
+             | Actions = [ClearTextSubstitution, GetTextLayoutResult, InsertTextAtCursor, OnClick, OnFillData, OnLongClick, PasteText, PerformImeAction, RequestFocus, ScrollBy, ScrollByOffset, SetSelection, SetText, SetTextSubstitution, ShowTextSubstitution]
+             | MergeDescendants = 'true'
+             |-Node #1126 at (l=726.0, t=124.0, r=766.0, b=164.0)px
+             | ContentDescription = '[FolderOpen]'
+             | Focused = 'false'
+             | Role = 'Button'
+             | Shape = 'RoundedCornerShape(topStart = CornerSize(size = 12.0.dp), topEnd = CornerSize(size = 12.0.dp), bottomEnd = CornerSize(size = 12.0.dp), bottomStart = CornerSize(size = 12.0.dp))'
+             | Actions = [OnClick, RequestFocus]
+             | MergeDescendants = 'true'
+             |-Node #1131 at (l=104.0, t=183.0, r=714.0, b=248.0)px
+             | ContentDataType = 'PlatformContentDataType(type=1)'
+             | EditableText = ''
+             | Focused = 'false'
+             | ImeAction = 'Default'
+             | InputText = ''
+             | IsEditable = 'true'
+             | Text = '[输出文件前缀(选填)]'
+             | TextSelectionRange = 'TextRange(0, 0)'
+             | Actions = [ClearTextSubstitution, GetTextLayoutResult, InsertTextAtCursor, OnClick, OnFillData, OnLongClick, PasteText, PerformImeAction, RequestFocus, SetSelection, SetText, SetTextSubstitution, ShowTextSubstitution]
+             | MergeDescendants = 'true'
+             |-Node #1145 at (l=104.0, t=257.0, r=185.0, b=281.0)px
+             | Text = '[签名策略：]'
+             | Actions = [ClearTextSubstitution, GetTextLayoutResult, SetTextSubstitution, ShowTextSubstitution]
+             |-Node #1146 at (l=185.0, t=259.0, r=422.0, b=279.0)px
+             | Text = '[APK Signature Scheme V2，包含V1]'
+             | Actions = [ClearTextSubstitution, GetTextLayoutResult, SetTextSubstitution, ShowTextSubstitution]
+             |-Node #1149 at (l=104.0, t=289.0, r=226.0, b=329.0)px
+             | ContentDataType = 'PlatformContentDataType(type=4)'
+             | Focused = 'false'
+             | Role = 'Checkbox'
+             | Shape = 'androidx.compose.material3.internal.AnimatedShapeKt$rememberAnimatedShape$1$1@5fbe155'
+             | Text = '[V1]'
+             | ToggleableState = 'Off'
+             | Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, OnFillData, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+             | MergeDescendants = 'true'
+             |-Node #1152 at (l=228.0, t=289.0, r=349.0, b=329.0)px
+             | ContentDataType = 'PlatformContentDataType(type=4)'
+             | ContentDescription = '[Done icon]'
+             | Focused = 'false'
+             | Role = 'Checkbox'
+             | Shape = 'androidx.compose.material3.internal.AnimatedShapeKt$rememberAnimatedShape$1$1@6add8e3f'
+             | Text = '[V2]'
+             | ToggleableState = 'On'
+             | Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, OnFillData, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+             | MergeDescendants = 'true'
+             |-Node #1159 at (l=351.0, t=289.0, r=472.0, b=329.0)px
+             | ContentDataType = 'PlatformContentDataType(type=4)'
+             | Focused = 'false'
+             | Role = 'Checkbox'
+             | Shape = 'androidx.compose.material3.internal.AnimatedShapeKt$rememberAnimatedShape$1$1@58a2b917'
+             | Text = '[V2 Only]'
+             | ToggleableState = 'Off'
+             | Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, OnFillData, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+             | MergeDescendants = 'true'
+             |-Node #1162 at (l=474.0, t=289.0, r=595.0, b=329.0)px
+             | ContentDataType = 'PlatformContentDataType(type=4)'
+             | Focused = 'false'
+             | Role = 'Checkbox'
+             | Shape = 'androidx.compose.material3.internal.AnimatedShapeKt$rememberAnimatedShape$1$1@48904d5a'
+             | Text = '[V3]'
+             | ToggleableState = 'Off'
+             | Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, OnFillData, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+             | MergeDescendants = 'true'
+             |-Node #1165 at (l=597.0, t=289.0, r=718.0, b=329.0)px
+             | ContentDataType = 'PlatformContentDataType(type=4)'
+             | Focused = 'false'
+             | Role = 'Checkbox'
+             | Shape = 'androidx.compose.material3.internal.AnimatedShapeKt$rememberAnimatedShape$1$1@12bbfc54'
+             | Text = '[V4]'
+             | ToggleableState = 'Off'
+             | Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, OnFillData, RequestFocus, SetTextSubstitution, ShowTextSubstitution]
+             | MergeDescendants = 'true'
+             |-Node #1172 at (l=104.0, t=339.0, r=714.0, b=404.0)px
+             | ContentDataType = 'PlatformContentDataType(type=1)'
+             | EditableText = ''
+             | Focused = 'false'
+             | ImeAction = 'Default'
+             | InputText = ''
+             | IsEditable = 'true'
+             | Text = '[密钥文件路径]'
+             | TextSelectionRange = 'TextRange(0, 0)'
+             | Actions = [ClearTextSubstitution, GetTextLayoutResult, InsertTextAtCursor, OnClick, OnFillData, OnLongClick, PasteText, PerformImeAction, RequestFocus, SetSelection, SetText, SetTextSubstitution, ShowTextSubstitution]
+             | MergeDescendants = 'true'
+             |-Node #1182 at (l=726.0, t=353.0, r=766.0, b=393.0)px
+             | ContentDescription = '[FolderOpen]'
+             | Focused = 'false'
+             | Role = 'Button'
+             | Shape = 'RoundedCornerShape(topStart = CornerSize(size = 12.0.dp), topEnd = CornerSize(size = 12.0.dp), bottomEnd = CornerSize(size = 12.0.dp), bottomStart = CornerSize(size = 12.0.dp))'
+             | Actions = [OnClick, RequestFocus]
+             | MergeDescendants = 'true'
+             |-Node #1187 at (l=104.0, t=413.0, r=714.0, b=478.0)px
+             | ContentDataType = 'PlatformContentDataType(type=1)'
+             | ContentType = 'PlatformContentType(type=2)'
+             | EditableText = ''
+             | Focused = 'false'
+             | ImeAction = 'Default'
+             | InputText = ''
+             | IsEditable = 'true'
+             | Text = '[密钥库密码]'
+             | TextSelectionRange = 'TextRange(0, 0)'
+             | [Password]
+             | Actions = [ClearTextSubstitution, GetTextLayoutResult, InsertTextAtCursor, OnClick, OnFillData, OnLongClick, PasteText, PerformImeAction, RequestFocus, SetSelection, SetText, SetTextSubstitution, ShowTextSubstitution]
+             | MergeDescendants = 'true'
+             |-Node #1200 at (l=104.0, t=487.0, r=714.0, b=552.0)px
+               ContentDataType = 'PlatformContentDataType(type=1)'
+               EditableText = ''
+               Focused = 'false'
+               ImeAction = 'Default'
+               InputText = ''
+               IsEditable = 'false'
+               Role = 'DropdownList'
+               Text = '[密钥别名]'
+               TextSelectionRange = 'TextRange(0, 0)'
+               Actions = [ClearTextSubstitution, GetTextLayoutResult, OnClick, OnFillData, OnLongClick, PerformImeAction, RequestFocus, SetSelection, SetTextSubstitution, ShowTextSubstitution]
+               MergeDescendants = 'true'

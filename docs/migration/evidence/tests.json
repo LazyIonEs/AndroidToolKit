@@ -1,13 +1,13 @@
 {
-  "command": "./gradlew --offline --no-daemon :shared:jvmTest --console=plain",
-  "total": 16,
+  "command": "./gradlew --offline --no-daemon :shared:compileKotlinJvm :composeApp:compileKotlinJvm :shared:jvmTest --console=plain",
+  "total": 19,
   "suites": [
     {
       "name": "ApkSigningFixtureTest[jvm]",
       "tests": 1,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 1.674,
+      "time_seconds": 1.98,
       "cases": [
         "unsignedAndFiveSignaturePoliciesHaveTheExpectedSchemes[jvm]"
       ]
@@ -17,10 +17,22 @@
       "tests": 2,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 0.167,
+      "time_seconds": 0.234,
       "cases": [
         "fixtureTreeContainsTheDepthAndNameBoundariesRequiredForMigration[jvm]",
         "originalSizeRuleIncludesDirectoryMetadataAndNestedFiles[jvm]"
+      ]
+    },
+    {
+      "name": "ComposeBaselineTest[jvm]",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "time_seconds": 7.228,
+      "cases": [
+        "lightNavigationRendersAllNinePages[jvm]",
+        "darkNavigationRendersAllNinePages[jvm]",
+        "signingAndKeyStoreDraftsSurviveTopLevelNavigation[jvm]"
       ]
     },
     {
@@ -28,7 +40,7 @@
       "tests": 2,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 0.144,
+      "time_seconds": 0.259,
       "cases": [
         "tinySingleArchiveContainsManifestClassesResourcesAndCleansItsWorkspace[jvm]",
         "tinyBatchRecreatesOnlyItsOutputSubdirectoryAndProducesDistinctArchives[jvm]"
@@ -39,7 +51,7 @@
       "tests": 1,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 0.457,
+      "time_seconds": 0.61,
       "cases": [
         "originalGeneratorProducesReadableStoresForAllTypeAndSizeCombinations[jvm]"
       ]
@@ -49,7 +61,7 @@
       "tests": 5,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 0.017,
+      "time_seconds": 0.013,
       "cases": [
         "clearingApkWithPrefixPreservesTheKnownLeadingHyphenDefect[jvm]",
         "junkMultiRangeWithEqualBoundsMatchesRepeatedSingleEstimate[jvm]",
@@ -63,7 +75,7 @@
       "tests": 4,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 0.066,
+      "time_seconds": 0.047,
       "cases": [
         "unknownPreferenceEnumsKeepTheExistingFallbacks[jvm]",
         "legacySerializerWritesPhysicalKeysAndNewInstanceReadsThem[jvm]",
@@ -76,7 +88,7 @@
       "tests": 1,
       "failures": 0,
       "errors": 0,
-      "time_seconds": 0.553,
+      "time_seconds": 0.65,
       "cases": [
         "allFiveNativeFunctionsLoadAndProduceReadableImages[jvm]"
       ]

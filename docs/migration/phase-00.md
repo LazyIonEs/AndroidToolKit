@@ -16,8 +16,11 @@ Phase 0B 提交：`783544ec`。基线测试与观察记录独立提交，未进�
 5. 添加旧表单、真实物理偏好键、密钥生成、Rust 图像处理、Cleaner 目录、APK 签名和 AAR fixture 的 16 项测试。
 6. 提供隔离桌面启动及 macOS jpackage 测试包脚本。资源复制到测试目录，输出路径位于 `shared/build/migration/fixtures/output`。
 7. 采集九页面 LIGHT/DARK 共 18 张 JPEG 与对应 AX 文本；验证九导航入口、主题切换和目录 picker 打开/取消。图片仅是观察记录。
+8. 新增 3 项 Compose Desktop 测试：两套主题的九入口选中状态、签名前缀与密钥文件名切页后保留。测试直接挂载原 `App()`，使用测试场景提供的生命周期和 ViewModel owner。
+9. 导出 20 张原始无损软件渲染 PNG（九页 × 两主题、两张草稿回访图）与 18 份 semantics 文本，记录于 [软件渲染说明](baseline/software-macos-arm64/README.md)。无限动画受测试运行器策略影响，不能代替原生动画基线。
+10. 修复旧分支生成的动态库残留造成的增量 JAR 重复；独立提交 `5dcf5dd8`，验证见 Phase 0B。
 
-测试结果见 [tests.json](evidence/tests.json)，成功日志见 [phase0-tests-success.txt](evidence/phase0-tests-success.txt)。
+最新 19 项测试结果见 [tests.json](evidence/tests.json)，成功日志见 [phase0-ui-tests-success.txt](evidence/phase0-ui-tests-success.txt)。此前 16 项测试日志保留于 [phase0-tests-success.txt](evidence/phase0-tests-success.txt)。
 
 环境与原生库/既有七个 bundled APK fixture 的哈希见 [environment.json](environment.json)。
 
@@ -26,13 +29,13 @@ Phase 0B 提交：`783544ec`。基线测试与观察记录独立提交，未进�
 | 门禁/事项 | 状态 | 证据或缺口 |
 | --- | --- | --- |
 | G0 两模块增量与干净编译 | 通过 | Phase 0B 日志；禁用 build cache 的 clean 编译实际执行 |
-| G1 已加入的特征测试 | 通过（局部） | 16 项测试；不是九业务全部成功/失败/取消矩阵 |
+| G1 已加入的特征测试 | 通过（局部） | 19 项测试；不是九业务全部成功/失败/取消矩阵 |
 | 视觉资源冻结 | 通过 | `python3 scripts/migration/check_visual_assets.py` |
 | 九页明暗观察图 | 已采集 | `baseline/macos-arm64-{light,dark}/`，每图附 AX 文本 |
-| G3 无损逐像素基线 | **未通过** | 桌面采集工具实际返回 800×600 JPEG；DPI 未独立测量，磁盘容量未冻结，Lottie 是实时帧 |
+| G3 无损逐像素基线 | **未通过** | 已有 800×572 无损软件渲染 PNG；尚未建立重复运行零像素差异。原生仍是 JPEG，磁盘容量与动画帧未冻结 |
 | G4 导航与主题 | 局部通过 | 原顺序九入口均可切换，明暗切换有效 |
 | G4 FileKit | 局部通过 | 原生目录对话框实际打开；Cancel 后默认目录未变。完整选取/过滤/拖拽待验 |
-| G4 输入与切页保留 | **未通过** | 自动化键盘输入未写入字段，不能据此判断应用丢状态；剪贴板操作返回错误 -10005（等待应用读取剪贴板超时） |
+| G4 输入与切页保留 | 局部通过 | Compose semantics 输入证明两个字段切页保留；原生键盘输入未写入字段，剪贴板和 AX set_value 返回 -10005。不能据此判断应用丢状态，也未验证 Tab/快捷键/selection |
 | G4 原生交互录像 | **未完成** | 尚无符合矩阵的录像；截图不能替代 |
 | 动画固定关键帧 | **未完成** | 未建立固定时钟/相同资源帧的截图比较 |
 | 性能基线 | **未完成** | 未采集同 release 配置的 JFR/输入帧 p95/RSS/句柄/长任务数据 |
@@ -41,7 +44,7 @@ Phase 0B 提交：`783544ec`。基线测试与观察记录独立提交，未进�
 
 不会为了推进 DI 将 JPEG 转码为 PNG 后声称无损，也不会放宽差异阈值。
 
-## 已验证的 16 项测试
+## 已验证的 19 项测试
 
 | 测试类 | 数量 | 覆盖 |
 | --- | --- | --- |
@@ -52,6 +55,7 @@ Phase 0B 提交：`783544ec`。基线测试与观察记录独立提交，未进�
 | CleanerFixtureTest | 2 | 目录 metadata 长度规则，depth 9/10/11、build.foo、嵌套 build 边界 |
 | ApkSigningFixtureTest | 1 | 临时未签名 APK + 五策略签名，用独立 ApkVerifier 验证 scheme（V1 限 API21–23，V2Only 从 API24） |
 | JunkArchiveFixtureTest | 2 | 极小单/多 AAR 的 manifest/classes/res、workspace 清理、仅重建测试 batch 目录且保留同级文件 |
+| ComposeBaselineTest | 3 | 原 App 的明暗九页导航选中状态、两个输入草稿切页保留；生成软件渲染观察图 |
 
 真实 aapt2 对 bundled apktool.apk 的 badging 输出保存在 `shared/src/jvmTest/resources/migration/apktool-badging.txt`，供后续解析迁移对照。
 

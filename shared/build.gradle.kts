@@ -233,6 +233,7 @@ kotlin {
         jvmTest.dependencies {
             implementation(libs.kotlin.test.junit)
             implementation(libs.junit)
+            implementation(libs.compose.ui.test)
         }
     }
 }
@@ -335,4 +336,8 @@ tasks.register<JavaExec>("baselineDesktop") {
 tasks.withType<Test>().configureEach {
     systemProperty("java.util.prefs.PreferencesFactory", "org.tool.kit.migration.IsolatedPreferencesFactory")
     systemProperty("migration.apkTemplate", rootProject.file("composeApp/resources/common/apktool.apk").absolutePath)
+    systemProperty("migration.fixtureRoot", layout.buildDirectory.dir("migration/fixtures").get().asFile.absolutePath)
+    systemProperty("migration.renderOutput", layout.buildDirectory.dir("migration/rendered").get().asFile.absolutePath)
+    systemProperty("user.language", "zh")
+    systemProperty("user.country", "CN")
 }

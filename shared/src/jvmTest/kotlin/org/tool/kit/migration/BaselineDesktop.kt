@@ -19,8 +19,20 @@ import java.util.prefs.Preferences
 fun main() {
     check(System.getProperty("java.util.prefs.PreferencesFactory") == IsolatedPreferencesFactory::class.java.name)
     val fixtureRoot = File(checkNotNull(System.getProperty("migration.fixtureRoot"))).canonicalFile
+    prepareBaselinePreferences(fixtureRoot, System.getProperty("migration.theme", "LIGHT"))
+    application {
+        Window(onCloseRequest = { exitApplication() }, title = "AndroidToolKit", icon = WindowIcon()) {
+            App()
+        }
+    }
+}
+
+@OptIn(ExperimentalSettingsApi::class, ExperimentalSerializationApi::class)
+internal fun prepareBaselinePreferences(fixtureRoot: File, theme: String) {
+    check(System.getProperty("java.util.prefs.PreferencesFactory") == IsolatedPreferencesFactory::class.java.name)
     fixtureRoot.mkdirs()
     val preferences = PreferencesSettings(Preferences.userRoot().node("toolkit"))
+    preferences.clear()
     preferences.encodeValue(UserData.serializer(), "user_data", UserData(
         fixtureRoot.resolve("output").apply { mkdirs() }.path, true, "-sign", true,
         DestStoreType.JKS, DestStoreSize.TWO_THOUSAND_FORTY_EIGHT
@@ -28,10 +40,5 @@ fun main() {
     preferences.putBoolean("start_check_update", false)
     preferences.putBoolean("junk_code", true)
     preferences.putBoolean("always_show_label", true)
-    preferences.putString("theme_config", System.getProperty("migration.theme", "LIGHT"))
-    application {
-        Window(onCloseRequest = { exitApplication() }, title = "AndroidToolKit", icon = WindowIcon()) {
-            App()
-        }
-    }
+    preferences.putString("theme_config", theme)
 }
