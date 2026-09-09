@@ -13,6 +13,9 @@ import org.tool.kit.model.DestStoreType
 import org.tool.kit.model.UserData
 import java.io.File
 import java.util.prefs.Preferences
+import org.koin.core.context.startKoin
+import org.tool.kit.app.shutdownAppSession
+import org.tool.kit.di.desktopModules
 
 /** Run with :shared:baselineDesktop. No changes to the production entry point or Window parameters. */
 @OptIn(ExperimentalSettingsApi::class, ExperimentalSerializationApi::class)
@@ -20,10 +23,15 @@ fun main() {
     check(System.getProperty("java.util.prefs.PreferencesFactory") == IsolatedPreferencesFactory::class.java.name)
     val fixtureRoot = File(checkNotNull(System.getProperty("migration.fixtureRoot"))).canonicalFile
     prepareBaselinePreferences(fixtureRoot, System.getProperty("migration.theme", "LIGHT"))
-    application {
-        Window(onCloseRequest = { exitApplication() }, title = "AndroidToolKit", icon = WindowIcon()) {
-            App()
+    startKoin { modules(desktopModules()) }
+    try {
+        application {
+            Window(onCloseRequest = { shutdownAppSession(); exitApplication() }, title = "AndroidToolKit", icon = WindowIcon()) {
+                App()
+            }
         }
+    } finally {
+        shutdownAppSession()
     }
 }
 

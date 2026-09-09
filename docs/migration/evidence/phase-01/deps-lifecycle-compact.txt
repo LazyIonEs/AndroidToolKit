@@ -1,0 +1,783 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+Configuration on demand is an incubating feature.
+Type-safe project accessors is an incubating feature.
+
+> Task :shared:dependencyInsight
+androidx.lifecycle:lifecycle-common:2.11.0
+  Variant jvmRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-viewmodel-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-savedstate is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-navigation3 is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel is in atomic group androidx.lifecycle
+      - By conflict resolution: between versions 2.11.0 and 2.9.2
+
+androidx.lifecycle:lifecycle-common:2.11.0
+\--- androidx.lifecycle:lifecycle-runtime-compose-desktop:2.11.0
+     \--- androidx.lifecycle:lifecycle-runtime-compose:2.11.0
+          \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02 (requested androidx.lifecycle:lifecycle-runtime-compose:2.10.0)
+               \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                    \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-common:2.9.2 -> 2.11.0
+\--- androidx.savedstate:savedstate-desktop:1.4.0
+     \--- androidx.savedstate:savedstate:1.4.0
+          \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+               \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                    \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-common-jvm:2.11.0
+  Variant jvmRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+androidx.lifecycle:lifecycle-common-jvm:2.11.0
+\--- androidx.lifecycle:lifecycle-common:2.11.0
+     \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+          \--- androidx.savedstate:savedstate:1.4.0
+               \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                    \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                         \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-runtime:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-viewmodel-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-savedstate is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-navigation3 is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-common is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel is in atomic group androidx.lifecycle
+      - By conflict resolution: between versions 2.11.0 and 2.10.0
+
+androidx.lifecycle:lifecycle-runtime:2.11.0
+\--- androidx.lifecycle:lifecycle-common-jvm:2.11.0
+     \--- androidx.lifecycle:lifecycle-common:2.11.0
+          \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+               \--- androidx.savedstate:savedstate:1.4.0
+                    \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                         \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                              \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-runtime:2.10.0 -> 2.11.0
+\--- androidx.navigation3:navigation3-runtime-desktop:1.2.0-alpha04
+     \--- androidx.navigation3:navigation3-runtime:1.2.0-alpha04
+          \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+               \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                    \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-runtime-compose:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-viewmodel-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-savedstate is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-navigation3 is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-common is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel is in atomic group androidx.lifecycle
+      - By conflict resolution: between versions 2.11.0, 2.10.0 and 2.9.4
+
+androidx.lifecycle:lifecycle-runtime-compose:2.11.0
+\--- androidx.lifecycle:lifecycle-common-jvm:2.11.0
+     \--- androidx.lifecycle:lifecycle-common:2.11.0
+          \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+               \--- androidx.savedstate:savedstate:1.4.0
+                    \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                         \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                              \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-runtime-compose:2.9.4 -> 2.11.0
+\--- androidx.compose.runtime:runtime-saveable-desktop:1.12.0
+     \--- androidx.compose.runtime:runtime-saveable:1.12.0
+          \--- androidx.lifecycle:lifecycle-viewmodel-navigation3-desktop:2.11.0 (requested androidx.compose.runtime:runtime-saveable:1.10.4)
+               \--- androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0
+                    \--- androidx.lifecycle:lifecycle-viewmodel-desktop:2.11.0
+                         \--- androidx.lifecycle:lifecycle-viewmodel:2.11.0
+                              \--- androidx.lifecycle:lifecycle-common-jvm:2.11.0
+                                   \--- androidx.lifecycle:lifecycle-common:2.11.0
+                                        \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+                                             \--- androidx.savedstate:savedstate:1.4.0
+                                                  \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                                                       \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                                                            \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-runtime-compose:2.10.0 -> 2.11.0
+\--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+     \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+          \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-runtime-compose-desktop:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+androidx.lifecycle:lifecycle-runtime-compose-desktop:2.11.0
+\--- androidx.lifecycle:lifecycle-runtime-compose:2.11.0
+     \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02 (requested androidx.lifecycle:lifecycle-runtime-compose:2.10.0)
+          \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+               \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-runtime-desktop:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+androidx.lifecycle:lifecycle-runtime-desktop:2.11.0
+\--- androidx.lifecycle:lifecycle-runtime:2.11.0
+     \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02 (requested androidx.lifecycle:lifecycle-runtime:2.10.0)
+          \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+               \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-viewmodel:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-viewmodel-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-savedstate is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-navigation3 is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-common is in atomic group androidx.lifecycle
+
+androidx.lifecycle:lifecycle-viewmodel:2.11.0
+\--- androidx.lifecycle:lifecycle-common-jvm:2.11.0
+     \--- androidx.lifecycle:lifecycle-common:2.11.0
+          \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+               \--- androidx.savedstate:savedstate:1.4.0
+                    \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                         \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                              \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-viewmodel-savedstate is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-navigation3 is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-common is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel is in atomic group androidx.lifecycle
+
+androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0
+\--- androidx.lifecycle:lifecycle-common-jvm:2.11.0
+     \--- androidx.lifecycle:lifecycle-common:2.11.0
+          \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+               \--- androidx.savedstate:savedstate:1.4.0
+                    \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                         \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                              \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-viewmodel-compose-desktop:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+androidx.lifecycle:lifecycle-viewmodel-compose-desktop:2.11.0
+\--- androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0
+     \--- org.jetbrains.compose.ui:ui-desktop:1.12.0
+          \--- org.jetbrains.compose.ui:ui:1.12.0
+               \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-viewmodel-desktop:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+androidx.lifecycle:lifecycle-viewmodel-desktop:2.11.0
+\--- androidx.lifecycle:lifecycle-viewmodel:2.11.0
+     \--- androidx.lifecycle:lifecycle-common-jvm:2.11.0
+          \--- androidx.lifecycle:lifecycle-common:2.11.0
+               \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+                    \--- androidx.savedstate:savedstate:1.4.0
+                         \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                              \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                                   \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-viewmodel-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-savedstate is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-common is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel is in atomic group androidx.lifecycle
+
+androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0
+\--- androidx.lifecycle:lifecycle-common-jvm:2.11.0
+     \--- androidx.lifecycle:lifecycle-common:2.11.0
+          \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+               \--- androidx.savedstate:savedstate:1.4.0
+                    \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                         \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                              \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-viewmodel-navigation3-desktop:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+androidx.lifecycle:lifecycle-viewmodel-navigation3-desktop:2.11.0
+\--- androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0
+     \--- androidx.lifecycle:lifecycle-viewmodel-desktop:2.11.0
+          \--- androidx.lifecycle:lifecycle-viewmodel:2.11.0
+               \--- androidx.lifecycle:lifecycle-common-jvm:2.11.0
+                    \--- androidx.lifecycle:lifecycle-common:2.11.0
+                         \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+                              \--- androidx.savedstate:savedstate:1.4.0
+                                   \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                                        \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                                             \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-viewmodel-savedstate:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-viewmodel-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-navigation3 is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-common is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel is in atomic group androidx.lifecycle
+
+androidx.lifecycle:lifecycle-viewmodel-savedstate:2.11.0
+\--- androidx.lifecycle:lifecycle-common-jvm:2.11.0
+     \--- androidx.lifecycle:lifecycle-common:2.11.0
+          \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+               \--- androidx.savedstate:savedstate:1.4.0
+                    \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                         \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                              \--- jvmRuntimeClasspath
+
+androidx.lifecycle:lifecycle-viewmodel-savedstate-desktop:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+androidx.lifecycle:lifecycle-viewmodel-savedstate-desktop:2.11.0
+\--- androidx.lifecycle:lifecycle-viewmodel-savedstate:2.11.0
+     \--- org.jetbrains.compose.ui:ui-desktop:1.12.0
+          \--- org.jetbrains.compose.ui:ui:1.12.0
+               \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-common:2.11.0
+  Variant jvmRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-runtime-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-navigation3 is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-savedstate is in atomic group androidx.lifecycle
+      - By constraint: prevents symbols duplication
+      - By conflict resolution: between versions 2.11.0, 2.9.5 and 2.11.0-beta01
+
+org.jetbrains.androidx.lifecycle:lifecycle-common:2.11.0
+\--- org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose-desktop:2.11.0
+     \--- org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.11.0
+          \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-common:2.9.5 -> 2.11.0
+\--- androidx.lifecycle:lifecycle-common-jvm:2.11.0
+     \--- androidx.lifecycle:lifecycle-common:2.11.0
+          \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+               \--- androidx.savedstate:savedstate:1.4.0
+                    \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                         \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                              \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-common:2.11.0-beta01 -> 2.11.0
+\--- io.github.panpf.zoomimage:zoomimage-core-desktop:1.7.0-alpha01
+     \--- io.github.panpf.zoomimage:zoomimage-core:1.7.0-alpha01
+          \--- io.github.panpf.zoomimage:zoomimage-compose-desktop:1.7.0-alpha01
+               \--- io.github.panpf.zoomimage:zoomimage-compose:1.7.0-alpha01
+                    \--- io.github.panpf.zoomimage:zoomimage-compose-coil3-core-desktop:1.7.0-alpha01
+                         \--- io.github.panpf.zoomimage:zoomimage-compose-coil3-core:1.7.0-alpha01
+                              \--- io.github.panpf.zoomimage:zoomimage-compose-coil3-desktop:1.7.0-alpha01
+                                   \--- io.github.panpf.zoomimage:zoomimage-compose-coil3:1.7.0-alpha01
+                                        \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-common-jvm:2.11.0
+  Variant jvmRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+org.jetbrains.androidx.lifecycle:lifecycle-common-jvm:2.11.0
+\--- org.jetbrains.androidx.lifecycle:lifecycle-common:2.11.0
+     \--- androidx.lifecycle:lifecycle-common-jvm:2.11.0 (requested org.jetbrains.androidx.lifecycle:lifecycle-common:2.9.5)
+          \--- androidx.lifecycle:lifecycle-common:2.11.0
+               \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+                    \--- androidx.savedstate:savedstate:1.4.0
+                         \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                              \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                                   \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-runtime:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-runtime-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-navigation3 is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-common is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-savedstate is in atomic group androidx.lifecycle
+      - By constraint: prevents symbols duplication
+      - By conflict resolution: between versions 2.11.0 and 2.9.5
+
+org.jetbrains.androidx.lifecycle:lifecycle-runtime:2.11.0
+\--- org.jetbrains.androidx.lifecycle:lifecycle-common-jvm:2.11.0
+     \--- org.jetbrains.androidx.lifecycle:lifecycle-common:2.11.0
+          \--- androidx.lifecycle:lifecycle-common-jvm:2.11.0 (requested org.jetbrains.androidx.lifecycle:lifecycle-common:2.9.5)
+               \--- androidx.lifecycle:lifecycle-common:2.11.0
+                    \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+                         \--- androidx.savedstate:savedstate:1.4.0
+                              \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                                   \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                                        \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-runtime:2.9.5 -> 2.11.0
+\--- androidx.lifecycle:lifecycle-runtime-desktop:2.11.0
+     \--- androidx.lifecycle:lifecycle-runtime:2.11.0
+          \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02 (requested androidx.lifecycle:lifecycle-runtime:2.10.0)
+               \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                    \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-viewmodel-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-navigation3 is in atomic group androidx.lifecycle
+      - By constraint: prevents symbols duplication
+      - By constraint: lifecycle-common is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-savedstate is in atomic group androidx.lifecycle
+      - By conflict resolution: between versions 2.11.0, 2.9.6, 2.9.5 and 2.11.0-beta01
+
+org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.11.0
+\--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.5 -> 2.11.0
+\--- androidx.lifecycle:lifecycle-runtime-compose-desktop:2.11.0
+     \--- androidx.lifecycle:lifecycle-runtime-compose:2.11.0
+          \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02 (requested androidx.lifecycle:lifecycle-runtime-compose:2.10.0)
+               \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                    \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.9.6 -> 2.11.0
+\--- org.jetbrains.compose.runtime:runtime-saveable-desktop:1.12.0
+     \--- org.jetbrains.compose.runtime:runtime-saveable:1.12.0
+          \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.11.0-beta01 -> 2.11.0
+\--- io.github.panpf.zoomimage:zoomimage-compose-desktop:1.7.0-alpha01
+     \--- io.github.panpf.zoomimage:zoomimage-compose:1.7.0-alpha01
+          \--- io.github.panpf.zoomimage:zoomimage-compose-coil3-core-desktop:1.7.0-alpha01
+               \--- io.github.panpf.zoomimage:zoomimage-compose-coil3-core:1.7.0-alpha01
+                    \--- io.github.panpf.zoomimage:zoomimage-compose-coil3-desktop:1.7.0-alpha01
+                         \--- io.github.panpf.zoomimage:zoomimage-compose-coil3:1.7.0-alpha01
+                              \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose-desktop:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose-desktop:2.11.0
+\--- org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose:2.11.0
+     \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-runtime-desktop:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+org.jetbrains.androidx.lifecycle:lifecycle-runtime-desktop:2.11.0
+\--- org.jetbrains.androidx.lifecycle:lifecycle-runtime:2.11.0
+     \--- androidx.lifecycle:lifecycle-runtime-desktop:2.11.0 (requested org.jetbrains.androidx.lifecycle:lifecycle-runtime:2.9.5)
+          \--- androidx.lifecycle:lifecycle-runtime:2.11.0
+               \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02 (requested androidx.lifecycle:lifecycle-runtime:2.10.0)
+                    \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                         \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-viewmodel-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-navigation3 is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-common is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-savedstate is in atomic group androidx.lifecycle
+      - By constraint: prevents symbols duplication
+      - By conflict resolution: between versions 2.11.0, 2.9.6 and 2.9.5
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel:2.11.0
+\--- org.jetbrains.androidx.lifecycle:lifecycle-common-jvm:2.11.0
+     \--- org.jetbrains.androidx.lifecycle:lifecycle-common:2.11.0
+          \--- androidx.lifecycle:lifecycle-common-jvm:2.11.0 (requested org.jetbrains.androidx.lifecycle:lifecycle-common:2.9.5)
+               \--- androidx.lifecycle:lifecycle-common:2.11.0
+                    \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+                         \--- androidx.savedstate:savedstate:1.4.0
+                              \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                                   \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                                        \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel:2.9.5 -> 2.11.0
+\--- androidx.lifecycle:lifecycle-viewmodel-desktop:2.11.0
+     \--- androidx.lifecycle:lifecycle-viewmodel:2.11.0
+          \--- androidx.lifecycle:lifecycle-common-jvm:2.11.0
+               \--- androidx.lifecycle:lifecycle-common:2.11.0
+                    \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+                         \--- androidx.savedstate:savedstate:1.4.0
+                              \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                                   \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                                        \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel:2.9.6 -> 2.11.0
+\--- io.insert-koin:koin-core-viewmodel-jvm:4.2.2
+     \--- io.insert-koin:koin-core-viewmodel:4.2.2
+          \--- io.insert-koin:koin-bom:4.2.2
+               \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-runtime-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-navigation3 is in atomic group androidx.lifecycle
+      - By constraint: prevents symbols duplication
+      - By constraint: lifecycle-common is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-savedstate is in atomic group androidx.lifecycle
+      - By conflict resolution: between versions 2.11.0, 2.9.6 and 2.11.0-beta01
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0
+\--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.9.6 -> 2.11.0
+\--- io.insert-koin:koin-compose-viewmodel-jvm:4.2.2
+     \--- io.insert-koin:koin-compose-viewmodel:4.2.2
+          \--- jvmRuntimeClasspath (requested io.insert-koin:koin-compose-viewmodel)
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0-beta01 -> 2.11.0
+\--- androidx.lifecycle:lifecycle-viewmodel-compose-desktop:2.11.0
+     \--- androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0
+          \--- org.jetbrains.compose.ui:ui-desktop:1.12.0
+               \--- org.jetbrains.compose.ui:ui:1.12.0
+                    \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose-desktop:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose-desktop:2.11.0
+\--- org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose:2.11.0
+     \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-desktop:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-desktop:2.11.0
+\--- org.jetbrains.androidx.lifecycle:lifecycle-viewmodel:2.11.0
+     \--- androidx.lifecycle:lifecycle-viewmodel-desktop:2.11.0 (requested org.jetbrains.androidx.lifecycle:lifecycle-viewmodel:2.9.5)
+          \--- androidx.lifecycle:lifecycle-viewmodel:2.11.0
+               \--- androidx.lifecycle:lifecycle-common-jvm:2.11.0
+                    \--- androidx.lifecycle:lifecycle-common:2.11.0
+                         \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+                              \--- androidx.savedstate:savedstate:1.4.0
+                                   \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                                        \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                                             \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-runtime-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-common is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-savedstate is in atomic group androidx.lifecycle
+      - By constraint: prevents symbols duplication
+      - By conflict resolution: between versions 2.11.0 and 2.11.0-beta01
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0
+\--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0-beta01 -> 2.11.0
+\--- androidx.lifecycle:lifecycle-viewmodel-navigation3-desktop:2.11.0
+     \--- androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0
+          \--- androidx.lifecycle:lifecycle-viewmodel-desktop:2.11.0
+               \--- androidx.lifecycle:lifecycle-viewmodel:2.11.0
+                    \--- androidx.lifecycle:lifecycle-common-jvm:2.11.0
+                         \--- androidx.lifecycle:lifecycle-common:2.11.0
+                              \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+                                   \--- androidx.savedstate:savedstate:1.4.0
+                                        \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                                             \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                                                  \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3-desktop:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3-desktop:2.11.0
+\--- org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3:2.11.0
+     \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+   Selection reasons:
+      - By constraint: lifecycle-viewmodel-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime-compose is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel-navigation3 is in atomic group androidx.lifecycle
+      - By constraint: prevents symbols duplication
+      - By constraint: lifecycle-common is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-runtime is in atomic group androidx.lifecycle
+      - By constraint: lifecycle-viewmodel is in atomic group androidx.lifecycle
+      - By conflict resolution: between versions 2.11.0, 2.9.5 and 2.9.6
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate:2.11.0
+\--- org.jetbrains.androidx.lifecycle:lifecycle-common-jvm:2.11.0
+     \--- org.jetbrains.androidx.lifecycle:lifecycle-common:2.11.0
+          \--- androidx.lifecycle:lifecycle-common-jvm:2.11.0 (requested org.jetbrains.androidx.lifecycle:lifecycle-common:2.9.5)
+               \--- androidx.lifecycle:lifecycle-common:2.11.0
+                    \--- androidx.savedstate:savedstate-desktop:1.4.0 (requested androidx.lifecycle:lifecycle-common:2.9.2)
+                         \--- androidx.savedstate:savedstate:1.4.0
+                              \--- org.jetbrains.androidx.navigation3:navigation3-ui-desktop:1.2.0-alpha02
+                                   \--- org.jetbrains.androidx.navigation3:navigation3-ui:1.2.0-alpha02
+                                        \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate:2.9.5 -> 2.11.0
+\--- androidx.lifecycle:lifecycle-viewmodel-savedstate-desktop:2.11.0
+     \--- androidx.lifecycle:lifecycle-viewmodel-savedstate:2.11.0
+          \--- org.jetbrains.compose.ui:ui-desktop:1.12.0
+               \--- org.jetbrains.compose.ui:ui:1.12.0
+                    \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate:2.9.6 -> 2.11.0
+\--- io.insert-koin:koin-core-viewmodel-jvm:4.2.2
+     \--- io.insert-koin:koin-core-viewmodel:4.2.2
+          \--- io.insert-koin:koin-bom:4.2.2
+               \--- jvmRuntimeClasspath
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate-desktop:2.11.0
+  Variant desktopRuntimeElements-published:
+    | Attribute Name                     | Provided     | Requested    |
+    |------------------------------------|--------------|--------------|
+    | org.gradle.libraryelements         | jar          |              |
+    | org.gradle.status                  | release      |              |
+    | org.gradle.category                | library      | library      |
+    | org.gradle.jvm.environment         | standard-jvm | standard-jvm |
+    | org.gradle.usage                   | java-runtime | java-runtime |
+    | org.jetbrains.kotlin.platform.type | jvm          | jvm          |
+
+org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate-desktop:2.11.0
+\--- org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate:2.11.0
+     \--- androidx.lifecycle:lifecycle-viewmodel-savedstate-desktop:2.11.0 (requested org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate:2.9.5)
+          \--- androidx.lifecycle:lifecycle-viewmodel-savedstate:2.11.0
+               \--- org.jetbrains.compose.ui:ui-desktop:1.12.0
+                    \--- org.jetbrains.compose.ui:ui:1.12.0
+                         \--- jvmRuntimeClasspath
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 5s
+1 actionable task: 1 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.5.1/userguide/configuration_cache_enabling.html

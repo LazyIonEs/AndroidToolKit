@@ -65,6 +65,7 @@ import java.awt.Desktop
 import java.io.File
 import kotlin.math.roundToInt
 import kotlin.system.exitProcess
+import org.tool.kit.app.shutdownAppSession
 
 /**
  * @author      : LazyIonEs
@@ -169,6 +170,7 @@ fun UpdateDialog(vm: MainViewModel) {
                                     }.onFailure { e ->
                                         logger.error(e) { "org.tool.kit.UpdateDialog 打开安装文件异常, 异常信息: ${e.message}" }
                                     }.onSuccess {
+                                        shutdownAppSession()
                                         exitProcess(0)
                                     }
                                 }

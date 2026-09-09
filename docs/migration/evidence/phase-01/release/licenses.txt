@@ -1,0 +1,18 @@
+The following is a diff from the previous accessibility tree for Window: "Open Source Licenses" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 0-25, 48-51, 54-83
++54 标准窗口 Open Source Licenses, Secondary Actions: Raise
++	55 未知 (selectable) 0
++		56 container (selectable) 0
++			57 滚动区 (selectable) 0
++				58 文本 (selectable) AboutLibraries Compose Material 3 Library, 15.2.0, Mike Penz, Apache License 2.0
++				59 文本 (selectable) AboutLibraries Compose UI Library, 15.2.0, Mike Penz, Apache License 2.0
++				60 文本 (selectable) AboutLibraries Core Library, 15.2.0, Mike Penz, Apache License 2.0
++				61 文本 (selectable) Android Arch-Common, 2.2.0, The Android Open Source Project, Apache License 2.0
++				62 文本 (selectable) Android Tools Analytics Protobufs, 32.4.0, The Android Open Source Project, Apache License 2.0
++				63 文本 (selectable) Android Tools Analytics Shared Library, 32.4.0, The Android Open Source Project, Apache License 2.0
++				64 文本 (selectable) Android Tools ddmlib, 32.4.0, The Android Open Source Project, Apache License 2.0
++	65 关闭按钮
++	66 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
++	67 最小化按钮
++	68 文本 Open Source Licenses
+The focused UI element is 55 未知 (selectable)

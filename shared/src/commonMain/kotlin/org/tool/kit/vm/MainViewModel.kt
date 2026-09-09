@@ -16,8 +16,6 @@ import com.android.apksig.ApkVerifier
 import com.android.apksig.KeyConfig
 import com.android.ide.common.signing.KeystoreHelper
 import com.intellij.openapi.util.text.StringUtil
-import com.russhwolf.settings.ExperimentalSettingsApi
-import com.russhwolf.settings.coroutines.FlowSettings
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -122,12 +120,8 @@ private val logger = KotlinLogging.logger("MainViewModel")
  * @Description : MainViewModel
  * @Version     : 1.0
  */
-class MainViewModel @OptIn(ExperimentalSettingsApi::class) constructor(settings: FlowSettings) :
+class MainViewModel(private val preferences: PreferencesDataSource) :
     ViewModel() {
-
-    // 数据存储
-    @OptIn(ExperimentalSettingsApi::class)
-    private val preferences = PreferencesDataSource(settings)
 
     // 偏好设置
     val themeConfig = preferences.themeConfig.stateIn(

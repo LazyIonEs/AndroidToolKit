@@ -121,6 +121,12 @@ kotlin {
 
         // Common dependencies
         commonMain.dependencies {
+            implementation(project.dependencies.platform(libs.koin.bom))
+            implementation(libs.koin.core)
+            implementation(libs.koin.compose)
+            implementation(libs.koin.compose.viewmodel)
+            implementation(libs.lifecycle.runtime.compose)
+            implementation(libs.kotlinx.coroutines.core)
             // Compose dependencies (API for downstream modules)
             api(libs.compose.runtime)
             api(libs.compose.runtime.saveable)
@@ -231,6 +237,8 @@ kotlin {
         }
 
         commonTest.dependencies {
+            implementation(project.dependencies.platform(libs.koin.bom))
+            implementation(libs.koin.test)
             implementation(libs.kotlin.test)
             implementation(libs.kotlinx.coroutines.test)
             implementation(libs.multiplatform.settings.test)

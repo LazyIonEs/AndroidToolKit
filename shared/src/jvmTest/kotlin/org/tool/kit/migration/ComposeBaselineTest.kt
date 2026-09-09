@@ -6,6 +6,12 @@ import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import org.junit.Test
+import org.junit.Before
+import org.junit.After
+import org.koin.core.KoinApplication
+import org.koin.compose.KoinIsolatedContext
+import org.koin.dsl.koinApplication
+import org.tool.kit.di.desktopModules
 import org.tool.kit.App
 import java.awt.image.BufferedImage
 import java.io.File
@@ -14,10 +20,17 @@ import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 
 /** Software-rendered client-area evidence; native window/picker/input tests remain separate. */
-@OptIn(ExperimentalTestApi::class)
+@OptIn(ExperimentalTestApi::class, com.russhwolf.settings.ExperimentalSettingsApi::class)
 class ComposeBaselineTest {
     private val fixtureRoot = File(checkNotNull(System.getProperty("migration.fixtureRoot")))
     private val renderOutput = File(checkNotNull(System.getProperty("migration.renderOutput")))
+    private lateinit var container: KoinApplication
+
+    @Before fun startIsolatedContainer() {
+        container = koinApplication { modules(desktopModules()) }
+    }
+
+    @After fun closeIsolatedContainer() = container.close()
 
     @Test fun lightNavigationRendersAllNinePages() = captureNavigation("LIGHT")
 
@@ -27,7 +40,7 @@ class ComposeBaselineTest {
         width = 800, height = 572, testTimeout = 45.seconds
     ) {
         prepareBaselinePreferences(fixtureRoot, theme)
-        setContent { App() }
+        setContent { KoinIsolatedContext(container) { App() } }
         waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("APK签名").fetchSemanticsNodes().isNotEmpty() }
         val pages = listOf(
             "signature-information" to "签名信息", "apk-information" to "APK信息",
@@ -47,7 +60,7 @@ class ComposeBaselineTest {
         width = 800, height = 572, testTimeout = 45.seconds
     ) {
         prepareBaselinePreferences(fixtureRoot, "LIGHT")
-        setContent { App() }
+        setContent { KoinIsolatedContext(container) { App() } }
         waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("APK签名").fetchSemanticsNodes().isNotEmpty() }
         onNode(hasText("APK签名") and hasClickAction()).performClick()
         onNode(hasSetTextAction() and hasText("输出文件前缀(选填)"))

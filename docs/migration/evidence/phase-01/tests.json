@@ -1,0 +1,79 @@
+{
+  "suites": [
+    {
+      "name": "ApkSigningFixtureTest[jvm]",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.149"
+    },
+    {
+      "name": "CleanerFixtureTest[jvm]",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.022"
+    },
+    {
+      "name": "ComposeBaselineTest[jvm]",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "9.91"
+    },
+    {
+      "name": "JunkArchiveFixtureTest[jvm]",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.125"
+    },
+    {
+      "name": "KeyStoreFixtureTest[jvm]",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.303"
+    },
+    {
+      "name": "KoinLifecycleTest[jvm]",
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "2.247"
+    },
+    {
+      "name": "LegacyFormCharacterizationTest[jvm]",
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.003"
+    },
+    {
+      "name": "LegacyPreferencesCharacterizationTest[jvm]",
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.01"
+    },
+    {
+      "name": "NativeFixtureTest[jvm]",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.513"
+    }
+  ],
+  "tests": 22,
+  "failures": 0,
+  "errors": 0
+}

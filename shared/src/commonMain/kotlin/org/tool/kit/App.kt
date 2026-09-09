@@ -42,7 +42,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupPositionProvider
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.russhwolf.settings.ExperimentalSettingsApi
@@ -69,7 +69,9 @@ import org.tool.kit.navigation.Navigator
 import org.tool.kit.navigation.TOP_LEVEL_NAV_ITEMS
 import org.tool.kit.navigation.defaultTransitionSpec
 import org.tool.kit.navigation.toEntries
-import org.tool.kit.platform.createFlowSettings
+import org.koin.compose.KoinContext
+import org.koin.compose.getKoin
+import org.koin.compose.viewmodel.koinViewModel
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.icon
 import org.tool.kit.theme.AppTheme
@@ -78,10 +80,18 @@ import org.tool.kit.vm.UIState
 
 private val logger = KotlinLogging.logger("App")
 
-@OptIn(ExperimentalSettingsApi::class)
+@Suppress("DEPRECATION") // Keep the explicit root wrapper required by the Koin 4.2.2 migration.
 @Composable
 fun App() {
-    val viewModel = viewModel { MainViewModel(settings = createFlowSettings()) }
+    KoinContext(koin = getKoin()) {
+        AppRoute()
+    }
+}
+
+@Composable
+private fun AppRoute() {
+    val windowOwner = checkNotNull(LocalViewModelStoreOwner.current)
+    val viewModel = koinViewModel<MainViewModel>(viewModelStoreOwner = windowOwner)
     val themeConfig by viewModel.themeConfig.collectAsState()
     val useDarkTheme = when (themeConfig) {
         DarkThemeConfig.LIGHT -> false

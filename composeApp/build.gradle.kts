@@ -50,6 +50,8 @@ kotlin {
 
         // JVM-specific dependencies
         jvmMain.dependencies {
+            implementation(project.dependencies.platform(libs.koin.bom))
+            implementation(libs.koin.core)
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.coroutines.swing)
@@ -131,7 +133,12 @@ compose.desktop {
             )
 
             // Output directories
-            outputBaseDir.set(project.layout.projectDirectory.dir("output"))
+            // Keep migration package smoke tests separate from existing distributions.
+            outputBaseDir.set(if (providers.gradleProperty("migrationPackage").map(String::toBoolean).getOrElse(false)) {
+                project.layout.buildDirectory.dir("migration/distribution")
+            } else {
+                providers.provider { project.layout.projectDirectory.dir("output") }
+            })
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
 
             // Linux-specific configuration

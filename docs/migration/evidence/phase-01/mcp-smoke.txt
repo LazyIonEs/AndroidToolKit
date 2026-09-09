@@ -1,0 +1,22 @@
+Evidence directory: /Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/hot-mcp/session-n5od14rc
+{"name": "compose-hot-reload", "version": "1.2.0"}
+Tools: status, reload, await_reload, list_windows, get_ui_error, get_logs, take_screenshot, get_semantic_tree, click, long_click, type_text, scroll, scroll_to_index, resize_window, restart, reset_ui
+light/signature-information: repeated capture changed 17809 pixels
+light/apk-information: repeated capture changed 15212 pixels
+light/apk-signature: repeated capture changed 0 pixels
+light/keystore-generation: repeated capture changed 0 pixels
+light/apk-tool: repeated capture changed 0 pixels
+light/junk-code: repeated capture changed 0 pixels
+light/icon-factory: repeated capture changed 1182 pixels
+light/cleaner: repeated capture changed 19499 pixels
+light/settings: repeated capture changed 0 pixels
+dark/signature-information: repeated capture changed 15189 pixels
+dark/apk-information: repeated capture changed 14790 pixels
+dark/apk-signature: repeated capture changed 0 pixels
+dark/keystore-generation: repeated capture changed 0 pixels
+dark/apk-tool: repeated capture changed 0 pixels
+dark/junk-code: repeated capture changed 0 pixels
+dark/icon-factory: repeated capture changed 1202 pixels
+dark/cleaner: repeated capture changed 19519 pixels
+dark/settings: repeated capture changed 0 pixels
+PASS: ['18 navigation selections', '18 captures without UI exceptions', '10 static pairs have zero changed pixels', 'signing draft retained', 'keystore filename retained']. Evidence: /Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/hot-mcp/session-n5od14rc

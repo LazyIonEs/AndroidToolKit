@@ -1,0 +1,20 @@
+Executable=/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/release-smoke/packaged.dylib
+Identifier=libuniffi_toolkit-55554944bc4c92ca74e835c3aeb90199900e6ef1
+Format=Mach-O thin (arm64)
+CodeDirectory v=20500 size=21115 flags=0x10002(adhoc,runtime) hashes=653+2 location=embedded
+Signature=adhoc
+Info.plist=not bound
+TeamIdentifier=not set
+Runtime Version=26.5.0
+Sealed Resources=none
+Internal requirements count=0 size=12
+
+Executable=/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/rust/target/release/libtoolkit_rs.dylib
+Identifier=libtoolkit_rs.dylib
+Format=Mach-O thin (arm64)
+CodeDirectory v=20400 size=83608 flags=0x20002(adhoc,linker-signed) hashes=2609+0 location=embedded
+Signature=adhoc
+Info.plist=not bound
+TeamIdentifier=not set
+Sealed Resources=none
+Internal requirements=none
