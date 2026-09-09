@@ -1,24 +1,10 @@
-package org.tool.kit.model
+package org.tool.kit.migration
 
-import org.jetbrains.compose.resources.StringResource
-import org.tool.kit.shared.generated.resources.Res
-import org.tool.kit.shared.generated.resources.apk_signature_v1
-import org.tool.kit.shared.generated.resources.apk_signature_v2
-import org.tool.kit.shared.generated.resources.apk_signature_v2_only
-import org.tool.kit.shared.generated.resources.apk_signature_v3
-import org.tool.kit.shared.generated.resources.apk_signature_v4
 import java.io.File
+import org.tool.kit.model.SignaturePolicy
 
-/**
- * @author      : LazyIonEs
- * @description : 描述
- * @createDate  : 2026/1/29 09:42
- */
-
-/**
- * Apk签名，存储页面信息，viewModel中
- */
-data class ApkSignature(
+/** Frozen pre-Phase-5 setters: test oracle only. */
+data class LegacySigningForm(
     private var _apkPath: String = "", // apk路径
     var outputPath: String = "", // apk输出路径
     private var _outputPrefix: String = "", // 输出文件前缀
@@ -29,7 +15,7 @@ data class ApkSignature(
     override var keyStoreAlisaIndex: Int = 0, // 别名选中下标
     override var keyStoreAlisaPassword: String = "", // 别名密码
     override var v4SignatureOutputFileName: String = "apk-name.apk.idsig", // V4签名输出文件名称
-) : Sign() {
+) : LegacySigningCredentials() {
     var apkPath: String
         get() = _apkPath
         set(value) {
@@ -78,13 +64,25 @@ data class ApkSignature(
         }
 }
 
-/**
- * APK签名策略
- */
-enum class SignaturePolicy(val title: String, val value: StringResource) {
-    V1("V1", Res.string.apk_signature_v1),
-    V2("V2", Res.string.apk_signature_v2),
-    V2Only("V2 Only", Res.string.apk_signature_v2_only),
-    V3("V3", Res.string.apk_signature_v3),
-    V4("V4", Res.string.apk_signature_v4)
+
+open class LegacySigningCredentials(
+    protected open var _keyStorePath: String = "", // 密钥
+    open var keyStorePolicy: SignaturePolicy = SignaturePolicy.V2, // 密钥策略
+    open var keyStorePassword: String = "", // 密钥密码
+    open var keyStoreAlisaList: ArrayList<String>? = null,  // 别名列表
+    open var keyStoreAlisaIndex: Int = 0, // 别名选中下标
+    open var keyStoreAlisaPassword: String = "", // 别名密码
+    open var v4SignatureOutputFileName: String = "apk-name.apk.idsig", // V4签名输出文件名称
+) {
+    var keyStorePath: String
+        get() = _keyStorePath
+        set(value) {
+            if (_keyStorePath != value) {
+                this.keyStorePassword = ""
+                this.keyStoreAlisaList = null
+                this.keyStoreAlisaIndex = 0
+                this.keyStoreAlisaPassword = ""
+            }
+            _keyStorePath = value
+        }
 }

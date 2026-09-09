@@ -8,7 +8,6 @@ import org.tool.kit.core.validation.LatestRequest
 import org.tool.kit.domain.repository.StorageRepository
 
 enum class LegacyPathField {
-    SIGNING_APK, SIGNING_OUTPUT, SIGNING_KEYSTORE,
     APK_TOOL_OUTPUT, APK_TOOL_ICON, APK_TOOL_KEYSTORE, JUNK_OUTPUT
 }
 

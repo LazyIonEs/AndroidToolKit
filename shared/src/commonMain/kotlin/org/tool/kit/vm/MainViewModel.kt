@@ -13,8 +13,6 @@ import brut.androlib.res.xml.ResXmlUtils
 import brut.directory.ExtFile
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.asStateFlow
@@ -35,7 +33,6 @@ import org.tool.kit.core.validation.LatestRequest
 import org.tool.kit.domain.repository.KeyStoreRepository
 import org.tool.kit.domain.repository.StorageCapacity
 import org.tool.kit.domain.repository.StorageRepository
-import org.tool.kit.model.ApkSignature
 import org.tool.kit.model.ApkToolInfo
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.IconFactoryData
@@ -45,7 +42,6 @@ import org.tool.kit.model.JunkMode
 import org.tool.kit.model.PendingDeletionFile
 import org.tool.kit.model.Sequence
 import org.tool.kit.model.Sign
-import org.tool.kit.model.SignaturePolicy
 import org.tool.kit.platform.RustException
 import org.tool.kit.platform.mozJpeg
 import org.tool.kit.platform.oxipng
@@ -53,7 +49,6 @@ import org.tool.kit.platform.quantize
 import org.tool.kit.platform.resizeFir
 import org.tool.kit.platform.resizePng
 import org.tool.kit.shared.generated.resources.Res
-import org.tool.kit.shared.generated.resources.apk_is_signed_successfully
 import org.tool.kit.shared.generated.resources.build_end
 import org.tool.kit.shared.generated.resources.build_failure
 import org.tool.kit.shared.generated.resources.cleanup_complete
@@ -61,9 +56,7 @@ import org.tool.kit.shared.generated.resources.file_deletion_exception
 import org.tool.kit.shared.generated.resources.icon_creation_failed
 import org.tool.kit.shared.generated.resources.icon_generation_completed
 import org.tool.kit.shared.generated.resources.jump
-import org.tool.kit.shared.generated.resources.output_file_already_exists
 import org.tool.kit.shared.generated.resources.scanning_anomalies
-import org.tool.kit.shared.generated.resources.signature_failed
 import org.tool.kit.utils.AndroidJunkGenerator
 import org.tool.kit.utils.MultiAarGenerator
 import org.tool.kit.utils.formatFileSize
@@ -100,14 +93,6 @@ class MainViewModel(
     val userData = preferences.state.map { it.userData }.stateIn(viewModelScope, Eagerly, preferences.state.value.userData)
     val iconFactoryData = preferences.state.map { it.iconFactoryData }.stateIn(viewModelScope, Eagerly, preferences.state.value.iconFactoryData)
     val isHuaweiAlignFileSize = preferences.state.map { it.isHuaweiAlignFileSize }.stateIn(viewModelScope, Eagerly, preferences.state.value.isHuaweiAlignFileSize)
-
-    // APK签名信息
-    private val _apkSignatureState = mutableStateOf(ApkSignature())
-    val apkSignatureState by _apkSignatureState
-
-    // Apk签名UI状态
-    private val _apkSignatureUIState = mutableStateOf<UIState>(UIState.WAIT)
-    val apkSignatureUIState by _apkSignatureUIState
 
     // 垃圾代码生成信息
     private val _junkCodeInfoState = mutableStateOf(JunkCodeInfo())
@@ -156,10 +141,6 @@ class MainViewModel(
     private val _storageCapacity = MutableStateFlow(initialCapacity)
     val storageCapacity = _storageCapacity.asStateFlow()
 
-    private val signingChecks = LegacySignValidation(viewModelScope, storage, keyStores) { aliases ->
-        updateApkSignature(apkSignatureState.copy(keyStoreAlisaList = aliases?.let(::ArrayList)))
-    }
-    val signingValidation = signingChecks.state
     private val apkToolChecks = LegacySignValidation(viewModelScope, storage, keyStores) { aliases ->
         updateApkToolInfo(apkToolInfoState.copy(keyStoreAlisaList = aliases?.let(::ArrayList)))
     }
@@ -167,12 +148,11 @@ class MainViewModel(
 
     init {
         // Compatibility bridge: remove one branch per Phase 4A/5/6/7/8 cutover.
-        // These four still belong to MainViewModel. KeyStore generation owns its own subscription.
+        // Three forms still belong to MainViewModel; migrated features own their subscriptions.
         viewModelScope.launch {
             preferences.state.filter { it.ready }
                 .map { it.outputPathVersion to it.userData.defaultOutputPath }
                 .distinctUntilChanged().collect { (_, path) ->
-                    updateApkSignature(apkSignatureState.copy(outputPath = path))
                     updateJunkCodeInfo(junkCodeInfoState.copy(outputPath = path))
                     updateIconFactoryInfo(iconFactoryInfoState.copy(outputPath = path))
                     updateApkToolInfo(apkToolInfoState.copy(outputPath = path))
@@ -182,11 +162,6 @@ class MainViewModel(
 
     fun refreshStorageCapacity() {
         capacityRequest.launch(block = { storage.readCapacity() }) { _storageCapacity.value = it }
-    }
-
-    fun updateSigningStorePassword(password: String) {
-        updateApkSignature(apkSignatureState.copy(keyStorePassword = password))
-        signingChecks.passwordChanged(apkSignatureState)
     }
 
     fun updateApkToolStorePassword(password: String) {
@@ -199,11 +174,6 @@ class MainViewModel(
         fields.any { pathValidation.value[it]?.pending == true }
 
     fun refreshPathChecks(vararg fields: LegacyPathField) = pathChecks.refresh(*fields)
-
-    fun refreshSigningChecks() {
-        refreshPathChecks(LegacyPathField.SIGNING_APK, LegacyPathField.SIGNING_OUTPUT, LegacyPathField.SIGNING_KEYSTORE)
-        signingChecks.refreshAliasPassword(apkSignatureState)
-    }
 
     fun refreshApkToolChecks() {
         refreshPathChecks(LegacyPathField.APK_TOOL_OUTPUT, LegacyPathField.APK_TOOL_ICON, LegacyPathField.APK_TOOL_KEYSTORE)
@@ -222,19 +192,6 @@ class MainViewModel(
     }
     fun updateSnackbarVisuals(value: String) = updateSnackbarVisuals(SnackbarMessage(UiMessage.Text(value)))
     fun updateSnackbarVisuals(resource: StringResource) = updateSnackbarVisuals(SnackbarMessage(UiMessage.Resource(resource)))
-
-    /**
-     * 修改ApkSignature
-     * @param apkSignature ApkSignature
-     * @see ApkSignature
-     */
-    fun updateApkSignature(apkSignature: ApkSignature) {
-        _apkSignatureState.update { apkSignature }
-        pathChecks.validate(LegacyPathField.SIGNING_APK, apkSignature.apkPath, PathKind.FILE)
-        pathChecks.validate(LegacyPathField.SIGNING_OUTPUT, apkSignature.outputPath, PathKind.DIRECTORY)
-        pathChecks.validate(LegacyPathField.SIGNING_KEYSTORE, apkSignature.keyStorePath, PathKind.FILE)
-        signingChecks.formChanged(apkSignature)
-    }
 
     /**
      * 修改JunkCodeInfo
@@ -275,115 +232,21 @@ class MainViewModel(
         preferences.change(PreferenceChange.JunkModeChanged(JunkPreference.valueOf(junkMode.name)))
     }
 
-    /**
-     * APK签名
-     */
-    fun apkSigner() {
-        logger.info { "apkSigner 进行APK签名" }
-        if (apkSignatureState.apkPath == ConfigConstant.APK.All.path) {
-            apksSigner()
-        } else {
-            viewModelScope.launch(Dispatchers.IO) {
-                suspendApkSigner(
-                    outputPath = apkSignatureState.outputPath,
-                    apkPath = apkSignatureState.apkPath,
-                    sign = apkSignatureState,
-                    outputPrefix = apkSignatureState.outputPrefix,
-                )
-            }
-        }
-    }
-
-    /**
-     * 多APK签名
-     */
-    private fun apksSigner() = viewModelScope.launch(Dispatchers.IO) {
-        logger.info { "apksSigner 多APK签名开始" }
-        try {
-            val apks =
-                ConfigConstant.APK.entries.filter { it.title != ConfigConstant.APK.All.title }
-                    .map { it.path }
-            _apkSignatureUIState.update { UIState.Loading }
-            val resultList = apks.map { path ->
-                async {
-                    suspendApkSigner(
-                        outputPath = apkSignatureState.outputPath,
-                        apkPath = path,
-                        sign = apkSignatureState,
-                        outputPrefix = apkSignatureState.outputPrefix,
-                        showUiState = false
-                    )
-                }
-            }.awaitAll()
-            val result = resultList.none { it == null || !it.exists() }
-            logger.info { "apksSigner 多APK签名结束, 结果: $result" }
-            if (result) {
-                val outputApk = resultList.last()
-                val snackbarVisualsData = SnackbarMessage(
-                    message = UiMessage.Text(getString(Res.string.apk_is_signed_successfully)),
-                    actionLabel = getString(Res.string.jump),
-                    withDismissAction = true,
-                    duration = SnackbarDuration.Short,
-                    action = SnackbarAction.OpenDirectory(outputApk?.path))
-                updateSnackbarVisuals(snackbarVisualsData)
-            } else {
-                updateSnackbarVisuals(getString(Res.string.signature_failed))
-            }
-        } catch (e: Exception) {
-            logger.error(e) { "apksSigner 多APK签名异常, 异常信息: ${e.message}" }
-            updateSnackbarVisuals(e.message ?: getString(Res.string.signature_failed))
-        } finally {
-            _apkSignatureUIState.update { UIState.WAIT }
-        }
-    }
-
-    /**
-     * APK签名
-     */
-    private fun signingRequest(outputPath: String, apkPath: String, sign: Sign, outputPrefix: String = "") =
-        org.tool.kit.domain.signing.SignApkRequest(apkPath, outputPath, outputPrefix,
-            preferences.state.value.userData.defaultSignerSuffix,
-            preferences.state.value.userData.duplicateFileRemoval,
-            preferences.state.value.userData.alignFileSize,
-            preferences.state.value.isHuaweiAlignFileSize, ConfigConstant.APK.Huawei.path,
+    private fun signingRequest(outputPath: String, apkPath: String, sign: Sign): org.tool.kit.domain.signing.SignApkRequest {
+        val snapshot = preferences.state.value
+        return org.tool.kit.domain.signing.SignApkRequest(apkPath, outputPath, "",
+            snapshot.userData.defaultSignerSuffix, snapshot.userData.duplicateFileRemoval,
+            snapshot.userData.alignFileSize, snapshot.isHuaweiAlignFileSize, ConfigConstant.APK.Huawei.path,
             org.tool.kit.domain.signing.ApkSigningPolicy.valueOf(sign.keyStorePolicy.name),
             sign.v4SignatureOutputFileName,
             org.tool.kit.domain.signing.SigningCredentials(sign.keyStorePath, sign.keyStorePassword,
                 sign.keyStoreAlisaList?.getOrNull(sign.keyStoreAlisaIndex), sign.keyStoreAlisaPassword))
+    }
 
     /** Temporary ApkTool adapter, removed when BuildApkUseCase takes ownership in Phase 6. */
     private suspend fun legacySignForApkTool(outputPath: String, apkPath: String, sign: Sign): File? =
         (signApk(signingRequest(outputPath, apkPath, sign)) as? org.tool.kit.domain.signing.SignApkOutcome.Success)
             ?.takeIf { it.outputExists }?.let { File(it.outputPath) }
-
-    private suspend fun suspendApkSigner(
-        outputPath: String, apkPath: String, sign: Sign, outputPrefix: String = "", showUiState: Boolean = true
-    ): File? {
-        val request = signingRequest(outputPath, apkPath, sign, outputPrefix)
-        if (showUiState) _apkSignatureUIState.update { UIState.Loading }
-        try {
-            return when (val outcome = signApk(request)) {
-                is org.tool.kit.domain.signing.SignApkOutcome.Success -> {
-                    if (showUiState) updateSnackbarVisuals(SnackbarMessage(
-                        UiMessage.Text(getString(Res.string.apk_is_signed_successfully)),
-                        actionLabel = getString(Res.string.jump), withDismissAction = true,
-                        duration = SnackbarDuration.Short, action = SnackbarAction.OpenDirectory(outcome.outputPath)))
-                    if (outcome.outputExists) File(outcome.outputPath) else null
-                }
-                is org.tool.kit.domain.signing.SignApkOutcome.OutputAlreadyExists -> {
-                    if (showUiState) updateSnackbarVisuals(getString(Res.string.output_file_already_exists, outcome.fileName))
-                    null
-                }
-                is org.tool.kit.domain.signing.SignApkOutcome.Failure -> {
-                    if (showUiState) updateSnackbarVisuals(outcome.message ?: getString(Res.string.signature_failed))
-                    null
-                }
-            }
-        } finally {
-            if (showUiState) _apkSignatureUIState.update { UIState.WAIT }
-        }
-    }
-
 
     /**
      * 生成垃圾代码 aar

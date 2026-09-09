@@ -32,8 +32,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,17 +40,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
-import org.tool.kit.constant.ConfigConstant
-import org.tool.kit.feature.ui.FileInputWithPicker
-import org.tool.kit.feature.ui.FolderInputWithPicker
+import org.tool.kit.feature.ui.FileInput
+import org.tool.kit.feature.ui.FolderInput
 import org.tool.kit.feature.ui.PasswordInput
 import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.feature.ui.UploadAnimate
-import org.tool.kit.model.FileSelectorType
 import org.tool.kit.model.SignaturePolicy
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.apk_file
-import org.tool.kit.shared.generated.resources.check_error
 import org.tool.kit.shared.generated.resources.key_alias
 import org.tool.kit.shared.generated.resources.key_password
 import org.tool.kit.shared.generated.resources.key_store_file
@@ -61,13 +56,7 @@ import org.tool.kit.shared.generated.resources.output_file_prefix
 import org.tool.kit.shared.generated.resources.output_path
 import org.tool.kit.shared.generated.resources.signature_strategy
 import org.tool.kit.shared.generated.resources.start_signing
-import org.tool.kit.shared.generated.resources.v2_tips
 import org.tool.kit.shared.generated.resources.v4_signature_output_file_name
-import org.tool.kit.utils.isApk
-import org.tool.kit.utils.isKey
-import org.tool.kit.vm.MainViewModel
-import org.tool.kit.vm.LegacyPathField
-import kotlin.io.path.pathString
 
 /**
  * @Author      : LazyIonEs
@@ -76,68 +65,28 @@ import kotlin.io.path.pathString
  * @Version     : 1.0
  */
 @Composable
-fun ApkSignature(viewModel: MainViewModel) {
-    LaunchedEffect(viewModel) { viewModel.refreshSigningChecks() }
-    SignatureCard(viewModel)
-    SignatureBox(viewModel)
+fun ApkSigningScreen(state: ApkSigningUiState, presets: List<SigningPreset>, onIntent: (ApkSigningIntent) -> Unit,
+    pickApk: () -> Unit, pickOutput: () -> Unit, pickKey: () -> Unit,
+    dragging: Boolean, target: androidx.compose.ui.draganddrop.DragAndDropTarget) {
+    SignatureCard(state, presets, onIntent, pickApk, pickOutput, pickKey)
+    SignatureBox(dragging, target)
 }
 
-/**
- * 签名主页
- */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun SignatureBox(
-    viewModel: MainViewModel
-) {
-    var dragging by remember { mutableStateOf(false) }
-    Box(
-        modifier = Modifier.fillMaxSize()
-            .dragAndDropTarget(
-                shouldStartDragAndDrop = accept@{ true },
-                target = org.tool.kit.feature.ui.dragAndDropTarget(dragging = {
-                    dragging = it
-                }, onFinish = { result ->
-                    result.onSuccess { fileList ->
-                        var mApkPath = ""
-                        var mSignaturePath = ""
-                        fileList.forEach {
-                            val path = it.toAbsolutePath().pathString
-                            if (path.isApk && mApkPath.isBlank()) {
-                                mApkPath = path
-                            } else if (path.isKey && mSignaturePath.isBlank()) {
-                                mSignaturePath = path
-                            }
-                        }
-                        if (mApkPath.isNotBlank()) {
-                            val apkSignatureState = viewModel.apkSignatureState.copy()
-                            apkSignatureState.apkPath = mApkPath
-                            viewModel.updateApkSignature(apkSignatureState)
-                        }
-                        if (mSignaturePath.isNotBlank()) {
-                            val apkSignature = viewModel.apkSignatureState.copy()
-                            apkSignature.keyStorePath = mSignaturePath
-                            viewModel.updateApkSignature(apkSignature)
-                        }
-                    }
-                })
-            )
-    )
+private fun SignatureBox(dragging: Boolean, target: androidx.compose.ui.draganddrop.DragAndDropTarget) {
+    Box(modifier = Modifier.fillMaxSize().dragAndDropTarget(shouldStartDragAndDrop = { true }, target = target))
     UploadAnimate(dragging)
 }
 
 @Composable
-private fun SignatureCard(viewModel: MainViewModel) {
-    val paths by viewModel.pathValidation.collectAsState()
-    val validation by viewModel.signingValidation.collectAsState()
-    val isApkError = paths[LegacyPathField.SIGNING_APK]?.isError == true
-    val apkError = isApkError && viewModel.apkSignatureState.apkPath != ConfigConstant.APK.All.path
-    val outputError = paths[LegacyPathField.SIGNING_OUTPUT]?.isError == true
-    val signatureError = paths[LegacyPathField.SIGNING_KEYSTORE]?.isError == true
-    val signaturePasswordError =
-        viewModel.apkSignatureState.keyStorePassword.isNotBlank() && viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty()
-    val signatureAlisaPasswordError =
-        !viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty() && viewModel.apkSignatureState.keyStoreAlisaPassword.isNotBlank() && validation.aliasPasswordValid == false
+private fun SignatureCard(state: ApkSigningUiState, presets: List<SigningPreset>, onIntent: (ApkSigningIntent) -> Unit,
+    pickApk: () -> Unit, pickOutput: () -> Unit, pickKey: () -> Unit) {
+    val apkError = state.validation.apkError
+    val outputError = state.validation.outputError
+    val signatureError = state.validation.keyError
+    val signaturePasswordError = state.storePasswordError
+    val signatureAlisaPasswordError = state.aliasPasswordError
     Card(
         modifier = Modifier.fillMaxSize()
             .padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
@@ -148,87 +97,72 @@ private fun SignatureCard(viewModel: MainViewModel) {
         ) {
             item {
                 Spacer(Modifier.size(16.dp))
-                SignatureApkPath(viewModel, apkError)
+                SignatureApkPath(state.form.apkPath, presets, apkError, pickApk) { onIntent(ApkSigningIntent.ApkPathChanged(it)) }
             }
             item {
                 Spacer(Modifier.size(6.dp))
-                FolderInputWithPicker(
-                    value = viewModel.apkSignatureState.outputPath,
+                FolderInput(
+                    value = state.form.outputPath,
                     label = stringResource(Res.string.output_path),
-                    isError = outputError
+                    isError = outputError, onPickerRequest = pickOutput
                 ) { outputPath ->
-                    viewModel.updateApkSignature(viewModel.apkSignatureState.copy(outputPath = outputPath))
+                    onIntent(ApkSigningIntent.OutputPathChanged(outputPath))
                 }
             }
             item {
                 Spacer(Modifier.size(6.dp))
                 StringInput(
-                    value = viewModel.apkSignatureState.outputPrefix,
+                    value = state.form.outputPrefix,
                     label = stringResource(Res.string.output_file_prefix),
                     isError = false
                 ) { outputPrefix ->
-                    val apkSignatureState = viewModel.apkSignatureState.copy()
-                    apkSignatureState.outputPrefix = outputPrefix
-                    viewModel.updateApkSignature(apkSignatureState)
+                    onIntent(ApkSigningIntent.PrefixChanged(outputPrefix))
                 }
             }
             item {
                 Spacer(Modifier.size(6.dp))
-                SignaturePolicy(viewModel)
+                SignaturePolicy(state.form.policy, state.form.v4FileName) { onIntent(ApkSigningIntent.PolicyChanged(it)) }
             }
             item {
                 Spacer(Modifier.size(6.dp))
                 Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                    FileInputWithPicker(
-                        value = viewModel.apkSignatureState.keyStorePath,
+                    FileInput(
+                        value = state.form.credentials.path,
                         label = stringResource(Res.string.key_store_file),
                         isError = signatureError,
-                        FileSelectorType.KEY
+                        onPickerRequest = pickKey
                     ) { keyStorePath ->
-                        val apkSignature = viewModel.apkSignatureState.copy()
-                        apkSignature.keyStorePath = keyStorePath
-                        viewModel.updateApkSignature(apkSignature)
+                        onIntent(ApkSigningIntent.KeyPathChanged(keyStorePath))
                     }
                 }
             }
             item {
                 Spacer(Modifier.size(6.dp))
                 PasswordInput(
-                    value = viewModel.apkSignatureState.keyStorePassword,
+                    value = state.form.credentials.storePassword,
                     label = stringResource(Res.string.key_store_password),
                     isError = signaturePasswordError
                 ) { password ->
-                    viewModel.updateSigningStorePassword(password)
+                    onIntent(ApkSigningIntent.StorePasswordChanged(password))
                 }
             }
             item {
                 Spacer(Modifier.size(6.dp))
-                SignatureAlisa(viewModel)
+                SignatureAlisa(state.form.credentials) { onIntent(ApkSigningIntent.AliasChanged(it)) }
             }
             item {
                 Spacer(Modifier.size(6.dp))
                 PasswordInput(
-                    value = viewModel.apkSignatureState.keyStoreAlisaPassword,
+                    value = state.form.credentials.aliasPassword,
                     label = stringResource(Res.string.key_password),
                     isError = signatureAlisaPasswordError
                 ) { password ->
-                    viewModel.updateApkSignature(
-                        viewModel.apkSignatureState.copy(
-                            keyStoreAlisaPassword = password
-                        )
-                    )
+                    onIntent(ApkSigningIntent.AliasPasswordChanged(password))
                 }
             }
             item {
                 Spacer(Modifier.size(12.dp))
-                Signature(
-                    viewModel,
-                    apkError,
-                    outputError,
-                    signatureError,
-                    signaturePasswordError,
-                    signatureAlisaPasswordError
-                )
+                Signature { onIntent(ApkSigningIntent.Submit) }
                 Spacer(Modifier.size(24.dp))
             }
         }
@@ -240,20 +174,19 @@ private fun SignatureCard(viewModel: MainViewModel) {
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
+private fun SignatureApkPath(apkPath: String, options: List<SigningPreset>, apkError: Boolean, pickApk: () -> Unit, onPathChanged: (String) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val options = ConfigConstant.APK.entries
     ExposedDropdownMenuBox(
         modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp),
         expanded = expanded,
         onExpandedChange = { expanded = it }) {
-        val apk = options.find { it.path == viewModel.apkSignatureState.apkPath }
+        val apk = options.find { it.path == apkPath }
         val value = if (apk != null) {
             "${apk.title}.apk"
         } else {
-            viewModel.apkSignatureState.apkPath
+            apkPath
         }
-        FileInputWithPicker(
+        FileInput(
             value = value,
             label = stringResource(Res.string.apk_file),
             isError = apkError,
@@ -261,11 +194,9 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
                 ExposedDropdownMenuAnchorType.PrimaryEditable
             ),
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            FileSelectorType.APK
+            onPickerRequest = pickApk
         ) { path ->
-            val apkSignatureState = viewModel.apkSignatureState.copy()
-            apkSignatureState.apkPath = path
-            viewModel.updateApkSignature(apkSignatureState)
+            onPathChanged(path)
         }
         ExposedDropdownMenu(
             expanded = expanded,
@@ -280,9 +211,7 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
                         )
                     },
                     onClick = {
-                        val apkSignatureState = viewModel.apkSignatureState.copy()
-                        apkSignatureState.apkPath = selectionOption.path
-                        viewModel.updateApkSignature(apkSignatureState)
+                        onPathChanged(selectionOption.path)
                         expanded = false
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -298,7 +227,7 @@ private fun SignatureApkPath(viewModel: MainViewModel, apkError: Boolean) {
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun SignaturePolicy(
-    viewModel: MainViewModel
+    selectedPolicy: SignaturePolicy, v4FileName: String, onPolicyChanged: (SignaturePolicy) -> Unit
 ) {
     val policyList = SignaturePolicy.entries
     Column {
@@ -311,7 +240,7 @@ private fun SignaturePolicy(
                 modifier = Modifier.padding(start = 24.dp)
             )
             Text(
-                text = stringResource(viewModel.apkSignatureState.keyStorePolicy.value),
+                text = stringResource(selectedPolicy.value),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -322,12 +251,9 @@ private fun SignaturePolicy(
         ) {
             policyList.forEachIndexed { index, policy ->
                 ToggleButton(
-                    checked = policy == viewModel.apkSignatureState.keyStorePolicy,
+                    checked = policy == selectedPolicy,
                     onCheckedChange = {
-                        if (policy == SignaturePolicy.V2Only) {
-                            viewModel.updateSnackbarVisuals(Res.string.v2_tips)
-                        }
-                        viewModel.updateApkSignature(viewModel.apkSignatureState.copy(keyStorePolicy = policy))
+                        onPolicyChanged(policy)
                     },
                     colors = ToggleButtonDefaults.elevatedToggleButtonColors(),
                     modifier = Modifier.weight(1f),
@@ -338,7 +264,7 @@ private fun SignaturePolicy(
                             else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
                         },
                 ) {
-                    AnimatedVisibility(policy == viewModel.apkSignatureState.keyStorePolicy) {
+                    AnimatedVisibility(policy == selectedPolicy) {
                         Row {
                             Icon(
                                 imageVector = Icons.Rounded.Done,
@@ -352,11 +278,11 @@ private fun SignaturePolicy(
                 }
             }
         }
-        AnimatedVisibility(viewModel.apkSignatureState.keyStorePolicy == SignaturePolicy.V4) {
+        AnimatedVisibility(selectedPolicy == SignaturePolicy.V4) {
             Column {
                 Spacer(Modifier.size(6.dp))
                 StringInput(
-                    value = viewModel.apkSignatureState.v4SignatureOutputFileName,
+                    value = v4FileName,
                     label = stringResource(Res.string.v4_signature_output_file_name),
                     isError = false,
                     realOnly = true
@@ -371,11 +297,11 @@ private fun SignaturePolicy(
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SignatureAlisa(viewModel: MainViewModel) {
+private fun SignatureAlisa(credentials: SigningCredentialsUi, onAliasChanged: (Int) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
-    val options = viewModel.apkSignatureState.keyStoreAlisaList
+    val options = credentials.aliases
     val selectedOptionText =
-        options?.getOrNull(viewModel.apkSignatureState.keyStoreAlisaIndex) ?: ""
+        options?.getOrNull(credentials.aliasIndex) ?: ""
     ExposedDropdownMenuBox(
         modifier = Modifier.fillMaxWidth()
             .padding(start = 24.dp, end = 72.dp, bottom = 3.dp),
@@ -411,18 +337,7 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
                     },
                     onClick = {
                         val index = options.indexOf(selectionOption)
-                        if (index != viewModel.apkSignatureState.keyStoreAlisaIndex) {
-                            viewModel.updateApkSignature(
-                                viewModel.apkSignatureState.copy(
-                                    keyStoreAlisaPassword = ""
-                                )
-                            )
-                        }
-                        viewModel.updateApkSignature(
-                            viewModel.apkSignatureState.copy(
-                                keyStoreAlisaIndex = index
-                            )
-                        )
+                        onAliasChanged(index)
                         expanded = false
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -436,37 +351,12 @@ private fun SignatureAlisa(viewModel: MainViewModel) {
  * 开始签名按钮
  */
 @Composable
-private fun Signature(
-    viewModel: MainViewModel,
-    apkError: Boolean,
-    outputError: Boolean,
-    signatureError: Boolean,
-    signaturePasswordError: Boolean,
-    signatureAlisaPasswordError: Boolean
-) {
-    Button(onClick = {
-        if (apkError || outputError || signatureError || signaturePasswordError || signatureAlisaPasswordError
-            || viewModel.signingValidation.value.pending
-            || viewModel.hasPendingPathChecks(LegacyPathField.SIGNING_APK, LegacyPathField.SIGNING_OUTPUT, LegacyPathField.SIGNING_KEYSTORE)) {
-            viewModel.updateSnackbarVisuals(Res.string.check_error)
-            return@Button
-        }
-        signatureApk(viewModel)
-    }) {
+private fun Signature(onSubmit: () -> Unit) {
+    Button(onClick = onSubmit) {
         Text(
             text = stringResource(Res.string.start_signing),
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = 48.dp)
         )
     }
-}
-
-private fun signatureApk(
-    viewModel: MainViewModel
-) {
-    if (viewModel.apkSignatureState.apkPath.isBlank() || viewModel.apkSignatureState.outputPath.isBlank() || viewModel.apkSignatureState.keyStorePath.isBlank() || viewModel.apkSignatureState.keyStorePassword.isBlank() || viewModel.apkSignatureState.keyStoreAlisaList.isNullOrEmpty() || viewModel.apkSignatureState.keyStoreAlisaPassword.isBlank()) {
-        viewModel.updateSnackbarVisuals(Res.string.check_error)
-        return
-    }
-    viewModel.apkSigner()
 }

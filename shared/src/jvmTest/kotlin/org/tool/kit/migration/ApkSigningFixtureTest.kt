@@ -2,6 +2,10 @@ package org.tool.kit.migration
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.test.*
 import org.tool.kit.data.source.JvmApkSignerDataSource
 import org.tool.kit.domain.signing.*
 import org.tool.kit.domain.usecase.SignApkUseCase
@@ -21,6 +25,22 @@ import kotlin.test.assertTrue
 /** Generate replayable signature fixtures with the same engine, then verify independently. */
 class ApkSigningFixtureTest {
     @get:Rule val temporary = TemporaryFolder()
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    @Test fun cancellationBeforeIoDoesNotDeleteExistingOutputOrReportFailure() = runTest {
+        val output = temporary.root.resolve("input-sign.apk").apply { writeText("original") }
+        val sign = SignApkUseCase(JvmApkSignerDataSource(StandardTestDispatcher(testScheduler)))
+        val request = SignApkRequest(temporary.root.resolve("input.apk").path, temporary.root.path,
+            "", "-sign", true, true, false, "unused", ApkSigningPolicy.V2, "shared.idsig",
+            SigningCredentials("unused", "unused", "unused", "unused"))
+        val job = launch(start = CoroutineStart.UNDISPATCHED) {
+            sign(request)
+            kotlin.test.fail("Cancellation must not become a normal outcome")
+        }
+        job.cancelAndJoin(); runCurrent()
+        assertEquals("original", output.readText())
+        assertEquals(listOf(output.name), temporary.root.listFiles()!!.map { it.name })
+    }
 
     @Test fun unsignedAndFiveSignaturePoliciesHaveTheExpectedSchemes() = runBlocking {
         val unsigned = temporary.root.resolve("中文 unsigned.apk")
@@ -70,6 +90,19 @@ class ApkSigningFixtureTest {
             assertTrue(verified.isVerified, "$policy: ${verified.errors}")
             assertEquals(flags, listOf(verified.isVerifiedUsingV1Scheme, verified.isVerifiedUsingV2Scheme,
                 verified.isVerifiedUsingV3Scheme, verified.isVerifiedUsingV4Scheme), policy)
+        }
+        val batchInputs = listOf("oppo", "vivo", "huawei", "xiaomi", "qq", "honor").map { title ->
+            unsigned.copyTo(temporary.root.resolve("$title.apk"))
+        }
+        val batch = sign.batch(batchInputs.map { input -> SignApkRequest(input.path, temporary.root.path,
+            "批量 prefix", "-signed", false, true, true, batchInputs[2].path, ApkSigningPolicy.V2,
+            "shared.idsig", SigningCredentials(store.path, "fixture-only", "fixture", "fixture-only")) })
+        assertEquals(batchInputs.map { "批量 prefix-${it.nameWithoutExtension}-signed.apk" },
+            batch.map { File((it as SignApkOutcome.Success).outputPath).name })
+        batch.forEach { result ->
+            val verified = ApkVerifier.Builder(File((result as SignApkOutcome.Success).outputPath)).setMinCheckedPlatformVersion(21).build().verify()
+            assertTrue(verified.isVerified, verified.errors.toString())
+            assertTrue(verified.isVerifiedUsingV1Scheme); assertTrue(verified.isVerifiedUsingV2Scheme)
         }
     }
 }

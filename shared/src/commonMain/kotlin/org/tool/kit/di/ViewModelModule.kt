@@ -5,6 +5,7 @@ import org.koin.dsl.module
 import org.tool.kit.vm.MainViewModel
 
 fun viewModelModule() = module {
+    viewModel { org.tool.kit.feature.signature.ApkSigningViewModel(get(), get(), get(), get(), get(), get()) }
     viewModel { org.tool.kit.feature.apk.ApkInformationViewModel(get(), get(), get(), get()) }
     viewModel { org.tool.kit.feature.signature.SignatureInformationViewModel(get(), get(), get(), get(), get()) }
     viewModel { org.tool.kit.feature.keystore.KeyStoreGenerationViewModel(get(), get(), get(), get()) }

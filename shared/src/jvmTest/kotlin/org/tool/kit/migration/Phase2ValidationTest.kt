@@ -15,7 +15,7 @@ import org.tool.kit.domain.repository.KeyStoreRepository
 import org.tool.kit.domain.repository.PathMetadata
 import org.tool.kit.domain.repository.StorageCapacity
 import org.tool.kit.domain.repository.StorageRepository
-import org.tool.kit.model.ApkSignature
+import org.tool.kit.model.ApkToolInfo as ApkSignature
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.vm.*
 import org.tool.kit.core.validation.KeyAliasesValidation
@@ -87,7 +87,7 @@ class Phase2ValidationTest {
             }
         }
         val paths = LegacyPathChecks(backgroundScope, storage)
-        val field = LegacyPathField.SIGNING_OUTPUT
+        val field = LegacyPathField.APK_TOOL_OUTPUT
         paths.validate(field, "A", PathKind.DIRECTORY)
         runCurrent()
         repeat(20) { paths.validate(field, "A", PathKind.DIRECTORY) }
@@ -152,7 +152,7 @@ class Phase2ValidationTest {
             }
         }
         val checks = LegacyPathChecks(backgroundScope, storage)
-        val field = LegacyPathField.SIGNING_OUTPUT
+        val field = LegacyPathField.APK_TOOL_OUTPUT
         checks.validate(field, "same-path", PathKind.DIRECTORY)
         runCurrent()
         assertTrue(checks.state.value.getValue(field).isError)

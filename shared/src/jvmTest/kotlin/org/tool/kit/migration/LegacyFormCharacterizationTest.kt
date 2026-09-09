@@ -3,7 +3,7 @@ package org.tool.kit.migration
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.tool.kit.model.ApkSignature
+import org.tool.kit.migration.LegacySigningForm as ApkSignature
 import org.tool.kit.model.JunkCodeInfo
 import org.tool.kit.model.JunkMode
 import org.tool.kit.model.Sign

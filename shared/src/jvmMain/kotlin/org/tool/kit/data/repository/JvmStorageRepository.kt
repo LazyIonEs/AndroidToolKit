@@ -20,6 +20,6 @@ class JvmStorageRepository(private val io: CoroutineDispatcher) : StorageReposit
 
     override suspend fun inspectPath(path: String): PathMetadata = withContext(io) {
         val file = File(path)
-        PathMetadata(file.isFile, file.isDirectory)
+        PathMetadata(file.isFile, file.isDirectory, file.name)
     }
 }

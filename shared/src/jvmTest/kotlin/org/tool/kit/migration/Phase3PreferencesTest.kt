@@ -67,12 +67,14 @@ class Phase3PreferencesTest {
         val sink = AppEffectSink()
         val vm = SettingsViewModel(repository, AllPathsExist, sink, RecordingDesktopActions())
         val legacy = MainViewModel(repository, AllPathsExist, EmptyKeys, sink, signApk = org.tool.kit.domain.usecase.SignApkUseCase { error("Unexpected signing") })
+        val signing = org.tool.kit.feature.signature.ApkSigningViewModel(org.tool.kit.domain.usecase.SignApkUseCase { error("Unexpected signing") },
+            repository, AllPathsExist, EmptyKeys, sink, org.tool.kit.feature.signature.SigningPresets(emptyList(), "All", "Huawei"))
         val keys = KeyStoreGenerationViewModel(GenerateKeyStoreUseCase(EmptyKeys), repository, AllPathsExist, sink)
-        val store = ViewModelStore().also { it.put("settings", vm); it.put("legacy", legacy); it.put("keys", keys) }
-        fun paths() = listOf(legacy.apkSignatureState.outputPath, keys.uiState.value.form.keyStorePath,
+        val store = ViewModelStore().also { it.put("settings", vm); it.put("legacy", legacy); it.put("keys", keys); it.put("signing", signing) }
+        fun paths() = listOf(signing.uiState.value.form.outputPath, keys.uiState.value.form.keyStorePath,
             legacy.junkCodeInfoState.outputPath, legacy.iconFactoryInfoState.outputPath, legacy.apkToolInfoState.outputPath)
         fun chooseCustomPaths() {
-            legacy.updateApkSignature(legacy.apkSignatureState.copy(outputPath = "sign custom"))
+            signing.onIntent(org.tool.kit.feature.signature.ApkSigningIntent.OutputPathChanged("sign custom"))
             keys.onIntent(KeyStoreGenerationIntent.OutputPathChanged("key custom"))
             legacy.updateJunkCodeInfo(legacy.junkCodeInfoState.copy(outputPath = "junk custom"))
             legacy.updateIconFactoryInfo(legacy.iconFactoryInfoState.copy(outputPath = "icon custom"))
