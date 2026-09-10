@@ -17,7 +17,6 @@ import org.tool.kit.feature.settings.*
 import org.tool.kit.model.*
 import org.tool.kit.feature.keystore.*
 import org.tool.kit.domain.usecase.GenerateKeyStoreUseCase
-import org.tool.kit.vm.MainViewModel
 import kotlin.test.*
 import java.util.concurrent.Executors
 

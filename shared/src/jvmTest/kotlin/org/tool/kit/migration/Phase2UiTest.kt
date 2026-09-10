@@ -38,7 +38,6 @@ import org.tool.kit.feature.ui.dragAndDropTarget
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.platform.DesktopFileSelection
 import org.tool.kit.theme.AppTheme
-import org.tool.kit.vm.MainViewModel
 import java.awt.Point
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
@@ -87,15 +86,13 @@ class Phase2UiTest {
     }
 
     @Test fun settingsInputsSurviveRecompositionThemeChangesAndNavigation() = runDesktopComposeUiTest(width = 800, height = 572) {
-        lateinit var vm: MainViewModel
         val revision = mutableIntStateOf(0)
         var composed = -1
         setContent {
             TestContext {
                 val tick = revision.intValue
-                val current = koinViewModel<MainViewModel>()
                 App()
-                SideEffect { vm = current; composed = tick }
+                SideEffect { composed = tick }
             }
         }
         waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("设置").fetchSemanticsNodes().isNotEmpty() }

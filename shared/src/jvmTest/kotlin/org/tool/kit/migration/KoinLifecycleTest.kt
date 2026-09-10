@@ -31,7 +31,7 @@ import org.tool.kit.core.coroutine.AppDispatchers
 import org.tool.kit.domain.preferences.PreferencesRepository
 import org.tool.kit.domain.preferences.PreferenceChange
 import org.tool.kit.di.desktopModules
-import org.tool.kit.vm.MainViewModel
+import org.tool.kit.feature.app.AppViewModel
 import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.concurrent.thread
@@ -57,7 +57,7 @@ class KoinLifecycleTest {
         }
         val store = ViewModelStore()
         try {
-            fun resolve(key: String) = resolveViewModel(MainViewModel::class, store, key,
+            fun resolve(key: String) = resolveViewModel(AppViewModel::class, store, key,
                 CreationExtras.Empty, scope = first.koin.scopeRegistry.rootScope)
             val a = resolve("window.a")
             val b = resolve("window.b")
@@ -69,11 +69,11 @@ class KoinLifecycleTest {
             assertSame(dispatchers, first.koin.get<AppDispatchers>())
             assertEquals(1, settingsCreations)
             runCurrent()
-            val changed = source.state.value.userData.copy(defaultSignerSuffix = "-shared-di")
-            source.change(PreferenceChange.SignerSuffix("-shared-di"))
+            val changed = org.tool.kit.model.DarkThemeConfig.DARK
+            source.change(PreferenceChange.Theme(org.tool.kit.domain.preferences.ThemePreference.DARK))
             runCurrent()
-            assertEquals(changed, a.userData.value)
-            assertEquals(changed, b.userData.value)
+            assertEquals(changed, a.uiState.value.themeConfig)
+            assertEquals(changed, b.uiState.value.themeConfig)
         } finally {
             store.clear()
             first.close()
@@ -94,7 +94,7 @@ class KoinLifecycleTest {
             modules(desktopModules() + module {
                 viewModel {
                     created.incrementAndGet()
-                    MainViewModel(get()).also { vm -> vm.addCloseable { cleared.incrementAndGet() } }
+                    AppViewModel(get()).also { vm -> vm.addCloseable { cleared.incrementAndGet() } }
                 }
             })
         }
@@ -102,13 +102,13 @@ class KoinLifecycleTest {
             runDesktopComposeUiTest(width = 800, height = 572) {
                 val revision = mutableIntStateOf(0)
                 var composedRevision = -1
-                val observed = mutableListOf<MainViewModel>()
+                val observed = mutableListOf<AppViewModel>()
                 setContent {
                     val tick = revision.intValue
                     CompositionLocalProvider(LocalViewModelStoreOwner provides windowOwner) {
                         KoinIsolatedContext(container) {
                             App()
-                            val vm = koinViewModel<MainViewModel>()
+                            val vm = koinViewModel<AppViewModel>()
                             SideEffect {
                                 composedRevision = tick
                                 observed += vm
