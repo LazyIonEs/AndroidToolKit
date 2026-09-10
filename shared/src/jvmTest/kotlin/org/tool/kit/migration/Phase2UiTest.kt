@@ -8,6 +8,8 @@ import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.draganddrop.DragAndDropTransferAction
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.DefaultArchitectureComponentsOwner
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.WindowInfo
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.lifecycle.Lifecycle
@@ -29,7 +31,9 @@ import org.tool.kit.App
 import org.tool.kit.di.desktopModules
 import org.tool.kit.domain.repository.KeyStoreRepository
 import org.tool.kit.domain.repository.StorageRepository
-import org.tool.kit.feature.cleaner.ClearBuild
+import org.tool.kit.feature.cleaner.CleanerRoute
+import org.tool.kit.feature.cleaner.CleanerViewModel
+import org.tool.kit.feature.cleaner.CleanerIntent
 import org.tool.kit.feature.ui.dragAndDropTarget
 import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.platform.DesktopFileSelection
@@ -116,15 +120,21 @@ class Phase2UiTest {
     }
 
     @Test fun capacityIsReadOnEntryAndExplicitRefreshButNotThemeRecomposition() = runDesktopComposeUiTest(width = 800, height = 572) {
-        lateinit var vm: MainViewModel
+        lateinit var vm: CleanerViewModel
         val dark = mutableStateOf(false)
+        val focused = mutableStateOf(true)
+        val visible = mutableStateOf(true)
         val revision = mutableIntStateOf(0)
         var composed = -1
         setContent {
             TestContext {
-                val current = koinViewModel<MainViewModel>()
+                val current = koinViewModel<CleanerViewModel>()
                 val tick = revision.intValue
-                AppTheme(dark.value) { ClearBuild(current, signatureHasResult = false) }
+                val originalWindow = LocalWindowInfo.current
+                val window = remember { object : WindowInfo by originalWindow { override val isWindowFocused get() = focused.value } }
+                CompositionLocalProvider(LocalWindowInfo provides window) {
+                    AppTheme(dark.value) { if (visible.value) CleanerRoute(current, signatureHasResult = false, useDarkTheme = dark.value) }
+                }
                 SideEffect { vm = current; composed = tick }
             }
         }
@@ -134,9 +144,14 @@ class Phase2UiTest {
             waitUntil { composed == index }
         }
         assertEquals(1, capacityReads.get())
-        runOnIdle { vm.refreshStorageCapacity() }
+        runOnIdle { vm.onIntent(CleanerIntent.RefreshCapacity) }
         waitUntil { capacityReads.get() == 2 }
-        assertEquals(1_000L, vm.storageCapacity.value.totalBytes)
+        assertEquals(1_000L, vm.uiState.value.capacity.totalBytes)
+        runOnIdle { focused.value = false }; waitForIdle()
+        assertEquals(2, capacityReads.get())
+        runOnIdle { focused.value = true }; waitUntil { capacityReads.get() == 3 }
+        runOnIdle { visible.value = false }; waitForIdle()
+        runOnIdle { visible.value = true }; waitUntil { capacityReads.get() == 4 }
     }
 
     @Test fun stableDropTargetUsesLatestCallbacksAndKeepsSynchronousAcceptance() = runDesktopComposeUiTest(width = 800, height = 572) {

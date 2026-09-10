@@ -21,6 +21,7 @@ fun desktopModules(
 
 private fun desktopDataModule() = module {
     includes(dataModule())
+    single<org.tool.kit.domain.repository.BuildCachesRepository> { org.tool.kit.data.source.JvmBuildCachesDataSource(get<AppDispatchers>().io) }
     single<org.tool.kit.domain.repository.JunkCodeRepository> { org.tool.kit.data.source.JvmJunkCodeDataSource(java.io.File(System.getProperty("java.io.tmpdir")), get<AppDispatchers>().io) }
     single<org.tool.kit.domain.repository.JunkSizeEstimator> { org.tool.kit.domain.repository.JunkSizeEstimator(org.tool.kit.utils.JunkSizePredictor::estimateAarSize) }
     single<org.tool.kit.domain.repository.JunkTokenGenerator> { org.tool.kit.domain.repository.JunkTokenGenerator({ min, max -> org.tool.kit.utils.generateSecureToken(min, max) }) }

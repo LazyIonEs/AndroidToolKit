@@ -62,6 +62,18 @@ class ScanBuildCachesUseCaseTest {
         assertEquals("keep", sibling.resolve("keep").readText())
     }
 
+    @Test fun symbolicDirectoryLinksKeepTheOriginalTraversalAndPathIdentity() = runTest {
+        val root = temporary.newFolder("scan")
+        val target = temporary.newFolder("linked-fixture").apply { resolve("build/data").apply { parentFile.mkdirs(); writeText("fixture") } }
+        Files.createSymbolicLink(root.resolve("alias").toPath(), target.toPath())
+        val expected = root.walk().maxDepth(10).onEnter { it.parentFile?.nameWithoutExtension != "build" }
+            .filter { it.isDirectory && it.nameWithoutExtension == "build" }.toList()
+        val actual = ScanBuildCachesUseCase(JvmBuildCachesDataSource(Dispatchers.IO))(root.path).toList()
+        assertEquals(expected.map { it.absolutePath }, actual.map { it.path })
+        assertEquals(listOf(root.resolve("alias/build").absolutePath), actual.map { it.path })
+        assertEquals(expected.single().getFileLength(), actual.single().bytes)
+    }
+
     @Test fun realPermissionFailureReturnsTheSurvivingMetadataAndCanRetry() = runTest {
         val cache = temporary.root.resolve("build").apply { mkdirs(); resolve("protected").writeText("fixture") }
         val repo = JvmBuildCachesDataSource(Dispatchers.IO)

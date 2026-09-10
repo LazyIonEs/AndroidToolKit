@@ -4,6 +4,8 @@ import org.koin.dsl.module
 import org.tool.kit.domain.usecase.GenerateKeyStoreUseCase
 
 fun domainModule() = module {
+    factory { org.tool.kit.domain.usecase.ScanBuildCachesUseCase(get()) }
+    factory { org.tool.kit.domain.usecase.DeleteBuildCachesUseCase(get()) }
     factory { org.tool.kit.domain.usecase.GenerateJunkCodeUseCase(get()) }
     factory { org.tool.kit.domain.usecase.EstimateJunkSizeUseCase(get()) }
     factory { org.tool.kit.domain.usecase.GenerateIconsUseCase(get(), get()) }

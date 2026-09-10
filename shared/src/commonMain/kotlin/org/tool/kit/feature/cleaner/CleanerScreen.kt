@@ -10,7 +10,6 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.defaultScrollbarStyle
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +45,8 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material.icons.rounded.DriveFolderUpload
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -55,8 +56,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,16 +68,12 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
-import org.tool.kit.feature.ui.DirectoryButton
-import org.tool.kit.domain.repository.StorageCapacity
-import org.tool.kit.model.DarkThemeConfig
 import org.tool.kit.model.Sequence
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.ZCOOLKuaiLe_Regular
@@ -106,50 +101,43 @@ import org.tool.kit.shared.generated.resources.time_format
 import org.tool.kit.shared.generated.resources.total_storage_space
 import org.tool.kit.shared.generated.resources.used_space
 import org.tool.kit.utils.LottieAnimation
-import org.tool.kit.utils.browseFileDirectory
 import org.tool.kit.utils.formatFileSize
 import org.tool.kit.utils.formatFileUnit
-import org.tool.kit.vm.MainViewModel
-import org.tool.kit.vm.UIState
-import java.io.File
 import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-@Composable
-fun ClearBuild(viewModel: MainViewModel, signatureHasResult: Boolean) {
-    LaunchedEffect(viewModel) { viewModel.refreshStorageCapacity() }
-    ClearMain(viewModel, signatureHasResult)
-}
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ClearMain(viewModel: MainViewModel, signatureHasResult: Boolean) {
-    val capacity by viewModel.storageCapacity.collectAsState()
+fun CleanerScreen(state: CleanerUiState, signatureHasResult: Boolean, useDarkTheme: Boolean,
+    onIntent: (CleanerIntent) -> Unit, onSelectDirectory: () -> Unit, onOpenDirectory: (String) -> Unit) {
     Box(Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
-            ClearBuildPreview(viewModel, capacity)
-            ClearBuildList(viewModel)
+            ClearBuildPreview(state, useDarkTheme)
+            ClearBuildList(state, onIntent, onOpenDirectory)
         }
         AnimatedVisibility(
-            visible = viewModel.fileClearUIState == UIState.WAIT && viewModel.pendingDeletionFileList.isEmpty(),
+            visible = state.phase == CleanerPhase.Idle && state.items.isEmpty(),
             modifier = Modifier.align(Alignment.BottomEnd),
             enter = fadeIn() + expandHorizontally(),
             exit = shrinkHorizontally() + fadeOut()
         ) {
-            DirectoryButton(
-                value = stringResource(Res.string.select_folder),
+            val label = stringResource(Res.string.select_folder)
+            ExtendedFloatingActionButton(
+                modifier = Modifier.padding(end = 16.dp, bottom = 16.dp),
+                onClick = onSelectDirectory,
+                icon = { Icon(Icons.Rounded.DriveFolderUpload, label) },
+                text = { Text(label) },
                 expanded = !signatureHasResult,
-            ) { directory ->
-                viewModel.scanPendingDeletionFileList(directory)
-            }
+            )
         }
     }
 }
 
 @Composable
-private fun ClearBuildPreview(viewModel: MainViewModel, capacity: StorageCapacity) {
+private fun ClearBuildPreview(state: CleanerUiState, useDarkTheme: Boolean) {
+    val capacity = state.capacity
     val totalSpace = capacity.totalBytes
     val usableSpace = capacity.usableBytes
     val usedSpace = capacity.usedBytes
@@ -158,7 +146,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel, capacity: StorageCapacit
             modifier = Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 12.dp)
         ) {
             AnimatedVisibility(
-                visible = viewModel.fileClearUIState == UIState.WAIT && viewModel.pendingDeletionFileList.isEmpty(),
+                visible = state.phase == CleanerPhase.Idle && state.items.isEmpty(),
                 enter = fadeIn() + expandVertically(),
                 exit = shrinkVertically() + fadeOut()
             ) {
@@ -207,13 +195,12 @@ private fun ClearBuildPreview(viewModel: MainViewModel, capacity: StorageCapacit
                 }
             }
             AnimatedVisibility(
-                visible = viewModel.fileClearUIState == UIState.Loading || viewModel.pendingDeletionFileList.isNotEmpty(),
+                visible = state.phase != CleanerPhase.Idle || state.items.isNotEmpty(),
                 enter = fadeIn() + expandVertically(),
                 exit = shrinkVertically() + fadeOut()
             ) {
-                val checkedList = viewModel.pendingDeletionFileList.filter { it.checked }
-                val checkedCount = checkedList.size
-                val checkedTotalLength = checkedList.sumOf { it.fileLength }
+                val checkedCount = state.checkedCount
+                val checkedTotalLength = state.checkedBytes
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
                         modifier = Modifier.padding(start = 16.dp, top = 16.dp),
@@ -225,7 +212,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel, capacity: StorageCapacit
                             modifier = Modifier.size(18.dp),
                         )
                         val text =
-                            if (viewModel.fileClearUIState == UIState.Loading) stringResource(Res.string.scanned_folders)
+                            if (state.phase != CleanerPhase.Idle) stringResource(Res.string.scanned_folders)
                             else stringResource(Res.string.selected_folders)
                         Text(
                             text = text,
@@ -274,7 +261,7 @@ private fun ClearBuildPreview(viewModel: MainViewModel, capacity: StorageCapacit
             }
         }
         AnimatedVisibility(
-            visible = (viewModel.fileClearUIState == UIState.Loading && !viewModel.isClearing),
+            visible = (state.phase != CleanerPhase.Idle && state.phase != CleanerPhase.Deleting),
             enter = fadeIn() + expandVertically(),
             exit = shrinkVertically() + fadeOut()
         ) {
@@ -284,18 +271,12 @@ private fun ClearBuildPreview(viewModel: MainViewModel, capacity: StorageCapacit
             )
         }
         AnimatedVisibility(
-            visible = viewModel.fileClearUIState == UIState.WAIT && viewModel.pendingDeletionFileList.isEmpty(),
+            visible = state.phase == CleanerPhase.Idle && state.items.isEmpty(),
             enter = fadeIn() + expandVertically(),
             exit = shrinkVertically() + fadeOut()
         ) {
             Row(modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
                 Column(modifier = Modifier.weight(1f).align(Alignment.CenterVertically)) {
-                    val themeConfig by viewModel.themeConfig.collectAsState()
-                    val useDarkTheme = when (themeConfig) {
-                        DarkThemeConfig.LIGHT -> false
-                        DarkThemeConfig.DARK -> true
-                        DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
-                    }
                     val modifier = Modifier.weight(2f).graphicsLayer { // 将动画放大1.5倍
                         scaleX = 1.7f
                         scaleY = 1.7f
@@ -328,15 +309,15 @@ private fun ClearBuildPreview(viewModel: MainViewModel, capacity: StorageCapacit
 
 @OptIn(ExperimentalTime::class)
 @Composable
-private fun ClearBuildList(viewModel: MainViewModel) {
-    val state = rememberLazyListState()
+private fun ClearBuildList(state: CleanerUiState, onIntent: (CleanerIntent) -> Unit, onOpenDirectory: (String) -> Unit) {
+    val listState = rememberLazyListState()
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
-            state = state,
+            state = listState,
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             itemsIndexed(
-                items = viewModel.pendingDeletionFileList
+                items = state.items, key = { _, item -> item.id }
             ) { index, pendingDeletionFile ->
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Row(
@@ -344,38 +325,36 @@ private fun ClearBuildList(viewModel: MainViewModel) {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         IconButton(
-                            onClick = { browseFileDirectory(pendingDeletionFile.file) },
+                            onClick = { onOpenDirectory(pendingDeletionFile.path) },
                             modifier = Modifier.padding(horizontal = 16.dp)
                         ) {
-                            if (pendingDeletionFile.file.isDirectory) Icon(
+                            if (pendingDeletionFile.isDirectory) Icon(
                                 Icons.Outlined.FolderOpen,
                                 "FolderOpen"
                             )
                             else Icon(Icons.Outlined.Description, "Description")
                         }
                         val instant =
-                            Instant.fromEpochMilliseconds(pendingDeletionFile.fileLastModified)
+                            Instant.fromEpochMilliseconds(pendingDeletionFile.modifiedAt)
                         val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
                         val pattern = stringResource(Res.string.time_format)
                         val formatter = DateTimeFormatter.ofPattern(pattern)
 
                         Column(modifier = Modifier.weight(1f)) {
-                            val path = pendingDeletionFile.filePath.replace(
-                                pendingDeletionFile.directoryPath + File.separatorChar, ""
-                            )
+                            val path = pendingDeletionFile.displayPath
                             Text(
                                 text = path,
                                 style = MaterialTheme.typography.bodyLarge,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
-                                color = if (pendingDeletionFile.exception) {
+                                color = if (pendingDeletionFile.deleteFailed) {
                                     MaterialTheme.colorScheme.error
                                 } else {
                                     Color.Unspecified
                                 },
                             )
                             val size =
-                                pendingDeletionFile.fileLength.formatFileSize(withInterval = true)
+                                pendingDeletionFile.bytes.formatFileSize(withInterval = true)
                             val time = localDateTime.toJavaLocalDateTime().format(formatter)
                             Text(
                                 text = stringResource(Res.string.size_and_time, size, time),
@@ -385,13 +364,13 @@ private fun ClearBuildList(viewModel: MainViewModel) {
                         Checkbox(
                             checked = pendingDeletionFile.checked,
                             onCheckedChange = { check ->
-                                viewModel.changeFileChecked(pendingDeletionFile, check)
+                                onIntent(CleanerIntent.ItemCheckedChanged(pendingDeletionFile.id, check))
                             },
                             modifier = Modifier.padding(horizontal = 16.dp),
                         )
                     }
                     // 最后一项不需要分割线
-                    if (index != viewModel.pendingDeletionFileList.lastIndex) {
+                    if (index != state.items.lastIndex) {
                         HorizontalDivider(
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
@@ -404,7 +383,7 @@ private fun ClearBuildList(viewModel: MainViewModel) {
             hoverColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.50f)
         )
         VerticalScrollbar(
-            adapter = rememberScrollbarAdapter(state),
+            adapter = rememberScrollbarAdapter(listState),
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
             style = customLocalScrollbarStyle
         )
@@ -412,16 +391,10 @@ private fun ClearBuildList(viewModel: MainViewModel) {
 }
 
 @Composable
-fun ClearBuildBottom(viewModel: MainViewModel) {
+fun ClearBuildBottom(state: CleanerUiState, onIntent: (CleanerIntent) -> Unit, onSelectDirectory: () -> Unit) {
     var sequenceExpanded by remember { mutableStateOf(false) }
-    var deletionAlert by remember { mutableStateOf(false) }
-    val launcher = rememberDirectoryPickerLauncher { directory ->
-        viewModel.scanPendingDeletionFileList(
-            directory?.file ?: return@rememberDirectoryPickerLauncher
-        )
-    }
     BottomAppBar(actions = {
-        IconButton(onClick = { viewModel.closeFileCheck() }) {
+        IconButton(onClick = { onIntent(CleanerIntent.CloseSelection) }) {
             Icon(Icons.Outlined.Close, contentDescription = "Localized description")
         }
         IconButton(onClick = { sequenceExpanded = !sequenceExpanded }) {
@@ -430,14 +403,14 @@ fun ClearBuildBottom(viewModel: MainViewModel) {
                 contentDescription = "Localized description",
             )
         }
-        IconButton(onClick = { viewModel.changeFileAllChecked() }) {
-            val isAllCheck = viewModel.pendingDeletionFileList.none { file -> !file.checked }
+        IconButton(onClick = { onIntent(CleanerIntent.ToggleAll) }) {
+            val isAllCheck = state.allSelected
             Icon(
                 if (isAllCheck) Icons.Outlined.Deselect else Icons.Outlined.SelectAll,
                 contentDescription = "Localized description",
             )
         }
-        IconButton(onClick = { launcher.launch() }) {
+        IconButton(onClick = { onSelectDirectory() }) {
             Icon(
                 Icons.Outlined.DriveFolderUpload,
                 contentDescription = "Localized description",
@@ -445,13 +418,7 @@ fun ClearBuildBottom(viewModel: MainViewModel) {
         }
     }, floatingActionButton = {
         FloatingActionButton(
-            onClick = {
-                if (viewModel.isAllFileUnchecked()) {
-                    viewModel.updateSnackbarVisuals(Res.string.select_delete_director)
-                } else {
-                    deletionAlert = !deletionAlert
-                }
-            },
+            onClick = { onIntent(CleanerIntent.RequestDelete) },
             containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
             elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
         ) {
@@ -468,35 +435,34 @@ fun ClearBuildBottom(viewModel: MainViewModel) {
             Res.string.newest_date_first,
             Sequence.DATE_NEW_TO_OLD,
             onDismissRequest,
-            viewModel
+            state.sort, onIntent
         )
         SequenceDropdownMenu(
             Res.string.oldest_date_first,
             Sequence.DATE_OLD_TO_NEW,
             onDismissRequest,
-            viewModel
+            state.sort, onIntent
         )
         SequenceDropdownMenu(
             Res.string.largest_first,
             Sequence.SIZE_LARGE_TO_SMALL,
             onDismissRequest,
-            viewModel
+            state.sort, onIntent
         )
         SequenceDropdownMenu(
             Res.string.smallest_first,
             Sequence.SIZE_SMALL_TO_LARGE,
             onDismissRequest,
-            viewModel
+            state.sort, onIntent
         )
-        SequenceDropdownMenu(Res.string.name_a_z, Sequence.NAME_A_TO_Z, onDismissRequest, viewModel)
-        SequenceDropdownMenu(Res.string.name_z_a, Sequence.NAME_Z_TO_A, onDismissRequest, viewModel)
+        SequenceDropdownMenu(Res.string.name_a_z, Sequence.NAME_A_TO_Z, onDismissRequest, state.sort, onIntent)
+        SequenceDropdownMenu(Res.string.name_z_a, Sequence.NAME_Z_TO_A, onDismissRequest, state.sort, onIntent)
     }
-    if (deletionAlert) {
+    if (state.deleteConfirmVisible) {
         DeleteAlertDialog(onConfirm = {
-            deletionAlert = false
-            viewModel.removeFileChecked()
+            onIntent(CleanerIntent.ConfirmDelete)
         }, onDismiss = {
-            deletionAlert = false
+            onIntent(CleanerIntent.DismissDelete)
         })
     }
 }
@@ -506,17 +472,18 @@ private fun SequenceDropdownMenu(
     resource: StringResource,
     sequence: Sequence,
     onDismissRequest: () -> Unit,
-    viewModel: MainViewModel
+    currentSort: Sequence,
+    onIntent: (CleanerIntent) -> Unit
 ) {
     DropdownMenuItem(
         text = {
             Text(text = stringResource(resource), style = MaterialTheme.typography.labelLarge)
-        }, leadingIcon = if (viewModel.currentFileSequence == sequence) {
+        }, leadingIcon = if (currentSort == sequence) {
             { Icon(Icons.Rounded.Check, "Check") }
         } else {
             null
         }, onClick = {
-            viewModel.updateFileSort(sequence)
+            onIntent(CleanerIntent.SortChanged(sequence))
             onDismissRequest.invoke()
         })
 }

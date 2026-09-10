@@ -3,8 +3,8 @@ package org.tool.kit.feature.cleaner.navigation
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.russhwolf.settings.ExperimentalSettingsApi
-import org.tool.kit.feature.cleaner.ClearBuild
-import org.tool.kit.vm.MainViewModel
+import org.tool.kit.feature.cleaner.CleanerRoute
+import org.tool.kit.feature.cleaner.CleanerViewModel
 
 /**
  * @author      : LazyIonEs
@@ -12,8 +12,8 @@ import org.tool.kit.vm.MainViewModel
  * @createDate  : 2026/1/20 17:14
  */
 @OptIn(ExperimentalSettingsApi::class)
-fun EntryProviderScope<NavKey>.cleanerEntry(viewModel: MainViewModel, signatureHasResult: Boolean) {
+fun EntryProviderScope<NavKey>.cleanerEntry(viewModel: CleanerViewModel, signatureHasResult: Boolean, useDarkTheme: Boolean) {
     entry<CleanerNavKey> {
-        ClearBuild(viewModel = viewModel, signatureHasResult = signatureHasResult)
+        CleanerRoute(viewModel, signatureHasResult, useDarkTheme)
     }
 }
