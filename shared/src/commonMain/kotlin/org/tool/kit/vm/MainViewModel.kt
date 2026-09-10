@@ -38,11 +38,8 @@ import org.tool.kit.shared.generated.resources.cleanup_complete
 import org.tool.kit.shared.generated.resources.file_deletion_exception
 import org.tool.kit.shared.generated.resources.jump
 import org.tool.kit.shared.generated.resources.scanning_anomalies
-import org.tool.kit.utils.AndroidJunkGenerator
-import org.tool.kit.utils.MultiAarGenerator
 import org.tool.kit.utils.formatFileSize
 import org.tool.kit.utils.getFileLength
-import org.tool.kit.utils.resourcesDir
 import org.tool.kit.utils.update
 import java.io.File
 
@@ -58,6 +55,7 @@ class MainViewModel(
     private val preferences: org.tool.kit.domain.preferences.PreferencesRepository,
     private val storage: StorageRepository,
     private val effects: org.tool.kit.feature.app.AppEffectSink,
+    private val generateJunk: org.tool.kit.domain.usecase.GenerateJunkCodeUseCase,
     initialCapacity: StorageCapacity = StorageCapacity(0, 0),
 ) :
     ViewModel() {
@@ -147,69 +145,27 @@ class MainViewModel(
     /**
      * 生成垃圾代码 aar
      */
-    fun generateJunkCode() = viewModelScope.launch(Dispatchers.IO) {
+    fun generateJunkCode() {
+        if (junkCodeUIState == UIState.Loading) return
+        val form = junkCodeInfoState.copy()
+        val config = if (junkMode.value == JunkMode.MULTI) {
+            org.tool.kit.domain.junk.JunkConfiguration.Multi(form.outputDir, form.aarCount.toIntOrNull() ?: 0,
+                form.leastPackageCount.toIntOrNull() ?: 0, form.maximumPackageCount.toIntOrNull() ?: 0,
+                form.leastActivityCountPerPackage.toIntOrNull() ?: 0, form.maximumActivityCountPerPackage.toIntOrNull() ?: 0)
+        } else org.tool.kit.domain.junk.JunkConfiguration.Single(form.packageName + "." + form.suffix,
+            form.packageCount.toIntOrNull() ?: 0, form.activityCountPerPackage.toIntOrNull() ?: 0, form.resPrefix)
+        val request = org.tool.kit.domain.junk.GenerateJunkCodeRequest(form.outputPath, config)
         _junkCodeUIState.update { UIState.Loading }
-        val start = System.currentTimeMillis()
-        logger.info { "generateJunkCode 生成垃圾代码开始, 模式: ${junkMode.value.title}, 垃圾代码生成信息: $junkCodeInfoState" }
-        try {
-            val dir = resourcesDir
-            val output = junkCodeInfoState.outputPath
-            
-            val resultFile = if (junkMode.value == JunkMode.MULTI) {
-                val outputDir = junkCodeInfoState.outputDir
-                val aarCount = junkCodeInfoState.aarCount.toIntOrNull() ?: 0
-                val leastPackageCount = junkCodeInfoState.leastPackageCount.toIntOrNull() ?: 0
-                val maximumPackageCount = junkCodeInfoState.maximumPackageCount.toIntOrNull() ?: 0
-                val leastActivityCount = junkCodeInfoState.leastActivityCountPerPackage.toIntOrNull() ?: 0
-                val maximumActivityCount = junkCodeInfoState.maximumActivityCountPerPackage.toIntOrNull() ?: 0
-
-                MultiAarGenerator.generate(
-                    resourcesDir = dir,
-                    outputPath = output,
-                    outputDir = outputDir,
-                    aarCount = aarCount,
-                    leastPackageCount = leastPackageCount,
-                    maximumPackageCount = maximumPackageCount,
-                    leastActivityCount = leastActivityCount,
-                    maximumActivityCount = maximumActivityCount
-                )
-                File(output, outputDir)
-            } else {
-                val appPackageName = junkCodeInfoState.packageName + "." + junkCodeInfoState.suffix
-                val packageCount = junkCodeInfoState.packageCount.toIntOrNull() ?: 0
-                val activityCountPerPackage = junkCodeInfoState.activityCountPerPackage.toIntOrNull() ?: 0
-                val resPrefix = junkCodeInfoState.resPrefix
-                val androidJunkGenerator =
-                    AndroidJunkGenerator(
-                        dir,
-                        output,
-                        appPackageName,
-                        packageCount,
-                        activityCountPerPackage,
-                        resPrefix
-                    )
-                androidJunkGenerator.startGenerate()
-            }
-            
-            val totalSize = if (resultFile.isDirectory) {
-                resultFile.walkBottomUp().filter { it.isFile }.sumOf { it.length() }
-            } else {
-                resultFile.length()
-            }
-            
-            logger.info { "generateJunkCode 生成垃圾代码结束, 耗时: ${System.currentTimeMillis() - start}ms, aar大小: ${totalSize.formatFileSize()}, 输出路径: ${resultFile.absolutePath}" }
-            val snackbarVisualsData = SnackbarMessage(
-                message = UiMessage.Text(getString(Res.string.build_end, totalSize.formatFileSize())),
-                actionLabel = getString(Res.string.jump),
-                withDismissAction = true,
-                duration = SnackbarDuration.Short,
-                action = SnackbarAction.OpenDirectory(resultFile.path))
-            updateSnackbarVisuals(snackbarVisualsData)
-        } catch (e: Exception) {
-            logger.error(e) { "generateJunkCode 生成垃圾代码异常, 异常信息: ${e.message}" }
-            updateSnackbarVisuals(e.message ?: getString(Res.string.build_failure))
-        } finally {
-            _junkCodeUIState.update { UIState.WAIT }
+        viewModelScope.launch {
+            try {
+                when (val outcome = generateJunk(request)) {
+                    is org.tool.kit.domain.junk.GenerateJunkCodeOutcome.Success -> updateSnackbarVisuals(SnackbarMessage(
+                        UiMessage.Text(getString(Res.string.build_end, outcome.result.totalBytes.formatFileSize())),
+                        actionLabel = getString(Res.string.jump), withDismissAction = true, duration = SnackbarDuration.Short,
+                        action = SnackbarAction.OpenDirectory(outcome.result.outputPath)))
+                    is org.tool.kit.domain.junk.GenerateJunkCodeOutcome.Failure -> updateSnackbarVisuals(outcome.message ?: getString(Res.string.build_failure))
+                }
+            } finally { _junkCodeUIState.update { UIState.WAIT } }
         }
     }
 

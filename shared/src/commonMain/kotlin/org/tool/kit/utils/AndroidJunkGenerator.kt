@@ -8,7 +8,6 @@ import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.jar.JarEntry
 import java.util.jar.JarOutputStream
-import java.util.stream.IntStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.math.max
@@ -195,7 +194,7 @@ class AndroidJunkGenerator(
     }
 
     private fun generateClasses() {
-        IntStream.range(0, packageCount).parallel().forEach { _ ->
+        parallelJunkWork(packageCount) { _ ->
             val packageName = generatePackageName()
             // 生成Activity
             (0 until activityCountPerPackage).forEach { _ ->
@@ -208,7 +207,7 @@ class AndroidJunkGenerator(
         val rootClassCount: Int =
             Random.nextInt(activityCountPerPackage) + (activityCountPerPackage shr 1)
 
-        IntStream.range(0, rootClassCount).parallel().forEach { _ ->
+        parallelJunkWork(rootClassCount) { _ ->
             val activityPreName: String = generateClassName(appPackageName)
             generateActivity(appPackageName, activityPreName)
         }
@@ -705,7 +704,7 @@ class AndroidJunkGenerator(
 
     private fun generateOtherResources() {
         val count = Random.nextInt(packageCount * 5, packageCount * 15)
-        IntStream.range(0, count).parallel().forEach { _ ->
+        parallelJunkWork(count) { _ ->
             if (Random.nextDouble() < ANIM_PROBABILITY) {
                 val animName = resPrefix + generateResName()
                 if (mAnimIds.add(animName)) {

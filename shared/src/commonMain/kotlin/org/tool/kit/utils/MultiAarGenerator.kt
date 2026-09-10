@@ -1,6 +1,8 @@
 package org.tool.kit.utils
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.sync.Semaphore
@@ -45,9 +47,12 @@ object MultiAarGenerator {
         leastPackageCount: Int,
         maximumPackageCount: Int,
         leastActivityCount: Int,
-        maximumActivityCount: Int
+        maximumActivityCount: Int,
+        random: Random = Random.Default,
+        generateArchive: ((AarConfig, File) -> File)? = null,
     ): List<File> = withContext(Dispatchers.IO) {
         
+        currentCoroutineContext().ensureActive()
         // 1. 输出路径管理：拼接输出基础目录和文件夹，并确保其存在
         val outputFolder = File(outputPath, outputDir)
         if (!outputFolder.exists()) {
@@ -57,42 +62,8 @@ object MultiAarGenerator {
             outputFolder.mkdirs()
         }
 
-        // 使用 Set 进行查重，保证本次批量生成的包名和资源前缀绝对不重复
-        val generatedPackages = mutableSetOf<String>()
-        val generatedPrefixes = mutableSetOf<String>()
-
-        // 提前生成本次任务的所有配置，确保查重逻辑在单线程内安全完成
-        val configs = (0 until aarCount).map {
-            // 2. 包名生成规则：com.xxx.xxx (3-8位小写字母)，并加入查重逻辑
-            var packageName: String
-            do {
-                val part1 = generateRandomLowercaseString(3, 8)
-                val part2 = generateRandomLowercaseString(3, 8)
-                packageName = "com.$part1.$part2"
-            } while (!generatedPackages.add(packageName))
-
-            // 3. 资源前缀规则：xxx_ (3-8位小写字母)，并加入查重逻辑
-            var resPrefix: String
-            do {
-                resPrefix = generateRandomLowercaseString(3, 8) + "_"
-            } while (!generatedPrefixes.add(resPrefix))
-
-            // 4. 随机包数量：在 leastPackageCount 到 maximumPackageCount 之间随机
-            val packageCount = if (leastPackageCount < maximumPackageCount) {
-                Random.nextInt(leastPackageCount, maximumPackageCount + 1)
-            } else {
-                leastPackageCount
-            }
-
-            // 5. 随机 Activity 数量：在 leastActivityCount 到 maximumActivityCount 之间随机
-            val activityCount = if (leastActivityCount < maximumActivityCount) {
-                Random.nextInt(leastActivityCount, maximumActivityCount + 1)
-            } else {
-                leastActivityCount
-            }
-
-            AarConfig(packageName, resPrefix, packageCount, activityCount)
-        }
+        val context = currentCoroutineContext()
+        val configs = configurations(aarCount, leastPackageCount, maximumPackageCount, leastActivityCount, maximumActivityCount, random) { context.ensureActive() }
 
         // 使用信号量（Semaphore）控制并发任务数，防止内存爆炸和 CPU 过载
         val semaphore = Semaphore(MAX_CONCURRENT_TASKS)
@@ -101,6 +72,8 @@ object MultiAarGenerator {
         val deferredFiles = configs.map { config ->
             async {
                 semaphore.withPermit {
+                    currentCoroutineContext().ensureActive()
+                    if (generateArchive != null) return@withPermit generateArchive(config, outputFolder)
                     val generator = AndroidJunkGenerator(
                         dir = resourcesDir,
                         output = outputFolder.absolutePath,
@@ -119,14 +92,59 @@ object MultiAarGenerator {
         deferredFiles.awaitAll()
     }
 
+    internal fun configurations(aarCount: Int, leastPackageCount: Int, maximumPackageCount: Int,
+        leastActivityCount: Int, maximumActivityCount: Int, random: Random = Random.Default,
+        checkActive: () -> Unit = {}): List<AarConfig> {
+        // 使用 Set 进行查重，保证本次批量生成的包名和资源前缀绝对不重复
+        val generatedPackages = mutableSetOf<String>()
+        val generatedPrefixes = mutableSetOf<String>()
+
+        // 提前生成本次任务的所有配置，确保查重逻辑在单线程内安全完成
+        return (0 until aarCount).map {
+            checkActive()
+            // 2. 包名生成规则：com.xxx.xxx (3-8位小写字母)，并加入查重逻辑
+            var packageName: String
+            do {
+                checkActive()
+                val part1 = generateRandomLowercaseString(3, 8, random)
+                val part2 = generateRandomLowercaseString(3, 8, random)
+                packageName = "com.$part1.$part2"
+            } while (!generatedPackages.add(packageName))
+
+            // 3. 资源前缀规则：xxx_ (3-8位小写字母)，并加入查重逻辑
+            var resPrefix: String
+            do {
+                checkActive()
+                resPrefix = generateRandomLowercaseString(3, 8, random) + "_"
+            } while (!generatedPrefixes.add(resPrefix))
+
+            // 4. 随机包数量：在 leastPackageCount 到 maximumPackageCount 之间随机
+            val packageCount = if (leastPackageCount < maximumPackageCount) {
+                random.nextInt(leastPackageCount, maximumPackageCount + 1)
+            } else {
+                leastPackageCount
+            }
+
+            // 5. 随机 Activity 数量：在 leastActivityCount 到 maximumActivityCount 之间随机
+            val activityCount = if (leastActivityCount < maximumActivityCount) {
+                random.nextInt(leastActivityCount, maximumActivityCount + 1)
+            } else {
+                leastActivityCount
+            }
+
+            AarConfig(packageName, resPrefix, packageCount, activityCount)
+        }
+
+    }
+
     /**
      * 生成指定长度范围内的纯小写随机字符串（通过预置字符池提升性能）
      */
-    private fun generateRandomLowercaseString(minLength: Int, maxLength: Int): String {
-        val length = Random.nextInt(minLength, maxLength + 1)
+    private fun generateRandomLowercaseString(minLength: Int, maxLength: Int, random: Random): String {
+        val length = random.nextInt(minLength, maxLength + 1)
         val chars = CharArray(length)
         for (i in 0 until length) {
-            chars[i] = CHAR_POOL[Random.nextInt(CHAR_POOL.size)]
+            chars[i] = CHAR_POOL[random.nextInt(CHAR_POOL.size)]
         }
         return String(chars)
     }
@@ -134,7 +152,7 @@ object MultiAarGenerator {
     /**
      * 内部配置类，用于临时存储每个 AAR 的生成参数
      */
-    private data class AarConfig(
+    data class AarConfig(
         val packageName: String,
         val resPrefix: String,
         val packageCount: Int,
