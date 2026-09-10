@@ -13,7 +13,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -61,11 +60,9 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTooltipState
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -82,11 +79,9 @@ import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.constant.ConfigConstant
 import org.tool.kit.feature.ui.FileButton
-import org.tool.kit.feature.ui.FolderInputWithPicker
+import org.tool.kit.feature.ui.FolderInput
 import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.feature.ui.UploadAnimate
-import org.tool.kit.model.DarkThemeConfig
-import org.tool.kit.model.FileSelectorType
 import org.tool.kit.model.IconFactoryData
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.ZCOOLKuaiLe_Regular
@@ -116,13 +111,6 @@ import org.tool.kit.shared.generated.resources.start_making
 import org.tool.kit.shared.generated.resources.target
 import org.tool.kit.shared.generated.resources.upload_image
 import org.tool.kit.utils.LottieAnimation
-import org.tool.kit.utils.getImageRequest
-import org.tool.kit.utils.isImage
-import org.tool.kit.utils.update
-import org.tool.kit.vm.MainViewModel
-import org.tool.kit.vm.UIState
-import java.io.File
-import kotlin.io.path.pathString
 import kotlin.math.roundToInt
 
 /**
@@ -132,10 +120,12 @@ import kotlin.math.roundToInt
  * @Version     : 1.0
  */
 @Composable
-fun IconFactory(viewModel: MainViewModel) {
-    val showBottomSheet = remember { mutableStateOf(false) }
-    IconFactoryPreview(viewModel, showBottomSheet)
-    IconFactorySheet(viewModel, showBottomSheet)
+fun IconFactoryScreen(state: IconFactoryUiState, inputImage: IconImageUi?, resultImages: List<IconImageUi?>?,
+    useDarkTheme: Boolean, onIntent: (IconFactoryIntent) -> Unit,
+    pickOutput: () -> Unit, pickIcon: () -> Unit, dragging: Boolean,
+    target: androidx.compose.ui.draganddrop.DragAndDropTarget) {
+    IconFactoryPreview(inputImage, resultImages, useDarkTheme, onIntent)
+    IconFactorySheet(state, onIntent, pickOutput, pickIcon, dragging, target)
 }
 
 /**
@@ -144,9 +134,10 @@ fun IconFactory(viewModel: MainViewModel) {
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun IconFactoryPreview(
-    viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>
+    inputImage: IconImageUi?, resultImages: List<IconImageUi?>?,
+    useDarkTheme: Boolean, onIntent: (IconFactoryIntent) -> Unit
 ) {
-    val icon = viewModel.iconFactoryInfoState.icon
+    val icon = inputImage
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -190,18 +181,12 @@ private fun IconFactoryPreview(
                             contentAlignment = Alignment.Center
                         ) {
                             AsyncImage(
-                                model = getImageRequest(icon),
+                                model = icon.request,
                                 contentDescription = null,
                                 modifier = Modifier.size(192.dp)
                             )
                         }
                     } ?: let {
-                        val themeConfig by viewModel.themeConfig.collectAsState()
-                        val useDarkTheme = when (themeConfig) {
-                            DarkThemeConfig.LIGHT -> false
-                            DarkThemeConfig.DARK -> true
-                            DarkThemeConfig.FOLLOW_SYSTEM -> isSystemInDarkTheme()
-                        }
                         if (useDarkTheme) {
                             LottieAnimation(
                                 "files/lottie_main_3_dark.json",
@@ -235,21 +220,14 @@ private fun IconFactoryPreview(
                 enter = fadeIn() + slideInHorizontally(),
                 exit = fadeOut() + slideOutHorizontally()
             ) {
-                IconFactoryResult(viewModel)
+                IconFactoryResult(resultImages)
             }
         }
         AnimatedVisibility(icon != null) {
             Column {
                 Spacer(Modifier.size(12.dp))
                 Button({
-                    viewModel.iconFactoryInfoState.apply {
-                        if (outputPath.isBlank() || fileDir.isBlank() || iconName.isBlank()) {
-                            if (!showBottomSheet.value) showBottomSheet.update { true }
-                            viewModel.updateSnackbarVisuals(Res.string.check_error)
-                            return@Button
-                        }
-                    }
-                    viewModel.iconGeneration(icon?.absolutePath ?: return@Button)
+                    onIntent(IconFactoryIntent.Submit)
                 }) {
                     Text(text = stringResource(Res.string.start_making))
                 }
@@ -259,7 +237,7 @@ private fun IconFactoryPreview(
 }
 
 @Composable
-private fun IconFactoryResult(viewModel: MainViewModel) {
+private fun IconFactoryResult(resultImages: List<IconImageUi?>?) {
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -270,19 +248,19 @@ private fun IconFactoryResult(viewModel: MainViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconFactoryResultPlaceholder(
-                resultFile = viewModel.iconFactoryInfoState.result?.getOrNull(0),
+                resultFile = resultImages?.getOrNull(0),
                 title = "mdpi",
                 size = 48
             )
 
             IconFactoryResultPlaceholder(
-                resultFile = viewModel.iconFactoryInfoState.result?.getOrNull(1),
+                resultFile = resultImages?.getOrNull(1),
                 title = "hdpi",
                 size = 72
             )
 
             IconFactoryResultPlaceholder(
-                resultFile = viewModel.iconFactoryInfoState.result?.getOrNull(2),
+                resultFile = resultImages?.getOrNull(2),
                 title = "xhdpi",
                 size = 96
             )
@@ -294,13 +272,13 @@ private fun IconFactoryResult(viewModel: MainViewModel) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconFactoryResultPlaceholder(
-                resultFile = viewModel.iconFactoryInfoState.result?.getOrNull(3),
+                resultFile = resultImages?.getOrNull(3),
                 title = "xxhdpi",
                 size = 144
             )
 
             IconFactoryResultPlaceholder(
-                resultFile = viewModel.iconFactoryInfoState.result?.getOrNull(4),
+                resultFile = resultImages?.getOrNull(4),
                 title = "xxxhdpi",
                 size = 192
             )
@@ -310,11 +288,11 @@ private fun IconFactoryResult(viewModel: MainViewModel) {
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
-private fun IconFactoryResultPlaceholder(resultFile: File?, title: String, size: Int) {
+private fun IconFactoryResultPlaceholder(resultFile: IconImageUi?, title: String, size: Int) {
     Crossfade(targetState = resultFile) { file ->
-        if (file != null && file.exists()) {
+        if (file != null) {
             AsyncImage(
-                model = getImageRequest(file),
+                model = file.request,
                 contentDescription = null,
                 modifier = Modifier.size(size.dp)
             )
@@ -333,34 +311,20 @@ private fun IconFactoryResultPlaceholder(resultFile: File?, title: String, size:
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableState<Boolean>) {
+private fun IconFactorySheet(state: IconFactoryUiState, onIntent: (IconFactoryIntent) -> Unit,
+    pickOutput: () -> Unit, pickIcon: () -> Unit, dragging: Boolean,
+    target: androidx.compose.ui.draganddrop.DragAndDropTarget) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
-    var dragging by remember { mutableStateOf(false) }
     UploadAnimate(dragging)
     Box(
         modifier = Modifier.fillMaxSize().dragAndDropTarget(
             shouldStartDragAndDrop = accept@{ true },
-            target = org.tool.kit.feature.ui.dragAndDropTarget(
-                dragging = { dragging = it },
-                onFinish = { result ->
-                    result.onSuccess { fileList ->
-                        fileList.firstOrNull()?.let {
-                            val path = it.toAbsolutePath().pathString
-                            if (path.isImage) {
-                                viewModel.updateIconFactoryInfo(
-                                    viewModel.iconFactoryInfoState.copy(
-                                        icon = File(path), result = null
-                                    )
-                                )
-                            }
-                        }
-                    }
-                })
+            target = target
         )
     ) {
         Column(modifier = Modifier.align(Alignment.BottomEnd)) {
             AnimatedVisibility(
-                visible = viewModel.iconFactoryUIState != UIState.Loading,
+                visible = !state.busy,
                 modifier = Modifier.align(Alignment.End)
             ) {
                 FileButton(
@@ -369,37 +333,28 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
                     } else {
                         stringResource(Res.string.upload_image)
                     },
-                    expanded = viewModel.iconFactoryInfoState.icon == null,
-                    FileSelectorType.IMAGE
-                ) { path ->
-                    if (path.isImage) {
-                        val file = File(path)
-                        viewModel.updateIconFactoryInfo(
-                            viewModel.iconFactoryInfoState.copy(
-                                icon = file, result = null
-                            )
-                        )
-                    }
-                }
+                    expanded = state.form.inputPath == null,
+                    onClick = pickIcon
+                )
             }
             AnimatedVisibility(
-                visible = viewModel.iconFactoryInfoState.icon != null,
+                visible = state.form.inputPath != null,
                 modifier = Modifier.padding(bottom = 16.dp, end = 16.dp)
                     .align(Alignment.End)
             ) {
                 ExtendedFloatingActionButton(
-                    onClick = { showBottomSheet.update { true } },
+                    onClick = { onIntent(IconFactoryIntent.SheetOpened) },
                     expanded = true,
                     icon = { Icon(Icons.Rounded.Tune, "Tune") },
                     text = { Text(stringResource(Res.string.more_settings)) })
             }
         }
-        if (showBottomSheet.value) {
+        if (state.sheetOpen) {
             ModalBottomSheet(
                 modifier = Modifier.fillMaxHeight().align(Alignment.BottomEnd),
                 sheetState = sheetState,
-                onDismissRequest = { showBottomSheet.update { false } }) {
-                IconFactorySetting(viewModel, sheetState)
+                onDismissRequest = { onIntent(IconFactoryIntent.SheetClosed) }) {
+                IconFactorySetting(state.form, state.settings, state.draft, onIntent, pickOutput, sheetState)
             }
         }
     }
@@ -407,7 +362,8 @@ private fun IconFactorySheet(viewModel: MainViewModel, showBottomSheet: MutableS
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState) {
+private fun IconFactorySetting(form: IconFactoryForm, settings: IconFactoryData, draft: IconSettingsDraft,
+    onIntent: (IconFactoryIntent) -> Unit, pickOutput: () -> Unit, sheetState: SheetState) {
     val scope = rememberCoroutineScope()
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(end = 14.dp),
@@ -415,27 +371,27 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
     ) {
         item {
             Spacer(Modifier.size(8.dp))
-            FolderInputWithPicker(
-                value = viewModel.iconFactoryInfoState.outputPath,
+            FolderInput(
+                value = form.outputPath,
                 label = stringResource(Res.string.icon_output_path),
-                isError = false,
+                isError = false, onPickerRequest = pickOutput,
                 onValueChange = { path ->
-                    viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(outputPath = path))
+                    onIntent(IconFactoryIntent.OutputPathChanged(path))
                 })
         }
         item {
             Spacer(Modifier.size(8.dp))
-            IconsFactoryInput(viewModel)
+            IconsFactoryInput(form, onIntent)
         }
         item {
             Spacer(Modifier.size(8.dp))
             Box(modifier = Modifier.fillMaxWidth()) {
                 StringInput(
-                    value = viewModel.iconFactoryInfoState.iconName,
+                    value = form.iconName,
                     label = stringResource(Res.string.icon_name),
-                    isError = viewModel.iconFactoryInfoState.iconName.isBlank(),
+                    isError = form.iconName.isBlank(),
                     onValueChange = { iconName ->
-                        viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(iconName = iconName))
+                        onIntent(IconFactoryIntent.IconNameChanged(iconName))
                     })
                 Box(
                     modifier = Modifier.align(Alignment.CenterEnd)
@@ -494,7 +450,7 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
                 )
             }
             Spacer(Modifier.size(12.dp))
-            Compression(viewModel)
+            Compression(settings, draft, onIntent)
             Spacer(Modifier.size(20.dp))
         }
     }
@@ -503,8 +459,11 @@ private fun IconFactorySetting(viewModel: MainViewModel, sheetState: SheetState)
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @ExperimentalMaterial3Api
 @Composable
-fun Compression(viewModel: MainViewModel) {
-    val iconFactoryData by viewModel.iconFactoryData.collectAsState()
+fun Compression(iconFactoryData: IconFactoryData, draft: IconSettingsDraft, onIntent: (IconFactoryIntent) -> Unit) {
+    DisposableEffect(Unit) {
+        onIntent(IconFactoryIntent.CompressionEditorEntered)
+        onDispose { }
+    }
     val compressionOptions =
         listOf(
             stringResource(Res.string.lossless_compression),
@@ -518,7 +477,7 @@ fun Compression(viewModel: MainViewModel) {
             ToggleButton(
                 checked = if (iconFactoryData.lossless) index == 0 else index == 1,
                 onCheckedChange = {
-                    viewModel.saveIconFactoryData(iconFactoryData.copy(lossless = index == 0))
+                    onIntent(IconFactoryIntent.LosslessChanged(index == 0))
                 },
                 colors = ToggleButtonDefaults.tonalToggleButtonColors(),
                 modifier = Modifier.weight(1f),
@@ -547,12 +506,12 @@ fun Compression(viewModel: MainViewModel) {
         enter = fadeIn() + expandVertically(),
         exit = shrinkVertically() + fadeOut()
     ) {
-        CompressRangeSliders(viewModel, iconFactoryData)
+        CompressRangeSliders(draft, onIntent)
     }
 
     Spacer(Modifier.size(8.dp))
 
-    var compressionSpeed by remember { mutableFloatStateOf(iconFactoryData.percentage * 10f) }
+    val compressionSpeed = draft.compressionSpeed
 
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)) {
         Box(modifier = Modifier.fillMaxWidth()) {
@@ -577,18 +536,9 @@ fun Compression(viewModel: MainViewModel) {
             )
         }
         Slider(value = compressionSpeed, onValueChange = {
-            compressionSpeed = it
+            onIntent(IconFactoryIntent.CompressionSpeedChanged(it))
         }, onValueChangeFinished = {
-            val percentage =
-                "%.2f".format(compressionSpeed.toBigDecimal().divide(10f.toBigDecimal()).toFloat())
-                    .toFloat()
-            val speed = 11 - (10 * percentage).roundToInt()
-            val preset = (7 * percentage).roundToInt() - 1
-            viewModel.saveIconFactoryData(
-                iconFactoryData.copy(
-                    speed = speed, preset = preset, percentage = percentage
-                )
-            )
+            onIntent(IconFactoryIntent.CompressionSpeedCommitted)
         }, valueRange = 1f..10f)
     }
     Spacer(Modifier.size(8.dp))
@@ -603,7 +553,7 @@ fun Compression(viewModel: MainViewModel) {
             isPng = true,
             name = iconFactoryData.pngTypIdx.name
         ) { select ->
-            viewModel.saveIconFactoryData(iconFactoryData.copy(pngTypIdx = select))
+            onIntent(IconFactoryIntent.PngAlgorithmChanged(select))
         }
 
         Algorithm(
@@ -613,14 +563,14 @@ fun Compression(viewModel: MainViewModel) {
             isPng = false,
             name = iconFactoryData.jpegTypIdx.name
         ) { select ->
-            viewModel.saveIconFactoryData(iconFactoryData.copy(jpegTypIdx = select))
+            onIntent(IconFactoryIntent.JpegAlgorithmChanged(select))
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun IconsFactoryInput(viewModel: MainViewModel) {
+private fun IconsFactoryInput(form: IconFactoryForm, onIntent: (IconFactoryIntent) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 64.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -628,9 +578,9 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp)
                 .weight(1f),
-            value = viewModel.iconFactoryInfoState.fileDir,
+            value = form.fileDir,
             onValueChange = { fileDir ->
-                viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(fileDir = fileDir))
+                onIntent(IconFactoryIntent.FileDirChanged(fileDir))
             },
             label = {
                 Text(
@@ -639,7 +589,7 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
                 )
             },
             singleLine = true,
-            isError = viewModel.iconFactoryInfoState.fileDir.isBlank(),
+            isError = form.fileDir.isBlank(),
         )
         var expanded by remember { mutableStateOf(false) }
         val options = ConfigConstant.ANDROID_ICON_DIR_LIST
@@ -651,9 +601,9 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth()
                     .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-                value = viewModel.iconFactoryInfoState.iconDir,
+                value = form.iconDir,
                 onValueChange = { iconDir ->
-                    viewModel.updateIconFactoryInfo(viewModel.iconFactoryInfoState.copy(iconDir = iconDir))
+                    onIntent(IconFactoryIntent.IconDirChanged(iconDir))
                 },
                 label = {
                     Text(
@@ -661,7 +611,7 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
                         style = MaterialTheme.typography.labelLarge
                     )
                 },
-                isError = viewModel.iconFactoryInfoState.iconDir.isBlank(),
+                isError = form.iconDir.isBlank(),
                 singleLine = true,
                 readOnly = true,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
@@ -679,11 +629,7 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
                             )
                         },
                         onClick = {
-                            viewModel.updateIconFactoryInfo(
-                                viewModel.iconFactoryInfoState.copy(
-                                    iconDir = selectionOption
-                                )
-                            )
+                            onIntent(IconFactoryIntent.IconDirChanged(selectionOption))
                             expanded = false
                         },
                         contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
@@ -696,8 +642,12 @@ private fun IconsFactoryInput(viewModel: MainViewModel) {
 
 @ExperimentalMaterial3Api
 @Composable
-private fun CompressRangeSliders(viewModel: MainViewModel, iconFactoryData: IconFactoryData) {
-    var rangeSliderPosition by remember { mutableStateOf(iconFactoryData.minimum.toFloat()..iconFactoryData.target.toFloat()) }
+private fun CompressRangeSliders(draft: IconSettingsDraft, onIntent: (IconFactoryIntent) -> Unit) {
+    DisposableEffect(Unit) {
+        onIntent(IconFactoryIntent.LossyEditorEntered)
+        onDispose { }
+    }
+    val rangeSliderPosition = draft.minimum..draft.target
     val rangeStart = rangeSliderPosition.start.roundToInt()
     val rangeEnd = rangeSliderPosition.endInclusive.roundToInt()
     Column(modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 8.dp)) {
@@ -723,21 +673,12 @@ private fun CompressRangeSliders(viewModel: MainViewModel, iconFactoryData: Icon
             )
         }
         RangeSlider(value = rangeSliderPosition, onValueChange = {
-            rangeSliderPosition = if (it.endInclusive < 30) {
-                it.start.rangeTo(30f)
-            } else {
-                it
-            }
+            onIntent(IconFactoryIntent.PngRangeChanged(it.start, it.endInclusive))
         }, valueRange = 0f..100f, onValueChangeFinished = {
-            viewModel.saveIconFactoryData(
-                iconFactoryData.copy(
-                    minimum = rangeSliderPosition.start.roundToInt(),
-                    target = rangeSliderPosition.endInclusive.roundToInt()
-                )
-            )
+            onIntent(IconFactoryIntent.PngRangeCommitted)
         })
         Spacer(Modifier.size(8.dp))
-        var jpegQuality by remember { mutableFloatStateOf(iconFactoryData.quality) }
+        val jpegQuality = draft.jpegQuality
         Box(modifier = Modifier.fillMaxWidth()) {
             Text(
                 text = stringResource(Res.string.jpeg_quality),
@@ -751,13 +692,9 @@ private fun CompressRangeSliders(viewModel: MainViewModel, iconFactoryData: Icon
             )
         }
         Slider(value = jpegQuality, onValueChange = {
-            jpegQuality = it
+            onIntent(IconFactoryIntent.JpegQualityChanged(it))
         }, onValueChangeFinished = {
-            viewModel.saveIconFactoryData(
-                iconFactoryData.copy(
-                    quality = jpegQuality.roundToInt().toFloat()
-                )
-            )
+            onIntent(IconFactoryIntent.JpegQualityCommitted)
         }, valueRange = 0f..100f)
     }
 }

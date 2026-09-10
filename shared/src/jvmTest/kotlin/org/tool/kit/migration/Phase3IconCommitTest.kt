@@ -17,7 +17,9 @@ import org.tool.kit.data.source.PreferencesDataSource
 import org.tool.kit.feature.app.AppEffectSink
 import org.tool.kit.feature.iconfactory.Compression
 import org.tool.kit.theme.AppTheme
-import org.tool.kit.vm.MainViewModel
+import org.tool.kit.feature.iconfactory.IconFactoryViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import kotlin.test.*
 
 @OptIn(ExperimentalTestApi::class, ExperimentalSettingsApi::class, ExperimentalMaterial3Api::class)
@@ -27,10 +29,10 @@ class Phase3IconCommitTest {
         val dispatchers = AppDispatchers(Dispatchers.IO, Dispatchers.Default, Dispatchers.Main.immediate)
         val preferences = DefaultPreferencesRepository(PreferencesDataSource(physical.toFlowSettings(Dispatchers.Unconfined), dispatchers.io), dispatchers)
         val effects = AppEffectSink()
-        val vm = MainViewModel(preferences, AllPathsExist, effects, unusedGenerateIcons())
+        val vm = IconFactoryViewModel(unusedGenerateIcons(), preferences, AllPathsExist, effects)
         val store = ViewModelStore().also { it.put("icon", vm) }
         try {
-            setContent { AppTheme(false) { Column { Compression(vm) } } }
+            setContent { val state by vm.uiState.collectAsState(); AppTheme(false) { Column { Compression(state.settings, state.draft, vm::onIntent) } } }
             waitUntil { preferences.state.value.ready }
             val initial = preferences.state.value.iconFactoryData
             val slider = onNode(SemanticsMatcher.keyIsDefined(SemanticsActions.SetProgress))

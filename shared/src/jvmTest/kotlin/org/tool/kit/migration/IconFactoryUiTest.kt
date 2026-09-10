@@ -12,10 +12,13 @@ import com.russhwolf.settings.ExperimentalSettingsApi
 import org.junit.Test
 import org.koin.compose.KoinIsolatedContext
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.dsl.module
 import org.koin.dsl.koinApplication
 import org.tool.kit.App
 import org.tool.kit.di.desktopModules
-import org.tool.kit.vm.MainViewModel
+import org.tool.kit.feature.iconfactory.*
+import org.tool.kit.domain.icon.*
+import org.tool.kit.domain.repository.*
 import java.io.File
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -43,12 +46,30 @@ class IconFactoryUiTest {
         val outputs = listOf(48, 72, 96, 144, 192).map { image("result-$it.png", it) }
         val owner = DefaultArchitectureComponentsOwner(enforceMainThread = false)
         owner.setLifecycleState(Lifecycle.State.RESUMED)
-        val container = koinApplication { modules(desktopModules()) }
-        lateinit var vm: MainViewModel
+        var failNext = true
+        val container = koinApplication { modules(desktopModules() + module {
+            single<ImageProcessor> { object : ImageProcessor by UnusedImageProcessor {
+                override suspend fun resizePng(inputPath: String, outputPath: String, size: Int, algorithm: Int) {
+                    if (failNext) { failNext = false; error("fixture failure") }
+                }
+                override suspend fun optimizePng(inputPath: String, outputPath: String, preset: Int) {}
+            } }
+            single<IconOutputs> { object : IconOutputs {
+                override suspend fun <T> use(request: GenerateIconsRequest, block: suspend (IconOutputSession) -> T): T =
+                    block(object : IconOutputSession {
+                        override val outputDirectory = "${request.outputPath}/${request.fileDir}"
+                        override suspend fun <R> density(name: String, suffix: String, block: suspend (IconOutputFiles) -> R): R {
+                            val index = listOf("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi").indexOf(name)
+                            return block(IconOutputFiles(outputs[index].path, fixture.resolve("temporary.png").path))
+                        }
+                    })
+            } }
+        }) }
+        lateinit var vm: IconFactoryViewModel
         try {
             setContent { CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
                 KoinIsolatedContext(container) {
-                    val current = koinViewModel<MainViewModel>()
+                    val current = koinViewModel<IconFactoryViewModel>()
                     App()
                     SideEffect { vm = current }
                 }
@@ -56,7 +77,7 @@ class IconFactoryUiTest {
             waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("APK签名").fetchSemanticsNodes().isNotEmpty() }
             onNode(hasText("APK签名") and hasClickAction()).performClick()
             onNode(hasText("图标生成") and hasClickAction()).performClick()
-            runOnIdle { vm.updateIconFactoryInfo(vm.iconFactoryInfoState.copy(icon = input, result = null)) }
+            runOnIdle { vm.onIntent(IconFactoryIntent.InputChanged(input.path)) }
             fun capture(name: String) {
                 waitForIdle()
                 // Coil decoding is external to the Compose test clock. Wait for stable rendered pixels.
@@ -78,9 +99,16 @@ class IconFactoryUiTest {
                 file.parentFile.mkdirs(); ImageIO.write(output, "png", file)
             }
             capture("preview-null")
-            runOnIdle { vm.updateIconFactoryInfo(vm.iconFactoryInfoState.copy(result = mutableListOf())) }
+            onNodeWithText("开始制作").performClick()
+            waitUntil(timeoutMillis = 10_000) { !vm.uiState.value.busy && vm.uiState.value.result != null }
+            assertTrue(vm.uiState.value.result!!.isEmpty())
+            waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("fixture failure").fetchSemanticsNodes().isEmpty() }
+            onNode(hasText("图标生成") and hasClickAction()).performMouseInput { moveTo(center) }
             capture("preview-empty")
-            runOnIdle { vm.updateIconFactoryInfo(vm.iconFactoryInfoState.copy(result = outputs.toMutableList())) }
+            onNodeWithText("开始制作").performClick()
+            waitUntil(timeoutMillis = 10_000) { !vm.uiState.value.busy && vm.uiState.value.result?.size == 5 }
+            waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("图标生成完成。点击跳转至输出目录").fetchSemanticsNodes().isEmpty() }
+            onNode(hasText("图标生成") and hasClickAction()).performMouseInput { moveTo(center) }
             capture("preview-results")
             onNodeWithText("更多设置", useUnmergedTree = true).performClick()
             capture("sheet-partial")

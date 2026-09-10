@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,13 +23,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
-import org.tool.kit.constant.ConfigConstant
 import org.tool.kit.core.validation.LatestRequest
 import org.tool.kit.domain.repository.StorageCapacity
 import org.tool.kit.domain.repository.StorageRepository
 import org.tool.kit.model.DarkThemeConfig
-import org.tool.kit.model.IconFactoryData
-import org.tool.kit.model.IconFactoryInfo
 import org.tool.kit.model.JunkCodeInfo
 import org.tool.kit.model.JunkMode
 import org.tool.kit.model.PendingDeletionFile
@@ -40,8 +36,6 @@ import org.tool.kit.shared.generated.resources.build_end
 import org.tool.kit.shared.generated.resources.build_failure
 import org.tool.kit.shared.generated.resources.cleanup_complete
 import org.tool.kit.shared.generated.resources.file_deletion_exception
-import org.tool.kit.shared.generated.resources.icon_creation_failed
-import org.tool.kit.shared.generated.resources.icon_generation_completed
 import org.tool.kit.shared.generated.resources.jump
 import org.tool.kit.shared.generated.resources.scanning_anomalies
 import org.tool.kit.utils.AndroidJunkGenerator
@@ -64,7 +58,6 @@ class MainViewModel(
     private val preferences: org.tool.kit.domain.preferences.PreferencesRepository,
     private val storage: StorageRepository,
     private val effects: org.tool.kit.feature.app.AppEffectSink,
-    private val generateIcons: org.tool.kit.domain.usecase.GenerateIconsUseCase,
     initialCapacity: StorageCapacity = StorageCapacity(0, 0),
 ) :
     ViewModel() {
@@ -72,7 +65,6 @@ class MainViewModel(
     // Read-only legacy projections; remove each when its last feature migrates.
     val themeConfig = preferences.state.map { DarkThemeConfig.valueOf(it.themeConfig.name) }.stateIn(viewModelScope, Eagerly, DarkThemeConfig.valueOf(preferences.state.value.themeConfig.name))
     val userData = preferences.state.map { it.userData }.stateIn(viewModelScope, Eagerly, preferences.state.value.userData)
-    val iconFactoryData = preferences.state.map { it.iconFactoryData }.stateIn(viewModelScope, Eagerly, preferences.state.value.iconFactoryData)
     val isHuaweiAlignFileSize = preferences.state.map { it.isHuaweiAlignFileSize }.stateIn(viewModelScope, Eagerly, preferences.state.value.isHuaweiAlignFileSize)
 
     // 垃圾代码生成信息
@@ -84,14 +76,6 @@ class MainViewModel(
     val junkCodeUIState by _junkCodeUIState
 
     val junkMode = preferences.state.map { JunkMode.valueOf(it.junkMode.name) }.stateIn(viewModelScope, Eagerly, JunkMode.valueOf(preferences.state.value.junkMode.name))
-
-    // 图标工厂信息
-    private val _iconFactoryInfoState = mutableStateOf(IconFactoryInfo())
-    val iconFactoryInfoState by _iconFactoryInfoState
-
-    // 图标工厂UI状态
-    private val _iconFactoryUIState = mutableStateOf<UIState>(UIState.WAIT)
-    val iconFactoryUIState by _iconFactoryUIState
 
     // 扫描的文件列表
     private val _pendingDeletionFileList = mutableStateListOf<PendingDeletionFile>()
@@ -116,13 +100,12 @@ class MainViewModel(
 
     init {
         // Compatibility bridge: remove one branch per Phase 4A/5/6/7/8 cutover.
-        // Two forms still belong to MainViewModel; migrated features own their subscriptions.
+        // Only the junk-code form remains here; migrated features own their subscriptions.
         viewModelScope.launch {
             preferences.state.filter { it.ready }
                 .map { it.outputPathVersion to it.userData.defaultOutputPath }
                 .distinctUntilChanged().collect { (_, path) ->
                     updateJunkCodeInfo(junkCodeInfoState.copy(outputPath = path))
-                    updateIconFactoryInfo(iconFactoryInfoState.copy(outputPath = path))
                 }
         }
     }
@@ -135,11 +118,6 @@ class MainViewModel(
         fields.any { pathValidation.value[it]?.pending == true }
 
     fun refreshPathChecks(vararg fields: LegacyPathField) = pathChecks.refresh(*fields)
-
-    /** Legacy icon editor commits only on the original release callbacks; remove in Phase 8. */
-    fun saveIconFactoryData(iconFactoryData: IconFactoryData) {
-        preferences.change(PreferenceChange.IconSettings(iconFactoryData))
-    }
 
     private fun updateSnackbarVisuals(value: SnackbarMessage) {
         viewModelScope.launch {
@@ -157,15 +135,6 @@ class MainViewModel(
     fun updateJunkCodeInfo(junkCodeInfo: JunkCodeInfo) {
         _junkCodeInfoState.update { junkCodeInfo }
         pathChecks.validate(LegacyPathField.JUNK_OUTPUT, junkCodeInfo.outputPath, PathKind.DIRECTORY)
-    }
-
-    /**
-     * 修改IconFactoryInfo
-     * @param iconFactoryInfo IconFactoryInfo
-     * @see IconFactoryInfo
-     */
-    fun updateIconFactoryInfo(iconFactoryInfo: IconFactoryInfo) {
-        _iconFactoryInfoState.update { iconFactoryInfo }
     }
 
     /**
@@ -241,43 +210,6 @@ class MainViewModel(
             updateSnackbarVisuals(e.message ?: getString(Res.string.build_failure))
         } finally {
             _junkCodeUIState.update { UIState.WAIT }
-        }
-    }
-
-    /**
-     * 图标生成
-     * @param path 图标路径
-     */
-    fun iconGeneration(path: String) {
-        if (iconFactoryUIState == UIState.Loading) return
-        val form = iconFactoryInfoState
-        val options = iconFactoryData.value
-        val request = org.tool.kit.domain.icon.GenerateIconsRequest(path, form.outputPath,
-            form.fileDir, form.iconDir, form.iconName, org.tool.kit.domain.icon.IconProcessingOptions(
-                options.pngTypIdx.typIdx, options.jpegTypIdx.typIdx, options.lossless,
-                options.minimum, options.target, options.speed, options.preset, options.quality))
-        _iconFactoryUIState.update { UIState.Loading }
-        updateIconFactoryInfo(form.copy(result = null))
-        viewModelScope.launch {
-            try {
-                val outcome = generateIcons(request)
-                kotlinx.coroutines.currentCoroutineContext().ensureActive()
-                when (outcome) {
-                    is org.tool.kit.domain.icon.GenerateIconsOutcome.Success -> {
-                        updateIconFactoryInfo(iconFactoryInfoState.copy(result = outcome.outputPaths.map(::File).toMutableList()))
-                        updateSnackbarVisuals(SnackbarMessage(
-                            message = UiMessage.Text(getString(Res.string.icon_generation_completed)),
-                            actionLabel = getString(Res.string.jump), withDismissAction = true,
-                            duration = SnackbarDuration.Short,
-                            action = SnackbarAction.OpenDirectory(outcome.outputDirectory)))
-                    }
-                    is org.tool.kit.domain.icon.GenerateIconsOutcome.Failure -> {
-                        updateIconFactoryInfo(iconFactoryInfoState.copy(result = outcome.outputPaths.map(::File).toMutableList()))
-                        updateSnackbarVisuals(outcome.message ?: getString(Res.string.icon_creation_failed))
-                    }
-                    org.tool.kit.domain.icon.GenerateIconsOutcome.UnsupportedInput -> Unit
-                }
-            } finally { _iconFactoryUIState.update { UIState.WAIT } }
         }
     }
 
