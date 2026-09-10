@@ -66,7 +66,7 @@ class Phase3PreferencesTest {
         }, AppDispatchers(dispatcher, dispatcher, dispatcher))
         val sink = AppEffectSink()
         val vm = SettingsViewModel(repository, AllPathsExist, sink, RecordingDesktopActions())
-        val legacy = MainViewModel(repository, AllPathsExist, sink)
+        val legacy = MainViewModel(repository, AllPathsExist, sink, unusedGenerateIcons())
         val signing = org.tool.kit.feature.signature.ApkSigningViewModel(org.tool.kit.domain.usecase.SignApkUseCase { error("Unexpected signing") },
             repository, AllPathsExist, EmptyKeys, sink, org.tool.kit.feature.signature.SigningPresets(emptyList(), "All", "Huawei"))
         val apkTool = org.tool.kit.feature.apk.ApkToolViewModel(unusedBuildApk(), repository, AllPathsExist, EmptyKeys, sink, "Huawei")

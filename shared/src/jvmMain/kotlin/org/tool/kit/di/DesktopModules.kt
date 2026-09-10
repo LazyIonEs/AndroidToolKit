@@ -21,6 +21,8 @@ fun desktopModules(
 
 private fun desktopDataModule() = module {
     includes(dataModule())
+    single<org.tool.kit.domain.repository.ImageProcessor> { org.tool.kit.data.source.JvmImageProcessor(get<AppDispatchers>().io) }
+    single<org.tool.kit.domain.repository.IconOutputs> { org.tool.kit.data.source.JvmIconOutputs(get<AppDispatchers>().io) }
     single<org.tool.kit.domain.repository.ApkToolRepository> { org.tool.kit.data.source.JvmApkToolDataSource(org.tool.kit.constant.ConfigConstant.APKTOOL_FILE, get<AppDispatchers>().io) }
     single<org.tool.kit.domain.repository.ApkBuildWorkspaces> { org.tool.kit.data.source.JvmApkBuildWorkspaces(java.io.File(System.getProperty("java.io.tmpdir")), get<AppDispatchers>().io) }
     single { org.tool.kit.feature.signature.SigningPresets(

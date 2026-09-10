@@ -27,7 +27,7 @@ class Phase3IconCommitTest {
         val dispatchers = AppDispatchers(Dispatchers.IO, Dispatchers.Default, Dispatchers.Main.immediate)
         val preferences = DefaultPreferencesRepository(PreferencesDataSource(physical.toFlowSettings(Dispatchers.Unconfined), dispatchers.io), dispatchers)
         val effects = AppEffectSink()
-        val vm = MainViewModel(preferences, AllPathsExist, effects)
+        val vm = MainViewModel(preferences, AllPathsExist, effects, unusedGenerateIcons())
         val store = ViewModelStore().also { it.put("icon", vm) }
         try {
             setContent { AppTheme(false) { Column { Compression(vm) } } }

@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted.Companion.Eagerly
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,12 +35,6 @@ import org.tool.kit.model.JunkCodeInfo
 import org.tool.kit.model.JunkMode
 import org.tool.kit.model.PendingDeletionFile
 import org.tool.kit.model.Sequence
-import org.tool.kit.platform.RustException
-import org.tool.kit.platform.mozJpeg
-import org.tool.kit.platform.oxipng
-import org.tool.kit.platform.quantize
-import org.tool.kit.platform.resizeFir
-import org.tool.kit.platform.resizePng
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.build_end
 import org.tool.kit.shared.generated.resources.build_failure
@@ -53,9 +48,6 @@ import org.tool.kit.utils.AndroidJunkGenerator
 import org.tool.kit.utils.MultiAarGenerator
 import org.tool.kit.utils.formatFileSize
 import org.tool.kit.utils.getFileLength
-import org.tool.kit.utils.isJPEG
-import org.tool.kit.utils.isJPG
-import org.tool.kit.utils.isPng
 import org.tool.kit.utils.resourcesDir
 import org.tool.kit.utils.update
 import java.io.File
@@ -72,6 +64,7 @@ class MainViewModel(
     private val preferences: org.tool.kit.domain.preferences.PreferencesRepository,
     private val storage: StorageRepository,
     private val effects: org.tool.kit.feature.app.AppEffectSink,
+    private val generateIcons: org.tool.kit.domain.usecase.GenerateIconsUseCase,
     initialCapacity: StorageCapacity = StorageCapacity(0, 0),
 ) :
     ViewModel() {
@@ -255,111 +248,36 @@ class MainViewModel(
      * 图标生成
      * @param path 图标路径
      */
-    fun iconGeneration(path: String) = viewModelScope.launch(Dispatchers.IO) {
+    fun iconGeneration(path: String) {
+        if (iconFactoryUIState == UIState.Loading) return
+        val form = iconFactoryInfoState
+        val options = iconFactoryData.value
+        val request = org.tool.kit.domain.icon.GenerateIconsRequest(path, form.outputPath,
+            form.fileDir, form.iconDir, form.iconName, org.tool.kit.domain.icon.IconProcessingOptions(
+                options.pngTypIdx.typIdx, options.jpegTypIdx.typIdx, options.lossless,
+                options.minimum, options.target, options.speed, options.preset, options.quality))
         _iconFactoryUIState.update { UIState.Loading }
-        val iconFactory = iconFactoryData.value
-        val densities = ConfigConstant.ICON_FILE_LIST
-        val sizes = ConfigConstant.ICON_SIZE_LIST
-        val inputFile = File(path)
-        val outputDir = File(iconFactoryInfoState.outputPath, iconFactoryInfoState.fileDir)
-
-        updateIconFactoryInfo(iconFactoryInfoState.copy(result = null))
-
-        val suffix = if (path.isPng) {
-            ".png"
-        } else if (path.isJPG) {
-            ".jpg"
-        } else if (path.isJPEG) {
-            ".jpeg"
-        } else {
-            return@launch
-        }
-
-        logger.info { "iconGeneration 图标生成开始, 图标文件路径: $path" }
-
-        var isSuccess = true
-        var error = ""
-        val result = mutableListOf<File>()
-        for ((index, density) in densities.withIndex()) {
-            val size = sizes[index]
-            val outputFile =
-                File(
-                    outputDir,
-                    "${iconFactoryInfoState.iconDir}-${density}/${iconFactoryInfoState.iconName}${suffix}"
-                )
-            val outputSizeFile = File(
-                outputDir,
-                "${iconFactoryInfoState.iconDir}-${density}/${iconFactoryInfoState.iconName}_resize${suffix}"
-            )
-            outputFile.parentFile.mkdirs()
-            outputFile.delete()
-            outputSizeFile.delete()
+        updateIconFactoryInfo(form.copy(result = null))
+        viewModelScope.launch {
             try {
-                if (path.isPng) {
-                    resizePng(
-                        inputPath = inputFile.absolutePath,
-                        outputPath = outputSizeFile.absolutePath,
-                        width = size,
-                        height = size,
-                        typIdx = iconFactory.pngTypIdx.typIdx.toUByte()
-                    )
-                    if (iconFactory.lossless) {
-                        oxipng(
-                            inputPath = outputSizeFile.absolutePath,
-                            outputPath = outputFile.absolutePath,
-                            preset = iconFactory.preset
-                        )
-                    } else {
-                        quantize(
-                            inputPath = outputSizeFile.absolutePath,
-                            outputPath = outputFile.absolutePath,
-                            minimum = iconFactory.minimum,
-                            target = iconFactory.target,
-                            speed = iconFactory.speed,
-                            preset = iconFactory.preset
-                        )
+                val outcome = generateIcons(request)
+                kotlinx.coroutines.currentCoroutineContext().ensureActive()
+                when (outcome) {
+                    is org.tool.kit.domain.icon.GenerateIconsOutcome.Success -> {
+                        updateIconFactoryInfo(iconFactoryInfoState.copy(result = outcome.outputPaths.map(::File).toMutableList()))
+                        updateSnackbarVisuals(SnackbarMessage(
+                            message = UiMessage.Text(getString(Res.string.icon_generation_completed)),
+                            actionLabel = getString(Res.string.jump), withDismissAction = true,
+                            duration = SnackbarDuration.Short,
+                            action = SnackbarAction.OpenDirectory(outcome.outputDirectory)))
                     }
-                } else if (path.isJPG || path.isJPEG) {
-                    resizeFir(
-                        inputPath = inputFile.absolutePath,
-                        outputPath = outputSizeFile.absolutePath,
-                        width = size,
-                        height = size,
-                        typIdx = iconFactory.jpegTypIdx.typIdx.toUByte()
-                    )
-                    mozJpeg(
-                        inputPath = outputSizeFile.absolutePath,
-                        outputPath = outputFile.absolutePath,
-                        quality = if (iconFactory.lossless) 100f else iconFactory.quality
-                    )
+                    is org.tool.kit.domain.icon.GenerateIconsOutcome.Failure -> {
+                        updateIconFactoryInfo(iconFactoryInfoState.copy(result = outcome.outputPaths.map(::File).toMutableList()))
+                        updateSnackbarVisuals(outcome.message ?: getString(Res.string.icon_creation_failed))
+                    }
+                    org.tool.kit.domain.icon.GenerateIconsOutcome.UnsupportedInput -> Unit
                 }
-                logger.info { "iconGeneration 图标生成完成, 任务索引: $index, 图标大小: $size, 输出文件路径: ${outputFile.absolutePath}" }
-                result.add(outputFile)
-            } catch (e: RustException) {
-                logger.error(e) { "iconGeneration 图标生成异常, 异常信息: ${e.message}" }
-                isSuccess = false
-                error = e.message ?: getString(Res.string.icon_creation_failed)
-                break
-            } catch (e: Exception) {
-                logger.error(e) { "iconGeneration 图标生成异常, 异常信息: ${e.message}" }
-                isSuccess = false
-                error = e.message ?: getString(Res.string.icon_creation_failed)
-                break
-            }
-            outputSizeFile.delete()
-        }
-        updateIconFactoryInfo(iconFactoryInfoState.copy(result = result))
-        _iconFactoryUIState.update { UIState.WAIT }
-        if (isSuccess) {
-            val snackbarVisualsData = SnackbarMessage(
-                message = UiMessage.Text(getString(Res.string.icon_generation_completed)),
-                actionLabel = getString(Res.string.jump),
-                withDismissAction = true,
-                duration = SnackbarDuration.Short,
-                action = SnackbarAction.OpenDirectory(outputDir.path))
-            updateSnackbarVisuals(snackbarVisualsData)
-        } else {
-            updateSnackbarVisuals(error)
+            } finally { _iconFactoryUIState.update { UIState.WAIT } }
         }
     }
 
