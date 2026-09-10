@@ -1,4 +1,6 @@
-package org.tool.kit.utils
+package org.tool.kit.data.generator
+
+import org.tool.kit.utils.*
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.objectweb.asm.ClassWriter
@@ -1296,3 +1298,4 @@ class AndroidJunkGenerator(
         file.writeBytes(bytes)
     }
 }
+

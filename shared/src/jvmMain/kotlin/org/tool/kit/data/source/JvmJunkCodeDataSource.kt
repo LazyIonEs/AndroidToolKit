@@ -5,8 +5,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.tool.kit.domain.junk.*
 import org.tool.kit.domain.repository.JunkCodeRepository
-import org.tool.kit.utils.AndroidJunkGenerator
-import org.tool.kit.utils.MultiAarGenerator
+import org.tool.kit.data.generator.AndroidJunkGenerator
+import org.tool.kit.data.generator.MultiAarGenerator
 import java.io.File
 import java.nio.file.Files
 import kotlin.random.Random

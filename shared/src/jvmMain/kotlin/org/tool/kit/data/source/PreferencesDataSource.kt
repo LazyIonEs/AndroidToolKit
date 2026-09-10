@@ -12,11 +12,6 @@ import org.tool.kit.model.*
 import org.tool.kit.domain.preferences.*
 import org.tool.kit.utils.getDownloadDirectory
 
-interface PreferencesStorage {
-    suspend fun read(): PreferencesSnapshot
-    suspend fun write(change: PreferenceChange, snapshot: PreferencesSnapshot)
-}
-
 /** Physical keys and serializers are unchanged. No in-memory preference state is owned here. */
 @OptIn(ExperimentalSerializationApi::class, ExperimentalSettingsApi::class)
 class PreferencesDataSource(private val settings: FlowSettings, private val io: CoroutineDispatcher) : PreferencesStorage {

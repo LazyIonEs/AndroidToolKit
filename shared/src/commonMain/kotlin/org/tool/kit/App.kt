@@ -44,7 +44,6 @@ import androidx.compose.ui.window.PopupPositionProvider
 import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.feature.apk.navigation.apkInformationEntry
@@ -84,7 +83,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.tool.kit.feature.cleaner.*
 import org.tool.kit.feature.ui.rememberDirectoryPickerRequest
 
-private val logger = KotlinLogging.logger("App")
 
 @Suppress("DEPRECATION") // Keep the explicit root wrapper required by the Koin 4.2.2 migration.
 @Composable
@@ -117,7 +115,7 @@ private fun AppRoute() {
     }
 
     LaunchedEffect(Unit) {
-        logger.info { "启动App, 应用版本号: ${BuildConfig.APP_VERSION}" }
+        org.tool.kit.platform.logAppStartup(BuildConfig.APP_VERSION)
     }
 
     AppTheme(useDarkTheme) {

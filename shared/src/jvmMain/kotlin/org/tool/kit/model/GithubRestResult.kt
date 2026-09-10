@@ -46,7 +46,7 @@ data class GithubRestLatestResult(
     val publishedAt: String?,
     @SerialName("updated_at")
     val updatedAt: String?,
-    val assets: MutableList<Asset>
+    val assets: List<Asset>
 )
 
 @Serializable

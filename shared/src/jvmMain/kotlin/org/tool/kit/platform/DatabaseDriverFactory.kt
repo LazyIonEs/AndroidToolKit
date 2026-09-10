@@ -13,4 +13,4 @@ import kotlinx.coroutines.Dispatchers
  * @Version     : 1.0
  */
 @OptIn(ExperimentalSettingsApi::class)
-actual fun createFlowSettings(): FlowSettings = PreferencesSettings.Factory().create("toolkit").toFlowSettings(Dispatchers.IO)
+fun createFlowSettings(): FlowSettings = PreferencesSettings.Factory().create("toolkit").toFlowSettings(Dispatchers.IO)

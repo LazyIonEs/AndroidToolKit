@@ -589,7 +589,7 @@ fun VersionInfo(
     val coroutineScope = rememberCoroutineScope()
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp).onClick {
-            val currentTime = System.currentTimeMillis()
+            val currentTime = kotlin.time.Clock.System.now().toEpochMilliseconds()
             if (currentTime - lastTapTime > tapTimeoutMillis) {
                 tapCount = 0
             }

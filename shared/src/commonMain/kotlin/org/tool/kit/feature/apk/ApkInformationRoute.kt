@@ -7,7 +7,6 @@ import org.tool.kit.feature.ui.dragAndDropTarget
 import org.tool.kit.feature.ui.rememberFilePickerRequest
 import org.tool.kit.model.FileSelectorType
 import org.tool.kit.utils.isApk
-import kotlin.io.path.pathString
 
 @Composable
 fun ApkInformationRoute(viewModel: ApkInformationViewModel) {
@@ -16,7 +15,7 @@ fun ApkInformationRoute(viewModel: ApkInformationViewModel) {
     val selectFile: (String) -> Unit = { path -> apkInformationFileIntent(path)?.let(viewModel::onIntent) }
     val picker = rememberFilePickerRequest(FileSelectorType.APK, onSelected = selectFile)
     val target = dragAndDropTarget(dragging = { dragging = it }, onFinish = { result ->
-        result.onSuccess { files -> files.firstOrNull()?.let { selectFile(it.toAbsolutePath().pathString) } }
+        result.onSuccess { files -> files.firstOrNull()?.let { selectFile(it) } }
     })
     ApkInformationScreen(state, LocalIsAppDarkTheme.current, viewModel::onIntent, picker, dragging, target)
 }

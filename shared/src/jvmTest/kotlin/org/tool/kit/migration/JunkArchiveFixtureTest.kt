@@ -4,8 +4,8 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
-import org.tool.kit.utils.AndroidJunkGenerator
-import org.tool.kit.utils.MultiAarGenerator
+import org.tool.kit.data.generator.AndroidJunkGenerator
+import org.tool.kit.data.generator.MultiAarGenerator
 import java.io.File
 import java.util.jar.JarInputStream
 import java.util.zip.ZipFile

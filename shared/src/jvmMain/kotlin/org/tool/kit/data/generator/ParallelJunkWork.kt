@@ -1,4 +1,6 @@
-package org.tool.kit.utils
+package org.tool.kit.data.generator
+
+import org.tool.kit.utils.*
 
 import java.util.concurrent.atomic.AtomicReference
 import java.util.stream.IntStream
@@ -11,3 +13,4 @@ internal fun parallelJunkWork(count: Int, action: (Int) -> Unit) {
     }
     failure.get()?.let { throw it }
 }
+

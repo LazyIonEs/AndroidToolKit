@@ -68,9 +68,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toJavaLocalDateTime
-import kotlinx.datetime.toLocalDateTime
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -103,10 +100,9 @@ import org.tool.kit.shared.generated.resources.used_space
 import org.tool.kit.utils.LottieAnimation
 import org.tool.kit.utils.formatFileSize
 import org.tool.kit.utils.formatFileUnit
-import java.math.RoundingMode
-import java.time.format.DateTimeFormatter
+import org.tool.kit.utils.formatStoragePercentage
+import org.tool.kit.utils.formatModifiedTime
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -243,11 +239,9 @@ private fun ClearBuildPreview(state: CleanerUiState, useDarkTheme: Boolean) {
                             )
                         }
                         Column(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
-                            val percentage = if (totalSpace == 0L) java.math.BigDecimal("0.0") else
-                                checkedTotalLength.toBigDecimal().multiply(100.toBigDecimal())
-                                    .divide(totalSpace.toBigDecimal(), 1, RoundingMode.HALF_UP)
+                            val percentage = formatStoragePercentage(checkedTotalLength, totalSpace)
                             Text(
-                                "${percentage.toPlainString()}%",
+                                "${percentage}%",
                                 style = MaterialTheme.typography.headlineSmall
                             )
                             Spacer(Modifier.size(3.dp))
@@ -334,11 +328,7 @@ private fun ClearBuildList(state: CleanerUiState, onIntent: (CleanerIntent) -> U
                             )
                             else Icon(Icons.Outlined.Description, "Description")
                         }
-                        val instant =
-                            Instant.fromEpochMilliseconds(pendingDeletionFile.modifiedAt)
-                        val localDateTime = instant.toLocalDateTime(TimeZone.currentSystemDefault())
                         val pattern = stringResource(Res.string.time_format)
-                        val formatter = DateTimeFormatter.ofPattern(pattern)
 
                         Column(modifier = Modifier.weight(1f)) {
                             val path = pendingDeletionFile.displayPath
@@ -355,7 +345,7 @@ private fun ClearBuildList(state: CleanerUiState, onIntent: (CleanerIntent) -> U
                             )
                             val size =
                                 pendingDeletionFile.bytes.formatFileSize(withInterval = true)
-                            val time = localDateTime.toJavaLocalDateTime().format(formatter)
+                            val time = formatModifiedTime(pendingDeletionFile.modifiedAt, pattern)
                             Text(
                                 text = stringResource(Res.string.size_and_time, size, time),
                                 style = MaterialTheme.typography.bodyMedium

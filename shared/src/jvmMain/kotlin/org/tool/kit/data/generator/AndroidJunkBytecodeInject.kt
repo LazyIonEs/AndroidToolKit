@@ -1,4 +1,6 @@
-package org.tool.kit.utils
+package org.tool.kit.data.generator
+
+import org.tool.kit.utils.*
 
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -1805,3 +1807,4 @@ object AndroidJunkBytecodeInject {
         }
     }
 }
+

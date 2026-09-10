@@ -6,7 +6,7 @@ import org.tool.kit.domain.usecase.EstimateJunkSizeUseCase
 import org.tool.kit.feature.junk.*
 import org.tool.kit.feature.junk.JunkCodeIntent.*
 import org.tool.kit.model.JunkMode
-import org.tool.kit.utils.JunkSizePredictor
+import org.tool.kit.data.generator.JunkSizePredictor
 import org.tool.kit.utils.formatFileSize
 import kotlin.test.*
 

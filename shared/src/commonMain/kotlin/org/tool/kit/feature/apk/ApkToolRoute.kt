@@ -6,7 +6,6 @@ import org.tool.kit.feature.ui.dragAndDropTarget
 import org.tool.kit.feature.ui.rememberFilePickerRequest
 import org.tool.kit.feature.ui.rememberDirectoryPickerRequest
 import org.tool.kit.model.FileSelectorType
-import kotlin.io.path.pathString
 
 @Composable
 fun ApkToolRoute(viewModel: ApkToolViewModel) {
@@ -14,7 +13,7 @@ fun ApkToolRoute(viewModel: ApkToolViewModel) {
     LaunchedEffect(viewModel) { viewModel.onIntent(ApkToolIntent.Refresh) }
     var dragging by remember { mutableStateOf(false) }
     val target = dragAndDropTarget(dragging = { dragging = it }, onFinish = { result ->
-        result.onSuccess { files -> viewModel.onIntent(ApkToolIntent.FilesDropped(files.map { it.toAbsolutePath().pathString })) }
+        result.onSuccess { files -> viewModel.onIntent(ApkToolIntent.FilesDropped(files)) }
     })
     val pickOutput = rememberDirectoryPickerRequest { viewModel.onIntent(ApkToolIntent.OutputPathChanged(it)) }
     val pickIcon = rememberFilePickerRequest(FileSelectorType.IMAGE) { viewModel.onIntent(ApkToolIntent.IconPathChanged(it)) }

@@ -1,11 +1,11 @@
-package org.tool.kit.utils
+package org.tool.kit.data.generator
 
-import org.tool.kit.utils.AndroidJunkGenerator.Companion.ANIM_PROBABILITY
-import org.tool.kit.utils.AndroidJunkGenerator.Companion.ASSET_PROBABILITY
-import org.tool.kit.utils.AndroidJunkGenerator.Companion.DRAWABLE_PROBABILITY
-import org.tool.kit.utils.AndroidJunkGenerator.Companion.ID_PROBABILITY
-import org.tool.kit.utils.AndroidJunkGenerator.Companion.MIPMAP_PROBABILITY
-import org.tool.kit.utils.AndroidJunkGenerator.Companion.STRING_PROBABILITY
+import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.ANIM_PROBABILITY
+import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.ASSET_PROBABILITY
+import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.DRAWABLE_PROBABILITY
+import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.ID_PROBABILITY
+import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.MIPMAP_PROBABILITY
+import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.STRING_PROBABILITY
 
 object JunkSizePredictor {
 

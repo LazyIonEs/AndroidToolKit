@@ -7,6 +7,11 @@ from hot_mcp_scenarios import capture_baseline
 
 
 def smoke_phase3(tool, output, root):
+    # A clean build removes historical fixture directories. Replays must own
+    # their prerequisites instead of depending on a previous phase's run.
+    fixtures = root / "shared/build/migration/fixtures"
+    for name in ["phase3-output", "phase3-custom-kept", *(f"phase3-custom-{i}" for i in range(4))]:
+        (fixtures / name).mkdir(parents=True, exist_ok=True)
     capture_baseline(tool, output)
 
     def data(name, arguments=None):
@@ -78,7 +83,7 @@ def smoke_phase3(tool, output, root):
     report_file = output / "report.json"
     report = json.loads(report_file.read_text())
     report["checks"].extend(["successive settings inputs retain original whitespace",
-        "four visible legacy output fields receive the changed default (all five covered by VM tests)",
+        "four visible output fields receive the changed default (all five covered by VM tests)",
         "theme and suffix changes do not overwrite a custom signing folder"])
     report["final_status"] = data("status")
     report_file.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")

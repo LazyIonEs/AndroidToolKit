@@ -149,29 +149,6 @@ kotlin {
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.kotlinx.datetime)
 
-            // Logging
-            api(libs.logging)
-            implementation(libs.slf4j.api)
-            implementation(libs.logback.core)
-            implementation(libs.logback.classic)
-
-            // Android tools (with exclusions to avoid conflicts)
-            implementation(libs.android.apksig)
-            implementation(libs.android.sdk.common)
-            implementation(libs.google.guava)
-            implementation(libs.android.binary.resources)
-
-            // Third-party libraries
-            implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-            implementation(libs.commons.codec)
-            implementation(libs.asm)
-            implementation(libs.jna)
-
-            // File handling
-            implementation(libs.filekit.core)
-            implementation(libs.filekit.dialogs)
-            implementation(libs.filekit.dialogs.compose)
-
             // Settings
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.settings.coroutines)
@@ -180,17 +157,6 @@ kotlin {
             // Image handling
             implementation(libs.coil.compose)
             implementation(libs.zoomimage.compose.coil3)
-
-            // APK tools
-            implementation(libs.apktool.lib)
-
-            // Network
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.cio)
-            implementation(libs.ktor.client.apache5)
-            implementation(libs.ktor.client.logging)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.serialization.kotlinx.json)
 
             // UI components
             implementation(libs.markdown.renderer.jvm)
@@ -203,6 +169,18 @@ kotlin {
             implementation(libs.about.libraries.core)
             implementation(libs.about.libraries.compose.m3)
 
+        }
+
+        // JVM-specific dependencies
+        jvmMain.dependencies {
+            // Logging is a deliberate JVM API because composeApp imports KotlinLogging.
+            api(libs.logging)
+            implementation(libs.slf4j.api)
+            implementation(libs.logback.core)
+            implementation(libs.logback.classic)
+            implementation(libs.filekit.core)
+            implementation(libs.filekit.dialogs)
+            implementation(libs.filekit.dialogs.compose)
             // IntelliJ utilities (with extensive exclusions)
             implementation("com.jetbrains.intellij.platform:util:253.29346.308") {
                 exclude(group = "com.fasterxml", module = "aalto-xml")
@@ -227,10 +205,27 @@ kotlin {
                 exclude(group = "org.slf4j", module = "log4j-over-slf4j")
                 exclude(group = "oro", module = "oro")
             }
-        }
 
-        // JVM-specific dependencies
-        jvmMain.dependencies {
+            // HTTP transport (including Apache5) stays behind UpdateRepository.
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.cio)
+            implementation(libs.ktor.client.apache5)
+            implementation(libs.ktor.client.logging)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+
+            // UniFFI generated sources and JNA are desktop implementation details.
+            implementation(libs.jna)
+            // APK parsing, signing, templates and bundled JVM jars.
+            implementation(libs.android.apksig)
+            implementation(libs.android.sdk.common)
+            implementation(libs.google.guava)
+            implementation(libs.android.binary.resources)
+            implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+            implementation(libs.commons.codec)
+            implementation(libs.apktool.lib)
+
+            implementation(libs.asm)
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.coroutines.swing)
@@ -258,6 +253,58 @@ tasks.withType<KotlinCompile>().configureEach {
         freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
     }
 }
+
+// Compile the Domain closure independently: no application output, Compose,
+// Koin, FileKit, JVM tool jars, or serialization compiler plugin is on this path.
+val domainBoundaryLibraries = configurations.create("domainBoundaryLibraries") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_API))
+        attribute(org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.attribute,
+            org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType.jvm)
+    }
+}
+dependencies {
+    add(domainBoundaryLibraries.name, "org.jetbrains.kotlin:kotlin-stdlib:${libs.versions.kotlin.get()}")
+    add(domainBoundaryLibraries.name, libs.kotlinx.coroutines.core)
+    add(domainBoundaryLibraries.name, libs.kotlinx.serialization.json)
+}
+val domainBoundarySources = fileTree("src/commonMain/kotlin") {
+    include("org/tool/kit/domain/**/*.kt", "org/tool/kit/model/UserData.kt", "org/tool/kit/model/IconFactoryData.kt")
+}
+val compileDomainBoundary = tasks.register<JavaExec>("compileDomainBoundary") {
+    group = "verification"
+    description = "Compile Domain and its value models without Compose, DI or platform implementations."
+    // Invoke the existing compiler directly so no application compiler plugins are inherited.
+    classpath(configurations.named("kotlinCompilerClasspath"))
+    mainClass.set("org.jetbrains.kotlin.cli.jvm.K2JVMCompiler")
+    javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(javaLanguageVersion) })
+    val destination = layout.buildDirectory.dir("architecture/domain-classes")
+    val classpathReport = layout.buildDirectory.file("architecture/domain-classpath.txt")
+    inputs.files(domainBoundarySources, domainBoundaryLibraries)
+    outputs.dir(destination)
+    outputs.file(classpathReport)
+    doFirst {
+        destination.get().asFile.deleteRecursively()
+        destination.get().asFile.mkdirs()
+        setArgs(listOf("-no-stdlib", "-no-reflect", "-jvm-target", "21", "-classpath", domainBoundaryLibraries.asPath,
+            "-d", destination.get().asFile.absolutePath) + domainBoundarySources.files.sortedBy { it.path }.map { it.absolutePath })
+    }
+    doLast {
+        classpathReport.get().asFile.writeText(domainBoundaryLibraries.files.sortedBy { it.name }
+            .joinToString("\n") { it.absolutePath } + "\n")
+    }
+}
+val checkArchitecture = tasks.register<Exec>("checkArchitecture") {
+    group = "verification"
+    description = "Check ownership, immutable published models and platform boundaries (with mutation self-tests)."
+    workingDir(rootProject.projectDir)
+    commandLine(if (currentOs() == OS.WINDOWS) "python" else "python3",
+        "scripts/migration/check_architecture.py", "--report",
+        layout.buildDirectory.file("architecture/source-check.json").get().asFile.absolutePath)
+}
+tasks.named("check") { dependsOn(checkArchitecture, compileDomainBoundary) }
 
 // About Libraries configuration
 aboutLibraries {

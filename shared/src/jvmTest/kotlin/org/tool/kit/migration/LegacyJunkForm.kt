@@ -2,7 +2,7 @@ package org.tool.kit.migration
 
 import org.tool.kit.model.JunkMode
 
-import org.tool.kit.utils.JunkSizePredictor
+import org.tool.kit.data.generator.JunkSizePredictor
 import org.tool.kit.utils.formatFileSize
 
 /**

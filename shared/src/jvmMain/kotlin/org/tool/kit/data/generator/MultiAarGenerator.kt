@@ -1,4 +1,6 @@
-package org.tool.kit.utils
+package org.tool.kit.data.generator
+
+import org.tool.kit.utils.*
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -159,3 +161,4 @@ object MultiAarGenerator {
         val activityCount: Int
     )
 }
+

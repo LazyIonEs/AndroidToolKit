@@ -6,7 +6,6 @@ import org.tool.kit.feature.ui.dragAndDropTarget
 import org.tool.kit.feature.ui.rememberFilePickerRequest
 import org.tool.kit.feature.ui.rememberDirectoryPickerRequest
 import org.tool.kit.model.FileSelectorType
-import kotlin.io.path.pathString
 
 @Composable
 fun ApkSigningRoute(viewModel: ApkSigningViewModel) {
@@ -14,7 +13,7 @@ fun ApkSigningRoute(viewModel: ApkSigningViewModel) {
     LaunchedEffect(viewModel) { viewModel.onIntent(ApkSigningIntent.Refresh) }
     var dragging by remember { mutableStateOf(false) }
     val target = dragAndDropTarget(dragging = { dragging = it }, onFinish = { result ->
-        result.onSuccess { files -> viewModel.onIntent(ApkSigningIntent.FilesDropped(files.map { it.toAbsolutePath().pathString })) }
+        result.onSuccess { files -> viewModel.onIntent(ApkSigningIntent.FilesDropped(files)) }
     })
     val pickApk = rememberFilePickerRequest(FileSelectorType.APK) { viewModel.onIntent(ApkSigningIntent.ApkPathChanged(it)) }
     val pickOutput = rememberDirectoryPickerRequest { viewModel.onIntent(ApkSigningIntent.OutputPathChanged(it)) }

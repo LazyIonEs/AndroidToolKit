@@ -19,19 +19,22 @@ fun desktopModules(
     dispatchers: AppDispatchers = AppDispatchers(Dispatchers.IO, Dispatchers.Default, Dispatchers.Main.immediate),
 ): List<Module> = listOf(coreModule(dispatchers, settingsFactory), desktopDataModule(), domainModule(), viewModelModule())
 
+@OptIn(ExperimentalSettingsApi::class)
 private fun desktopDataModule() = module {
     includes(dataModule())
+    single { org.tool.kit.data.source.PreferencesDataSource(get(), get<AppDispatchers>().io) }
+    single<org.tool.kit.data.source.PreferencesStorage> { get<org.tool.kit.data.source.PreferencesDataSource>() }
     single<org.tool.kit.domain.repository.BuildCachesRepository> { org.tool.kit.data.source.JvmBuildCachesDataSource(get<AppDispatchers>().io) }
     single<org.tool.kit.domain.repository.JunkCodeRepository> { org.tool.kit.data.source.JvmJunkCodeDataSource(java.io.File(System.getProperty("java.io.tmpdir")), get<AppDispatchers>().io) }
-    single<org.tool.kit.domain.repository.JunkSizeEstimator> { org.tool.kit.domain.repository.JunkSizeEstimator(org.tool.kit.utils.JunkSizePredictor::estimateAarSize) }
+    single<org.tool.kit.domain.repository.JunkSizeEstimator> { org.tool.kit.domain.repository.JunkSizeEstimator(org.tool.kit.data.generator.JunkSizePredictor::estimateAarSize) }
     single<org.tool.kit.domain.repository.JunkTokenGenerator> { org.tool.kit.domain.repository.JunkTokenGenerator({ min, max -> org.tool.kit.utils.generateSecureToken(min, max) }) }
     single<org.tool.kit.domain.repository.ImageProcessor> { org.tool.kit.data.source.JvmImageProcessor(get<AppDispatchers>().io) }
     single<org.tool.kit.domain.repository.IconOutputs> { org.tool.kit.data.source.JvmIconOutputs(get<AppDispatchers>().io) }
-    single<org.tool.kit.domain.repository.ApkToolRepository> { org.tool.kit.data.source.JvmApkToolDataSource(org.tool.kit.constant.ConfigConstant.APKTOOL_FILE, get<AppDispatchers>().io) }
+    single<org.tool.kit.domain.repository.ApkToolRepository> { org.tool.kit.data.source.JvmApkToolDataSource(org.tool.kit.platform.DesktopToolResources.APKTOOL_FILE, get<AppDispatchers>().io) }
     single<org.tool.kit.domain.repository.ApkBuildWorkspaces> { org.tool.kit.data.source.JvmApkBuildWorkspaces(java.io.File(System.getProperty("java.io.tmpdir")), get<AppDispatchers>().io) }
     single { org.tool.kit.feature.signature.SigningPresets(
-        org.tool.kit.constant.ConfigConstant.APK.entries.map { org.tool.kit.feature.signature.SigningPreset(it.title, it.path) },
-        org.tool.kit.constant.ConfigConstant.APK.All.path, org.tool.kit.constant.ConfigConstant.APK.Huawei.path) }
+        org.tool.kit.platform.DesktopToolResources.APK.entries.map { org.tool.kit.feature.signature.SigningPreset(it.title, it.path) },
+        org.tool.kit.platform.DesktopToolResources.APK.All.path, org.tool.kit.platform.DesktopToolResources.APK.Huawei.path) }
     single<org.tool.kit.domain.repository.ApkSigningRepository> { org.tool.kit.data.source.JvmApkSignerDataSource(get<AppDispatchers>().io) }
     single<org.tool.kit.core.process.ProcessRunner> { org.tool.kit.data.process.JvmProcessRunner(get<AppDispatchers>().io) }
     single { org.tool.kit.data.source.Aapt2Locator() }

@@ -160,7 +160,7 @@ class Phase2UiTest {
         var composed = -1
         lateinit var target: DragAndDropTarget
         val dragging = mutableListOf<Pair<Int, Boolean>>()
-        val results = mutableListOf<Pair<Int, Result<List<Path>>>>()
+        val results = mutableListOf<Pair<Int, Result<List<String>>>>()
         setContent {
             TestContext {
                 val current = version.intValue
@@ -202,7 +202,7 @@ class Phase2UiTest {
         ioScheduler.runCurrent()
         waitUntil { results.size == 2 }
         assertEquals(2, results.last().first)
-        assertEquals(listOf(file.toPath()), results.last().second.getOrThrow())
+        assertEquals(listOf(file.absolutePath), results.last().second.getOrThrow())
         assertEquals(1 to false, dragging.last())
     }
 

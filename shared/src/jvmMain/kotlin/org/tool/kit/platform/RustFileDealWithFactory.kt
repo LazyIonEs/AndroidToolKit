@@ -18,7 +18,7 @@ import uniffi.toolkit.resizePng
  * @param typIdx 缩放算法 0 Triangle 1 Catrom 2 Mitchell 3 Lanczos3
  */
 @Throws(RustException::class)
-actual fun resizePng(inputPath: String, outputPath: String, width: UInt, height: UInt, typIdx: UByte) {
+fun resizePng(inputPath: String, outputPath: String, width: UInt, height: UInt, typIdx: UByte = 3u) {
     try {
         resizePng(
             inputPath = inputPath, outputPath = outputPath, dstWidth = width, dstHeight = height, typIdx = typIdx
@@ -37,7 +37,7 @@ actual fun resizePng(inputPath: String, outputPath: String, width: UInt, height:
  * @param height 高度
  */
 @Throws(RustException::class)
-actual fun resizeFir(inputPath: String, outputPath: String, width: UInt, height: UInt, typIdx: UByte) {
+fun resizeFir(inputPath: String, outputPath: String, width: UInt, height: UInt, typIdx: UByte = 5u) {
     try {
         resizeFir(
             inputPath = inputPath, outputPath = outputPath, dstWidth = width, dstHeight = height, typIdx = typIdx
@@ -59,13 +59,13 @@ actual fun resizeFir(inputPath: String, outputPath: String, width: UInt, height:
  * @param preset 预设 1 - 6 预设越高、速度越慢、压缩效果越好
  */
 @Throws(RustException::class)
-actual fun quantize(
+fun quantize(
     inputPath: String,
     outputPath: String,
-    @IntRange(from = 0, to = 100) minimum: Int,
-    @IntRange(from = 30, to = 100) target: Int,
-    @IntRange(from = 1, to = 10) speed: Int,
-    @IntRange(from = 0, to = 6) preset: Int
+    @IntRange(from = 0, to = 100) minimum: Int = 70,
+    @IntRange(from = 30, to = 100) target: Int = 100,
+    @IntRange(from = 1, to = 10) speed: Int = 1,
+    @IntRange(from = 0, to = 6) preset: Int = 6
 ) {
     try {
         quantize(
@@ -89,10 +89,10 @@ actual fun quantize(
  * @param preset 预设 1 - 6 预设越高、速度越慢、压缩效果越好
  */
 @Throws(RustException::class)
-actual fun oxipng(
+fun oxipng(
     inputPath: String,
     outputPath: String,
-    @IntRange(from = 0, to = 6) preset: Int
+    @IntRange(from = 0, to = 6) preset: Int = 6
 ) {
     try {
         oxipng(
@@ -114,7 +114,7 @@ actual fun oxipng(
  * @param quality 图像质量。建议值为 60-80
  */
 @Throws(RustException::class)
-actual fun mozJpeg(inputPath: String, outputPath: String, @FloatRange(from = 0.0, to = 100.0) quality: Float) {
+fun mozJpeg(inputPath: String, outputPath: String, @FloatRange(from = 0.0, to = 100.0) quality: Float = 85f) {
     try {
         mozJpeg(
             inputPath = inputPath, outputPath = outputPath, quality = quality
@@ -124,3 +124,5 @@ actual fun mozJpeg(inputPath: String, outputPath: String, @FloatRange(from = 0.0
         throw RustException(e.message)
     }
 }
+
+class RustException(message: String?) : Exception(message)

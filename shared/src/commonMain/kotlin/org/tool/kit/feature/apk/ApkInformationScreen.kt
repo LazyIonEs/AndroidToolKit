@@ -27,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -233,7 +232,7 @@ private fun ApkInformationBox(
                                 AppTheme(useDarkTheme) {
                                     Surface(color = MaterialTheme.colorScheme.background) {
                                         CoilZoomAsyncImage(
-                                            model = getImageRequest(image.asSkiaBitmap()),
+                                            model = getImageRequest(image),
                                             contentDescription = "zoom image",
                                             modifier = Modifier.fillMaxSize(),
                                         )
@@ -242,7 +241,7 @@ private fun ApkInformationBox(
                             }
                         }
                         AsyncImage(
-                            model = getImageRequest(image.asSkiaBitmap()),
+                            model = getImageRequest(image),
                             contentDescription = "app icon",
                             modifier = Modifier.align(Alignment.TopEnd)
                                 .padding(top = 6.dp, end = 18.dp)

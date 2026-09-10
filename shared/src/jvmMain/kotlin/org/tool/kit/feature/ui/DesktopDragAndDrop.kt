@@ -14,11 +14,11 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.tool.kit.platform.DesktopFileSelection
-import java.nio.file.Path
+import kotlin.io.path.pathString
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-actual fun dragAndDropTarget(dragging: (Boolean) -> Unit, onFinish: (Result<List<Path>>) -> Unit): DragAndDropTarget {
+actual fun dragAndDropTarget(dragging: (Boolean) -> Unit, onFinish: (Result<List<String>>) -> Unit): DragAndDropTarget {
     val currentDragging by rememberUpdatedState(dragging)
     val currentOnFinish by rememberUpdatedState(onFinish)
     val files = koinInject<DesktopFileSelection>()
@@ -39,7 +39,7 @@ actual fun dragAndDropTarget(dragging: (Boolean) -> Unit, onFinish: (Result<List
                 val candidates = data.readFiles().toList()
                 scope.launch {
                     val result = try {
-                        Result.success(files.resolveDrop(candidates))
+                        Result.success(files.resolveDrop(candidates).map { it.toAbsolutePath().pathString })
                     } catch (e: CancellationException) {
                         throw e
                     } catch (e: Exception) {

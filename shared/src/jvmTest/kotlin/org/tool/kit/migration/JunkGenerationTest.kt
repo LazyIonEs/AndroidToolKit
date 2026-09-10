@@ -9,8 +9,8 @@ import org.junit.rules.TemporaryFolder
 import org.tool.kit.data.source.JvmJunkCodeDataSource
 import org.tool.kit.domain.junk.*
 import org.tool.kit.domain.usecase.GenerateJunkCodeUseCase
-import org.tool.kit.utils.MultiAarGenerator
-import org.tool.kit.utils.parallelJunkWork
+import org.tool.kit.data.generator.MultiAarGenerator
+import org.tool.kit.data.generator.parallelJunkWork
 import java.io.File
 import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicInteger

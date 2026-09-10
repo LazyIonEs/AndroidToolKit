@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import com.mikepenz.markdown.m3.Markdown
 import com.mikepenz.markdown.m3.markdownTypography
 import com.mikepenz.markdown.model.markdownPadding
-import io.github.oshai.kotlinlogging.KotlinLogging
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.BuildConfig
 import org.tool.kit.model.DownloadState
@@ -60,7 +59,6 @@ import kotlin.math.roundToInt
  * @createDate  : 2026/1/20 09:19
  */
 
-private val logger = KotlinLogging.logger("UpdateDialog")
 
 /**
  * 检查更新弹窗
