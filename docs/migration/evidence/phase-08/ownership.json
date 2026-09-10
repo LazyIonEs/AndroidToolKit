@@ -1,0 +1,10 @@
+{
+  "screenPure": true,
+  "domainPlatformIndependent": true,
+  "publishedItemsImmutable": true,
+  "oldCleanerStateAndMethodsRemoved": true,
+  "stableId": "absolute path",
+  "rootOwner": "one window-scoped CleanerViewModel shared by Route, root bottom bar, Rail and Loading",
+  "remainingLegacy": "MainViewModel contains only unused preference projections; legacy class and DI removal deferred to Phase 9",
+  "nativeFixture": "All deletion fixtures are generated in new temporary directories"
+}
