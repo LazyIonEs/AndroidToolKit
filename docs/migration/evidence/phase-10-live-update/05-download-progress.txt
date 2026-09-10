@@ -1,0 +1,9 @@
+The following is a diff from the previous accessibility tree for Window: "AndroidToolKit" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
+Removed element IDs: 95-99
+~						52 文本 (selectable) 下载中 · 12%
+~							94 文本 (selectable) 请等待下载完成
++							95 未知 (selectable) 0
++								96 进度指示条 (selectable) 0.1202110648155212
++							97 未知 (selectable) 0
++								98 文本 (selectable) 19.3MB / 160.3MB
++						99 未知 (selectable)

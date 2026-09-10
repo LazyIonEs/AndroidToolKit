@@ -1,0 +1,36 @@
+Window: "AndroidToolKit", App: 访达.
+0 标准窗口 AndroidToolKit, ID: FinderWindow, Secondary Actions: Raise
+	1 分离组
+		2 滚动区 Secondary Actions: Scroll Up, Scroll Down
+			3 集合 Description: 图标视图, ID: IconView
+				4 节 (disabled)
+					5 图像 AndroidToolKit.app, Secondary Actions: 打开
+					6 图像 Applications, Secondary Actions: 打开
+			7 滚动条 (settable, float) 0
+				8 值指示器 (settable, float) 0
+				9 增箭头按钮
+				10 减箭头按钮
+				11 增页面按钮
+				12 减页面按钮
+		13 未知 Details: 状态栏, ID: statusBar
+			14 图像 不可编辑
+			15 文本 Value: 5个项目, ID: statusBarText
+			16 滑块 (settable, float) Description: 调整大小图标, Value: 56
+				17 值指示器 (settable, float) 56
+		18 列表 路径
+			19 文本 URL: file:///Volumes/AndroidToolKit/, Value: AndroidToolKit, Secondary Actions: 打开
+	20 关闭按钮
+	21 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	22 最小化按钮
+	23 图像 Macintosh HD
+	24 文本 AndroidToolKit
+25 menu bar
+	26 访达
+	27 文件
+	28 编辑
+	29 显示
+	30 前往
+	31 窗口
+	32 帮助
+
+The focused UI element is 3 集合 Description: 图标视图, ID: IconView

@@ -1,0 +1,9 @@
+{
+  "file": "/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/live-update-downloads/AndroidToolKit-macos-arm64.dmg",
+  "bytes": 160295298,
+  "expectedBytes": 160295298,
+  "sha256": "d0469c283dca300523c04ad0ce6fb91f6f6cb4967906f2b802ba8c7dfc89e3c0",
+  "expectedDigest": "sha256:d0469c283dca300523c04ad0ce6fb91f6f6cb4967906f2b802ba8c7dfc89e3c0",
+  "sizeMatches": true,
+  "digestMatches": true
+}

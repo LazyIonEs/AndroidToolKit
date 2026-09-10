@@ -1,0 +1,94 @@
+Window: "AndroidToolKit", App: AndroidToolKit.
+0 标准窗口 AndroidToolKit, Secondary Actions: Raise
+	1 未知 (selectable) 0
+		2 container (selectable) 0
+			3 container (selectable) 0
+				4 未知 (selectable) 0
+					5 container (selectable) 0
+						6 container (selectable) 0
+							7 未知 (selectable) 0
+								8 单选按钮 (selectable) 签名信息
+							9 未知 (selectable) 0
+								10 单选按钮 (selectable) APK信息
+							11 未知 (selectable) 0
+								12 单选按钮 (selectable) APK签名
+							13 未知 (selectable) 0
+								14 单选按钮 (selectable) 签名生成
+							15 未知 (selectable) 0
+								16 单选按钮 (selectable) APK生成
+							17 未知 (selectable) 0
+								18 单选按钮 (selectable) 垃圾代码
+							19 未知 (selectable) 0
+								20 单选按钮 (selectable) 图标生成
+							21 未知 (selectable) 0
+								22 单选按钮 (selectable) 缓存清理
+							23 单选按钮 (selectable) 设置
+				24 未知 (selectable) 0
+					25 滚动区 (selectable) 0
+						26 container (selectable) 0
+							27 文本 (selectable) 常规
+							28 文本栏 (selectable, settable) Description: 默认输出路径, Value: /Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/live-update-downloads
+							29 按钮 (selectable) FolderOpen
+							30 文本 (selectable) 外观
+							31 复选框 (selectable) 跟随系统
+							32 复选框 (selectable) Done icon
+							33 复选框 (selectable) 暗色模式
+							34 文本 (selectable) 版本信息
+							35 文本 (selectable) 1.6.10
+							36 未知 (selectable) 0
+								37 按钮 (selectable) 检查更新
+							38 文本 (selectable) 启动时检查更新
+							39 复选框 (selectable)
+						40 container (selectable) 0
+							41 文本 (selectable) APK签名
+							42 文本栏 (selectable, settable) Description: 签名后缀, Value: -sign
+							43 文本 (selectable) 签名后缀： Apk签名后输出名称（比如：输入Apk名称为apk.apk，则输入Apk名称为apk-sign.apk
+							44 文本 (selectable) 是否删除重名输出文件
+							45 复选框 (selectable)
+							46 文本 (selectable) 启用文件对齐
+							47 复选框 (selectable)
+		48 container (selectable) 0
+			49 未知 (selectable) 0
+				50 未知 (selectable) 0
+					51 container (selectable) 0
+						52 文本 (selectable) AndroidToolKit-v1.6.11
+						53 未知 (selectable) 0
+							54 滚动区 (selectable) 0
+								55 文本 (selectable) What's Changed
+								56 container (selectable) 0
+									57 文本 (selectable) •
+									58 container (selectable) 0
+										59 文本 (selectable) chore: 调整依赖版本并修复 FileKit 调用 by @LazyIonEs in https://github.com/LazyIonEs/AndroidToolKit/pull/39
+											60 未知 (selectable)
+								61 container (selectable) 0
+									62 文本 (selectable) •
+									63 container (selectable) 0
+										64 文本 (selectable) 修复 linux 下选择文件程序崩溃 by @dongfengweixiao in https://github.com/LazyIonEs/AndroidToolKit/pull/40
+											65 未知 (selectable)
+								66 container (selectable) 0
+									67 文本 (selectable) •
+									68 container (selectable) 0
+										69 文本 (selectable) chore: 更新依赖版本并优化关于页面与资源解析逻辑 by @LazyIonEs in https://github.com/LazyIonEs/AndroidToolKit/pull/41
+											70 未知 (selectable)
+								71 文本 (selectable) New Contributors
+								72 container (selectable) 0
+									73 文本 (selectable) •
+									74 container (selectable) 0
+										75 文本 (selectable) @dongfengweixiao made their first contribution in https://github.com/LazyIonEs/AndroidToolKit/pull/40
+											76 未知 (selectable)
+								77 container (selectable) 0
+									78 文本 (selectable) Full Changelog: https://github.com/LazyIonEs/AndroidToolKit/compare/v1.6.10...v1.6.11
+										79 未知 (selectable)
+								80 文本 (selectable) 发布时间: 2026-06-23T03:07:06Z
+							81 未知 (selectable) 0
+								82 单选按钮 (selectable)
+								83 单选按钮 (selectable) AndroidToolKit-macos-arm64.dmg
+						84 未知 (selectable) 0
+							85 按钮 (selectable) 更新
+						86 按钮 (selectable) 取消
+	87 关闭按钮
+	88 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	89 最小化按钮
+	90 文本 AndroidToolKit
+91 menu bar
+	92 AndroidToolKit

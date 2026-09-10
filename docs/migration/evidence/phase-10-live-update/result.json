@@ -1,0 +1,18 @@
+{
+  "localVersion": "1.6.10",
+  "remoteVersion": "v1.6.11",
+  "testPreferenceIsolation": true,
+  "productionEndpointObserved": true,
+  "productionAssetUrlObserved": true,
+  "downloadedBytes": 160295298,
+  "githubDigestMatched": true,
+  "downloadOutsideClickKeptDialog": true,
+  "exitAndInstallClicked": true,
+  "oldProcessExitObserved": true,
+  "finderInstallWindowObserved": true,
+  "mountedVersion": "1.6.11",
+  "applicationsOverwritePerformed": false,
+  "downloadedApplicationLaunched": false,
+  "finalMountLeftOpen": "/Volumes/AndroidToolKit",
+  "finalSampledProgress": 0.9993060827255249
+}
