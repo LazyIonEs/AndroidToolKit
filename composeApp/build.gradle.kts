@@ -10,6 +10,13 @@ plugins {
 }
 
 // Build properties
+if (providers.gradleProperty("migrationCompilerReports").map(String::toBoolean).getOrElse(false)) {
+    composeCompiler {
+        reportsDestination.set(layout.buildDirectory.dir("migration/compose-compiler/reports"))
+        metricsDestination.set(layout.buildDirectory.dir("migration/compose-compiler/metrics"))
+    }
+}
+
 val kitVersion: String by project
 val kitPackageName: String by project
 val kitDescription: String by project

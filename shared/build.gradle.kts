@@ -14,6 +14,14 @@ plugins {
 val migrationHotReload = providers.gradleProperty("migrationHotReload").map(String::toBoolean).getOrElse(false)
 if (migrationHotReload) apply(plugin = "org.jetbrains.compose.hot-reload")
 
+// Opt-in verification output; release compiler behavior and stability rules stay unchanged.
+if (providers.gradleProperty("migrationCompilerReports").map(String::toBoolean).getOrElse(false)) {
+    composeCompiler {
+        reportsDestination.set(layout.buildDirectory.dir("migration/compose-compiler/reports"))
+        metricsDestination.set(layout.buildDirectory.dir("migration/compose-compiler/metrics"))
+    }
+}
+
 // Build properties
 val kitVersion: String by project
 val kitPackageName: String by project
