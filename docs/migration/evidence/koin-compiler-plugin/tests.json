@@ -1,0 +1,10 @@
+{
+  "compilerPlugin": "1.2.0",
+  "kotlin": "2.4.10",
+  "koinRuntime": "4.2.2",
+  "suites": 55,
+  "tests": 203,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0
+}

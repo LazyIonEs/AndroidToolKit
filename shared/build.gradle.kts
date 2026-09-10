@@ -9,6 +9,7 @@ plugins {
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.about.libraries)
+    alias(libs.plugins.koin.compiler)
 }
 
 val migrationHotReload = providers.gradleProperty("migrationHotReload").map(String::toBoolean).getOrElse(false)
