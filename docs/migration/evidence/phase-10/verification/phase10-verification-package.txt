@@ -1,0 +1,995 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build
+Configuration on demand is an incubating feature.
+Type-safe project accessors is an incubating feature.
+
+> Task :shared:checkJvmMainComposeLibrariesCompatibility
+w: Skiko dependencies' versions are incompatible.
+    io.github.panpf.zoomimage:zoomimage-core-desktop:1.7.0-alpha01
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.150.1
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :shared:dependencies  --configuration jvmRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Note: Skiko is considered implementation detail in Compose Multiplatform and might be incompatible across versions.
+Please align Skiko dependencies to the same version. If possible, avoid direct Skiko references and use Compose APIs instead.
+
+
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+
+> Task :composeApp:checkJvmMainComposeLibrariesCompatibility
+w: Skiko dependencies' versions are incompatible.
+    io.github.panpf.zoomimage:zoomimage-core-desktop:1.7.0-alpha01
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.150.1
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :composeApp:dependencies  --configuration jvmRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Note: Skiko is considered implementation detail in Compose Multiplatform and might be incompatible across versions.
+Please align Skiko dependencies to the same version. If possible, avoid direct Skiko references and use Compose APIs instead.
+
+
+> Task :composeApp:kmpPartiallyResolvedDependenciesChecker
+> Task :composeApp:checkKotlinGradlePluginConfigurationErrors SKIPPED
+
+> Task :composeApp:checkJvmTestComposeLibrariesCompatibility
+w: Skiko dependencies' versions are incompatible.
+    io.github.panpf.zoomimage:zoomimage-core-desktop:1.7.0-alpha01
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.150.1
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :composeApp:dependencies  --configuration jvmTestRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Note: Skiko is considered implementation detail in Compose Multiplatform and might be incompatible across versions.
+Please align Skiko dependencies to the same version. If possible, avoid direct Skiko references and use Compose APIs instead.
+
+
+> Task :shared:convertXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :shared:exportLibraryDefinitions UP-TO-DATE
+> Task :shared:copyNonXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :shared:prepareComposeResourcesTaskForCommonMain UP-TO-DATE
+> Task :shared:generateResourceAccessorsForCommonMain UP-TO-DATE
+> Task :shared:convertXmlValueResourcesForJvmMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForJvmMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForJvmMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForJvmMain NO-SOURCE
+> Task :shared:generateActualResourceCollectorsForJvmMain UP-TO-DATE
+> Task :shared:generateBuildConfigClasses UP-TO-DATE
+> Task :shared:generateComposeResClass UP-TO-DATE
+> Task :shared:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :shared:generateJvmMainBuildConfigClasses SKIPPED
+
+> Task :shared:buildRustLibrary
+    Finished `release` profile [optimized] target(s) in 0.57s
+
+> Task :shared:generateRustBindings UP-TO-DATE
+> Task :shared:compileKotlinJvm FROM-CACHE
+> Task :shared:compileJvmMainJava NO-SOURCE
+
+> Task :shared:checkJvmTestComposeLibrariesCompatibility
+w: Skiko dependencies' versions are incompatible.
+    io.github.panpf.zoomimage:zoomimage-core-desktop:1.7.0-alpha01
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.150.1
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :shared:dependencies  --configuration jvmTestRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Note: Skiko is considered implementation detail in Compose Multiplatform and might be incompatible across versions.
+Please align Skiko dependencies to the same version. If possible, avoid direct Skiko references and use Compose APIs instead.
+
+
+> Task :shared:generateJvmTestBuildConfigClasses SKIPPED
+> Task :shared:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :shared:generateResourceAccessorsForCommonTest NO-SOURCE
+> Task :shared:convertXmlValueResourcesForJvmTest NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForJvmTest NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForJvmTest NO-SOURCE
+> Task :shared:generateResourceAccessorsForJvmTest NO-SOURCE
+> Task :shared:generateTestBuildConfigClasses SKIPPED
+> Task :shared:assembleJvmMainResources UP-TO-DATE
+> Task :composeApp:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :shared:removeLegacyRustLibrary UP-TO-DATE
+> Task :composeApp:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForCommonMain SKIPPED
+> Task :shared:copyRustLibrary UP-TO-DATE
+> Task :composeApp:convertXmlValueResourcesForJvmMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForJvmMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForJvmMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForJvmMain SKIPPED
+> Task :composeApp:generateActualResourceCollectorsForJvmMain SKIPPED
+> Task :composeApp:generateComposeResClass SKIPPED
+> Task :composeApp:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :composeApp:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :shared:jvmProcessResources UP-TO-DATE
+> Task :composeApp:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :shared:processJvmMainResources SKIPPED
+> Task :shared:jvmMainClasses UP-TO-DATE
+> Task :composeApp:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForCommonTest SKIPPED
+> Task :composeApp:convertXmlValueResourcesForJvmTest NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForJvmTest NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForJvmTest NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForJvmTest SKIPPED
+> Task :composeApp:assembleJvmMainResources UP-TO-DATE
+> Task :shared:jvmJar UP-TO-DATE
+> Task :composeApp:jvmProcessResources UP-TO-DATE
+> Task :composeApp:compileKotlinJvm UP-TO-DATE
+> Task :composeApp:compileJvmMainJava NO-SOURCE
+> Task :composeApp:processJvmMainResources SKIPPED
+> Task :composeApp:jvmMainClasses UP-TO-DATE
+> Task :composeApp:jvmJar UP-TO-DATE
+> Task :composeApp:compileTestKotlinJvm NO-SOURCE
+> Task :composeApp:compileJvmTestJava NO-SOURCE
+> Task :composeApp:assembleJvmTestResources UP-TO-DATE
+> Task :composeApp:jvmTestProcessResources UP-TO-DATE
+> Task :composeApp:processJvmTestResources SKIPPED
+> Task :composeApp:jvmTestClasses UP-TO-DATE
+> Task :composeApp:jvmTest NO-SOURCE
+> Task :composeApp:allTests NO-SOURCE
+> Task :composeApp:check UP-TO-DATE
+> Task :composeApp:checkRuntime FROM-CACHE
+> Task :shared:compileTestKotlinJvm FROM-CACHE
+> Task :shared:compileJvmTestJava NO-SOURCE
+> Task :shared:assembleJvmTestResources UP-TO-DATE
+> Task :shared:jvmTestProcessResources UP-TO-DATE
+> Task :shared:processJvmTestResources SKIPPED
+> Task :shared:jvmTestClasses UP-TO-DATE
+> Task :shared:jvmTest UP-TO-DATE
+> Task :shared:allTests UP-TO-DATE
+
+> Task :shared:checkArchitecture
+{
+  "passed": true,
+  "production_files": 178,
+  "self_tests": 19,
+  "legacy_allowlist": [],
+  "excluded_sources": {
+    "shared/src/jvmTest": "Isolated fakes, mutation fixtures and frozen legacy comparison oracles; never packaged as production.",
+    "shared/src/commonTest": "Test-only dependencies and sources.",
+    "shared/build/generated": "Generated resource/build-config/UniFFI code; UniFFI is wired only into jvmMain."
+  },
+  "domain_companion_files": [
+    "model/IconFactoryData.kt",
+    "model/UserData.kt"
+  ],
+  "resource_read_exceptions": {
+    "feature/settings/SettingsRoute.kt": "Res.readBytes inside the suspend produceLibraries loader for packaged license metadata.",
+    "utils/LottieAnimation.kt": "Res.readBytes inside suspend rememberLottieComposition; original packaged animation loader."
+  },
+  "violations": [],
+  "limits": "Lexical guard only; review aliases through helpers, template expressions and cross-function I/O. Domain compilation is a separate Gradle gate."
+}
+
+> Task :composeApp:createRuntimeImage
+> Task :composeApp:prepareAppResources
+> Task :composeApp:unpackDefaultComposeDesktopJvmApplicationResources
+> Task :shared:compileDomainBoundary
+> Task :shared:check
+> Task :shared:prepareBaselineResources UP-TO-DATE
+> Task :shared:baselineClasspath
+
+> Task :composeApp:proguardReleaseJars
+ProGuard, version 7.9.1
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/services/io.ktor.client.HttpClientEngineContainer]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [NOTICE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [NOTICE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [NOTICE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/savedstate-compose.kotlin_module]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/navigationevent-compose.kotlin_module]
+Note: duplicate definition of resource file [META-INF/androidx/navigationevent/navigationevent-compose/LICENSE.txt]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/lifecycle-viewmodel-savedstate.kotlin_module]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/lifecycle-viewmodel.kotlin_module]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/lifecycle-runtime.kotlin_module]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/lifecycle-common.kotlin_module]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/lifecycle-viewmodel-navigation3.kotlin_module]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/lifecycle-runtime-compose.kotlin_module]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/lifecycle-viewmodel-compose.kotlin_module]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/runtime-saveable.kotlin_module]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/runtime.kotlin_module]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [__index__]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [NOTICE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [NOTICE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [NOTICE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [NOTICE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/window-core.kotlin_module]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [__index__]
+Note: duplicate definition of resource file [__index__]
+Note: duplicate definition of resource file [__index__]
+Note: duplicate definition of resource file [__index__]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of program class [module-info]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of program class [module-info]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of program class [module-info]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/INDEX.LIST]
+Note: duplicate definition of program class [module-info]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/AL2.0]
+Note: duplicate definition of resource file [META-INF/LGPL2.1]
+Note: duplicate definition of resource file [META-INF/LICENSE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [NOTICE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [LICENSE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [LICENSE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [LICENSE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [LICENSE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE]
+Note: duplicate definition of program class [module-info]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE.txt]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/DEPENDENCIES]
+Note: duplicate definition of resource file [META-INF/NOTICE]
+Note: duplicate definition of resource file [META-INF/LICENSE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE]
+Note: duplicate definition of resource file [META-INF/NOTICE]
+Note: duplicate definition of resource file [META-INF/DEPENDENCIES]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE.txt]
+Note: duplicate definition of resource file [META-INF/NOTICE.txt]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of program class [module-info]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE.txt]
+Note: duplicate definition of resource file [META-INF/NOTICE.txt]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE.txt]
+Note: duplicate definition of resource file [META-INF/NOTICE.txt]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [NOTICE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [NOTICE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of program class [module-info]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of program class [module-info]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE.txt]
+Note: duplicate definition of resource file [META-INF/NOTICE.txt]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [NOTICE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/DEPENDENCIES]
+Note: duplicate definition of resource file [META-INF/NOTICE]
+Note: duplicate definition of resource file [META-INF/LICENSE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE.md]
+Note: duplicate definition of resource file [META-INF/NOTICE.md]
+Note: duplicate definition of program class [module-info]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE.md]
+Note: duplicate definition of resource file [META-INF/NOTICE.md]
+Note: duplicate definition of program class [module-info]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE.md]
+Note: duplicate definition of resource file [META-INF/NOTICE.md]
+Note: duplicate definition of program class [module-info]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE.md]
+Note: duplicate definition of resource file [META-INF/NOTICE.md]
+Note: duplicate definition of program class [module-info]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/LICENSE]
+Note: duplicate definition of resource file [META-INF/NOTICE.md]
+Note: duplicate definition of program class [module-info]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/NOTICE.md]
+Note: duplicate definition of resource file [META-INF/LICENSE.md]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/DEPENDENCIES]
+Note: duplicate definition of resource file [META-INF/LICENSE]
+Note: duplicate definition of resource file [META-INF/NOTICE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/DEPENDENCIES]
+Note: duplicate definition of resource file [META-INF/LICENSE]
+Note: duplicate definition of resource file [META-INF/NOTICE]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/MANIFEST.MF]
+Note: duplicate definition of resource file [META-INF/NOTICE.txt]
+Note: duplicate definition of resource file [META-INF/LICENSE.txt]
+Note: there were 294 duplicate class definitions.
+      (https://www.guardsquare.com/proguard/manual/troubleshooting#duplicateclass)
+Warning: com.android.ddmlib.ByteBufferUtil: can't find referenced method 'void invoke(java.lang.Object,java.nio.ByteBuffer)' in library class java.lang.invoke.MethodHandle
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ddmlib.testrunner.XmlTestRunListener: can't find referenced class org.kxml2.io.KXmlSerializer
+Warning: com.android.ide.common.repository.GoogleMavenRepository: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepository$PackageInfo: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl$findDependencies$1: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl$findDependencies$1: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl$findDependencies$1: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl$findDependencies$1: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl$findDependencies$1: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl$findDependencies$1: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.repository.GoogleMavenRepositoryV2Impl$findDependencies$1: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.resources.AndroidManifestPackageNameUtils: can't find referenced class org.kxml2.io.KXmlParser
+Warning: com.android.ide.common.resources.AndroidManifestPackageNameUtils: can't find referenced class org.kxml2.io.KXmlParser
+Warning: io.github.oshai.kotlinlogging.internal.Target_io_github_oshai_kotlinlogging_KotlinLoggingConfiguration$Companion: can't find referenced class com.oracle.svm.core.annotate.Substitute
+Warning: io.github.oshai.kotlinlogging.internal.Target_io_github_oshai_kotlinlogging_KotlinLoggingConfiguration$Companion: can't find referenced class com.oracle.svm.core.annotate.TargetElement
+Warning: io.github.oshai.kotlinlogging.internal.Target_io_github_oshai_kotlinlogging_KotlinLoggingConfiguration$Companion: can't find referenced class com.oracle.svm.core.annotate.TargetClass
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.LogSupport
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.LogSupport
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.LogSupport
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.LogSupport
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MailcapCommandMap: can't find referenced class com.sun.activation.registries.MailcapFile
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.LogSupport
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.MimeTypeFile
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.MimeTypeFile
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.LogSupport
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.LogSupport
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.MimeTypeFile
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.MimeTypeFile
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.MimeTypeFile
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.MimeTypeFile
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.LogSupport
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.MimeTypeFile
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.MimeTypeFile
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.MimeTypeFile
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.MimeTypeFile
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.MimeTypeFile
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.MimeTypeFile
+Warning: javax.activation.MimetypesFileTypeMap: can't find referenced class com.sun.activation.registries.MimeTypeFile
+Note: com.android.sdklib.repository.legacy.remote.internal.sources.SdkSource: can't find dynamically referenced class com.android.ide.eclipse.adt.AdtPlugin
+Note: javax.xml.bind.ServiceLoaderUtil: can't find dynamically referenced class org.glassfish.hk2.osgiresourcelocator.ServiceLoader
+Note: ch.qos.logback.classic.net.SimpleSocketServer accesses a constructor '<init>(ch.qos.logback.classic.LoggerContext,int)' dynamically
+Note: ch.qos.logback.classic.util.ContextInitializer accesses a constructor '<init>()' dynamically
+Note: ch.qos.logback.classic.util.ContextSelectorStaticBinder accesses a constructor '<init>(ch.qos.logback.classic.LoggerContext)' dynamically
+Note: ch.qos.logback.core.ConsoleAppender accesses a method 'systemInstall()' dynamically
+Note: ch.qos.logback.core.joran.util.AggregationAssessor accesses a declared constructor '<init>()' dynamically
+Note: ch.qos.logback.core.util.OptionHelper accesses a constructor '<init>()' dynamically
+Note: ch.qos.logback.core.util.OptionHelper accesses a constructor '<init>()' dynamically
+Note: com.android.apksig.internal.asn1.Asn1BerParser accesses a constructor '<init>()' dynamically
+Note: com.android.apksig.internal.asn1.Asn1BerParser accesses a constructor '<init>()' dynamically
+Note: com.android.sdklib.repository.legacy.LegacyLocalRepoLoader accesses a constructor '<init>(java.nio.file.FileSystem)' dynamically
+Note: com.beust.jcommander.WrappedParameter accesses a method 'put(java.lang.Object,java.lang.Object)' dynamically
+Note: com.beust.jcommander.internal.JDK6Console accesses a declared method 'writer()' dynamically
+Note: com.beust.jcommander.internal.JDK6Console accesses a declared method 'readLine()' dynamically
+Note: com.beust.jcommander.internal.JDK6Console accesses a declared method 'readPassword()' dynamically
+Note: javax.xml.bind.ContextFinder accesses a method 'createContext(java.lang.String,java.lang.ClassLoader,java.util.Map)' dynamically
+Note: javax.xml.bind.ContextFinder accesses a method 'createContext(java.lang.String,java.lang.ClassLoader)' dynamically
+Note: javax.xml.bind.ContextFinder accesses a method 'createContext(java.lang.Class[],java.util.Map)' dynamically
+Note: javax.xml.bind.ServiceLoaderUtil accesses a method 'lookupProviderClasses(java.lang.Class)' dynamically
+Note: org.bouncycastle.jcajce.provider.asymmetric.util.ECUtil$1 accesses a method 'getName()' dynamically
+Note: org.bouncycastle.jcajce.provider.symmetric.util.BaseBlockCipher$AEADGenericBlockCipher accesses a constructor '<init>(java.lang.String)' dynamically
+Note: org.bouncycastle.jcajce.provider.symmetric.util.BaseSecretKeyFactory accesses a constructor '<init>(byte[])' dynamically
+Note: org.bouncycastle.jcajce.provider.symmetric.util.GcmSpecUtil$1 accesses a constructor '<init>(int,byte[])' dynamically
+Note: org.bouncycastle.oer.OEROptional$1 accesses a method 'getInstance(java.lang.Object)' dynamically
+Note: org.bouncycastle.oer.its.ItsUtils$1 accesses a method 'getInstance(java.lang.Object)' dynamically
+Note: org.bouncycastle.oer.its.ieee1609dot2.Opaque$1 accesses a method 'getInstance(java.lang.Object)' dynamically
+Note: org.freedesktop.dbus.Marshalling accesses a declared constructor '<init>()' dynamically
+Note: org.freedesktop.dbus.messages.Error accesses a constructor '<init>(java.lang.String)' dynamically
+Note: org.freedesktop.dbus.messages.ExportedObject accesses a method 'value()' dynamically
+Note: org.freedesktop.dbus.utils.ReflectionFileDescriptorHelper accesses a declared constructor '<init>(int)' dynamically
+Note: org.stringtemplate.v4.Interpreter accesses a constructor '<init>(java.io.Writer)' dynamically
+Note: the configuration keeps the entry point 'brut.androlib.meta.ApkInfo { void readItem(brut.yaml.YamlReader); }', but not the descriptor class 'brut.yaml.YamlReader'
+Note: the configuration keeps the entry point 'brut.androlib.meta.ApkInfo { void write(brut.yaml.YamlWriter); }', but not the descriptor class 'brut.yaml.YamlWriter'
+Note: the configuration keeps the entry point 'brut.androlib.meta.ApkInfo { void setApkFile(brut.directory.ExtFile); }', but not the descriptor class 'brut.directory.ExtFile'
+Note: the configuration keeps the entry point 'brut.androlib.meta.ResourcesInfo { void readItem(brut.yaml.YamlReader); }', but not the descriptor class 'brut.yaml.YamlReader'
+Note: the configuration keeps the entry point 'brut.androlib.meta.ResourcesInfo { void write(brut.yaml.YamlWriter); }', but not the descriptor class 'brut.yaml.YamlWriter'
+Note: the configuration keeps the entry point 'brut.androlib.meta.SdkInfo { void readItem(brut.yaml.YamlReader); }', but not the descriptor class 'brut.yaml.YamlReader'
+Note: the configuration keeps the entry point 'brut.androlib.meta.SdkInfo { void write(brut.yaml.YamlWriter); }', but not the descriptor class 'brut.yaml.YamlWriter'
+Note: the configuration keeps the entry point 'brut.androlib.meta.UsesFramework { void readItem(brut.yaml.YamlReader); }', but not the descriptor class 'brut.yaml.YamlReader'
+Note: the configuration keeps the entry point 'brut.androlib.meta.UsesFramework { void write(brut.yaml.YamlWriter); }', but not the descriptor class 'brut.yaml.YamlWriter'
+Note: the configuration keeps the entry point 'brut.androlib.meta.VersionInfo { void readItem(brut.yaml.YamlReader); }', but not the descriptor class 'brut.yaml.YamlReader'
+Note: the configuration keeps the entry point 'brut.androlib.meta.VersionInfo { void write(brut.yaml.YamlWriter); }', but not the descriptor class 'brut.yaml.YamlWriter'
+Note: the configuration keeps the entry point 'brut.androlib.res.ResDecoder { void generateValuesXmls(brut.androlib.res.table.ResPackage,brut.directory.Directory,brut.androlib.res.xml.ResXmlSerializer); }', but not the descriptor class 'brut.directory.Directory'
+Note: the configuration keeps the entry point 'brut.androlib.res.ResDecoder { void generatePublicXml(brut.androlib.res.table.ResPackage,brut.directory.Directory,brut.androlib.res.xml.ResXmlSerializer); }', but not the descriptor class 'brut.directory.Directory'
+Note: the configuration keeps the entry point 'brut.androlib.res.ResDecoder { void generateStagingXmls(brut.androlib.res.table.ResPackage,brut.directory.Directory,brut.androlib.res.xml.ResXmlSerializer); }', but not the descriptor class 'brut.directory.Directory'
+Note: the configuration keeps the entry point 'brut.androlib.res.ResDecoder { void generateOverlayableXml(brut.androlib.res.table.ResPackage,brut.directory.Directory,brut.androlib.res.xml.ResXmlSerializer); }', but not the descriptor class 'brut.directory.Directory'
+Note: the configuration keeps the entry point 'brut.androlib.res.ResDecoder { java.util.List lambda$generateValuesXmls$0(brut.util.Pair); }', but not the descriptor class 'brut.util.Pair'
+Note: the configuration keeps the entry point 'brut.androlib.res.data.LayoutBounds { brut.androlib.res.data.LayoutBounds read(brut.util.BinaryDataInputStream); }', but not the descriptor class 'brut.util.BinaryDataInputStream'
+Note: the configuration keeps the entry point 'brut.androlib.res.data.NinePatchData { brut.androlib.res.data.NinePatchData read(brut.util.BinaryDataInputStream); }', but not the descriptor class 'brut.util.BinaryDataInputStream'
+Note: the configuration keeps the entry point 'brut.androlib.res.data.ResChunkHeader { brut.androlib.res.data.ResChunkHeader read(brut.util.BinaryDataInputStream); }', but not the descriptor class 'brut.util.BinaryDataInputStream'
+Note: the configuration keeps the entry point 'brut.androlib.res.data.ResStringPool { int[] readIntArraySafe(brut.util.BinaryDataInputStream,int,long); }', but not the descriptor class 'brut.util.BinaryDataInputStream'
+Note: the configuration keeps the entry point 'brut.androlib.res.decoder.BinaryXmlResourceParser$Attribute { brut.androlib.res.decoder.BinaryXmlResourceParser$Attribute read(brut.util.BinaryDataInputStream); }', but not the descriptor class 'brut.util.BinaryDataInputStream'
+Note: the configuration keeps the entry point 'brut.androlib.res.decoder.ManifestPullEventHandler { boolean onEvent(org.xmlpull.v1.XmlPullParser,org.xmlpull.v1.XmlSerializer); }', but not the descriptor class 'org.xmlpull.v1.XmlPullParser'
+Note: the configuration keeps the entry point 'brut.androlib.res.decoder.ManifestPullEventHandler { boolean onEvent(org.xmlpull.v1.XmlPullParser,org.xmlpull.v1.XmlSerializer); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.res.decoder.ManifestPullEventHandler { void parseManifest(org.xmlpull.v1.XmlPullParser); }', but not the descriptor class 'org.xmlpull.v1.XmlPullParser'
+Note: the configuration keeps the entry point 'brut.androlib.res.decoder.ManifestPullEventHandler { void parseUsesSdk(org.xmlpull.v1.XmlPullParser); }', but not the descriptor class 'org.xmlpull.v1.XmlPullParser'
+Note: the configuration keeps the entry point 'brut.androlib.res.decoder.ResChunkPullParser { ResChunkPullParser(brut.util.BinaryDataInputStream); }', but not the descriptor class 'brut.util.BinaryDataInputStream'
+Note: the configuration keeps the entry point 'brut.androlib.res.decoder.ResChunkPullParser { ResChunkPullParser(brut.util.BinaryDataInputStream,int); }', but not the descriptor class 'brut.util.BinaryDataInputStream'
+Note: the configuration keeps the entry point 'brut.androlib.res.decoder.ResFileDecoder { void decode(brut.androlib.res.table.ResEntry,brut.directory.Directory,brut.directory.Directory,java.util.Map); }', but not the descriptor class 'brut.directory.Directory'
+Note: the configuration keeps the entry point 'brut.androlib.res.decoder.ResFileDecoder { void decode(brut.androlib.res.table.ResEntry,brut.directory.Directory,brut.directory.Directory,java.util.Map); }', but not the descriptor class 'brut.directory.Directory'
+Note: the configuration keeps the entry point 'brut.androlib.res.decoder.ResFileDecoder { void decode(brut.androlib.res.decoder.ResFileDecoder$Type,brut.directory.Directory,java.lang.String,brut.directory.Directory,java.lang.String); }', but not the descriptor class 'brut.directory.Directory'
+Note: the configuration keeps the entry point 'brut.androlib.res.decoder.ResFileDecoder { void decode(brut.androlib.res.decoder.ResFileDecoder$Type,brut.directory.Directory,java.lang.String,brut.directory.Directory,java.lang.String); }', but not the descriptor class 'brut.directory.Directory'
+Note: the configuration keeps the entry point 'brut.androlib.res.decoder.ResNinePatchStreamDecoder { void findChunk(brut.util.BinaryDataInputStream,int); }', but not the descriptor class 'brut.util.BinaryDataInputStream'
+Note: the configuration keeps the entry point 'brut.androlib.res.decoder.ResXmlPullStreamDecoder { ResXmlPullStreamDecoder(brut.androlib.res.decoder.BinaryXmlResourceParser,brut.androlib.res.xml.ResXmlSerializer,brut.xmlpull.XmlPullUtils$EventHandler); }', but not the descriptor class 'brut.xmlpull.XmlPullUtils$EventHandler'
+Note: the configuration keeps the entry point 'brut.androlib.res.table.ResOverlayable { void serializeToXml(org.xmlpull.v1.XmlSerializer); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.res.table.ResTable { void loadPackagesFromApk(java.io.File,brut.directory.ZipRODirectory,boolean); }', but not the descriptor class 'brut.directory.ZipRODirectory'
+Note: the configuration keeps the entry point 'brut.androlib.res.table.value.ResArray { void serializeToValuesXml(org.xmlpull.v1.XmlSerializer,brut.androlib.res.table.ResEntry); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.res.table.value.ResAttribute { void serializeToValuesXml(org.xmlpull.v1.XmlSerializer,brut.androlib.res.table.ResEntry); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.res.table.value.ResAttribute { void serializeSymbolsToValuesXml(org.xmlpull.v1.XmlSerializer,brut.androlib.res.table.ResEntry); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.res.table.value.ResCustom { void serializeToValuesXml(org.xmlpull.v1.XmlSerializer,brut.androlib.res.table.ResEntry); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.res.table.value.ResEnum { void serializeSymbolsToValuesXml(org.xmlpull.v1.XmlSerializer,brut.androlib.res.table.ResEntry); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.res.table.value.ResFlags { void serializeSymbolsToValuesXml(org.xmlpull.v1.XmlSerializer,brut.androlib.res.table.ResEntry); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.res.table.value.ResPlural { void serializeToValuesXml(org.xmlpull.v1.XmlSerializer,brut.androlib.res.table.ResEntry); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.res.table.value.ResPrimitive { void serializeToValuesXml(org.xmlpull.v1.XmlSerializer,brut.androlib.res.table.ResEntry); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.res.table.value.ResReference { void serializeToValuesXml(org.xmlpull.v1.XmlSerializer,brut.androlib.res.table.ResEntry); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.res.table.value.ResString { void serializeToValuesXml(org.xmlpull.v1.XmlSerializer,brut.androlib.res.table.ResEntry); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.res.table.value.ResStyle { void serializeToValuesXml(org.xmlpull.v1.XmlSerializer,brut.androlib.res.table.ResEntry); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.res.xml.ValuesXmlSerializable { void serializeToValuesXml(org.xmlpull.v1.XmlSerializer,brut.androlib.res.table.ResEntry); }', but not the descriptor class 'org.xmlpull.v1.XmlSerializer'
+Note: the configuration keeps the entry point 'brut.androlib.smali.SmaliBuilder { boolean buildFile(java.io.File,com.android.tools.smali.dexlib2.writer.builder.DexBuilder); }', but not the descriptor class 'com.android.tools.smali.dexlib2.writer.builder.DexBuilder'
+Note: the configuration keeps the entry point 'brut.androlib.smali.SmaliDecoder { void decodeFile(com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile,java.io.File); }', but not the descriptor class 'com.android.tools.smali.dexlib2.dexbacked.DexBackedDexFile'
+Note: the configuration keeps the entry point 'com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner { java.lang.String getPackageName(com.android.support.AndroidxName); }', but not the descriptor class 'com.android.support.AndroidxName'
+Note: the configuration keeps the entry point 'com.android.ddmlib.testrunner.AndroidTestOrchestratorRemoteAndroidTestRunner { java.lang.String getClassName(com.android.support.AndroidxName); }', but not the descriptor class 'com.android.support.AndroidxName'
+Note: the configuration keeps the entry point 'com.android.ddmlib.testrunner.InstrumentationProtoResultParser { void updateState(com.android.commands.am.InstrumentationData$Session); }', but not the descriptor class 'com.android.commands.am.InstrumentationData$Session'
+Note: the configuration keeps the entry point 'com.android.ddmlib.testrunner.InstrumentationProtoResultParser { java.lang.String getResultsEntryBundleValueInString(com.android.commands.am.InstrumentationData$ResultsBundleEntry); }', but not the descriptor class 'com.android.commands.am.InstrumentationData$ResultsBundleEntry'
+Note: the configuration keeps the entry point 'com.android.ddmlib.testrunner.InstrumentationProtoResultParser { java.util.Optional findElapsedTime(com.android.commands.am.InstrumentationData$SessionStatus); }', but not the descriptor class 'com.android.commands.am.InstrumentationData$SessionStatus'
+Note: the configuration keeps the entry point 'com.android.ddmlib.testrunner.InstrumentationProtoResultParser { java.lang.String lambda$findElapsedTime$1(com.android.commands.am.InstrumentationData$ResultsBundleEntry); }', but not the descriptor class 'com.android.commands.am.InstrumentationData$ResultsBundleEntry'
+Note: the configuration keeps the entry point 'com.android.ddmlib.testrunner.InstrumentationProtoResultParser { boolean lambda$findElapsedTime$0(com.android.commands.am.InstrumentationData$ResultsBundleEntry); }', but not the descriptor class 'com.android.commands.am.InstrumentationData$ResultsBundleEntry'
+Note: the configuration keeps the entry point 'com.android.ddmlib.testrunner.InstrumentationProtoResultParser { java.lang.String lambda$updateState$4(com.android.commands.am.InstrumentationData$ResultsBundleEntry); }', but not the descriptor class 'com.android.commands.am.InstrumentationData$ResultsBundleEntry'
+Note: the configuration keeps the entry point 'com.android.ddmlib.testrunner.InstrumentationProtoResultParser { boolean lambda$updateState$3(com.android.commands.am.InstrumentationData$ResultsBundleEntry); }', but not the descriptor class 'com.android.commands.am.InstrumentationData$ResultsBundleEntry'
+Note: the configuration keeps the entry point 'com.android.ddmlib.testrunner.InstrumentationProtoResultParser { java.lang.Integer lambda$updateState$1(com.android.commands.am.InstrumentationData$ResultsBundleEntry); }', but not the descriptor class 'com.android.commands.am.InstrumentationData$ResultsBundleEntry'
+Note: the configuration keeps the entry point 'com.android.ddmlib.testrunner.InstrumentationProtoResultParser { boolean lambda$updateState$0(com.android.commands.am.InstrumentationData$ResultsBundleEntry); }', but not the descriptor class 'com.android.commands.am.InstrumentationData$ResultsBundleEntry'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.windows.jna.IShellItemArray { com.sun.jna.platform.win32.WinNT$HRESULT GetPropertyStore(io.github.vinceglb.filekit.dialogs.platform.windows.jna.ShTypes$GETPROPERTYSTOREFLAGS,com.sun.jna.platform.win32.Guid$REFIID,com.sun.jna.ptr.PointerByReference); }', but not the descriptor class 'io.github.vinceglb.filekit.dialogs.platform.windows.jna.ShTypes$GETPROPERTYSTOREFLAGS'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.windows.jna.ShellItemArray { com.sun.jna.platform.win32.WinNT$HRESULT GetPropertyStore(io.github.vinceglb.filekit.dialogs.platform.windows.jna.ShTypes$GETPROPERTYSTOREFLAGS,com.sun.jna.platform.win32.Guid$REFIID,com.sun.jna.ptr.PointerByReference); }', but not the descriptor class 'io.github.vinceglb.filekit.dialogs.platform.windows.jna.ShTypes$GETPROPERTYSTOREFLAGS'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.xdg.XdgFilePickerPortal { java.lang.Object openFilePicker(java.util.Set,io.github.vinceglb.filekit.PlatformFile,io.github.vinceglb.filekit.dialogs.FileKitDialogSettings,kotlin.coroutines.Continuation); }', but not the descriptor class 'io.github.vinceglb.filekit.PlatformFile'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.xdg.XdgFilePickerPortal { java.lang.Object openFilePicker(java.util.Set,io.github.vinceglb.filekit.PlatformFile,io.github.vinceglb.filekit.dialogs.FileKitDialogSettings,kotlin.coroutines.Continuation); }', but not the descriptor class 'io.github.vinceglb.filekit.dialogs.FileKitDialogSettings'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.xdg.XdgFilePickerPortal { java.lang.Object openFilesPicker(java.util.Set,io.github.vinceglb.filekit.PlatformFile,io.github.vinceglb.filekit.dialogs.FileKitDialogSettings,kotlin.coroutines.Continuation); }', but not the descriptor class 'io.github.vinceglb.filekit.PlatformFile'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.xdg.XdgFilePickerPortal { java.lang.Object openFilesPicker(java.util.Set,io.github.vinceglb.filekit.PlatformFile,io.github.vinceglb.filekit.dialogs.FileKitDialogSettings,kotlin.coroutines.Continuation); }', but not the descriptor class 'io.github.vinceglb.filekit.dialogs.FileKitDialogSettings'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.xdg.XdgFilePickerPortal { java.lang.Object openDirectoryPicker(io.github.vinceglb.filekit.PlatformFile,io.github.vinceglb.filekit.dialogs.FileKitDialogSettings,kotlin.coroutines.Continuation); }', but not the descriptor class 'io.github.vinceglb.filekit.PlatformFile'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.xdg.XdgFilePickerPortal { java.lang.Object openDirectoryPicker(io.github.vinceglb.filekit.PlatformFile,io.github.vinceglb.filekit.dialogs.FileKitDialogSettings,kotlin.coroutines.Continuation); }', but not the descriptor class 'io.github.vinceglb.filekit.dialogs.FileKitDialogSettings'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.xdg.XdgFilePickerPortal { java.lang.Object openFilesPicker(io.github.vinceglb.filekit.PlatformFile,java.util.Set,java.lang.String,java.lang.String,boolean,boolean,kotlin.coroutines.Continuation); }', but not the descriptor class 'io.github.vinceglb.filekit.PlatformFile'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.xdg.XdgFilePickerPortal { java.lang.Object openFileSaver(java.lang.String,java.lang.String,java.util.Set,io.github.vinceglb.filekit.PlatformFile,io.github.vinceglb.filekit.dialogs.FileKitDialogSettings,kotlin.coroutines.Continuation); }', but not the descriptor class 'io.github.vinceglb.filekit.PlatformFile'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.xdg.XdgFilePickerPortal { java.lang.Object openFileSaver(java.lang.String,java.lang.String,java.util.Set,io.github.vinceglb.filekit.PlatformFile,io.github.vinceglb.filekit.dialogs.FileKitDialogSettings,kotlin.coroutines.Continuation); }', but not the descriptor class 'io.github.vinceglb.filekit.dialogs.FileKitDialogSettings'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.xdg.XdgFilePickerPortal { java.lang.String resolveXdgPortalParent(io.github.vinceglb.filekit.dialogs.FileKitDialogSettings); }', but not the descriptor class 'io.github.vinceglb.filekit.dialogs.FileKitDialogSettings'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.xdg.XdgFilePickerPortal { org.freedesktop.dbus.types.Variant createCurrentFolderOption(io.github.vinceglb.filekit.PlatformFile); }', but not the descriptor class 'io.github.vinceglb.filekit.PlatformFile'
+Note: the configuration keeps the entry point 'io.github.vinceglb.filekit.dialogs.platform.xdg.XdgFilePickerPortal { java.lang.Object access$openFilesPicker(io.github.vinceglb.filekit.dialogs.platform.xdg.XdgFilePickerPortal,io.github.vinceglb.filekit.PlatformFile,java.util.Set,java.lang.String,java.lang.String,boolean,boolean,kotlin.coroutines.Continuation); }', but not the descriptor class 'io.github.vinceglb.filekit.PlatformFile'
+Warning: there were 103 unresolved references to classes or interfaces.
+         You may need to add missing library jars or update their versions.
+         If your code works fine without the missing classes, you can suppress
+         the warnings with '-dontwarn' options.
+         (https://www.guardsquare.com/proguard/manual/troubleshooting#unresolvedclass)
+Warning: there were 1 unresolved references to library class members.
+         You probably need to update the library versions.
+         (https://www.guardsquare.com/proguard/manual/troubleshooting#unresolvedlibraryclassmember)
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/services/io.ktor.client.HttpClientEngineContainer] (Duplicate jar entry [META-INF/services/io.ktor.client.HttpClientEngineContainer])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [NOTICE] (Duplicate jar entry [NOTICE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [NOTICE] (Duplicate jar entry [NOTICE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [NOTICE] (Duplicate jar entry [NOTICE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/savedstate-compose.kotlin_module] (Duplicate jar entry [META-INF/savedstate-compose.kotlin_module])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/navigationevent-compose.kotlin_module] (Duplicate jar entry [META-INF/navigationevent-compose.kotlin_module])
+Warning: can't write resource [META-INF/androidx/navigationevent/navigationevent-compose/LICENSE.txt] (Duplicate jar entry [META-INF/androidx/navigationevent/navigationevent-compose/LICENSE.txt])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/lifecycle-viewmodel-savedstate.kotlin_module] (Duplicate jar entry [META-INF/lifecycle-viewmodel-savedstate.kotlin_module])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/lifecycle-viewmodel.kotlin_module] (Duplicate jar entry [META-INF/lifecycle-viewmodel.kotlin_module])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/lifecycle-runtime.kotlin_module] (Duplicate jar entry [META-INF/lifecycle-runtime.kotlin_module])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/lifecycle-common.kotlin_module] (Duplicate jar entry [META-INF/lifecycle-common.kotlin_module])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/lifecycle-viewmodel-navigation3.kotlin_module] (Duplicate jar entry [META-INF/lifecycle-viewmodel-navigation3.kotlin_module])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/lifecycle-runtime-compose.kotlin_module] (Duplicate jar entry [META-INF/lifecycle-runtime-compose.kotlin_module])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/lifecycle-viewmodel-compose.kotlin_module] (Duplicate jar entry [META-INF/lifecycle-viewmodel-compose.kotlin_module])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/runtime-saveable.kotlin_module] (Duplicate jar entry [META-INF/runtime-saveable.kotlin_module])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/runtime.kotlin_module] (Duplicate jar entry [META-INF/runtime.kotlin_module])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [__index__] (Duplicate jar entry [__index__])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [NOTICE] (Duplicate jar entry [NOTICE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [NOTICE] (Duplicate jar entry [NOTICE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [NOTICE] (Duplicate jar entry [NOTICE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [NOTICE] (Duplicate jar entry [NOTICE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/window-core.kotlin_module] (Duplicate jar entry [META-INF/window-core.kotlin_module])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [__index__] (Duplicate jar entry [__index__])
+Warning: can't write resource [__index__] (Duplicate jar entry [__index__])
+Warning: can't write resource [__index__] (Duplicate jar entry [__index__])
+Warning: can't write resource [__index__] (Duplicate jar entry [__index__])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE] (Duplicate jar entry [META-INF/LICENSE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/INDEX.LIST] (Duplicate jar entry [META-INF/INDEX.LIST])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE] (Duplicate jar entry [META-INF/LICENSE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/AL2.0] (Duplicate jar entry [META-INF/AL2.0])
+Warning: can't write resource [META-INF/LGPL2.1] (Duplicate jar entry [META-INF/LGPL2.1])
+Warning: can't write resource [META-INF/LICENSE] (Duplicate jar entry [META-INF/LICENSE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [NOTICE] (Duplicate jar entry [NOTICE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [LICENSE] (Duplicate jar entry [LICENSE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [LICENSE] (Duplicate jar entry [LICENSE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [LICENSE] (Duplicate jar entry [LICENSE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [LICENSE] (Duplicate jar entry [LICENSE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE] (Duplicate jar entry [META-INF/LICENSE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE.txt] (Duplicate jar entry [META-INF/LICENSE.txt])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/DEPENDENCIES] (Duplicate jar entry [META-INF/DEPENDENCIES])
+Warning: can't write resource [META-INF/NOTICE] (Duplicate jar entry [META-INF/NOTICE])
+Warning: can't write resource [META-INF/LICENSE] (Duplicate jar entry [META-INF/LICENSE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE] (Duplicate jar entry [META-INF/LICENSE])
+Warning: can't write resource [META-INF/NOTICE] (Duplicate jar entry [META-INF/NOTICE])
+Warning: can't write resource [META-INF/DEPENDENCIES] (Duplicate jar entry [META-INF/DEPENDENCIES])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE.txt] (Duplicate jar entry [META-INF/LICENSE.txt])
+Warning: can't write resource [META-INF/NOTICE.txt] (Duplicate jar entry [META-INF/NOTICE.txt])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE.txt] (Duplicate jar entry [META-INF/LICENSE.txt])
+Warning: can't write resource [META-INF/NOTICE.txt] (Duplicate jar entry [META-INF/NOTICE.txt])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE.txt] (Duplicate jar entry [META-INF/LICENSE.txt])
+Warning: can't write resource [META-INF/NOTICE.txt] (Duplicate jar entry [META-INF/NOTICE.txt])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [NOTICE] (Duplicate jar entry [NOTICE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [NOTICE] (Duplicate jar entry [NOTICE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE] (Duplicate jar entry [META-INF/LICENSE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE.txt] (Duplicate jar entry [META-INF/LICENSE.txt])
+Warning: can't write resource [META-INF/NOTICE.txt] (Duplicate jar entry [META-INF/NOTICE.txt])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [NOTICE] (Duplicate jar entry [NOTICE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/DEPENDENCIES] (Duplicate jar entry [META-INF/DEPENDENCIES])
+Warning: can't write resource [META-INF/NOTICE] (Duplicate jar entry [META-INF/NOTICE])
+Warning: can't write resource [META-INF/LICENSE] (Duplicate jar entry [META-INF/LICENSE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE.md] (Duplicate jar entry [META-INF/LICENSE.md])
+Warning: can't write resource [META-INF/NOTICE.md] (Duplicate jar entry [META-INF/NOTICE.md])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE.md] (Duplicate jar entry [META-INF/LICENSE.md])
+Warning: can't write resource [META-INF/NOTICE.md] (Duplicate jar entry [META-INF/NOTICE.md])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE.md] (Duplicate jar entry [META-INF/LICENSE.md])
+Warning: can't write resource [META-INF/NOTICE.md] (Duplicate jar entry [META-INF/NOTICE.md])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE.md] (Duplicate jar entry [META-INF/LICENSE.md])
+Warning: can't write resource [META-INF/NOTICE.md] (Duplicate jar entry [META-INF/NOTICE.md])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/LICENSE] (Duplicate jar entry [META-INF/LICENSE])
+Warning: can't write resource [META-INF/NOTICE.md] (Duplicate jar entry [META-INF/NOTICE.md])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/NOTICE.md] (Duplicate jar entry [META-INF/NOTICE.md])
+Warning: can't write resource [META-INF/LICENSE.md] (Duplicate jar entry [META-INF/LICENSE.md])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/DEPENDENCIES] (Duplicate jar entry [META-INF/DEPENDENCIES])
+Warning: can't write resource [META-INF/LICENSE] (Duplicate jar entry [META-INF/LICENSE])
+Warning: can't write resource [META-INF/NOTICE] (Duplicate jar entry [META-INF/NOTICE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/DEPENDENCIES] (Duplicate jar entry [META-INF/DEPENDENCIES])
+Warning: can't write resource [META-INF/LICENSE] (Duplicate jar entry [META-INF/LICENSE])
+Warning: can't write resource [META-INF/NOTICE] (Duplicate jar entry [META-INF/NOTICE])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/MANIFEST.MF] (Duplicate jar entry [META-INF/MANIFEST.MF])
+Warning: can't write resource [META-INF/NOTICE.txt] (Duplicate jar entry [META-INF/NOTICE.txt])
+Warning: can't write resource [META-INF/LICENSE.txt] (Duplicate jar entry [META-INF/LICENSE.txt])
+
+> Task :composeApp:createReleaseDistributable
+The distribution is written to /Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/composeApp/build/migration/distribution/main-release/app
+
+> Task :composeApp:packageReleaseDeb SKIPPED
+> Task :composeApp:packageReleaseDmg
+The distribution is written to /Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/composeApp/build/migration/distribution/main-release/dmg/AndroidToolKit-1.6.11.dmg
+
+> Task :composeApp:packageReleaseExe SKIPPED
+> Task :composeApp:packageReleaseMsi SKIPPED
+> Task :composeApp:packageReleaseRpm SKIPPED
+> Task :composeApp:packageReleaseDistributionForCurrentOS
+
+BUILD SUCCESSFUL in 6m 48s
+45 actionable tasks: 16 executed, 3 from cache, 26 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.5.1/userguide/configuration_cache_enabling.html

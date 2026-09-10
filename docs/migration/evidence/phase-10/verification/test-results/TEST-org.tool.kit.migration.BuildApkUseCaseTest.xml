@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="BuildApkUseCaseTest[jvm]" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-10T06:15:00.555Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.013">
+  <properties/>
+  <testcase name="everyPipelineFailureStopsFurtherWorkAndCleansItsWorkspace[jvm]" classname="org.tool.kit.migration.BuildApkUseCaseTest" time="0.006"/>
+  <testcase name="optionalSigningOutcomesRemainSeparateFromUnsignedBuildSuccess[jvm]" classname="org.tool.kit.migration.BuildApkUseCaseTest" time="0.002"/>
+  <testcase name="cancellationDuringSigningPropagatesAndStillCleans[jvm]" classname="org.tool.kit.migration.BuildApkUseCaseTest" time="0.002"/>
+  <testcase name="pipelinePreservesOrderAndUsesTheSharedSignerWithTheBuiltPath[jvm]" classname="org.tool.kit.migration.BuildApkUseCaseTest" time="0.002"/>
+  <testcase name="blankIconAndDisabledSigningSkipOnlyThoseSteps[jvm]" classname="org.tool.kit.migration.BuildApkUseCaseTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

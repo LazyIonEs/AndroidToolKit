@@ -1,0 +1,2 @@
+PASS: Phase10Fixture.apk UNSIGNED [false, false, false, false]
+PASS: Phase10Fixture-phase10.apk V2 [true, true, false, false]

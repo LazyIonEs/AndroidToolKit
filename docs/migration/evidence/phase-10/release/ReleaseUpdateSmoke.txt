@@ -1,0 +1,6 @@
+kotlin-logging: initializing... active logger factory: b
+PASS packaged update transport: known
+PASS packaged update transport: unknown
+PASS packaged update transport: broken
+PASS packaged update transport: installer.dmg
+PASS packaged update metadata serialization; off-EDT progress callbacks=10

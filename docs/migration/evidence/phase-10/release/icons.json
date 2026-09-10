@@ -1,0 +1,32 @@
+[
+  {
+    "density": "mdpi",
+    "size": 48,
+    "bytes": 274,
+    "sha256": "394bf1ec2a8e9f8d14e3b14526eb771d4ceab65826731d331e35994484465a54"
+  },
+  {
+    "density": "hdpi",
+    "size": 72,
+    "bytes": 379,
+    "sha256": "1660dfe3d76575dc2bbfc28d4256b622b402d91f7797cf9a3a8415162bc413da"
+  },
+  {
+    "density": "xhdpi",
+    "size": 96,
+    "bytes": 336,
+    "sha256": "109ab31a678e76b37ec11b4a738d2bce582041446539724abe1a268d1ce587cd"
+  },
+  {
+    "density": "xxhdpi",
+    "size": 144,
+    "bytes": 923,
+    "sha256": "ec85baa1278e7250fd641103bb5071909bdd55509279fbd9eb556f8767de3d69"
+  },
+  {
+    "density": "xxxhdpi",
+    "size": 192,
+    "bytes": 1188,
+    "sha256": "f371a4c66cbb350bcb75e1e5b9a4b57b5fc0a446bce98ffb97aa2872f46c539d"
+  }
+]

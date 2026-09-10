@@ -1,0 +1,53 @@
+Window: "AndroidToolKit", App: AndroidToolKit.
+0 标准窗口 AndroidToolKit, Secondary Actions: Raise
+	1 未知 (selectable) 0
+		2 container (selectable) 0
+			3 container (selectable) 0
+				4 未知 (selectable) 0
+					5 container (selectable) 0
+						6 container (selectable) 0
+							7 未知 (selectable) 0
+								8 单选按钮 (selectable) 签名信息
+							9 未知 (selectable) 0
+								10 单选按钮 (selectable) APK信息
+							11 未知 (selectable) 0
+								12 单选按钮 (selectable) APK签名
+							13 未知 (selectable) 0
+								14 单选按钮 (selectable) 签名生成
+							15 未知 (selectable) 0
+								16 单选按钮 (selectable) APK生成
+							17 未知 (selectable) 0
+								18 单选按钮 (selectable) 垃圾代码
+							19 未知 (selectable) 0
+								20 单选按钮 (selectable) 图标生成
+							21 单选按钮 (selectable) 缓存清理
+							22 未知 (selectable) 0
+								23 单选按钮 (selectable) 设置
+				24 未知 (selectable) 0
+					25 container (selectable) 0
+						26 未知 (selectable) 0
+							27 文本 (selectable) 总存储空间
+							28 文本 (selectable) 494 GB
+							29 文本 (selectable) 已使用空间
+							30 文本 (selectable) 461.1 GB
+							31 文本 (selectable) 可用空间
+							32 文本 (selectable) 33.3 GB
+							33 进度指示条 (selectable) 0.9326687455177307
+					34 未知 (selectable) 0
+						35 未知 (selectable) Lottie animation
+						36 文本 (selectable) 快速清理缓存目录
+						37 文本 (selectable) 快速、深度扫描 Android 项目构建缓存目录
+批量删除构建缓存，释放磁盘空间
+选择 Android 项目或更上层目录
+					38 滚动区 (selectable) 0
+					39 未知 (selectable)
+					40 未知 (selectable) 0
+						41 按钮 (selectable) 选择文件夹
+	42 关闭按钮
+	43 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	44 最小化按钮
+	45 文本 AndroidToolKit
+46 menu bar
+	47 AndroidToolKit
+
+The focused UI element is 1 未知 (selectable)

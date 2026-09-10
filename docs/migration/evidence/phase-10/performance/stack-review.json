@@ -1,0 +1,24 @@
+{
+  "reviewedStacks": [
+    {
+      "scenario": "apk-information-picker",
+      "samples": 1,
+      "classification": "JVM first-use class loading reads the packaged JAR; full stack retained in ui-profile.json",
+      "applicationBusinessIoOrFfi": false
+    },
+    {
+      "scenario": "apk-signing",
+      "samples": 1,
+      "classification": "JVM first-use class loading reads the packaged JAR; full stack retained in ui-profile.json",
+      "applicationBusinessIoOrFfi": false
+    },
+    {
+      "scenario": "cleaner-selection-delete",
+      "samples": 1,
+      "classification": "JVM first-use class loading reads the packaged JAR; full stack retained in ui-profile.json",
+      "applicationBusinessIoOrFfi": false
+    }
+  ],
+  "noSampledBusinessIoOrFfi": true,
+  "limit": "Sampling is observational; no zero-execution claim. Synthetic queue probes include idle/automation intervals and do not measure UI frame p95."
+}

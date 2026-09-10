@@ -1,0 +1,34 @@
+Window: "AndroidToolKit", App: AndroidToolKit.
+0 标准窗口 AndroidToolKit, Secondary Actions: Raise
+	1 未知 (selectable) 0
+		2 container (selectable) 0
+			3 container (selectable) 0
+				4 未知 (selectable) 0
+					5 container (selectable) 0
+						6 container (selectable) 0
+							7 未知 (selectable) 0
+								8 单选按钮 (selectable) 签名信息
+							9 单选按钮 (selectable) APK信息
+							10 未知 (selectable) 0
+								11 单选按钮 (selectable) APK签名
+							12 未知 (selectable) 0
+								13 单选按钮 (selectable) 签名生成
+							14 未知 (selectable) 0
+								15 单选按钮 (selectable) APK生成
+							16 未知 (selectable) 0
+								17 单选按钮 (selectable) 垃圾代码
+							18 未知 (selectable) 0
+								19 单选按钮 (selectable) 图标生成
+							20 未知 (selectable) 0
+								21 单选按钮 (selectable) 缓存清理
+							22 未知 (selectable) 0
+								23 单选按钮 (selectable) 设置
+				24 未知 (selectable) 0
+					25 未知 (selectable) Lottie animation
+					26 按钮 (selectable) 上传APK
+	27 关闭按钮
+	28 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	29 最小化按钮
+	30 文本 AndroidToolKit
+31 menu bar
+	32 AndroidToolKit

@@ -1,0 +1,4 @@
+restartable skippable scheme("[0, [0]]") fun org.tool.kit.migration.Phase2UiTest.TestContext(
+  stable content: Function2<Composer, Int, Unit>
+  unstable <this>: Phase2UiTest
+)

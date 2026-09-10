@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ApkInformationUiTest[jvm]" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-10T06:14:17.481Z" hostname="LazyIonEsdeMacBook-Pro.local" time="3.911">
+  <properties/>
+  <testcase name="darkResult[jvm]" classname="org.tool.kit.migration.ApkInformationUiTest" time="3.116"/>
+  <testcase name="lightResult[jvm]" classname="org.tool.kit.migration.ApkInformationUiTest" time="0.795"/>
+  <system-out><![CDATA[kotlin-logging: initializing... active logger factory: Slf4jLoggerFactory
+2026-09-10 14:14:18.829 [AWT-EventQueue-0 @coroutine#53] INFO  App - 启动App, 应用版本号: 1.6.11
+2026-09-10 14:14:20.625 [AWT-EventQueue-0 @coroutine#2883] INFO  App - 启动App, 应用版本号: 1.6.11
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

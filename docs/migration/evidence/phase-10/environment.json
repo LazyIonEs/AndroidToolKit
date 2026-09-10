@@ -1,0 +1,17 @@
+{
+  "os": "ProductName:\t\tmacOS\nProductVersion:\t\t26.6.2\nBuildVersion:\t\t25G83",
+  "architecture": "arm64",
+  "cpu": "Apple M1 Pro",
+  "model": "MacBookPro18,1",
+  "memoryBytes": 17179869184,
+  "logicalCpuCount": 10,
+  "jdk": "JetBrains 21.0.6+9-b895.109 (confirmed by jcmd thread dump)",
+  "runtimeModules": "JAVA_VERSION=\"21.0.6\"\nMODULES=\"java.base java.compiler java.datatransfer java.xml java.prefs java.desktop java.instrument java.logging java.management java.security.sasl java.naming java.rmi java.scripting java.security.jgss java.transaction.xa java.sql jdk.crypto.ec jdk.management jdk.security.auth jdk.unsupported\"\n",
+  "sourceBase": "294f6e40",
+  "preferences": "isolated in-memory Java PreferencesFactory",
+  "locale": "zh_CN",
+  "nativeWindow": "800x600 including system decoration; JPEG observations",
+  "softwareRender": "800x572; exact RGBA comparison, fixed fixture scenes",
+  "phase0PerformanceBaseline": "Not collected per prior user instruction",
+  "comparability": "No frame/input/RSS historical delta claimed; local release uses JBR, workflow requests Zulu 21 on each host."
+}

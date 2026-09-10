@@ -1,0 +1,60 @@
+Window: "AndroidToolKit", App: AndroidToolKit.
+0 标准窗口 AndroidToolKit, Secondary Actions: Raise
+	1 未知 (selectable) 0
+		2 container (selectable) 0
+			3 container (selectable) 0
+				4 未知 (selectable) 0
+					5 container (selectable) 0
+						6 未知 (selectable) 0
+							7 未知 (selectable) Topic
+							8 文本 (selectable) 已选择文件夹
+							9 文本 (selectable) 0
+							10 文本 (selectable) 个文件夹
+							11 文本 (selectable) 0.0
+							12 文本 (selectable) B
+							13 文本 (selectable) 0.0%
+							14 文本 (selectable) 占总存储空间
+					15 滚动区 (selectable) 0
+						16 按钮 (selectable) FolderOpen
+						17 文本 (selectable) project-105/build
+						18 文本 (selectable) 10.46 KB，2026年09月10日
+						19 复选框 (selectable)
+						20 按钮 (selectable) FolderOpen
+						21 文本 (selectable) project-104/build
+						22 文本 (selectable) 10.46 KB，2026年09月10日
+						23 复选框 (selectable)
+						24 按钮 (selectable) FolderOpen
+						25 文本 (selectable) project-103/build
+						26 文本 (selectable) 10.46 KB，2026年09月10日
+						27 复选框 (selectable)
+						28 按钮 (selectable) FolderOpen
+						29 文本 (selectable) project-022/build
+						30 文本 (selectable) 10.46 KB，2026年09月10日
+						31 复选框 (selectable)
+						32 按钮 (selectable) FolderOpen
+						33 文本 (selectable) project-025/build
+						34 文本 (selectable) 10.46 KB，2026年09月10日
+						35 复选框 (selectable)
+						36 按钮 (selectable) FolderOpen
+						37 文本 (selectable) project-013/build
+						38 文本 (selectable) 10.46 KB，2026年09月10日
+						39 复选框 (selectable)
+					40 未知 (selectable)
+				41 未知 (selectable) 0
+					42 container (selectable) 0
+						43 文本 (selectable) 清理完成，已为您清理10.46KB
+				44 未知 (selectable) 0
+					45 container (selectable) 0
+						46 按钮 (selectable) Localized description
+						47 按钮 (selectable) Localized description
+						48 按钮 (selectable) Localized description
+						49 按钮 (selectable) Localized description
+						50 按钮 (selectable) Localized description
+	51 关闭按钮
+	52 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	53 最小化按钮
+	54 文本 AndroidToolKit
+55 menu bar
+	56 AndroidToolKit
+
+The focused UI element is 1 未知 (selectable)

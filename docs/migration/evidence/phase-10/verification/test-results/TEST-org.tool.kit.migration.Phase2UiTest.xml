@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Phase2UiTest[jvm]" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-10T06:15:28.898Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.766">
+  <properties/>
+  <testcase name="settingsInputsSurviveRecompositionThemeChangesAndNavigation[jvm]" classname="org.tool.kit.migration.Phase2UiTest" time="0.565"/>
+  <testcase name="capacityIsReadOnEntryAndExplicitRefreshButNotThemeRecomposition[jvm]" classname="org.tool.kit.migration.Phase2UiTest" time="0.167"/>
+  <testcase name="stableDropTargetUsesLatestCallbacksAndKeepsSynchronousAcceptance[jvm]" classname="org.tool.kit.migration.Phase2UiTest" time="0.034"/>
+  <system-out><![CDATA[2026-09-10 14:15:28.926 [AWT-EventQueue-0 @coroutine#72209] INFO  App - 启动App, 应用版本号: 1.6.11
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

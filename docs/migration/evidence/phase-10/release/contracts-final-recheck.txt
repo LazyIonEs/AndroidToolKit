@@ -1,0 +1,16 @@
+PASS packaged navigation: {"type":"org.tool.kit.g.a.a.b","value":{}}
+PASS packaged navigation: {"type":"org.tool.kit.g.a.a.d","value":{}}
+PASS packaged navigation: {"type":"org.tool.kit.g.i.a.a","value":{}}
+PASS packaged navigation: {"type":"org.tool.kit.g.i.a.e","value":{}}
+PASS packaged navigation: {"type":"org.tool.kit.g.i.a.c","value":{}}
+PASS packaged navigation: {"type":"org.tool.kit.g.c.a.b","value":{}}
+PASS packaged navigation: {"type":"org.tool.kit.g.d.a.b","value":{}}
+PASS packaged navigation: {"type":"org.tool.kit.g.e.a.b","value":{}}
+PASS packaged navigation: {"type":"org.tool.kit.g.g.a.b","value":{}}
+PASS: ProGuard UniFFI/JNA loads bundled Rust library and produces 48x48 PNG
+kotlin-logging: initializing... active logger factory: b
+PASS packaged update transport: known
+PASS packaged update transport: unknown
+PASS packaged update transport: broken
+PASS packaged update transport: installer.dmg
+PASS packaged update metadata serialization; off-EDT progress callbacks=10

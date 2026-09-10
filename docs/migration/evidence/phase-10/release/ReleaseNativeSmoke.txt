@@ -1,0 +1,1 @@
+PASS: ProGuard UniFFI/JNA loads bundled Rust library and produces 48x48 PNG

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Phase3PreferencesTest[jvm]" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-10T06:15:29.713Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.028">
+  <properties/>
+  <testcase name="settingsValidationRejectsOldPathAndRefreshRechecksTheSameDirectory[jvm]" classname="org.tool.kit.migration.Phase3PreferencesTest" time="0.003"/>
+  <testcase name="heldDiskWriteCannotRollBackLaterInputAndFiveLegacyFormsReceiveOnePathVersion[jvm]" classname="org.tool.kit.migration.Phase3PreferencesTest" time="0.016"/>
+  <testcase name="failedFieldIsRetriedBeforeLaterWritesCanAcknowledgePersistence[jvm]" classname="org.tool.kit.migration.Phase3PreferencesTest" time="0.003"/>
+  <testcase name="realPhysicalAccessRunsOnInjectedIoAndNoKeysChangeOnRead[jvm]" classname="org.tool.kit.migration.Phase3PreferencesTest" time="0.003"/>
+  <testcase name="oldPhysicalFixtureLoadsBeforeFirstVisibleSnapshotAndQueuedFieldsKeepUntouchedValues[jvm]" classname="org.tool.kit.migration.Phase3PreferencesTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

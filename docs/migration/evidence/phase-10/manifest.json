@@ -1,0 +1,1370 @@
+{
+  "scope": "Phase 10 evidence; manifest excludes itself; text reports normalize trailing whitespace; no private key or installer payload archived.",
+  "files": [
+    {
+      "path": "compiler/archived-filenames.json",
+      "bytes": 1958,
+      "sha256": "968d4719cb6a138323b2aa8849019301f4d369563fa4cf29a0f330cfccc0f86f"
+    },
+    {
+      "path": "compiler/composeApp/metrics/jvm/main/org_tool_kit_composeApp-module.json",
+      "bytes": 785,
+      "sha256": "c9c65c786fff0578e383644f84017a93db17319983e94e3a2252f40a13cd4447"
+    },
+    {
+      "path": "compiler/composeApp/reports/org_tool_kit_composeApp-classes.txt",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "compiler/composeApp/reports/org_tool_kit_composeApp-composables.csv",
+      "bytes": 111,
+      "sha256": "a3a729e3ff3cd66f2be3c44d0efd1592aac1417364c18afa93e76e26b00bf3de"
+    },
+    {
+      "path": "compiler/composeApp/reports/org_tool_kit_composeApp-composables.txt",
+      "bytes": 1,
+      "sha256": "01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b"
+    },
+    {
+      "path": "compiler/shared/metrics/jvm/main/org_tool_kit_shared-module.json",
+      "bytes": 822,
+      "sha256": "a09f789b05619a06ec7dab2a38b61a4616c02783a5af6c4ad031b8b2e996fccf"
+    },
+    {
+      "path": "compiler/shared/metrics/jvm/test/org_tool_kit_shared_test-module.json",
+      "bytes": 803,
+      "sha256": "b27ffc1a90b7ffce8ab901737acb59791c57ae360ed5496e5e433b1a6b16bcd6"
+    },
+    {
+      "path": "compiler/shared/reports/org_tool_kit_shared-classes.txt",
+      "bytes": 70524,
+      "sha256": "26d565d2b9da9febb688a907bdaf219dd791cc2a5ad3927c90da474e665f4950"
+    },
+    {
+      "path": "compiler/shared/reports/org_tool_kit_shared-composables.csv",
+      "bytes": 8607,
+      "sha256": "dbc3dcb69471d756969f6eb48d6345a613ec271e05752c7b1bc066b316999a7a"
+    },
+    {
+      "path": "compiler/shared/reports/org_tool_kit_shared-composables.log",
+      "bytes": 174,
+      "sha256": "052d04598e142eb5dad74c5df23c941ec696837ac672ea602b111e57a88f3bf0"
+    },
+    {
+      "path": "compiler/shared/reports/org_tool_kit_shared-composables.txt",
+      "bytes": 24125,
+      "sha256": "e1f5b10eea610548edac56460d36db8a574c28ec9d6c7fd1dd3ce3af285bb2ca"
+    },
+    {
+      "path": "compiler/shared/reports/org_tool_kit_shared_test-classes.txt",
+      "bytes": 13415,
+      "sha256": "3c039716280aa0311de3d7613262ccec4419a6707bda7abb772f49c50a118d0b"
+    },
+    {
+      "path": "compiler/shared/reports/org_tool_kit_shared_test-composables.csv",
+      "bytes": 192,
+      "sha256": "779cedb2595cae4f0f989c9caaef879e53292be1d92a0b40cd5eaf6a3f335dbb"
+    },
+    {
+      "path": "compiler/shared/reports/org_tool_kit_shared_test-composables.txt",
+      "bytes": 177,
+      "sha256": "2becff8ce26c9fa5f8fa3833595aeed98187c7c6975d664c1721b9c790767a45"
+    },
+    {
+      "path": "compiler/summary.json",
+      "bytes": 5655,
+      "sha256": "b394b504d4216d8442eef7812d484b5f590547014040459f6c7c7268f3faee49"
+    },
+    {
+      "path": "environment.json",
+      "bytes": 1113,
+      "sha256": "5a121c1fc5799188f71ebfe8cfb31a0b51a9f582cff810391d4c73e09d45cfb8"
+    },
+    {
+      "path": "native/01-release-start.jpg",
+      "bytes": 70265,
+      "sha256": "cd05826265b22deea5bb03c78992c329d82a33267ed0dad4b99737604bc11471"
+    },
+    {
+      "path": "native/01-release-start.txt",
+      "bytes": 1324,
+      "sha256": "821347e5316691ed80b1834a53b79f21ca0a5f0afeb3752a6aa5af12540a728b"
+    },
+    {
+      "path": "native/02-apk-information.jpg",
+      "bytes": 61098,
+      "sha256": "cc8963bf79f6874b7875ad6b32fc264f84864792a9380bb12cddec0b640fe987"
+    },
+    {
+      "path": "native/02-apk-information.txt",
+      "bytes": 1278,
+      "sha256": "3b3a1c6ad4df15a8cadcb0dbcc6d231006db393ffa6447a698ce3d628ae475e1"
+    },
+    {
+      "path": "native/03-apk-signing.jpg",
+      "bytes": 71090,
+      "sha256": "c849ee383c79fed658ebf5bbd5c4a1245a88920b7922ea577f9ded9f2fff0e31"
+    },
+    {
+      "path": "native/03-apk-signing.txt",
+      "bytes": 2158,
+      "sha256": "4925f76f3ac5dc58c58de65a6ac88d13c1bd22007086e599a553e2d19d9977bd"
+    },
+    {
+      "path": "native/04-keystore.jpg",
+      "bytes": 70023,
+      "sha256": "e11c6afa1b60346a302b685442765ef73296084f65fc684672650be3358a585b"
+    },
+    {
+      "path": "native/04-keystore.txt",
+      "bytes": 2084,
+      "sha256": "be3749cede646478f0e44839bf7cf4f8c8f4dfd7a3102b5fb4b3748e0e3a51aa"
+    },
+    {
+      "path": "native/05-apk-tool.jpg",
+      "bytes": 75074,
+      "sha256": "670501b08065b2facfc2cc0ea8b9f2c90e59b231393e47acdedb0f0dca228c5a"
+    },
+    {
+      "path": "native/05-apk-tool.txt",
+      "bytes": 2316,
+      "sha256": "adbde870f407a5b63516630ee6ddb735df58e9f7ffaac376e08f51cdecada5a6"
+    },
+    {
+      "path": "native/06-apk-build-ready.jpg",
+      "bytes": 77829,
+      "sha256": "a27be9aa335330a3e8e202edf73292c6d935e58cd812b11e877021d27ee8673c"
+    },
+    {
+      "path": "native/06-apk-build-ready.txt",
+      "bytes": 2389,
+      "sha256": "e2a0dae3d747ec754b189ddb2e0dc207616603868de186673813d5d403f49b93"
+    },
+    {
+      "path": "native/07-apk-built.jpg",
+      "bytes": 77404,
+      "sha256": "ebcacb0b5a6d3080900fc9cd381995407c7b79f43317f2f45604f9fcfb72b6ae"
+    },
+    {
+      "path": "native/07-apk-built.txt",
+      "bytes": 2389,
+      "sha256": "e2a0dae3d747ec754b189ddb2e0dc207616603868de186673813d5d403f49b93"
+    },
+    {
+      "path": "native/08-junk.jpg",
+      "bytes": 76111,
+      "sha256": "82c6d1f84257ea62f90d3416b4aa96ae27e1cd8bc03d70b16f157bec46604c45"
+    },
+    {
+      "path": "native/08-junk.txt",
+      "bytes": 2361,
+      "sha256": "b7cdd9a55f6b3b4f007b1e5b6a872250a2bb9d2aa594b54069cfdecb47a016d0"
+    },
+    {
+      "path": "native/09-junk-ready.jpg",
+      "bytes": 76412,
+      "sha256": "67768c598ee810d0d0985e5392f8871fc036486b1cdb65cdc94447f4efd5e900"
+    },
+    {
+      "path": "native/09-junk-ready.txt",
+      "bytes": 2374,
+      "sha256": "31142408707090b4217165f419b05a01cef63a0381ab2dcb803e9f8d9a92076c"
+    },
+    {
+      "path": "native/10-junk-generated.jpg",
+      "bytes": 76090,
+      "sha256": "b2cf63d43859ac05de9b67aa98a2e5d4dba9e94f83a9e3ccbbc21f28fea8e05d"
+    },
+    {
+      "path": "native/10-junk-generated.txt",
+      "bytes": 2374,
+      "sha256": "31142408707090b4217165f419b05a01cef63a0381ab2dcb803e9f8d9a92076c"
+    },
+    {
+      "path": "native/11-apk-upload.jpg",
+      "bytes": 60837,
+      "sha256": "f04935ba4286b6c855fd4bff1d9ce2882f40d82cef2be5e159be53c8c6bcb35b"
+    },
+    {
+      "path": "native/11-apk-upload.txt",
+      "bytes": 1327,
+      "sha256": "b5a6100c000f4c37bf65422e993ff6d8b006d7a55a45428b24d397fe2956c03b"
+    },
+    {
+      "path": "native/12-apk-information-result.jpg",
+      "bytes": 53753,
+      "sha256": "a3487d1db00803e3a48d19d2c80a6240f49c7036866018df2fd74b99026b67d0"
+    },
+    {
+      "path": "native/12-apk-information-result.txt",
+      "bytes": 1967,
+      "sha256": "c9215e2ae6846a85490cd16dd9be3e2089f79053225560178bf2f2f06d4e6226"
+    },
+    {
+      "path": "native/13-apk-image-window.jpg",
+      "bytes": 24836,
+      "sha256": "05f576dd842733fad073275e0c2be6eb656abbecd9fca032aaf55f44a2d19ce5"
+    },
+    {
+      "path": "native/13-apk-image-window.txt",
+      "bytes": 482,
+      "sha256": "176a25ab40df513a21dc99d8495cff9a1e3fb765d90b4b2997bd8e8a7aa2d12c"
+    },
+    {
+      "path": "native/14-icon-empty.jpg",
+      "bytes": 44921,
+      "sha256": "9226884fc1ea61af2647105b2e7130b3ac3eeaefe43e47439ec9165d331c0660"
+    },
+    {
+      "path": "native/14-icon-empty.txt",
+      "bytes": 1590,
+      "sha256": "6500bee769d147b23f65fd47f46ae82e604def98800dc25fc4be2a94172a3308"
+    },
+    {
+      "path": "native/15-icon-sheet.jpg",
+      "bytes": 54818,
+      "sha256": "a5dd33dca7603c3cad3bb9c21126e7af91d61ff057739244d12817de928acaeb"
+    },
+    {
+      "path": "native/15-icon-sheet.txt",
+      "bytes": 3348,
+      "sha256": "8f73ca89b8cc6efec30ccc4366d1ba7198a26e0ec4b17f9b5fe7be43be0b7042"
+    },
+    {
+      "path": "native/16-icon-ready.jpg",
+      "bytes": 56067,
+      "sha256": "a0c9bf3dc861f7618013467b12136d02f786526fcaaddb1199bd12f4d1783bdd"
+    },
+    {
+      "path": "native/16-icon-ready.txt",
+      "bytes": 3363,
+      "sha256": "98ca8e582271085839b650e63a87b1b18753769badf6850f84ef592ba619526b"
+    },
+    {
+      "path": "native/17-icon-generated.jpg",
+      "bytes": 44438,
+      "sha256": "aa62ca59d0a37a8e21ee3af7c391eb3c6d64aee4da2d865c86fa89fb9ce04538"
+    },
+    {
+      "path": "native/17-icon-generated.txt",
+      "bytes": 1911,
+      "sha256": "afd44a20cd9c6b37ea4ce5c1fb0a68200149e606000479ef5adffd1aa8d89ec3"
+    },
+    {
+      "path": "native/18-cleaner-empty.jpg",
+      "bytes": 72058,
+      "sha256": "5915612cab5c0ce74fa92162cda85a44b61bf0e58369451fe13a4b44c996da59"
+    },
+    {
+      "path": "native/18-cleaner-empty.txt",
+      "bytes": 2295,
+      "sha256": "1d886dd06d77ef36a574d5629a9a5a0588f97374b38cb9de6f49daf7cf37962b"
+    },
+    {
+      "path": "native/19-cleaner-scanned.jpg",
+      "bytes": 58866,
+      "sha256": "e8bff30ff7651b79c2e596ce5f512c22a22bbe19f2c45760f2a3c40f9602db4f"
+    },
+    {
+      "path": "native/19-cleaner-scanned.txt",
+      "bytes": 2275,
+      "sha256": "983d09266c4250426a58db80f4493d6b7b9a7c08e862f56e8a86bdda70edd49d"
+    },
+    {
+      "path": "native/20-cleaner-single-selection.jpg",
+      "bytes": 58250,
+      "sha256": "7996a405074736c8096ba0c1b70c70d22148555eed296cba39b4ab06e56fa1fd"
+    },
+    {
+      "path": "native/20-cleaner-single-selection.txt",
+      "bytes": 2274,
+      "sha256": "9a71cdea4ffaa164f619a97012fc75ae933380111c18c36d656d0cf6a789bc4b"
+    },
+    {
+      "path": "native/21-cleaner-confirmation.jpg",
+      "bytes": 56524,
+      "sha256": "4a127f1488e0a1ca7d5ddc9b6887cdb16317a86a7b43513e9d6a3aa884fcc99b"
+    },
+    {
+      "path": "native/21-cleaner-confirmation.txt",
+      "bytes": 2771,
+      "sha256": "d384194e6929211d49c84d70773077cd9230e8bc7b5b83923504c9de0345b458"
+    },
+    {
+      "path": "native/22-cleaner-one-deleted.jpg",
+      "bytes": 60923,
+      "sha256": "2039f2c2f6488131c13bb80945d13a797a7354e754cbc357c11bf43f2110babb"
+    },
+    {
+      "path": "native/22-cleaner-one-deleted.txt",
+      "bytes": 2401,
+      "sha256": "d7d05abc026980beb19c671a6ed9dd6a5c50f7bdfaf4ee068c70fd91dc7b910c"
+    },
+    {
+      "path": "native/23-settings.jpg",
+      "bytes": 66090,
+      "sha256": "3c5add43a8f4ddd5b4b075b20af62d9d68e8738f6de9992918461d9f45b21b26"
+    },
+    {
+      "path": "native/23-settings.txt",
+      "bytes": 2463,
+      "sha256": "468986e9dad6d5bcbfb7e0099cbc7283f4c625c5743c0e95868906c7d0d3521e"
+    },
+    {
+      "path": "native/24-settings-dark-input.jpg",
+      "bytes": 69198,
+      "sha256": "ff24db825cf12acc040f42c694aa8dac072360301ee0a17d9af3191b2944eb11"
+    },
+    {
+      "path": "native/24-settings-dark-input.txt",
+      "bytes": 2484,
+      "sha256": "74137420952cb5aee0411d1501436af08ea128dca9f930605fb1fc23f1740588"
+    },
+    {
+      "path": "native/25-licenses.jpg",
+      "bytes": 51277,
+      "sha256": "cd8e51eb3f4bf100545481e9df6fb33303b89679da5e733a920496f457e87cf2"
+    },
+    {
+      "path": "native/25-licenses.txt",
+      "bytes": 1214,
+      "sha256": "34ac09b16638c38581e24d49b1219179dce03972ce0104a80035af6658504f16"
+    },
+    {
+      "path": "native/26-license-details.jpg",
+      "bytes": 89843,
+      "sha256": "5924389d098f1c10e5478f656753fc6916e454c80bedd480d32c26f9f189da0b"
+    },
+    {
+      "path": "native/26-license-details.txt",
+      "bytes": 2510,
+      "sha256": "2111cd8d977da13994d7e11416fe678f37fd58225f0f9ee28a34e9aa48977544"
+    },
+    {
+      "path": "native/27-dark-signature.jpg",
+      "bytes": 60829,
+      "sha256": "7f842fb6dbd6fd60f13ae69207df215d033f46f056aa74c353e1814e7717164b"
+    },
+    {
+      "path": "native/27-dark-signature.txt",
+      "bytes": 1373,
+      "sha256": "666096efce638bbee3fc5591a07c5f4f3e57f1d956b6417498c0338f07270081"
+    },
+    {
+      "path": "native/28-dark-apk-info.jpg",
+      "bytes": 53235,
+      "sha256": "1f4a5a4be35d187223a41a9b817a37958396e21e22983a5cf1857a2c7c7fa30a"
+    },
+    {
+      "path": "native/28-dark-apk-info.txt",
+      "bytes": 1967,
+      "sha256": "c9215e2ae6846a85490cd16dd9be3e2089f79053225560178bf2f2f06d4e6226"
+    },
+    {
+      "path": "native/29-dark-signing.jpg",
+      "bytes": 72485,
+      "sha256": "0ad2bbbc9d006399ab15984922edac81c7fc48a892ef302c9aba4907cbafcb7f"
+    },
+    {
+      "path": "native/29-dark-signing.txt",
+      "bytes": 2222,
+      "sha256": "f092c47239d6d503f9f3fb898871080c173e68e9a176d0aab9e6fb7b37ee1240"
+    },
+    {
+      "path": "native/30-dark-keystore.jpg",
+      "bytes": 70042,
+      "sha256": "d3a475c1447839ba4f1dbd71b897b87e68092188ee3da95c7fabe42aecd112dd"
+    },
+    {
+      "path": "native/30-dark-keystore.txt",
+      "bytes": 2148,
+      "sha256": "02c525043453c7a10aa4327db685424ac5c3c5d949b64ba245952349721b9182"
+    },
+    {
+      "path": "native/31-dark-apk-tool.jpg",
+      "bytes": 75411,
+      "sha256": "32d9060d992ee4ec85ebf5e83d874b5bc99accfbd0e2b786623686365c1b7726"
+    },
+    {
+      "path": "native/31-dark-apk-tool.txt",
+      "bytes": 2389,
+      "sha256": "e2a0dae3d747ec754b189ddb2e0dc207616603868de186673813d5d403f49b93"
+    },
+    {
+      "path": "native/32-dark-junk.jpg",
+      "bytes": 75226,
+      "sha256": "52f422e1eda3299df9ffccc04cb00500e0997bc03bd1f032dbd7e109ee47120c"
+    },
+    {
+      "path": "native/32-dark-junk.txt",
+      "bytes": 2374,
+      "sha256": "31142408707090b4217165f419b05a01cef63a0381ab2dcb803e9f8d9a92076c"
+    },
+    {
+      "path": "native/33-dark-icon.jpg",
+      "bytes": 45325,
+      "sha256": "49426dbffa5efeabb853ac04311726b82307155c72d35cc6e2de064de6424bd6"
+    },
+    {
+      "path": "native/33-dark-icon.txt",
+      "bytes": 1911,
+      "sha256": "afd44a20cd9c6b37ea4ce5c1fb0a68200149e606000479ef5adffd1aa8d89ec3"
+    },
+    {
+      "path": "native/34-dark-cleaner.jpg",
+      "bytes": 67006,
+      "sha256": "6160fa206f62586ccfe16a80bb6352db03d3720956974f6f1d31d54c7bd33556"
+    },
+    {
+      "path": "native/34-dark-cleaner.txt",
+      "bytes": 2051,
+      "sha256": "1d305b466443d48d7bf5cef67cd05088a991132859e12bc35e9ca96b1bd0a8a8"
+    },
+    {
+      "path": "native/35-dark-settings-return.jpg",
+      "bytes": 57264,
+      "sha256": "8bce795a6e07297fae07f3a5c6d51421f565c1d55aeef1c9021044004e85f3ed"
+    },
+    {
+      "path": "native/35-dark-settings-return.txt",
+      "bytes": 2690,
+      "sha256": "98cf728de3104c394e0cd3b7bfb00a8b5a37faa8ca3852fb4392cf501f7ab0d5"
+    },
+    {
+      "path": "native/36-signing-final-fixture.jpg",
+      "bytes": 72484,
+      "sha256": "8238e6861dff6409e0fcc03ecac3a8e4e82ac9379a55f141e9e05cdc7fc1a1d3"
+    },
+    {
+      "path": "native/36-signing-final-fixture.txt",
+      "bytes": 2222,
+      "sha256": "f092c47239d6d503f9f3fb898871080c173e68e9a176d0aab9e6fb7b37ee1240"
+    },
+    {
+      "path": "native/37-signing-key-ready.jpg",
+      "bytes": 90629,
+      "sha256": "68fe9662531420e7a28c033151f0be06961c570af72204605c5730e47f025f02"
+    },
+    {
+      "path": "native/37-signing-key-ready.txt",
+      "bytes": 2478,
+      "sha256": "d0047937c2f504efc8805e6f94e13522f9f624e59af2862cadd558c02d99df70"
+    },
+    {
+      "path": "native/38-signing-ready.jpg",
+      "bytes": 71927,
+      "sha256": "8d4f00fdfd9815aa78f0da8c19e782bda37b86dfae441931488078b48b9260ed"
+    },
+    {
+      "path": "native/38-signing-ready.txt",
+      "bytes": 2303,
+      "sha256": "f158b9feefa966dce5c814d7a887c0c84feae324eee600b26b3893ea67462ae5"
+    },
+    {
+      "path": "native/39-signed-result.jpg",
+      "bytes": 71263,
+      "sha256": "c8619fb26819889417387c4353dd0d463b9f43f5b9c411d1de1d0882ebaa31fa"
+    },
+    {
+      "path": "native/39-signed-result.txt",
+      "bytes": 2254,
+      "sha256": "cc93e6e78e31252f36d8657829a8a290b26313d047c654a7f9bcfb1bf592019e"
+    },
+    {
+      "path": "native/40-window-restored.jpg",
+      "bytes": 71631,
+      "sha256": "a4850b7f963f1fe04a6961c10e28f8fc2fe3ba19205190f907543d49186e8389"
+    },
+    {
+      "path": "native/40-window-restored.txt",
+      "bytes": 2254,
+      "sha256": "cc93e6e78e31252f36d8657829a8a290b26313d047c654a7f9bcfb1bf592019e"
+    },
+    {
+      "path": "native/41-installed-launch.jpg",
+      "bytes": 72481,
+      "sha256": "87d805a99addebe6445a2612d8e9bd3728fedf27e35287362e88b6766f81b263"
+    },
+    {
+      "path": "native/41-installed-launch.txt",
+      "bytes": 2176,
+      "sha256": "84b9bc8b03c0f10f5bb5d3a2e6c915eaf1cd51976eb05141d52651e0cde88327"
+    },
+    {
+      "path": "native/42-installed-picker-cancel.jpg",
+      "bytes": 72430,
+      "sha256": "059988cbca2870bee37d97a9450a7bad11a0551413c0c47708816f34d530df83"
+    },
+    {
+      "path": "native/42-installed-picker-cancel.txt",
+      "bytes": 2176,
+      "sha256": "84b9bc8b03c0f10f5bb5d3a2e6c915eaf1cd51976eb05141d52651e0cde88327"
+    },
+    {
+      "path": "native/checks.json",
+      "bytes": 3024,
+      "sha256": "6441498eb87d9f776d306a5492af4c7e9c81802e92e629bc5e84886b7820f33a"
+    },
+    {
+      "path": "native/icon-repeats.json",
+      "bytes": 287,
+      "sha256": "1da6488fb04670d6e89f9a0632956267d431fe22b7ccaf66bd46ba195085e276"
+    },
+    {
+      "path": "performance/edt-samples.jsonl.gz",
+      "bytes": 865864,
+      "sha256": "f22ae86a96d31f373282b2a5e6ce62cb0a6e3a55333724998412c1fac0d54745"
+    },
+    {
+      "path": "performance/event-queue-probes.jsonl.gz",
+      "bytes": 198255,
+      "sha256": "216e778f4f094ca8df91d3ea3450d89ad8d0dfa2fdc8dfe7cc2195c1ce30b224"
+    },
+    {
+      "path": "performance/queue-tail-review.json",
+      "bytes": 197592,
+      "sha256": "a9687bf8f18e6191313290b37ee1372bfb13e51dde025839a484826873dbf420"
+    },
+    {
+      "path": "performance/stack-review.json",
+      "bytes": 923,
+      "sha256": "179e63b35af872a8005673056e25d6ce407d73bb7b3df65b363f43e9d8f64d42"
+    },
+    {
+      "path": "performance/ui-profile.json",
+      "bytes": 138976,
+      "sha256": "d8da4e59a879c01d87d99626117570d7a8a05a5a60835f63a26528b5cbccabff"
+    },
+    {
+      "path": "performance/update-edt-samples.jsonl.gz",
+      "bytes": 1445,
+      "sha256": "3d28bb344f8a11fe8cd345f2a3b69b046a945a84726ad2354b088977c3a66a7f"
+    },
+    {
+      "path": "performance/update-event-queue-probes.jsonl.gz",
+      "bytes": 269,
+      "sha256": "ddfc6753b5fb8bcb1b5b3f83e2547fd33c353a0bc7e3d7195691252bab01eb0f"
+    },
+    {
+      "path": "performance/update-initial-thread-dump.txt",
+      "bytes": 10370,
+      "sha256": "589b001e683a53de589b51beeacd7e367d51a1ce02b108ab3c77007d00dea054"
+    },
+    {
+      "path": "performance/update-profile.json",
+      "bytes": 6607,
+      "sha256": "4a5dcdb3113797847b5b36687b1eb67fb75ce3725c73b850b148ef6577c469ec"
+    },
+    {
+      "path": "platform-matrix.json",
+      "bytes": 1454,
+      "sha256": "d38276f36f7b58823f41ad1ccd7b2bd46b3845fe543b910188a3ccd4f1cbfe12"
+    },
+    {
+      "path": "release/ReleaseNativeSmoke.txt",
+      "bytes": 76,
+      "sha256": "de923ded7fbac4c50e79fcf553eaa5c22f2a33f44a47be5a90e6804a18d5e3a6"
+    },
+    {
+      "path": "release/ReleaseNavigationSmoke.txt",
+      "bytes": 621,
+      "sha256": "26bdd3746ce0faf6ef3a673fee6e8985ef76367fc36f4aaaf474e169f84c4a59"
+    },
+    {
+      "path": "release/ReleaseUpdateSmoke.txt",
+      "bytes": 295,
+      "sha256": "4a1e93c99e220d77fa7228b8d05159a9dd0e1ddd731f9209fe459452e3b8912c"
+    },
+    {
+      "path": "release/aar.json",
+      "bytes": 440,
+      "sha256": "bb771e70ddc8b8e372acd3f2741cb446b47e4af7b12d7332910eb433ec66c88f"
+    },
+    {
+      "path": "release/apk-badging.txt",
+      "bytes": 4950,
+      "sha256": "754b00e485a6db64ba39def740bdaa8e091f113ae91d4ffeb6da0b17e3270bdc"
+    },
+    {
+      "path": "release/cleaner.json",
+      "bytes": 237,
+      "sha256": "77a5323f1003379c39aca00aeae0e38536876508fe12321cab15d80f8b5621ea"
+    },
+    {
+      "path": "release/contracts-final-recheck.txt",
+      "bytes": 992,
+      "sha256": "f09dd29e660881e8bb475ee9cef90327f9de4c306ee6cf9ade6c0eb3b063a87a"
+    },
+    {
+      "path": "release/contracts-final.txt",
+      "bytes": 991,
+      "sha256": "51b98dff217e36db58544cbd65b9c829955e0c2f3a472515693d2e469f4f1e1f"
+    },
+    {
+      "path": "release/contracts-initial.txt",
+      "bytes": 2637,
+      "sha256": "df8df6064b35b81422fc473c4712d92bab79fa4d80bb0c0f56aaa233d2d3a3c5"
+    },
+    {
+      "path": "release/contracts-specialized-continuation.txt",
+      "bytes": 2711,
+      "sha256": "4d0f09aa3351932df6a583a9fd0c6959ed23f377ae9919f7210dcb8006fcc274"
+    },
+    {
+      "path": "release/dmg-install.json",
+      "bytes": 611,
+      "sha256": "b2cc717752001c54f37f8f6481c20aee9e3874e942be9e004bf70298e1b2d654"
+    },
+    {
+      "path": "release/icons.json",
+      "bytes": 747,
+      "sha256": "ff676c3cd5cc74c00a345622a6ed73e7104f1332cfab0eb9442e8edcb63c20d3"
+    },
+    {
+      "path": "release/launcher-original.cfg",
+      "bytes": 643,
+      "sha256": "30f220b423119f4738766777d09076a7bafd8ebab3b6d6fa4db7a5cd530b8a32"
+    },
+    {
+      "path": "release/launcher-preferences-only.cfg",
+      "bytes": 1076,
+      "sha256": "f6ef435f7ac8cb9b83cd04abcee755c4873cdbb94ab713776bde5d219ace107e"
+    },
+    {
+      "path": "release/package.json",
+      "bytes": 7254,
+      "sha256": "ac77a8ff8e43d918f1c72500ce0baed430bf90280098bda15bfd313fc629a87a"
+    },
+    {
+      "path": "release/phase10-dmg-detach.txt",
+      "bytes": 17,
+      "sha256": "58f617c02d8a7b673d8aea9babd4fe8324da95bca86ab5c4de115f88b60dc981"
+    },
+    {
+      "path": "release/phase10-dmg-mount.txt",
+      "bytes": 1262,
+      "sha256": "3e12173b796263f39880109a190b80004b6a5d12aeb8458fd1cb54ab3f5e6c9e"
+    },
+    {
+      "path": "release/phase10-keytool.txt",
+      "bytes": 440,
+      "sha256": "273d25fec8795b63664837c584112968c4aae07873713b379e85d574183868c6"
+    },
+    {
+      "path": "release/result.json",
+      "bytes": 1449,
+      "sha256": "e89d459e93d2840f4245441a929c6d346df65ff315660db5b6f2a47a6c9edc22"
+    },
+    {
+      "path": "release/signature-verification.txt",
+      "bytes": 126,
+      "sha256": "4066f8c1f4ce06a5b976653edbdc50639bdf220c6fb8a937cc17d9932df9069c"
+    },
+    {
+      "path": "software-after/dark/apk-information.png",
+      "bytes": 73106,
+      "sha256": "736243f3306553ade3d4f3bf99ee2b6c906f310ff787e7c06929e8d0a502a928"
+    },
+    {
+      "path": "software-after/dark/apk-signature.png",
+      "bytes": 49270,
+      "sha256": "c1a072d7e73d130dc3009ca26686051380ffc502e45a33f010aab354c1e149a2"
+    },
+    {
+      "path": "software-after/dark/apk-tool.png",
+      "bytes": 53156,
+      "sha256": "46e2b3109ca63fba993557e3bfc99eb2b864800a1eb57923341469fc1ab61f81"
+    },
+    {
+      "path": "software-after/dark/cleaner.png",
+      "bytes": 46217,
+      "sha256": "689369c4bb2a158d661ed022668fc6446d20d88b5ba6a93b7ceb98b47cf70266"
+    },
+    {
+      "path": "software-after/dark/icon-factory.png",
+      "bytes": 38306,
+      "sha256": "e0908f4d64cbd7a47b7eeec7b545ce2eb9b9949f26c46dd1bd5617cca1689f82"
+    },
+    {
+      "path": "software-after/dark/junk-code.png",
+      "bytes": 54558,
+      "sha256": "262e226cbe393288dbd2d7fa96522ed089a7228e63dbe6c4cfe95f10854a64d9"
+    },
+    {
+      "path": "software-after/dark/keystore-generation.png",
+      "bytes": 44434,
+      "sha256": "5916217557d3ab1e2e655a4b68525b38a433c7c2da2f106667169d70668a395b"
+    },
+    {
+      "path": "software-after/dark/settings.png",
+      "bytes": 57173,
+      "sha256": "2430eead1ea5f7bdbd9e35a8d04f0fbfee14ba195525e282507a211d267dbaa4"
+    },
+    {
+      "path": "software-after/dark/signature-information.png",
+      "bytes": 64262,
+      "sha256": "ba2fc893fa91ea504e452862c1ae3fb371793a996b898cbdb1fff1c60a2cd1fa"
+    },
+    {
+      "path": "software-after/interactions/keystore-draft-returned.png",
+      "bytes": 45322,
+      "sha256": "224c7821d41a3bd33606935872a9baab587d2c2e5edd1f5a65c75bb18d01a2b5"
+    },
+    {
+      "path": "software-after/interactions/signing-draft-returned.png",
+      "bytes": 51497,
+      "sha256": "6fda2e5545bea58a6a91b8ffaf20e0b53e707cd8c4a02433801f96a44c2e59bf"
+    },
+    {
+      "path": "software-after/light/apk-information.png",
+      "bytes": 76418,
+      "sha256": "fe3be739cd31cc8590e28ef0c31ee55f0f027b797277083d3148a048da22a308"
+    },
+    {
+      "path": "software-after/light/apk-signature.png",
+      "bytes": 49870,
+      "sha256": "6efff78f58cbd7790663f7a2a15c11f5f61a6f54e7a4dd5948496d5f39211a4f"
+    },
+    {
+      "path": "software-after/light/apk-tool.png",
+      "bytes": 53496,
+      "sha256": "f93a60566a930e5a456c49d7adea1f03a1f87905ee6a2f8f380f95000ccadf1c"
+    },
+    {
+      "path": "software-after/light/cleaner.png",
+      "bytes": 46718,
+      "sha256": "3232b4c8a5c4e874a2fdd4264d7b0404620df78779f73a78876ca6175ee4faef"
+    },
+    {
+      "path": "software-after/light/icon-factory.png",
+      "bytes": 38951,
+      "sha256": "d40c3981764cb7972983b57892c824b13c2a10fe8e9c5800c81dad422c38317f"
+    },
+    {
+      "path": "software-after/light/junk-code.png",
+      "bytes": 54510,
+      "sha256": "d5c188650fd45d3024787839647a1411b82c665d409ae485e5be29c4ce22e252"
+    },
+    {
+      "path": "software-after/light/keystore-generation.png",
+      "bytes": 44492,
+      "sha256": "040df527202afb50c634c933e79712a1f822ed07da702b7c3d4dd3a64d4bc286"
+    },
+    {
+      "path": "software-after/light/settings.png",
+      "bytes": 57088,
+      "sha256": "377d65bf300f99af42d4000b1fd50b3f09f87f37375c93e38d53ca6dc7234662"
+    },
+    {
+      "path": "software-after/light/signature-information.png",
+      "bytes": 68983,
+      "sha256": "0d558cc1c7e92cc850208e3c2bea744736dd38107c1b7c889aed007aaf87f9d1"
+    },
+    {
+      "path": "software-after/phase4b/dark/result-bottom.png",
+      "bytes": 50245,
+      "sha256": "c0c44aeda3cb904f492fea2e14ec70b779068cad43321d92659341c45b41aa8c"
+    },
+    {
+      "path": "software-after/phase4b/dark/result-top.png",
+      "bytes": 50919,
+      "sha256": "863ee52d1b6d10490cc41f63aaa69abbc11b83ece7a92ca8b88a86e58b15d403"
+    },
+    {
+      "path": "software-after/phase4b/light/result-bottom.png",
+      "bytes": 49072,
+      "sha256": "21651467dec986d28dc892a4abc7fe6856e35a7e101881a0b4901de67ddf783a"
+    },
+    {
+      "path": "software-after/phase4b/light/result-top.png",
+      "bytes": 49867,
+      "sha256": "a5b86dfeb7895a7933c7188e9222fb065114aba5e3c4a9fd12a3b7acb5dec678"
+    },
+    {
+      "path": "software-after/phase4c/dark/no-icon-permission-channel.png",
+      "bytes": 40866,
+      "sha256": "cefcdfdc36f745405e1b696fc7a5bf4788db044377cf3623586c99430f8a18cd"
+    },
+    {
+      "path": "software-after/phase4c/dark/result-bottom.png",
+      "bytes": 55763,
+      "sha256": "3c2d653e6456adf5cd330790a7fbc6b6a2889b10d3d69fbb9cc486d6560c9974"
+    },
+    {
+      "path": "software-after/phase4c/dark/result-top.png",
+      "bytes": 55763,
+      "sha256": "3c2d653e6456adf5cd330790a7fbc6b6a2889b10d3d69fbb9cc486d6560c9974"
+    },
+    {
+      "path": "software-after/phase4c/light/no-icon-permission-channel.png",
+      "bytes": 39737,
+      "sha256": "2869b3196cee8bd04c7bdfcbc812e8c11a108e29046598a726dc4ead27d5e75e"
+    },
+    {
+      "path": "software-after/phase4c/light/result-bottom.png",
+      "bytes": 54429,
+      "sha256": "255425f287990720d860ecaf2f9421fa4a270712fa6113c2a6b8a3e8d60104e0"
+    },
+    {
+      "path": "software-after/phase4c/light/result-top.png",
+      "bytes": 54429,
+      "sha256": "255425f287990720d860ecaf2f9421fa4a270712fa6113c2a6b8a3e8d60104e0"
+    },
+    {
+      "path": "software-after/phase5/dark/errors-top.png",
+      "bytes": 46813,
+      "sha256": "a23b37293c886aeb50f131b1d06086019e6d17a10f6edeab77286fc7a2959480"
+    },
+    {
+      "path": "software-after/phase5/dark/v4-bottom.png",
+      "bytes": 52301,
+      "sha256": "7f4517025a57978b924d17aecebebcd20773115071fd1e810f1591d3f04e456c"
+    },
+    {
+      "path": "software-after/phase5/dark/v4-top.png",
+      "bytes": 66651,
+      "sha256": "f324ec135a247da71866a147300cf0542ae3a6da2acac95ab98a6d9ce1b8ca99"
+    },
+    {
+      "path": "software-after/phase5/light/errors-top.png",
+      "bytes": 46765,
+      "sha256": "ce96ac1ca2024e183e6adb39b12121bce96a3a1e3bb07c93f3382a2dd9ba6b1a"
+    },
+    {
+      "path": "software-after/phase5/light/v4-bottom.png",
+      "bytes": 52164,
+      "sha256": "d373fecc617b64864a1649f0b32ed73d934f4e6c61921093dba2fefb32dd8227"
+    },
+    {
+      "path": "software-after/phase5/light/v4-top.png",
+      "bytes": 66845,
+      "sha256": "64d63ea382053c0191e7ac96031b272e1c2469ddd9374a54c25cf7c2dfb0e9aa"
+    },
+    {
+      "path": "software-after/phase6/dark/enabled-bottom.png",
+      "bytes": 48907,
+      "sha256": "4c7d8ed987561b5a789148c8124e2a13900040803900b6e9fb50982c462e8da2"
+    },
+    {
+      "path": "software-after/phase6/dark/enabled-top.png",
+      "bytes": 66262,
+      "sha256": "b42d1503a7a50e77aeb0077c1048668f68f8da011d76ecb9ccec86dc809e403a"
+    },
+    {
+      "path": "software-after/phase6/dark/errors-top.png",
+      "bytes": 48906,
+      "sha256": "68b0a11bd6a9b393354c6adf1aa5f6c214c7f7d4000d2caa0b45261f8e53cbb1"
+    },
+    {
+      "path": "software-after/phase6/light/enabled-bottom.png",
+      "bytes": 48976,
+      "sha256": "946898e2b6d1c96f242cd20b182d878134f06789da48751d002188eb38f81d08"
+    },
+    {
+      "path": "software-after/phase6/light/enabled-top.png",
+      "bytes": 66458,
+      "sha256": "9747eab2a11a3351b3c78c27660549cb39c4ca748608dc2b0cc02e4ddcaa6a80"
+    },
+    {
+      "path": "software-after/phase6/light/errors-top.png",
+      "bytes": 48975,
+      "sha256": "bc4172316eaeb646e3c9051fcf9d96f5e1d81f1a58656fad24292b0409a0b98d"
+    },
+    {
+      "path": "software-after/phase7a/dark/preview-empty.png",
+      "bytes": 85282,
+      "sha256": "9c296426e58915719654afdcd08fed5786a20599df38d385cef374891e8bb4cc"
+    },
+    {
+      "path": "software-after/phase7a/dark/preview-null.png",
+      "bytes": 85282,
+      "sha256": "9c296426e58915719654afdcd08fed5786a20599df38d385cef374891e8bb4cc"
+    },
+    {
+      "path": "software-after/phase7a/dark/preview-results.png",
+      "bytes": 187789,
+      "sha256": "06acc0b8dbcd5ca2dd4834b41f4cc22088aeb65f70b6da2fcf7ea8b71369a238"
+    },
+    {
+      "path": "software-after/phase7a/dark/sheet-algorithms.png",
+      "bytes": 57488,
+      "sha256": "bdd88e05e59eb78a7d5117739983d3c25ef7203b9a6e8165434b9149c315fe8a"
+    },
+    {
+      "path": "software-after/phase7a/dark/sheet-expanded-lossless.png",
+      "bytes": 61180,
+      "sha256": "688595c96c72709dc3cc3dbc786faa0e9ff9cc956b81fba917f10c1bd69ca164"
+    },
+    {
+      "path": "software-after/phase7a/dark/sheet-expanded-lossy.png",
+      "bytes": 62700,
+      "sha256": "14b890dd116be5a69ba6624364fd9b8ece669e0299eec80e8cac02def3390adc"
+    },
+    {
+      "path": "software-after/phase7a/dark/sheet-partial.png",
+      "bytes": 108921,
+      "sha256": "ea2c2f2897d50fc963303cd86a2bf2fe86861ae2525d34e8a56c2c2391f90c29"
+    },
+    {
+      "path": "software-after/phase7a/light/preview-empty.png",
+      "bytes": 87226,
+      "sha256": "c5d7c8f66c600bc628e302cba97700c39957f287bb7168458ed0e2cd4af602dc"
+    },
+    {
+      "path": "software-after/phase7a/light/preview-null.png",
+      "bytes": 87226,
+      "sha256": "c5d7c8f66c600bc628e302cba97700c39957f287bb7168458ed0e2cd4af602dc"
+    },
+    {
+      "path": "software-after/phase7a/light/preview-results.png",
+      "bytes": 190316,
+      "sha256": "d221cf4345545791b50a6f80b2dc92753b934183583340c2cadfb973a26dcf5c"
+    },
+    {
+      "path": "software-after/phase7a/light/sheet-algorithms.png",
+      "bytes": 57907,
+      "sha256": "bec41f49fb253763aa3098da2ed0e8dd0813316c7a5fa508146997468d206dcf"
+    },
+    {
+      "path": "software-after/phase7a/light/sheet-expanded-lossless.png",
+      "bytes": 62207,
+      "sha256": "ec79535609c1ba2c6fe24bc91a3afc03332a59ff1ba8e737c753e8295d099870"
+    },
+    {
+      "path": "software-after/phase7a/light/sheet-expanded-lossy.png",
+      "bytes": 63943,
+      "sha256": "4cdf44b62eb4115210645ca29d009d8307683054706255568d790baa814bacd4"
+    },
+    {
+      "path": "software-after/phase7a/light/sheet-partial.png",
+      "bytes": 110042,
+      "sha256": "38b8b06c8f2b4f84514486b0b8247e429c0d3f965804bde820286e66631f82fa"
+    },
+    {
+      "path": "software-after/phase7b/dark/multi-bottom.png",
+      "bytes": 53636,
+      "sha256": "2ca29d90abe1f4a59546b818dae070e096b428891eb9587eabbbbc67ae104ff8"
+    },
+    {
+      "path": "software-after/phase7b/dark/multi-errors.png",
+      "bytes": 51207,
+      "sha256": "02a600c564e66218fda66936c4b833e0d16532e546bee80bbec158c6c3131d52"
+    },
+    {
+      "path": "software-after/phase7b/dark/multi-top.png",
+      "bytes": 53636,
+      "sha256": "2ca29d90abe1f4a59546b818dae070e096b428891eb9587eabbbbc67ae104ff8"
+    },
+    {
+      "path": "software-after/phase7b/dark/single-bottom.png",
+      "bytes": 54558,
+      "sha256": "262e226cbe393288dbd2d7fa96522ed089a7228e63dbe6c4cfe95f10854a64d9"
+    },
+    {
+      "path": "software-after/phase7b/dark/single-errors.png",
+      "bytes": 49743,
+      "sha256": "68af416b935fa935a2263cadfe716eaec01005a09339250a20580ad34a67d6e6"
+    },
+    {
+      "path": "software-after/phase7b/dark/single-top.png",
+      "bytes": 54558,
+      "sha256": "262e226cbe393288dbd2d7fa96522ed089a7228e63dbe6c4cfe95f10854a64d9"
+    },
+    {
+      "path": "software-after/phase7b/light/multi-bottom.png",
+      "bytes": 53690,
+      "sha256": "0719a2657fedfa4930572c332c8de1a2ebdfa15eb2545c5bcd10fff4b3584653"
+    },
+    {
+      "path": "software-after/phase7b/light/multi-errors.png",
+      "bytes": 51310,
+      "sha256": "c892098531976f055bda50548cac73a1f2fda4cdc64809553a976208a983b27a"
+    },
+    {
+      "path": "software-after/phase7b/light/multi-top.png",
+      "bytes": 53690,
+      "sha256": "0719a2657fedfa4930572c332c8de1a2ebdfa15eb2545c5bcd10fff4b3584653"
+    },
+    {
+      "path": "software-after/phase7b/light/single-bottom.png",
+      "bytes": 54510,
+      "sha256": "d5c188650fd45d3024787839647a1411b82c665d409ae485e5be29c4ce22e252"
+    },
+    {
+      "path": "software-after/phase7b/light/single-errors.png",
+      "bytes": 49777,
+      "sha256": "624041fd0300fc4a6c0ecba8c3e907d8329f604b9b5a4734c6fe17232a93e8f0"
+    },
+    {
+      "path": "software-after/phase7b/light/single-top.png",
+      "bytes": 54510,
+      "sha256": "d5c188650fd45d3024787839647a1411b82c665d409ae485e5be29c4ce22e252"
+    },
+    {
+      "path": "software-after/phase8/dark/all-selected.png",
+      "bytes": 24977,
+      "sha256": "8a2e53f77453879a8182ddb8c5f3a7f341b9ccda68449f6f9a789f4e8e263e9d"
+    },
+    {
+      "path": "software-after/phase8/dark/delete-dialog.png",
+      "bytes": 42488,
+      "sha256": "16f40c2de7abc784de93263a78bd91644cd1882b0e3be45919160594aeb75992"
+    },
+    {
+      "path": "software-after/phase8/dark/failed-item.png",
+      "bytes": 25478,
+      "sha256": "f4cf21e58f5a6d0d18ae3b37c7c3f33fa73b3cb1c64a896b058e3e02c5640458"
+    },
+    {
+      "path": "software-after/phase8/dark/mixed-selection.png",
+      "bytes": 25473,
+      "sha256": "aa63d891e55fd77118caf603630534a12e2e5531e05264cec042dcfe3d523841"
+    },
+    {
+      "path": "software-after/phase8/dark/sort-menu.png",
+      "bytes": 31450,
+      "sha256": "6a0b0b68ee3dd30d4c5346dbe7cb9b4715b59039e20e28bcb0f9deb6bbbfc2da"
+    },
+    {
+      "path": "software-after/phase8/light/all-selected.png",
+      "bytes": 24793,
+      "sha256": "199a760324b63860d2e194bfa3cf068be1b5173ee05c01d9055dff66fa2c94ea"
+    },
+    {
+      "path": "software-after/phase8/light/delete-dialog.png",
+      "bytes": 42411,
+      "sha256": "4b44d035b4e9eb2c0dbc9612428bd29f13593603083db5159d61ce1ffc1bb52f"
+    },
+    {
+      "path": "software-after/phase8/light/failed-item.png",
+      "bytes": 25241,
+      "sha256": "fca974bbc018f2157d285ec6ea35f68f8546aafdb02877ae1f681b1a251fc749"
+    },
+    {
+      "path": "software-after/phase8/light/mixed-selection.png",
+      "bytes": 25243,
+      "sha256": "649ad57b11af886e386f6b762705e54f6bcd1f605f8d5fb88e57227b8525c038"
+    },
+    {
+      "path": "software-after/phase8/light/sort-menu.png",
+      "bytes": 31397,
+      "sha256": "b24b56bdaf6edb9bdb12695c95682dfa164cec93814f4f3fdd2874845ad7996a"
+    },
+    {
+      "path": "software-comparison.json",
+      "bytes": 12921,
+      "sha256": "e01c8ea5f89b61eccfe5ce30b71599184cef81f5941bcbf6fc8bb212a12c87f0"
+    },
+    {
+      "path": "verification/architecture.txt",
+      "bytes": 998,
+      "sha256": "69ff6af0367ac09aed176927b0bcbc2e57a31c0a51b5c7d4b53b4bbac24f0066"
+    },
+    {
+      "path": "verification/domain-classpath.txt",
+      "bytes": 888,
+      "sha256": "98eea3924868db67cab48dd26dd09afcd997ce5541206fc21031b023b8fad3f4"
+    },
+    {
+      "path": "verification/phase10-fresh-reports-tests.txt",
+      "bytes": 11563,
+      "sha256": "20d4522dd0f0791705f5bc217cc298fe799d5cef31ac1ccec4b72f3cac0a2482"
+    },
+    {
+      "path": "verification/phase10-verification-package.txt",
+      "bytes": 95162,
+      "sha256": "642fc65e364d3fe3357a6488bb2ec940621dfa2d2b67c979eb59308c8fa658eb"
+    },
+    {
+      "path": "verification/source-check.json",
+      "bytes": 998,
+      "sha256": "69ff6af0367ac09aed176927b0bcbc2e57a31c0a51b5c7d4b53b4bbac24f0066"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ApkBuildWorkspacesTest.xml",
+      "bytes": 646,
+      "sha256": "46b2bfb13f0eef6a04a59efacc879ef0633f55d18ddc27421b7101adecc51e7b"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ApkInformationUiTest.xml",
+      "bytes": 826,
+      "sha256": "411f03473a1bb176511d00b80de5b494d8a990534fed9b45395f093ed4c8dbe8"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ApkInformationViewModelTest.xml",
+      "bytes": 8610,
+      "sha256": "010d832a496fdeb36200fae4b6926c5889627faae0c7f166cd780399856c96e8"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ApkSigningFixtureTest.xml",
+      "bytes": 639,
+      "sha256": "d806d9863ccd291c5a168a047f3a1b2c77c448fe05e0193d0aeb1850ca738a8d"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ApkSigningUiTest.xml",
+      "bytes": 742,
+      "sha256": "1dd7d1fedbd2d2bd8a400066aa3602aea04cffd2b44af9b3455748336ae41647"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ApkSigningViewModelTest.xml",
+      "bytes": 1749,
+      "sha256": "279b0e5e81b41f4e9f6a24e037998d2df27a896d86a0309380d8d55782c37baa"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ApkToolFixtureTest.xml",
+      "bytes": 7961,
+      "sha256": "74cac977974dd705f5b68b1ead589d4db670fe37e18b661ae8b2f19e26aee90b"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ApkToolFormReducerTest.xml",
+      "bytes": 818,
+      "sha256": "6ff4aaaa51cfad3836c4d5a242470b96780eaac66bbd9c6ea8885f0fb790ecd9"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ApkToolUiTest.xml",
+      "bytes": 735,
+      "sha256": "db41b1cf5e45a5d00d2b4ceab85238e2873cbf29fc7b8775acb03b11cb7d218d"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ApkToolViewModelTest.xml",
+      "bytes": 1592,
+      "sha256": "50d0c4294c416137813042d8cba3f8c2679693f10dfbb6c3dde0620a07447087"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ArchitectureGraphTest.xml",
+      "bytes": 492,
+      "sha256": "53ab873ac2a6a84e9845aa705325a68a1cf6952049bd6038a3490c2c28e19d3e"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.BuildApkUseCaseTest.xml",
+      "bytes": 1075,
+      "sha256": "77f45d3d9f1d68e97c78ce275e5c720b1bb507dcb5e9c949ef941814859a79e5"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.CertificateMappingTest.xml",
+      "bytes": 4941,
+      "sha256": "97853e75fbc5fb7a3e12b3f74cb8b5dc4e33108292cbd285b27595b36ef3875c"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.CleanerFixtureTest.xml",
+      "bytes": 634,
+      "sha256": "55cc928c0bf7960a3f1e0a7c352199874e2257da0af93ed410ef9e95bcbf1551"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.CleanerUiTest.xml",
+      "bytes": 1014,
+      "sha256": "95268a8c36af7091c4963016697c79aaeb61c580cdb2bd2ae62a159b4c3d5177"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.CleanerViewModelTest.xml",
+      "bytes": 1635,
+      "sha256": "79f77cac9cee036165577d59bead5ad5d1d3f22d19d88e370a2eafb636eec004"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ComposeBaselineTest.xml",
+      "bytes": 1050,
+      "sha256": "145a79d2f619340436572993241defa3bd55fbe2d27a99d0e2d703030956d55a"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.GenerateIconsUseCaseTest.xml",
+      "bytes": 1132,
+      "sha256": "c7fc71828947d59ea8556f1d141dc38420c0757ca3e4c0106993f80d771513ad"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.IconFactoryFormReducerTest.xml",
+      "bytes": 806,
+      "sha256": "a71e19a9a4117ea1665b234277ce6769eb34a20ed793306f2b18090336edc66e"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.IconFactoryUiTest.xml",
+      "bytes": 765,
+      "sha256": "b2e24044ef2cdbd8939696fd99b8ebede02eb5611255108563c1018fe24104ba"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.IconFactoryViewModelTest.xml",
+      "bytes": 1848,
+      "sha256": "c3ff8d9053e2088849f3b380da7c59251dab388520d25a546ff59e26cf9f031b"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.IconNativeFixtureTest.xml",
+      "bytes": 7250,
+      "sha256": "08ad84742cc1a4572ec62002bc3346f27234fb599ad7b3fc834441a5d2ac4db2"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.IconOutputsTest.xml",
+      "bytes": 632,
+      "sha256": "2f2222a44a48188d01923d3de6b843a984945935876c6c2b5d71246230d58b27"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.IconSliderInteractionTest.xml",
+      "bytes": 491,
+      "sha256": "e4f2151a5d1df8e3655730f33c36c6db5fa456f7c0d05dbfab5d9b74bba14d10"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.JunkArchiveFixtureTest.xml",
+      "bytes": 5892,
+      "sha256": "3aa5f5c93d95970f74b8ade2cd7cc0d635372c1ab8438d6209d057d225f73f88"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.JunkCodeUiTest.xml",
+      "bytes": 736,
+      "sha256": "f4a81b55c422ef4362fbec7f918b519ad5556aba73f6b40ed7c934efafe70a3a"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.JunkCodeViewModelTest.xml",
+      "bytes": 1302,
+      "sha256": "0810dc834d8f87b9324062f606b8ac6f45df13e4c46da507a01b4a05e8925a5f"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.JunkGenerationTest.xml",
+      "bytes": 7535,
+      "sha256": "65b5ce6f51d368b50c0b3feae8ee192c5d7ecdf1d6ac64be4f43230d4ea0bfcb"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.JunkNamingRulesTest.xml",
+      "bytes": 797,
+      "sha256": "475732bc809c88608eea0bc309455f265274d28d44bd5d507f71cbc0316b05bb"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.JvmApkInformationRepositoryTest.xml",
+      "bytes": 3764,
+      "sha256": "9a84ebb639cdd6ec8c0131352ec440888e6e51f20250f158f42c8123c1a98663"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.JvmProcessRunnerTest.xml",
+      "bytes": 1068,
+      "sha256": "c7de2b92defef10f9d8edac059c4afba58fffd188efa5ca7f5e7c8fde6c61c28"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.KeyStoreFixtureTest.xml",
+      "bytes": 491,
+      "sha256": "a4e152872774a4e1609e99c50c712879a9ed16e5c8ab5b0d56e49bf9350a4ee9"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.KeyStoreGenerationDataTest.xml",
+      "bytes": 2148,
+      "sha256": "ef1737c85510ef227d41d3dce6efc82f29ebab2f6b0f20a2c9230830cdd31b82"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.KeyStoreGenerationUiTest.xml",
+      "bytes": 627,
+      "sha256": "450aba7baefa11316ecce1d180520c8136bd7d54753378631f9c428ecdf0ee66"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.KeyStoreGenerationViewModelTest.xml",
+      "bytes": 1384,
+      "sha256": "c37d5d89a3504885604457abd7b3d158403382c182d9f14c8ab48f6f4f407a62"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.KoinLifecycleTest.xml",
+      "bytes": 869,
+      "sha256": "08137a679516efa074200a600c32213fe9ecc1935c9cdfa1d3e1ca492811be81"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.LegacyFormCharacterizationTest.xml",
+      "bytes": 1155,
+      "sha256": "e2977f2c213cc28942dc36ba0e3e524c005ab098865cfed1f67a6f1f54b23f98"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.LegacyPreferencesCharacterizationTest.xml",
+      "bytes": 995,
+      "sha256": "377e9389132fe4ce1b4df94d5404401947c75db1af6764855959a05da9835568"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.NativeFixtureTest.xml",
+      "bytes": 469,
+      "sha256": "a15dd778c02abba56347d7950cb0a1a35c37878551bbcab7923da670f79954ce"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.NavigationSerializationTest.xml",
+      "bytes": 500,
+      "sha256": "4a2fa5c10173b9e5548b747c80e23ef42c8fd17d0225e0a10d01b7a1a2eb9d19"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.Phase2PlatformTest.xml",
+      "bytes": 1801,
+      "sha256": "401b357fbcc848df77261aa63059e08b901a1db31c2e089e565f912752b01d47"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.Phase2UiTest.xml",
+      "bytes": 878,
+      "sha256": "dfba2f65d3b8b359175325d903d311f8e030a4d6686bd668aa759b50ced72538"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.Phase2ValidationTest.xml",
+      "bytes": 1113,
+      "sha256": "293dcf788ff9a6d43810746572a89e3f4a6d0ec379df04012be4373f490c69dd"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.Phase3IconCommitTest.xml",
+      "bytes": 485,
+      "sha256": "0b6ae989906d77454ceda81b2c1b49e23938e3223ba15f2aa08130e75313676d"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.Phase3PreferencesTest.xml",
+      "bytes": 1157,
+      "sha256": "6ca317245b20d8289fdf2ee6c0116add52f59e61d9dd949b5039f1aca367f03d"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.Phase3StartupTest.xml",
+      "bytes": 855,
+      "sha256": "5a0e65d8c01b3194092b915b5a6a1dfae038a1491ae7763887e73bf37b0c07a7"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.Phase3UiTest.xml",
+      "bytes": 949,
+      "sha256": "8ffb65f00e5baed287602f32485bbd0ad1aa8ad2645d0575018d768807380213"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.Phase3UpdateTest.xml",
+      "bytes": 805,
+      "sha256": "3737d5ee907d549769046a9d053fae4a0d87293c6a68cca41d71f09ce1044080"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.Phase3UpdateTransportTest.xml",
+      "bytes": 3469868,
+      "sha256": "62e66566dcf6b8e43035a8fcd446113c9968ac15365df1fa88b88ed75e6388ba"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ReadApkInformationUseCaseTest.xml",
+      "bytes": 1070,
+      "sha256": "ae90782bb4af15b64b1b7bd4b90e2f15a6fcbff098b4b791eaa40ceb19162d0d"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.ScanBuildCachesUseCaseTest.xml",
+      "bytes": 1172,
+      "sha256": "31b7ccee7e23ebd3ab8d3bfa0cf881f38965227ea0c9a96e8396eebfaf293480"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.SignApkUseCaseTest.xml",
+      "bytes": 1040,
+      "sha256": "6f08e9e9824e62f5faa3e1d2e8f5da52ecc69cfa471f745e10538216d92b2ee6"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.SignatureInformationUiTest.xml",
+      "bytes": 988,
+      "sha256": "6f8122745be43bf3bdbc88d78385fc5e5f03e0d1c2d6720b19d9dd6d21984e88"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.SignatureInformationViewModelTest.xml",
+      "bytes": 9116,
+      "sha256": "495b80f0fa940d1ef0211f1149b86f7d2a099a4c7a075bdbbc1acaa493f22a4b"
+    },
+    {
+      "path": "verification/test-results/TEST-org.tool.kit.migration.SigningFormReducerTest.xml",
+      "bytes": 796,
+      "sha256": "6e61eb6b687713116c61052f98ea525df76163e948f783eeca4f9713b061c322"
+    },
+    {
+      "path": "verification/tests.json",
+      "bytes": 67,
+      "sha256": "b72d869d6a475e55d7312731eb8276d3bab0fefd111ede00038ef42b50d4ce7d"
+    },
+    {
+      "path": "verification/visual-assets.txt",
+      "bytes": 70,
+      "sha256": "d321def8e5d7664e5797f2743964a25c5aec50bfcb90c11209284785233a8c5e"
+    }
+  ]
+}

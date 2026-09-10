@@ -1,0 +1,17 @@
+[
+  {
+    "name": "junk_com_dev_junk_plugin_TT2.2.0.aar",
+    "bytes": 4366,
+    "sha256": "d143181ab38ccf7ec25441cbc143b98ea07750652410af969134bfab2c8660ea",
+    "entries": [
+      "consumer-rules.pro",
+      "res/layout/junk_layout_xzrrjthw.xml",
+      "res/values/strings.xml",
+      "res/drawable-xxxhdpi/junk_qyfkgz.xml",
+      "res/raw/junk_wjzqi_keep.xml",
+      "AndroidManifest.xml",
+      "classes.jar",
+      "R.txt"
+    ]
+  }
+]

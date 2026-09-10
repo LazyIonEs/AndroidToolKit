@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="SignatureInformationUiTest[jvm]" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-10T06:15:41.662Z" hostname="LazyIonEsdeMacBook-Pro.local" time="1.662">
+  <properties/>
+  <testcase name="darkResult[jvm]" classname="org.tool.kit.migration.SignatureInformationUiTest" time="0.929"/>
+  <testcase name="lightResult[jvm]" classname="org.tool.kit.migration.SignatureInformationUiTest" time="0.733"/>
+  <system-out><![CDATA[2026-09-10 14:15:41.706 [AWT-EventQueue-0 @coroutine#84843] INFO  App - 启动App, 应用版本号: 1.6.11
+2026-09-10 14:15:42.414 [AWT-EventQueue-0 @coroutine#87318] INFO  App - 启动App, 应用版本号: 1.6.11
+2026-09-10 14:15:42.614 [AWT-EventQueue-0 @coroutine#88324] INFO  App - 启动App, 应用版本号: 1.6.11
+2026-09-10 14:15:43.184 [AWT-EventQueue-0 @coroutine#90869] INFO  App - 启动App, 应用版本号: 1.6.11
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

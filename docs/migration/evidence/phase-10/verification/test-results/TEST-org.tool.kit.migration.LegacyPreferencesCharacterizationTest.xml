@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="LegacyPreferencesCharacterizationTest[jvm]" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-09-10T06:15:28.755Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.007">
+  <properties/>
+  <testcase name="unknownPreferenceEnumsKeepTheExistingFallbacks[jvm]" classname="org.tool.kit.migration.LegacyPreferencesCharacterizationTest" time="0.001"/>
+  <testcase name="legacySerializerWritesPhysicalKeysAndNewInstanceReadsThem[jvm]" classname="org.tool.kit.migration.LegacyPreferencesCharacterizationTest" time="0.001"/>
+  <testcase name="emptySettingsPreserveOriginalDefaults[jvm]" classname="org.tool.kit.migration.LegacyPreferencesCharacterizationTest" time="0.002"/>
+  <testcase name="iconSettingsRoundTripRetainsEnumOrdinalsAndEveryParameter[jvm]" classname="org.tool.kit.migration.LegacyPreferencesCharacterizationTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

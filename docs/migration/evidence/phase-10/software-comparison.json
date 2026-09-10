@@ -1,0 +1,709 @@
+{
+  "baseline": "294f6e40 / phase-09/software-after",
+  "mode": "Full RGBA exact comparison, no masking/crop/tolerance",
+  "staticGates": 68,
+  "results": [
+    {
+      "image": "dark/apk-information.png",
+      "differentPixels": 0,
+      "staticGate": false,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "dark/apk-signature.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "dark/apk-tool.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "dark/cleaner.png",
+      "differentPixels": 1511,
+      "staticGate": false,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "dark/icon-factory.png",
+      "differentPixels": 0,
+      "staticGate": false,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "dark/junk-code.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "dark/keystore-generation.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "dark/settings.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "dark/signature-information.png",
+      "differentPixels": 0,
+      "staticGate": false,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "interactions/keystore-draft-returned.png",
+      "differentPixels": 0,
+      "staticGate": false,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "interactions/signing-draft-returned.png",
+      "differentPixels": 0,
+      "staticGate": false,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "light/apk-information.png",
+      "differentPixels": 0,
+      "staticGate": false,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "light/apk-signature.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "light/apk-tool.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "light/cleaner.png",
+      "differentPixels": 1511,
+      "staticGate": false,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "light/icon-factory.png",
+      "differentPixels": 0,
+      "staticGate": false,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "light/junk-code.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "light/keystore-generation.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "light/settings.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "light/signature-information.png",
+      "differentPixels": 0,
+      "staticGate": false,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase4b/dark/result-bottom.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase4b/dark/result-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase4b/light/result-bottom.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase4b/light/result-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase4c/dark/no-icon-permission-channel.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase4c/dark/result-bottom.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase4c/dark/result-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase4c/light/no-icon-permission-channel.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase4c/light/result-bottom.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase4c/light/result-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase5/dark/errors-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase5/dark/v4-bottom.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase5/dark/v4-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase5/light/errors-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase5/light/v4-bottom.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase5/light/v4-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase6/dark/enabled-bottom.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase6/dark/enabled-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase6/dark/errors-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase6/light/enabled-bottom.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase6/light/enabled-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase6/light/errors-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/dark/preview-empty.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/dark/preview-null.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/dark/preview-results.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/dark/sheet-algorithms.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/dark/sheet-expanded-lossless.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/dark/sheet-expanded-lossy.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/dark/sheet-partial.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/light/preview-empty.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/light/preview-null.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/light/preview-results.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/light/sheet-algorithms.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/light/sheet-expanded-lossless.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/light/sheet-expanded-lossy.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7a/light/sheet-partial.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7b/dark/multi-bottom.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7b/dark/multi-errors.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7b/dark/multi-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7b/dark/single-bottom.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7b/dark/single-errors.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7b/dark/single-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7b/light/multi-bottom.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7b/light/multi-errors.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7b/light/multi-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7b/light/single-bottom.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7b/light/single-errors.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase7b/light/single-top.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase8/dark/all-selected.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase8/dark/delete-dialog.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase8/dark/failed-item.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase8/dark/mixed-selection.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase8/dark/sort-menu.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase8/light/all-selected.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase8/light/delete-dialog.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase8/light/failed-item.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase8/light/mixed-selection.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    },
+    {
+      "image": "phase8/light/sort-menu.png",
+      "differentPixels": 0,
+      "staticGate": true,
+      "size": [
+        800,
+        572
+      ]
+    }
+  ]
+}

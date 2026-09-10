@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ScanBuildCachesUseCaseTest[jvm]" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-10T06:15:41.611Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.039">
+  <properties/>
+  <testcase name="originalTraversalMetadataAndSizeRulesMatchIncludingDepthAndDuplicateNames[jvm]" classname="org.tool.kit.migration.ScanBuildCachesUseCaseTest" time="0.019"/>
+  <testcase name="deleteCapturesItsInputAndCancellationDoesNotStartTheNextPath[jvm]" classname="org.tool.kit.migration.ScanBuildCachesUseCaseTest" time="0.005"/>
+  <testcase name="realPermissionFailureReturnsTheSurvivingMetadataAndCanRetry[jvm]" classname="org.tool.kit.migration.ScanBuildCachesUseCaseTest" time="0.006"/>
+  <testcase name="realDeletionPreservesUnselectedSiblingsAndUsesTheScannedLengthAfterChanges[jvm]" classname="org.tool.kit.migration.ScanBuildCachesUseCaseTest" time="0.006"/>
+  <testcase name="symbolicDirectoryLinksKeepTheOriginalTraversalAndPathIdentity[jvm]" classname="org.tool.kit.migration.ScanBuildCachesUseCaseTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

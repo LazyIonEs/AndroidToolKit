@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Phase3StartupTest[jvm]" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-10T06:15:29.742Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.553">
+  <properties/>
+  <testcase name="disabledStartupStaysSilentEvenIfTheSettingIsEnabledLater[jvm]" classname="org.tool.kit.migration.Phase3StartupTest" time="0.272"/>
+  <testcase name="enabledStartupWaitsForReadyAndRunsOnlyOnceAcrossPreferenceAndThemeChanges[jvm]" classname="org.tool.kit.migration.Phase3StartupTest" time="0.281"/>
+  <system-out><![CDATA[2026-09-10 14:15:29.772 [AWT-EventQueue-0 @coroutine#79642] INFO  App - 启动App, 应用版本号: 1.6.11
+2026-09-10 14:15:30.040 [AWT-EventQueue-0 @coroutine#81442] INFO  App - 启动App, 应用版本号: 1.6.11
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

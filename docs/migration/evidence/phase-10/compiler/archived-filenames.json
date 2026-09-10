@@ -1,0 +1,18 @@
+{
+  "reason": "Portable archived names for Windows checkout; report values unchanged; text trailing whitespace normalized as documented",
+  "renames": {
+    "compiler/composeApp/reports/org_tool_kit:composeApp-composables.txt": "compiler/composeApp/reports/org_tool_kit_composeApp-composables.txt",
+    "compiler/composeApp/reports/org_tool_kit:composeApp-classes.txt": "compiler/composeApp/reports/org_tool_kit_composeApp-classes.txt",
+    "compiler/composeApp/reports/org_tool_kit:composeApp-composables.csv": "compiler/composeApp/reports/org_tool_kit_composeApp-composables.csv",
+    "compiler/composeApp/metrics/jvm/main/org_tool_kit:composeApp-module.json": "compiler/composeApp/metrics/jvm/main/org_tool_kit_composeApp-module.json",
+    "compiler/shared/reports/org_tool_kit:shared_test-classes.txt": "compiler/shared/reports/org_tool_kit_shared_test-classes.txt",
+    "compiler/shared/reports/org_tool_kit:shared_test-composables.csv": "compiler/shared/reports/org_tool_kit_shared_test-composables.csv",
+    "compiler/shared/reports/org_tool_kit:shared-classes.txt": "compiler/shared/reports/org_tool_kit_shared-classes.txt",
+    "compiler/shared/reports/org_tool_kit:shared-composables.txt": "compiler/shared/reports/org_tool_kit_shared-composables.txt",
+    "compiler/shared/reports/org_tool_kit:shared_test-composables.txt": "compiler/shared/reports/org_tool_kit_shared_test-composables.txt",
+    "compiler/shared/reports/org_tool_kit:shared-composables.log": "compiler/shared/reports/org_tool_kit_shared-composables.log",
+    "compiler/shared/reports/org_tool_kit:shared-composables.csv": "compiler/shared/reports/org_tool_kit_shared-composables.csv",
+    "compiler/shared/metrics/jvm/test/org_tool_kit:shared_test-module.json": "compiler/shared/metrics/jvm/test/org_tool_kit_shared_test-module.json",
+    "compiler/shared/metrics/jvm/main/org_tool_kit:shared-module.json": "compiler/shared/metrics/jvm/main/org_tool_kit_shared-module.json"
+  }
+}

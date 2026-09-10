@@ -1,0 +1,121 @@
+{
+  "checks": [
+    {
+      "name": "release-start",
+      "evidence": "01-release-start.txt",
+      "status": "passed"
+    },
+    {
+      "name": "nine-light-routes",
+      "evidence": "23-settings.txt",
+      "status": "passed"
+    },
+    {
+      "name": "apk-build",
+      "evidence": "07-apk-built.txt",
+      "status": "passed"
+    },
+    {
+      "name": "apk-information",
+      "evidence": "12-apk-information-result.txt",
+      "status": "passed"
+    },
+    {
+      "name": "apk-image-window",
+      "evidence": "13-apk-image-window.txt",
+      "status": "passed"
+    },
+    {
+      "name": "small-aar",
+      "evidence": "10-junk-generated.txt",
+      "status": "passed"
+    },
+    {
+      "name": "icon-picker",
+      "evidence": "14-icon-empty.txt",
+      "status": "passed"
+    },
+    {
+      "name": "icon-settings",
+      "evidence": "16-icon-ready.txt",
+      "status": "passed"
+    },
+    {
+      "name": "five-icon-previews",
+      "evidence": "17-icon-generated.txt",
+      "status": "passed"
+    },
+    {
+      "name": "five-repeat-generations",
+      "evidence": "icon-repeats.json",
+      "status": "passed"
+    },
+    {
+      "name": "directory-picker-and-120-scan",
+      "evidence": "19-cleaner-scanned.txt",
+      "status": "passed"
+    },
+    {
+      "name": "mixed-selection",
+      "evidence": "20-cleaner-single-selection.txt",
+      "status": "passed"
+    },
+    {
+      "name": "delete-confirmation-cancel",
+      "evidence": "21-cleaner-confirmation.txt",
+      "status": "passed"
+    },
+    {
+      "name": "single-owned-delete",
+      "evidence": "22-cleaner-one-deleted.txt",
+      "status": "passed"
+    },
+    {
+      "name": "settings-and-dark-theme",
+      "evidence": "24-settings-dark-input.txt",
+      "status": "passed"
+    },
+    {
+      "name": "licenses-window",
+      "evidence": "25-licenses.txt",
+      "status": "passed"
+    },
+    {
+      "name": "license-details",
+      "evidence": "26-license-details.txt",
+      "status": "passed"
+    },
+    {
+      "name": "nine-dark-routes",
+      "evidence": "35-dark-settings-return.txt",
+      "status": "passed"
+    },
+    {
+      "name": "default-path-linkage",
+      "evidence": "30-dark-keystore.txt",
+      "status": "passed"
+    },
+    {
+      "name": "key-validation",
+      "evidence": "37-signing-key-ready.txt",
+      "status": "passed"
+    },
+    {
+      "name": "real-v2-signing",
+      "evidence": "39-signed-result.txt",
+      "status": "passed"
+    },
+    {
+      "name": "window-raise-form-retained",
+      "evidence": "40-window-restored.txt",
+      "status": "passed"
+    }
+  ],
+  "notes": [
+    "Go-To field completion requires waiting before Return.",
+    "AX set_value did not change Compose fields; keyboard replacement and value verification used.",
+    "Incomplete settings text replacement was corrected before generation; final path verified.",
+    "Native screenshots are observational JPEGs, not pixel goldens.",
+    "Window minimize/raise observed, but no video or fixed animation-frame claim."
+  ]
+}

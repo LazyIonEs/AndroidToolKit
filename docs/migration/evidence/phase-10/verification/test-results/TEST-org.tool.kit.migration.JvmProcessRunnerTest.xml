@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="JvmProcessRunnerTest[jvm]" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-09-10T06:15:23.812Z" hostname="LazyIonEsdeMacBook-Pro.local" time="1.797">
+  <properties/>
+  <testcase name="argumentsWorkingDirectoryStdinAndBothOutputsPreserveExactValues[jvm]" classname="org.tool.kit.migration.JvmProcessRunnerTest" time="0.187"/>
+  <testcase name="timeoutReapsTheOwnedProcessAndItsChild[jvm]" classname="org.tool.kit.migration.JvmProcessRunnerTest" time="0.913"/>
+  <testcase name="cancellationReapsTheOwnedProcessAndItsChildAndDoesNotBecomeAnExitResult[jvm]" classname="org.tool.kit.migration.JvmProcessRunnerTest" time="0.246"/>
+  <testcase name="nonzeroExitAndLargeStderrAreFullyDrained[jvm]" classname="org.tool.kit.migration.JvmProcessRunnerTest" time="0.168"/>
+  <testcase name="outputBufferIsBoundedWhilePipesContinueDraining[jvm]" classname="org.tool.kit.migration.JvmProcessRunnerTest" time="0.283"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
