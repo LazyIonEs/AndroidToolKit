@@ -25,6 +25,7 @@ private data class AliasCredentials(val store: StoreCredentials, val alias: Stri
     override fun toString() = "AliasCredentials(redacted)"
 }
 
+/** 分别管理密钥库别名查询和别名密码验证，任一输入变化只接受新凭据的结果。 */
 class SigningCredentialsValidation(
     scope: CoroutineScope,
     private val storage: StorageRepository,
@@ -38,6 +39,7 @@ class SigningCredentialsValidation(
     private val _state = MutableStateFlow(SignValidationState())
     val state = _state.asStateFlow()
 
+    /** 强制丢弃已缓存的别名密码判断，用于页面恢复后重新检查外部密钥文件。 */
     fun refreshAliasPassword(form: SigningCredentialsUi) {
         passwordRequest.cancel()
         key = null
@@ -45,6 +47,7 @@ class SigningCredentialsValidation(
         formChanged(form)
     }
 
+    /** 根据密钥库和别名凭据的变化取消旧验证；凭据相同时复用当前验证状态。 */
     fun formChanged(form: SigningCredentialsUi) {
         val nextStore = StoreCredentials(form.path, form.storePassword)
         if (nextStore != store) {
@@ -68,7 +71,7 @@ class SigningCredentialsValidation(
         }
     }
 
-    /** Mirrors the old password-field callback: an unavailable path leaves its aliases alone. */
+    /** An unavailable path leaves the loaded aliases unchanged. */
     fun passwordChanged(form: SigningCredentialsUi) {
         refreshAliasPassword(form)
         val credentials = StoreCredentials(form.path, form.storePassword)
@@ -84,4 +87,3 @@ class SigningCredentialsValidation(
         }
     }
 }
-

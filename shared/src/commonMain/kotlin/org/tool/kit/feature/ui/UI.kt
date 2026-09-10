@@ -108,7 +108,7 @@ fun FileInput(
 }
 
 /**
- * 文件夹输入框
+ * 文件夹输入框，手动输入和系统选择都由外部回调处理，本组件不访问文件系统。
  * @param value 输入框的值
  * @param label 输入框的标签
  * @param isError 是否错误
@@ -164,7 +164,7 @@ fun StringInput(
 }
 
 /**
- * 数字输入框
+ * 数字输入框，仅接收纯数字或空字符串，保留清空输入的编辑中间态。
  * @param value 输入框的值
  * @param label 输入框的标签
  * @param isError 是否错误
@@ -239,7 +239,7 @@ fun UploadAnimate(dragging: Boolean) {
 }
 
 /**
- * 加载中动画
+ * 页面加载遮罩，拦截本页内容点击；放置范围由 FeaturePage 决定，侧栏仍可操作。
  * @param visible 是否显示
  */
 @OptIn(ExperimentalFoundationApi::class)
@@ -266,7 +266,7 @@ fun LoadingAnimate(visible: Boolean, useDarkTheme: Boolean) {
 }
 
 /**
- * 通用输入框
+ * 无内部表单副本的通用输入框，值和错误标记均由调用方提供。
  */
 @Composable
 private fun CurrentTextField(

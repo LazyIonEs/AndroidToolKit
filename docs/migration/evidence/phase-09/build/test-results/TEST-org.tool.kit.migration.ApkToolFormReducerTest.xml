@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="ApkToolFormReducerTest[jvm]" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:09.789Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.002">
-  <properties/>
-  <testcase name="keyAndToggleResetRulesMatchTheFrozenSignSetterIncludingAnAlreadyEmptyPath[jvm]" classname="org.tool.kit.migration.ApkToolFormReducerTest" time="0.001"/>
-  <testcase name="aliasClearsOnlyChangedSelectionAndStorePasswordKeepsAliasPassword[jvm]" classname="org.tool.kit.migration.ApkToolFormReducerTest" time="0.0"/>
-  <testcase name="defaultsNumericFiltersAndEveryTextFieldMatchTheLegacyForm[jvm]" classname="org.tool.kit.migration.ApkToolFormReducerTest" time="0.001"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

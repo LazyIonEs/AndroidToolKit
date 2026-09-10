@@ -56,7 +56,7 @@ import org.tool.kit.shared.generated.resources.suffix
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/4/1 20:07
- * @Description : 垃圾代码生成页面
+ * @Description : 展示单个与批量 AAR 表单和大小估计，通过事件切换模式或生成
  * @Version     : 1.0
  */
 @Composable

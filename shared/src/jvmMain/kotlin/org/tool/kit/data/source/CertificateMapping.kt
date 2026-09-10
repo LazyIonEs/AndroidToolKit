@@ -5,6 +5,7 @@ import java.security.cert.X509Certificate
 import java.security.interfaces.RSAPublicKey
 import java.security.MessageDigest
 
+/** 提取证书主体、有效期和指纹；RSA 特有信息仅在公钥为 RSA 时填充。 */
 fun X509Certificate.toCertificateInformation(version: String): CertificateInformation {
     val subject = this.subjectX500Principal.name
     val validFrom = this.notBefore.toString()
@@ -30,6 +31,7 @@ fun X509Certificate.toCertificateInformation(version: String): CertificateInform
     return apkVerifier
 }
 
+/** 对证书 DER 编码计算显示用指纹；算法名由调用方指定，证书为空时返回 null。 */
 fun getThumbPrint(cert: X509Certificate?, type: String?): String? {
     val md = MessageDigest.getInstance(type) // lgtm [java/weak-cryptographic-algorithm]
     val der: ByteArray = cert?.encoded ?: return null
@@ -38,6 +40,7 @@ fun getThumbPrint(cert: X509Certificate?, type: String?): String? {
     return hexify(digest)
 }
 
+/** 将摘要字节编码为大写、冒号分隔的十六进制指纹。 */
 private fun hexify(bytes: ByteArray): String {
     val hexDigits = charArrayOf(
         '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'

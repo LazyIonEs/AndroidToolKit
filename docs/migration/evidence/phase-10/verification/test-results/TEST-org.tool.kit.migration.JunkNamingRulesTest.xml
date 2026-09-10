@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="JunkNamingRulesTest[jvm]" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-10T06:15:22.244Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.004">
-  <properties/>
-  <testcase name="everyRawFieldAndOverflowFallbackArePreserved[jvm]" classname="org.tool.kit.migration.JunkNamingRulesTest" time="0.0"/>
-  <testcase name="estimateMatchesFrozenFormulaAndRepeatedAdditionAcrossBothModes[jvm]" classname="org.tool.kit.migration.JunkNamingRulesTest" time="0.003"/>
-  <testcase name="packageAndSuffixSettersMatchTheFrozenModelIncludingDotsWhitespaceAndEmptyStrings[jvm]" classname="org.tool.kit.migration.JunkNamingRulesTest" time="0.001"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

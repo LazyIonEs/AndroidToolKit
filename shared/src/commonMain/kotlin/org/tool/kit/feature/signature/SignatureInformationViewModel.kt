@@ -19,6 +19,7 @@ import org.tool.kit.model.CopyMode
 import org.tool.kit.shared.generated.resources.*
 import org.tool.kit.utils.formatClipboardValue
 
+/** 管理 APK/密钥库证书校验、密码弹窗和指纹复制格式，并隔离过期校验结果。 */
 class SignatureInformationViewModel(
     private val verify: VerifySignatureUseCase,
     keyStores: KeyStoreRepository,
@@ -53,6 +54,7 @@ class SignatureInformationViewModel(
         } }
     }
 
+    /** 在主线程处理页面事件，先更新本地状态，再触发相应的校验或业务操作。 */
     fun onIntent(intent: SignatureInformationIntent) {
         when (intent) {
             is VerifyApk -> verify(intent.path, true) { verify.apk(intent.path) }
@@ -90,11 +92,13 @@ class SignatureInformationViewModel(
         }
     }
 
+    /** 关闭密码弹窗并使尚未完成的别名查询失效。 */
     private fun dismissDialog() {
         aliasesValidation.reset()
         _uiState.update { it.copy(passwordDialog = null) }
     }
 
+    /** 启动最新一次校验，统一管理加载状态、结果映射和失败通知。 */
     private fun verify(path: String, isApk: Boolean, block: suspend () -> Result<SignatureVerification>) {
         val id = ++operationId
         _uiState.update { it.copy(phase = VerificationPhase.Loading, result = null, inputFile = path) }
@@ -113,6 +117,7 @@ class SignatureInformationViewModel(
         }
     }
 
+    /** 写入剪贴板成功且任务仍有效后再发送复制提示。 */
     private fun copy(value: String) {
         val id = ++operationId
         viewModelScope.launch {
@@ -127,6 +132,7 @@ class SignatureInformationViewModel(
         }
     }
 
+    /** 通过应用级消息通道发送提示，页面不直接持有 Snackbar。 */
     private fun notify(message: UiMessage, id: Long = ++operationId) {
         viewModelScope.launch { effects.send("signature-information", SnackbarMessage(message), id) }
     }

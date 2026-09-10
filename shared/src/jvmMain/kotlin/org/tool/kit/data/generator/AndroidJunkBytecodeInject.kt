@@ -7,6 +7,10 @@ import org.objectweb.asm.Opcodes
 import kotlin.random.Random
 
 object AndroidJunkBytecodeInject {
+    /**
+     * 向调用方当前方法随机插入一段字节码。新增分支需保持操作数栈平衡，
+     * 例如 double/long 结果使用 POP2，单槽结果使用 POP；方法起止与返回由调用方负责。
+     */
     fun injectRandomBytecode(mv: MethodVisitor, className: String, generateResName: () -> String, generateBigValue: () -> String) {
         val snippetType = Random.nextInt(288)
         when (snippetType) {

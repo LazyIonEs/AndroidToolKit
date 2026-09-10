@@ -4,7 +4,7 @@ import org.tool.kit.feature.signature.SigningCredentialsUi
 import org.tool.kit.feature.signature.SignValidationState
 import org.tool.kit.model.SignaturePolicy
 
-/** Immutable replacement for the old ApkToolInfo/Sign inheritance. */
+/** APK generation fields and composed signing credentials. */
 data class ApkToolForm(
     val outputPath: String = "", val icon: String = "", val packageName: String = "org.apk.tool",
     val targetSdkVersion: String = "30", val minSdkVersion: String = "21",
@@ -50,6 +50,7 @@ object ApkToolFormReducer {
     private val number = Regex("^\\d+$")
     private fun String.acceptedNumber() = isEmpty() || matches(number)
     private fun SigningCredentialsUi.path(value: String) = if (path == value) this else SigningCredentialsUi(path = value)
+    /** 纯函数归并构建表单：数量字段只接受空串或数字，密钥路径变化时重置对应凭据。 */
     fun field(form: ApkToolForm, intent: ApkToolIntent): ApkToolForm = when (intent) {
         is ApkToolIntent.OutputPathChanged -> form.copy(outputPath = intent.value)
         is ApkToolIntent.IconPathChanged -> form.copy(icon = intent.value)

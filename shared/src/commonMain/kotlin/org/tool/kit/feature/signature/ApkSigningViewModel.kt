@@ -16,6 +16,7 @@ import org.tool.kit.shared.generated.resources.*
 import org.tool.kit.utils.isApk
 import org.tool.kit.utils.isKey
 
+/** 持有签名表单及异步校验结果，将一次提交转换为单个或批量签名请求。 */
 class ApkSigningViewModel(
     private val sign: SignApkUseCase,
     private val preferences: PreferencesRepository,
@@ -33,6 +34,7 @@ class ApkSigningViewModel(
     private val keyRequest = LatestRequest(viewModelScope)
     private val nameRequest = LatestRequest(viewModelScope)
     private var outputVersion = initial.takeIf { it.ready }?.outputPathVersion
+    // 标识本页面接受的操作；关闭或替换操作后，旧任务不能再发布结果。
     private var operationId = 0L
     private val credentials = SigningCredentialsValidation(viewModelScope, storage, keyStores) { aliases ->
         val form = _uiState.value.form
@@ -57,6 +59,7 @@ class ApkSigningViewModel(
         }
     }
 
+    /** 在主线程处理页面事件，先更新本地状态，再触发相应的校验或业务操作。 */
     fun onIntent(intent: ApkSigningIntent) {
         when (intent) {
             ApkSigningIntent.Submit -> { submit(); return }
@@ -81,6 +84,7 @@ class ApkSigningViewModel(
             notify(UiMessage.Resource(Res.string.v2_tips))
     }
 
+    /** 发布表单同时通知凭据校验器，保证字段状态和异步验证使用相同输入。 */
     private fun setForm(form: ApkSignatureForm) {
         _uiState.update { it.copy(form = form) }
         credentials.formChanged(form.credentials)
@@ -88,7 +92,9 @@ class ApkSigningViewModel(
     private fun validation(update: (ApkSigningValidation) -> ApkSigningValidation) {
         _uiState.update { it.copy(validation = update(it.validation)) }
     }
+    /** 页面恢复时重查路径，反映应用外部发生的文件变化。 */
     private fun refreshPaths() { validateApk(); validateOutput(); validateKey() }
+    /** 验证普通 APK 路径；批量预设使用虚拟路径标记，不做文件检查。 */
     private fun validateApk() {
         apkRequest.cancel()
         val path = _uiState.value.form.apkPath
@@ -98,6 +104,7 @@ class ApkSigningViewModel(
             validation { it.copy(apkError = !valid, apkPending = false) }
         }
     }
+    /** 检查输出目录，并让旧路径的异步结果失效。 */
     private fun validateOutput() {
         outputRequest.cancel()
         val path = _uiState.value.form.outputPath
@@ -106,6 +113,7 @@ class ApkSigningViewModel(
             validation { it.copy(outputError = !valid, outputPending = false) }
         }
     }
+    /** 检查密钥文件路径；密码和别名由独立校验器处理。 */
     private fun validateKey() {
         keyRequest.cancel()
         val path = _uiState.value.form.credentials.path
@@ -114,6 +122,7 @@ class ApkSigningViewModel(
             validation { it.copy(keyError = !valid, keyPending = false) }
         }
     }
+    /** 根据当前输入路径和前缀推导 V4 文件名，只回填相关字段而不覆盖其他表单编辑。 */
     private fun deriveName() {
         nameRequest.cancel()
         val form = _uiState.value.form
@@ -128,6 +137,7 @@ class ApkSigningViewModel(
         }
     }
 
+    /** 校验当前表单并固定签名策略、设置和凭据；busy 防止同一页面重复提交。 */
     private fun submit() {
         val state = _uiState.value
         if (state.busy) return
@@ -152,6 +162,7 @@ class ApkSigningViewModel(
                 val outcomes = if (batch) sign.batch(requests) else listOf(sign(request))
                 currentCoroutineContext().ensureActive()
                 if (id != operationId) return@launch
+                // 批量成功还要求每个输出实际存在，避免只因签名库正常返回就报告整批完成。
                 val outcome = if (batch && outcomes.any { it !is SignApkOutcome.Success || !it.outputExists })
                     SignApkOutcome.Failure(null) else outcomes.last()
                 val message = when (outcome) {

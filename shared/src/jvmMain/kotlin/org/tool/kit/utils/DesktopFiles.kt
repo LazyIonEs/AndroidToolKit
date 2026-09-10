@@ -22,7 +22,7 @@ import java.util.zip.ZipFile
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/3/1 09:02
- * @Description : 工具类
+ * @Description : 桌面资源定位、ZIP 读取、清单修改与文件管理器操作
  * @Version     : 1.0
  */
 
@@ -39,6 +39,7 @@ val isLinux = System.getProperty("os.name").startsWith("Linux")
 
 val isMac = System.getProperty("os.name").startsWith("Mac")
 
+/** 匹配任一允许的扩展名或可执行条件；普通扩展名匹配不等同于文件存在性检查。 */
 fun <T> Array<out T>.checkFile(path: String?): Boolean {
     if (path.isNullOrBlank()) return false
     val file = File(path)
@@ -58,12 +59,15 @@ fun <T> Array<out T>.checkFile(path: String?): Boolean {
 val resourcesDir: String = System.getProperty("compose.application.resources.dir")
     ?: File(System.getProperty("user.dir"), "resources").absolutePath
 
+/** 安装包优先使用 Compose 提供的资源根；开发运行时定位到当前系统和架构子目录。 */
 val resourcesDirWithOs: String = System.getProperty("compose.application.resources.dir")
     ?: File(File(System.getProperty("user.dir"), "resources"), appInternalResourcesDir).absolutePath
 
+/** 安装包资源已汇总到统一根目录，开发运行时则从 common 子目录读取。 */
 val resourcesDirWithCommon: String = System.getProperty("compose.application.resources.dir")
     ?: File(File(System.getProperty("user.dir"), "resources"), "common").absolutePath
 
+/** 读取指定 ZIP 条目的完整字节数组并关闭条目流；条目不存在时返回 null。 */
 fun ZipFile.getZipFileData(path: String): ByteArray? {
     val zipEntry = this.getEntry(path) ?: return null
     val inputStream = this.getInputStream(zipEntry)
@@ -78,6 +82,7 @@ fun ZipFile.getZipFileData(path: String): ByteArray? {
     }
 }
 
+/** 打开指定条目流；调用方负责在所属 ZipFile 关闭前消费并关闭该流。 */
 fun ZipFile.getZipFileInputStream(path: String): InputStream? {
     val zipEntry = this.getEntry(path) ?: return null
     return this.getInputStream(zipEntry)
@@ -103,6 +108,7 @@ private val appInternalResourcesDir: String
         }
     }
 
+/** 目录递归累加所有条目的 length，包含目录条目自身；普通文件直接返回长度。 */
 fun File.getFileLength(): Long {
     if (this.isDirectory) {
         var sum = 0L
@@ -133,6 +139,7 @@ fun browseFileDirectory(file: File?) {
     }
 }
 
+/** 尝试启动桌面打开命令；返回 true 表示检查时进程仍在运行，不表示命令已成功退出。 */
 private fun runCommand(command: Array<String>): Boolean {
     try {
         val p = Runtime.getRuntime().exec(command) ?: return false
@@ -153,6 +160,7 @@ private fun runCommand(command: Array<String>): Boolean {
     }
 }
 
+/** 修改清单已有包名及 SDK 属性；缺少 uses-sdk 节点时创建该节点后保存。 */
 fun renameManifestPackage(
     file: File,
     packageName: String,
@@ -187,6 +195,7 @@ fun renameManifestPackage(
     XmlUtils.saveDocument(doc, file)
 }
 
+/** 替换 strings.xml 中 app_name 的文本节点，目标文件不存在时直接返回。 */
 fun renameValueAppName(file: File, appName: String) {
     if (!file.isFile()) {
         return
@@ -217,7 +226,7 @@ private const val CHAR_POOL = "abcdefghijklmnopqrstuvwxyz"
 private val secureRandom by lazy { SecureRandom() }
 
 /**
- * 生成随机字符
+ * 生成长度在 min..max 闭区间内的随机小写字符串，调用方需保证范围有效
  */
 fun generateSecureToken(min: Int, max: Int): String {
     val length = secureRandom.nextInt(max - min + 1) + min

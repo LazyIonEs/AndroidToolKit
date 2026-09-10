@@ -19,6 +19,7 @@ class JvmJunkCodeDataSource(
         AndroidJunkGenerator(workspace, output, config.appPackageName, config.packageCount, config.activityCount, config.resPrefix).startGenerate()
     },
 ) : JunkCodeRepository {
+    /** 在独立临时根目录中生成单个或批量 AAR，完成后统计实际输出并回收临时文件。 */
     override suspend fun generate(request: GenerateJunkCodeRequest): GeneratedJunkCode = withContext(io) {
         // Shared across instances, covering destructive batch preparation and completed output measurement.
         outputMutex.withLock {

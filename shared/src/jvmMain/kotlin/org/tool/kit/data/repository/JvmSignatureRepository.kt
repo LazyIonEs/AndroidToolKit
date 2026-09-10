@@ -17,7 +17,7 @@ private val logger = KotlinLogging.logger("SignatureRepository")
 
 /**
  * @author      : LazyIonEs
- * @description : 描述
+ * @description : 在 IO 线程读取 APK 签名及密钥库证书，并映射为业务结果
  * @createDate  : 2026/1/29 10:29
  */
 class JvmSignatureRepository(private val io: CoroutineDispatcher) : SignatureRepository {
@@ -39,6 +39,7 @@ class JvmSignatureRepository(private val io: CoroutineDispatcher) : SignatureRep
         }
     }
 
+    /** 读取指定别名的 X.509 证书并映射显示字段；普通读取错误转为 Result.failure。 */
     override suspend fun verifyCertificate(path: String, password: String, alias: String): Result<SignatureVerification> = withContext(io) {
         try {
             val file = File(path)

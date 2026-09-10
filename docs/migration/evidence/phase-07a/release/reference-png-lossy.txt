@@ -1,1 +1,0 @@
-PASS: independent png reference, lossless=false, minimum=0

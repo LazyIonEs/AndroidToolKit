@@ -7,6 +7,7 @@ import org.tool.kit.domain.junk.*
 import org.tool.kit.domain.repository.JunkCodeRepository
 
 class GenerateJunkCodeUseCase(private val repository: JunkCodeRepository) {
+    /** 执行垃圾代码生成并统一转换业务结果；取消不包装成普通失败。 */
     suspend operator fun invoke(request: GenerateJunkCodeRequest): GenerateJunkCodeOutcome = try {
         currentCoroutineContext().ensureActive()
         val result = repository.generate(request)

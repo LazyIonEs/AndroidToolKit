@@ -10,7 +10,8 @@ import uniffi.toolkit.resizeFir
 import uniffi.toolkit.resizePng
 
 /**
- * 缩放图片
+ * 同步调用 Rust 缩放 PNG，在线性颜色空间处理透明通道。
+ * 调用方应在 IO 线程执行；原生错误转换为 RustException。
  * @param inputPath 输入路径
  * @param outputPath 输出路径
  * @param width 宽度
@@ -30,7 +31,8 @@ fun resizePng(inputPath: String, outputPath: String, width: UInt, height: UInt, 
 }
 
 /**
- * 缩放图片
+ * 同步调用 fast_image_resize 缩放图像，输出编码由目标扩展名决定。
+ * @param typIdx 算法编号 0 Bilinear、1 Hamming、2 CatmullRom、3 Mitchell、4 Gaussian、5 Lanczos3
  * @param inputPath 输入路径
  * @param outputPath 输出路径
  * @param width 宽度
@@ -56,7 +58,7 @@ fun resizeFir(inputPath: String, outputPath: String, width: UInt, height: UInt, 
  * @param target 目标质量 如果不能满足最低质量，量化将因错误而中止。默认值为最小值 0，最大值 100，表示尽力而为，并且永不中止该过程。
  * 如果最大值小于 100，则库将尝试使用较少的颜色。颜色较少的图像并不总是较小，因为它会导致抖动增加。
  * @param speed 速度 1 - 10 更快的速度会生成质量较低的图像，但可能对于实时生成图像有用
- * @param preset 预设 1 - 6 预设越高、速度越慢、压缩效果越好
+ * @param preset 预设 0 - 6 预设越高、速度越慢、压缩效果越好
  */
 @Throws(RustException::class)
 fun quantize(
@@ -86,7 +88,7 @@ fun quantize(
  * 无损压缩PNG
  * @param inputPath 输入路径
  * @param outputPath 输出路径
- * @param preset 预设 1 - 6 预设越高、速度越慢、压缩效果越好
+ * @param preset 预设 0 - 6 预设越高、速度越慢、压缩效果越好
  */
 @Throws(RustException::class)
 fun oxipng(
@@ -108,7 +110,7 @@ fun oxipng(
 
 
 /**
- * 压缩图片
+ * 使用 mozjpeg 解码并重新编码 JPEG；quality=100 仍是重新编码，不等同于无损复制。
  * @param inputPath 输入路径
  * @param outputPath 输出路径
  * @param quality 图像质量。建议值为 60-80

@@ -1,5 +1,0 @@
-/Users/lazyiones/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/23.0.0/8cc20c07506ec18e0834947b84a864bfc094484e/annotations-23.0.0.jar
-/Users/lazyiones/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.4.20/94c1451890d164aed65d43b3db0b7ecef7c183e7/kotlin-stdlib-2.4.20.jar
-/Users/lazyiones/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.11.0/3d57dc678bd8d72a60e7adf0eca5c54e3f4f4b79/kotlinx-coroutines-core-jvm-1.11.0.jar
-/Users/lazyiones/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-serialization-core-jvm/1.11.0/c1905c9bf7452b045d5af9248835abe64ddad6bf/kotlinx-serialization-core-jvm-1.11.0.jar
-/Users/lazyiones/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-serialization-json-jvm/1.11.0/e7e045e99e56f07599bb9ccb708c2190e2af0606/kotlinx-serialization-json-jvm-1.11.0.jar

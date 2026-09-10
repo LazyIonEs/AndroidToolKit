@@ -68,6 +68,7 @@ import org.tool.kit.shared.generated.resources.key_store_password
 import org.tool.kit.shared.generated.resources.signing_the_apk_after_it_is_generated
 import org.tool.kit.shared.generated.resources.start_generating
 
+/** 根据构建状态展示字段和校验结果，通过回调请求文件选择及提交。 */
 @Composable
 fun ApkToolScreen(state: ApkToolUiState, onIntent: (ApkToolIntent) -> Unit,
     pickOutput: () -> Unit, pickIcon: () -> Unit, pickKey: () -> Unit,

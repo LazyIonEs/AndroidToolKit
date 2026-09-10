@@ -39,7 +39,10 @@ object MultiAarGenerator {
      * @param maximumPackageCount 每个 AAR 内的最多包数量
      * @param leastActivityCount 每个包内的最少 Activity 数量
      * @param maximumActivityCount 每个包内的最多 Activity 数量
-     * @return 生成的 AAR 文件列表
+     * 本次运行会重建 outputDir 对应的输出目录，调用方需保证该目录由本任务独占。
+     * @param random 配置随机源，测试可提供固定种子
+     * @param generateArchive 可替换的单个归档生成入口，默认使用 AndroidJunkGenerator
+     * @return 按预先生成的配置顺序排列的 AAR 文件列表
      */
     suspend fun generate(
         resourcesDir: String,
@@ -70,7 +73,7 @@ object MultiAarGenerator {
         // 使用信号量（Semaphore）控制并发任务数，防止内存爆炸和 CPU 过载
         val semaphore = Semaphore(MAX_CONCURRENT_TASKS)
 
-        // 6. 协程并发执行：避免阻塞 UI 线程，并在受控的并发范围内极速生成所有的 AAR 文件
+        // 每个子任务受信号量限制，awaitAll 等待完成并维持配置列表的返回顺序。
         val deferredFiles = configs.map { config ->
             async {
                 semaphore.withPermit {
@@ -94,6 +97,10 @@ object MultiAarGenerator {
         deferredFiles.awaitAll()
     }
 
+    /**
+     * 在单线程内生成本批次配置并去重包名、资源前缀；随机源可注入以重现结果。
+     * 数量范围两端都可取到，最小值不小于最大值时使用最小值。
+     */
     internal fun configurations(aarCount: Int, leastPackageCount: Int, maximumPackageCount: Int,
         leastActivityCount: Int, maximumActivityCount: Int, random: Random = Random.Default,
         checkActive: () -> Unit = {}): List<AarConfig> {

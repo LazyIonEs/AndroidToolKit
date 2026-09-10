@@ -52,7 +52,7 @@ import org.tool.kit.shared.generated.resources.signature_information_tooltip
 
 /**
  * @author      : LazyIonEs
- * @description : 描述
+ * @description : 侧栏导航项的文案、提示和选中状态图标
  * @createDate  : 2026/1/20 16:35
  */
 data class NavItem(

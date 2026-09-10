@@ -45,7 +45,7 @@ import org.tool.kit.shared.generated.resources.validity_period_unit_year
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/3/1 15:28
- * @Description : 签名生成
+ * @Description : 展示密钥库生成表单和密码确认错误，通过回调提交字段与生成操作
  * @Version     : 1.0
  */
 @Composable

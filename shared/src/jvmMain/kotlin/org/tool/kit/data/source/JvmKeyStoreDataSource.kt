@@ -16,6 +16,7 @@ class JvmKeyStoreDataSource(private val io: CoroutineDispatcher) {
     private val generationLock = Mutex()
     private val logger = KotlinLogging.logger("KeyStoreGeneration")
 
+    /** 串行调用同步密钥生成器；锁保持到阻塞调用返回，避免同实例的生成请求交叠。 */
     suspend fun generate(request: GenerateKeyStoreRequest): GenerateKeyStoreOutcome = generationLock.withLock {
         withContext(io) {
             try {

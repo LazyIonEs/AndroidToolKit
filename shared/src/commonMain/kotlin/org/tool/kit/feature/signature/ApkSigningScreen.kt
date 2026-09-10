@@ -61,7 +61,7 @@ import org.tool.kit.shared.generated.resources.v4_signature_output_file_name
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/2/6 10:43
- * @Description : Apk签名
+ * @Description : 展示 APK 签名表单、预设和校验结果，文件选择与签名交由回调处理
  * @Version     : 1.0
  */
 @Composable

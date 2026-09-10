@@ -1,5 +1,0 @@
-正在为以下对象生成 2,048 位RSA密钥对和自签名证书 (SHA384withRSA) (有效期为 30 天):
-	 CN=Phase10 Fixture, O=Migration Test, C=CN
-
-Warning:
-JKS 密钥库使用专用格式。建议使用 "keytool -importkeystore -srckeystore shared/build/migration/fixtures/phase10-native/phase10.jks -destkeystore shared/build/migration/fixtures/phase10-native/phase10.jks -deststoretype pkcs12" 迁移到行业标准格式 PKCS12。

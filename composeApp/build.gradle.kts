@@ -11,13 +11,6 @@ plugins {
 }
 
 // Build properties
-if (providers.gradleProperty("migrationCompilerReports").map(String::toBoolean).getOrElse(false)) {
-    composeCompiler {
-        reportsDestination.set(layout.buildDirectory.dir("migration/compose-compiler/reports"))
-        metricsDestination.set(layout.buildDirectory.dir("migration/compose-compiler/metrics"))
-    }
-}
-
 val kitVersion: String by project
 val kitPackageName: String by project
 val kitDescription: String by project
@@ -141,12 +134,7 @@ compose.desktop {
             )
 
             // Output directories
-            // Keep migration package smoke tests separate from existing distributions.
-            outputBaseDir.set(if (providers.gradleProperty("migrationPackage").map(String::toBoolean).getOrElse(false)) {
-                project.layout.buildDirectory.dir("migration/distribution")
-            } else {
-                providers.provider { project.layout.projectDirectory.dir("output") }
-            })
+            outputBaseDir.set(project.layout.projectDirectory.dir("output"))
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
 
             // Linux-specific configuration

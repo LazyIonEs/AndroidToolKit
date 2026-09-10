@@ -8,6 +8,7 @@ import org.tool.kit.app.shutdownAppSession
 import org.tool.kit.di.desktopModules
 
 private val logger = KotlinLogging.logger("org.tool.kit.main")
+/** 创建应用容器并完成首屏初始化，再进入桌面事件循环；任何退出路径都幂等释放会话。 */
 fun main() {
     val container = startKoin { modules(desktopModules()) }
     try {

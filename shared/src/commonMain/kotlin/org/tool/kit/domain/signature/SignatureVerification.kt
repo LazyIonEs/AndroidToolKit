@@ -2,7 +2,7 @@ package org.tool.kit.domain.signature
 
 /**
  * @author      : LazyIonEs
- * @description : 描述
+ * @description : APK 或密钥库的证书展示模型，区分校验通过与可读取证书
  * @createDate  : 2026/1/29 09:42
  */
 

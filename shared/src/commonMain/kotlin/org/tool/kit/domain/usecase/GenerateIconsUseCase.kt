@@ -8,6 +8,10 @@ import org.tool.kit.domain.repository.IconOutputs
 import org.tool.kit.domain.repository.ImageProcessor
 
 class GenerateIconsUseCase(private val processor: ImageProcessor, private val outputs: IconOutputs) {
+    /**
+     * 依次生成五种 Android 密度的图标，先缩放到临时文件，再按格式压缩。
+     * 失败时返回此前已完成的路径；取消直接传播，临时文件由输出会话清理。
+     */
     suspend operator fun invoke(request: GenerateIconsRequest): GenerateIconsOutcome {
         currentCoroutineContext().ensureActive()
         val suffix = when {
@@ -39,6 +43,7 @@ class GenerateIconsUseCase(private val processor: ImageProcessor, private val ou
                                 if (options.lossless) 100f else options.quality)
                         }
                         currentCoroutineContext().ensureActive()
+                        // 仅在本密度处理完成且任务仍有效时记入结果，便于失败时报告已完成的文件。
                         completed += files.outputPath
                     }
                 }

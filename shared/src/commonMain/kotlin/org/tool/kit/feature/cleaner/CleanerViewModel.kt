@@ -14,6 +14,7 @@ import org.tool.kit.feature.app.*
 import org.tool.kit.shared.generated.resources.*
 import org.tool.kit.utils.formatFileSize
 
+/** 管理扫描、选择和删除的状态机，以操作版本隔离旧扫描、旧确认和迟到结果。 */
 class CleanerViewModel(
     private val scan: ScanBuildCachesUseCase,
     private val delete: DeleteBuildCachesUseCase,
@@ -37,6 +38,7 @@ class CleanerViewModel(
         }
     }
 
+    /** 在主线程处理页面事件，先更新本地状态，再触发相应的校验或业务操作。 */
     fun onIntent(intent: CleanerIntent) {
         if (closed) return
         if (intent == CleanerIntent.RefreshCapacity) { refreshCapacity(); return }
@@ -62,6 +64,7 @@ class CleanerViewModel(
         }
     }
 
+    /** 刷新磁盘容量；读取失败时保留上次展示值，不中断清理流程。 */
     private fun refreshCapacity() {
         capacityRequest.launch(block = {
             try { storage.readCapacity() }
@@ -75,6 +78,7 @@ class CleanerViewModel(
         viewModelScope.launch { if (id == operationId) effects.send("cleaner", SnackbarMessage(UiMessage.Resource(Res.string.select_delete_director)), id) }
     }
 
+    /** 取消上一轮扫描并清除旧选择，按当前排序持续合并本轮扫描项。 */
     private fun rescan(root: String) {
         val id = ++operationId
         operation?.cancel(); confirmationId = null
@@ -103,8 +107,10 @@ class CleanerViewModel(
         }
     }
 
+    /** 只接受与当前扫描版本匹配的确认，固定选择后逐项删除并标记失败条目。 */
     private fun confirmDelete() {
         val state = _uiState.value
+        // 重扫或关闭选择后，旧确认按钮即使迟到也不能删除新列表中的目录。
         if (!state.deleteConfirmVisible || confirmationId != operationId || state.phase != CleanerPhase.Idle) return
         confirmationId = null
         val selected = state.items.filter { it.checked }.map { it.toDirectory(state.scanRoot.orEmpty()) }
@@ -115,6 +121,7 @@ class CleanerViewModel(
         operation = viewModelScope.launch {
             var releasedBytes = 0L
             var failures = 0
+            // 记录尚未收到结果的项目；流中途失败时，这些项目仍需标为失败。
             val remaining = selected.map { it.path }.toMutableSet()
             try {
                 delete(selected).collect { result ->

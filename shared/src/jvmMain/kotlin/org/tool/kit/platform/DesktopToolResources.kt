@@ -3,6 +3,7 @@ package org.tool.kit.platform
 import java.io.File
 import org.tool.kit.utils.resourcesDirWithCommon
 
+/** 集中解析随安装包分发的 APK 预设和构建模板；All 是批量选择标记，不是文件路径。 */
 object DesktopToolResources {
     enum class APK(val title: String, val path: String) {
         Oppo("oppo", File(resourcesDirWithCommon, "oppo.apk").absolutePath),

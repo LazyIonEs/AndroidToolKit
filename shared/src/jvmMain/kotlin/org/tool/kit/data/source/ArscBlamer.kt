@@ -194,7 +194,6 @@ class ArscBlamer(private val resourceTable: ResourceTableChunk) {
         val typeName: String,
         val entryName: String
     ) {
-        // 保留原有的同名函数以确保对旧 Java 代码调用的兼容性
         fun packageName() = packageName
         fun typeName() = typeName
         fun entryName() = entryName

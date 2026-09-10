@@ -8,7 +8,7 @@
 <a href="https://github.com/LazyIonEs/AndroidToolKit/actions"><img src="https://img.shields.io/github/actions/workflow/status/LazyIonEs/AndroidToolKit/build-release.yml"/></a>
 <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest"><img src="https://img.shields.io/github/downloads/LazyIonEs/AndroidToolKit/total?color=orange"/></a>
 <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest"><img src="https://img.shields.io/github/v/release/LazyIonEs/AndroidToolKit"/></a>
-<a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/kotlin-2.3.21-7a54f6"/></a>
+<a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/kotlin-2.4.10-7a54f6"/></a>
 <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.95.0-black"/></a>
 </p>
 
@@ -74,6 +74,23 @@
 - [uniffi-rs](https://github.com/mozilla/uniffi-rs)
 
 有关所使用依赖项的完整列表，请查看 [catalog](/gradle/libs.versions.toml) 文件
+
+## 代码目录
+
+| 目录 | 职责 |
+| --- | --- |
+| `composeApp/src/jvmMain` | 桌面应用入口和窗口装配 |
+| `shared/src/commonMain/kotlin/org/tool/kit/domain` | 业务模型、仓库接口和用例 |
+| `shared/src/commonMain/kotlin/org/tool/kit/feature` | 按功能组织页面、Route、ViewModel 和页面状态；`ui` 放公共 UI 组件 |
+| `shared/src/commonMain/kotlin/org/tool/kit/core` | 协程、校验等基础能力 |
+| `shared/src/jvmMain/kotlin/org/tool/kit/data` | JVM 仓库实现、数据源和生成器；更新传输及响应模型位于 `source/update` |
+| `shared/src/jvmMain/kotlin/org/tool/kit/platform` | 文件选择、剪贴板及桌面系统能力 |
+| `shared/src/jvmTest/kotlin/org/tool/kit/tests` | 按 `feature`、`domain`、`data`、`core`、`navigation`、`di`、`platform` 分组的测试；共用辅助代码放在 `support` |
+| `rust/src` | 通过 UniFFI 提供给 Kotlin 的原生实现 |
+
+设置页统一放在 `feature/setting`，更新弹窗与状态放在 `feature/update`。新增文件应与所属功能或层放在一起，包名与目录保持一致。导航键的包名参与状态序列化，调整位置时需检查已保存状态的恢复。
+
+`composeResources`、`jvmMain/resources`、`composeApp/resources` 和 `composeApp/launcher` 存放资源、配置或打包文件，即使没有 Kotlin 代码也需要保留。`build`、Rust `target` 和 Gradle 缓存是构建产物，不属于源码目录。
 
 ## License
 

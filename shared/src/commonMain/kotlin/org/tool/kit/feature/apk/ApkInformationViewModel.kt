@@ -13,6 +13,7 @@ import org.tool.kit.domain.usecase.ReadApkInformationUseCase
 import org.tool.kit.feature.app.*
 import org.tool.kit.shared.generated.resources.*
 
+/** 管理 APK 信息读取和复制；更换文件后仅接受最新一次读取结果。 */
 class ApkInformationViewModel(
     private val read: ReadApkInformationUseCase,
     private val decoder: ApkIconDecoder,
@@ -31,6 +32,7 @@ class ApkInformationViewModel(
         _uiState.update { if (it.busy) it.copy(phase = ApkInformationPhase.Idle) else it }
     } }
 
+    /** 在主线程处理页面事件，先更新本地状态，再触发相应的校验或业务操作。 */
     fun onIntent(intent: ApkInformationIntent) {
         when (intent) {
             is ApkInformationIntent.ReadApk -> {

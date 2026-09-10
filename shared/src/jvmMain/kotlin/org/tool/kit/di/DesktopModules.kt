@@ -14,12 +14,14 @@ import org.tool.kit.platform.createFlowSettings
 import org.tool.kit.platform.DesktopFileSelection
 
 @OptIn(ExperimentalSettingsApi::class)
+/** 组合桌面应用完整依赖图；设置工厂和调度器可由测试替换。 */
 fun desktopModules(
     settingsFactory: () -> FlowSettings = ::createFlowSettings,
     dispatchers: AppDispatchers = AppDispatchers(Dispatchers.IO, Dispatchers.Default, Dispatchers.Main.immediate),
 ): List<Module> = listOf(coreModule(dispatchers, settingsFactory), desktopDataModule(), domainModule(), viewModelModule())
 
 @OptIn(ExperimentalSettingsApi::class)
+/** 在 JVM 边界把仓库接口绑定到真实文件、进程、图像和系统服务实现。 */
 private fun desktopDataModule() = module {
     includes(dataModule())
     single { org.tool.kit.data.source.PreferencesDataSource(get(), get<AppDispatchers>().io) }

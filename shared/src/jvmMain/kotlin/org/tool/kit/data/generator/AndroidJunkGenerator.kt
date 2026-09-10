@@ -113,6 +113,10 @@ private val VIEWS = arrayOf(
 private val DRAWABLE_DIRS = arrayOf("drawable", "drawable-hdpi", "drawable-mdpi", "drawable-xhdpi", "drawable-xxhdpi", "drawable-xxxhdpi")
 private val MIPMAP_DIRS = arrayOf("mipmap", "mipmap-hdpi", "mipmap-mdpi", "mipmap-xhdpi", "mipmap-xxhdpi", "mipmap-xxxhdpi")
 
+/**
+ * 在独占工作目录生成 Android 类、资源和清单，再封装为可引用的 AAR。
+ * 每个实例保存自己的名称集合和资源索引，调用方负责隔离并发实例的工作根目录。
+ */
 class AndroidJunkGenerator(
     // 工作目录
     dir: String,
@@ -131,6 +135,7 @@ class AndroidJunkGenerator(
 
     private val classesDir = "classes"
 
+    // 并行生成共享名称索引；必须原子地添加并检测重复，普通 HashSet 不适用于此处。
     private val mCheckActivityNames = ConcurrentHashMap.newKeySet<String>(1024)
     private val mCheckClassName = ConcurrentHashMap.newKeySet<String>()
 
@@ -155,6 +160,10 @@ class AndroidJunkGenerator(
         const val LIFECYCLE_PROBABILITY = 0.2
     }
 
+    /**
+     * 按类、清单、资源索引和归档顺序生成 AAR，成功后清理工作目录并返回输出文件。
+     * 发生异常时交由外层工作区所有者清理，不把未完成归档报告为成功。
+     */
     fun startGenerate(): File {
         // 清理原工作目录中的文件
         logger.info { "startGenerate 准备生成, 正在清理工作空间 工作空间目录: ${workspace.absolutePath}" }
@@ -195,6 +204,7 @@ class AndroidJunkGenerator(
         return outPath
     }
 
+    /** 按包并行生成 Activity，再补充根包 Activity；所有工作线程结束后才返回。 */
     private fun generateClasses() {
         parallelJunkWork(packageCount) { _ ->
             val packageName = generatePackageName()
@@ -215,6 +225,7 @@ class AndroidJunkGenerator(
         }
     }
 
+    /** 生成 Activity、布局及所需辅助类，并登记清单和资源索引使用的名称。 */
     private fun generateActivity(packageName: String, activityPreName: String) {
         val className = activityPreName + "Activity"
         mActivities.add("$packageName.$className")
@@ -599,10 +610,12 @@ class AndroidJunkGenerator(
         writeClassToFile(packageName, className, bytes)
     }
 
+    /** 向当前 ASM 方法插入一段随机指令，名称和值由本生成器提供。 */
     private fun injectRandomBytecode(mv: org.objectweb.asm.MethodVisitor, className: String) {
         AndroidJunkBytecodeInject.injectRandomBytecode(mv, className, ::generateResName, ::generateBigValue)
     }
 
+    /** 生成带随机属性的布局，返回具有 ID 的控件名称供 Activity 生成监听代码。 */
     private fun generateLayout(layoutName: String): List<String> {
         val drawableName = resPrefix + generateResName()
         if (Random.nextDouble() < DRAWABLE_PROBABILITY && mDrawableIds.add(drawableName)) {
@@ -1041,6 +1054,7 @@ class AndroidJunkGenerator(
         return (fields to getMethods)
     }
 
+    /** 生成可作标识符的小写名称，排除 Java 和 XML 保留字。 */
     private fun generatePackageName(): String {
         val len = Random.nextInt(3, 10)
 
@@ -1060,6 +1074,7 @@ class AndroidJunkGenerator(
         return name
     }
 
+    /** 生成首字母大写的类名，并通过并发集合同时约束简单名和完整类名不重复。 */
     private fun generateClassName(packageName: String): String {
         val len = Random.nextInt(4, 12)
         val chars = CharArray(len)
@@ -1113,12 +1128,14 @@ class AndroidJunkGenerator(
         return sb.toString()
     }
 
+    /** 将点分隔的包名转换为 ASM 使用的斜杠类内部名称。 */
     private fun getTypedName(packageName: String?, className: String): String {
         val fullName = if (packageName.isNullOrEmpty()) className else "$packageName/$className"
         return fullName.replace(".", "/")
     }
 
 
+    /** 使用已收集的 Activity 集合写清单，应在并行类生成全部结束后调用。 */
     private fun generateManifest() {
         val manifestFile = File(workspace, "AndroidManifest.xml")
         if (!manifestFile.parentFile.exists()) {
@@ -1142,6 +1159,7 @@ class AndroidJunkGenerator(
         }
     }
 
+    /** 把类和布局生成期间登记的字符串资源写入 values/strings.xml。 */
     private fun generateStringsFile() {
         val res = File(workspace, "res/values/strings.xml")
         if (!res.parentFile.exists()) {
@@ -1160,6 +1178,7 @@ class AndroidJunkGenerator(
         }
     }
 
+    /** 生成类保留规则及按资源前缀匹配的 tools:keep，防止引用方裁剪生成内容。 */
     private fun generateKeepProguard() {
 
         // 生成混淆保持文件
@@ -1182,6 +1201,7 @@ class AndroidJunkGenerator(
         writeStringToFile(File(workspace, "res/raw/" + prefix + rnd + "_keep.xml"), content)
     }
 
+    /** 把各资源集合写为 AAR 的 R.txt 符号表，具体资源 ID 留给引用方构建时分配。 */
     private fun writeRFile() {
         val file = File(workspace, "R.txt")
         if (!file.parentFile.exists()) {
@@ -1210,6 +1230,7 @@ class AndroidJunkGenerator(
         logger.info { "ids 大小: ${mIds.size}" }
     }
 
+    /** 先把 class 文件封装成 classes.jar，再连同清单、资源和规则打包为 AAR。 */
     private fun assembleAar(): File {
         // 将 class 打包成jar
         val classJar = File(workspace, "classes.jar")
@@ -1237,6 +1258,7 @@ class AndroidJunkGenerator(
 
         out.outputStream().buffered().use { fos ->
             val zos = ZipOutputStream(fos)
+            // 原始 class 目录已经打进 classes.jar，外层 AAR 排除它以避免重复保存。
             workspace.listFiles { _, name -> name != classesDir }
                 ?.forEach { file -> addFileToZip(file, "", zos) }
 
@@ -1246,6 +1268,7 @@ class AndroidJunkGenerator(
         return out
     }
 
+    /** 递归添加 class 目录内容，用斜杠构造与操作系统无关的归档路径。 */
     private fun addFileToJar(file: File, node: String, jos: JarOutputStream) {
         if (file.isDirectory) {
             file.listFiles()?.forEach { f ->
@@ -1257,6 +1280,7 @@ class AndroidJunkGenerator(
         }
     }
 
+    /** 递归添加资源文件，归档项名称保持相对工作目录的层级。 */
     private fun addFileToZip(file: File, node: String, zos: ZipOutputStream) {
         if (file.isDirectory) {
             file.listFiles()?.forEach { f ->
@@ -1268,6 +1292,7 @@ class AndroidJunkGenerator(
         }
     }
 
+    /** 流式复制单个归档项并关闭该项；外层输出流由归档过程统一管理。 */
     private fun copyEntry(entry: ZipEntry, file: File, zos: ZipOutputStream) {
         zos.putNextEntry(entry)
         file.inputStream().use { fis ->
@@ -1276,6 +1301,7 @@ class AndroidJunkGenerator(
         zos.closeEntry()
     }
 
+    /** 创建父目录并写入文本；文本写入异常转为 false，由调用方决定如何处理。 */
     private fun writeStringToFile(file: File, content: String): Boolean {
         if (!file.parentFile.exists()) {
             file.parentFile.mkdirs()
@@ -1286,6 +1312,7 @@ class AndroidJunkGenerator(
         }.isSuccess
     }
 
+    /** 按 Java 包名创建 classes 下的目录，并写入 ASM 生成的类字节。 */
     private fun writeClassToFile(packageName: String, className: String, bytes: ByteArray) {
         val dir = File(workspace, classesDir)
         val parent = File(dir, packageName.replace(".", "/"))

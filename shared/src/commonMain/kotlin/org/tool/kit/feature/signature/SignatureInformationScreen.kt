@@ -96,7 +96,7 @@ import org.tool.kit.utils.LottieAnimation
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/2/5 19:47
- * @Description : 签名信息
+ * @Description : 展示签名证书、校验结果和密码弹窗，业务操作通过事件上报
  * @Version     : 1.0
  */
 @Composable

@@ -37,6 +37,7 @@ private open class NavKeySerializer<T : NavKey> : KSerializer<T> {
     override fun deserialize(decoder: Decoder): T {
         return decoder.decodeStructure(descriptor) {
             val className = decodeStringElement(descriptor, decodeElementIndex(descriptor))
+            // 恢复依赖保存时的完整类名；移动导航键包名或混淆其名称会破坏已有状态恢复。
             val serializer = Class.forName(className).kotlin.serializer()
             decodeSerializableElement(descriptor, decodeElementIndex(descriptor), serializer) as T
         }

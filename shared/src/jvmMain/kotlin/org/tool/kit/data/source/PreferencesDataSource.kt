@@ -12,13 +12,14 @@ import org.tool.kit.model.*
 import org.tool.kit.domain.preferences.*
 import org.tool.kit.utils.getDownloadDirectory
 
-/** Physical keys and serializers are unchanged. No in-memory preference state is owned here. */
+/** Reads and writes persistent settings without owning observable UI state. */
 @OptIn(ExperimentalSerializationApi::class, ExperimentalSettingsApi::class)
 class PreferencesDataSource(private val settings: FlowSettings, private val io: CoroutineDispatcher) : PreferencesStorage {
     private val blockingSettings = settings.toBlockingSettings()
     companion object {
         private const val THEME_CONFIG = "theme_config"
         val DEFAULT_THEME_CONFIG = ThemePreference.FOLLOW_SYSTEM
+        // 这些键与序列化字段共同决定设置的存储格式，重命名会影响已有设置读取。
         private const val USER_DATA = "user_data"
         val DEFAULT_USER_DATA get() = UserData(
             defaultOutputPath = getDownloadDirectory(),
@@ -51,6 +52,7 @@ class PreferencesDataSource(private val settings: FlowSettings, private val io: 
         val DEFAULT_JUNK_MODE = JunkPreference.SINGLE
     }
 
+    /** 从持久化键恢复设置，对未保存的字段使用默认值，并返回已加载快照。 */
     override suspend fun read(): PreferencesSnapshot = withContext(io) {
         val theme = settings.getStringOrNull(THEME_CONFIG)
         PreferencesSnapshot(
@@ -72,6 +74,7 @@ class PreferencesDataSource(private val settings: FlowSettings, private val io: 
         )
     }
 
+    /** 只写本次变更所属的键；聚合存储的 UserData 和 IconFactoryData 使用传入的完整快照。 */
     override suspend fun write(change: PreferenceChange, snapshot: PreferencesSnapshot) = withContext(io) {
         when (change) {
             is PreferenceChange.Theme -> settings.putString(THEME_CONFIG, change.value.name)

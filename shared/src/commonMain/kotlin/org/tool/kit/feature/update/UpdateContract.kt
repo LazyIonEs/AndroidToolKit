@@ -2,7 +2,6 @@ package org.tool.kit.feature.update
 
 import org.tool.kit.domain.repository.UpdateAsset
 import org.tool.kit.domain.repository.UpdateRelease
-import org.tool.kit.model.DownloadState
 
 data class InstallRequest(val id: Long, val path: String)
 data class UpdateUiState(

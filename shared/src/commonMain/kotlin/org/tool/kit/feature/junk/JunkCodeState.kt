@@ -52,6 +52,7 @@ sealed interface JunkCodeIntent {
 }
 
 object JunkFormReducer {
+    /** 更新单个 AAR 草稿，包名或后缀变化时同步重算展示文件名。 */
     fun single(form: SingleJunkForm, intent: JunkCodeIntent): SingleJunkForm = when (intent) {
         is JunkCodeIntent.PackageNameChanged -> form.copy(packageName = intent.value,
             aarName = displayName(intent.value, form.suffix))
@@ -62,6 +63,7 @@ object JunkFormReducer {
         is JunkCodeIntent.ResPrefixChanged -> form.copy(resPrefix = intent.value)
         else -> form
     }
+    /** 更新批量 AAR 草稿，保留字符串形式的数量输入以支持编辑中间态。 */
     fun multi(form: MultiJunkForm, intent: JunkCodeIntent): MultiJunkForm = when (intent) {
         is JunkCodeIntent.OutputDirChanged -> form.copy(outputDir = intent.value)
         is JunkCodeIntent.AarCountChanged -> form.copy(aarCount = intent.value)
@@ -74,6 +76,7 @@ object JunkFormReducer {
     private fun displayName(packageName: String, suffix: String) = "junk_${packageName.replace('.', '_')}_${suffix}_TT2.2.0.aar"
 }
 
+/** 仅将当前模式草稿转换为提交配置；无法转为整数的输入按 0 处理。 */
 fun JunkCodeUiState.configuration(): JunkConfiguration = when (mode) {
     JunkMode.SINGLE -> with(single) { JunkConfiguration.Single(packageName + "." + suffix,
         packageCount.toIntOrNull() ?: 0, activityCountPerPackage.toIntOrNull() ?: 0, resPrefix) }
@@ -82,7 +85,7 @@ fun JunkCodeUiState.configuration(): JunkConfiguration = when (mode) {
         leastActivityCountPerPackage.toIntOrNull() ?: 0, maximumActivityCountPerPackage.toIntOrNull() ?: 0) }
 }
 
-/** The original button validates both mode drafts, including its isEmpty/isBlank distinction. */
+/** Submission validates both mode drafts, using each field's empty/blank rule. */
 fun JunkCodeUiState.hasMissingFields(): Boolean = outputPath.isBlank() || with(single) {
     packageName.isBlank() || suffix.isBlank() || packageCount.isBlank() || activityCountPerPackage.isEmpty() || resPrefix.isBlank()
 } || with(multi) {

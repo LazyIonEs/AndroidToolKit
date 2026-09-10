@@ -13,6 +13,7 @@ import androidx.compose.foundation.defaultScrollbarStyle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -38,17 +39,15 @@ import androidx.compose.material.icons.outlined.Topic
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.DeleteSweep
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material.icons.rounded.DriveFolderUpload
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.HorizontalFloatingToolbar
+import androidx.compose.material3.FloatingToolbarDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -58,16 +57,19 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.Dp
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -104,14 +106,27 @@ import org.tool.kit.utils.formatStoragePercentage
 import org.tool.kit.utils.formatModifiedTime
 import kotlin.time.ExperimentalTime
 
+/** 渲染容量、扫描列表和选择工具栏；删除与路径操作通过事件交由外部执行。 */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CleanerScreen(state: CleanerUiState, signatureHasResult: Boolean, useDarkTheme: Boolean,
+fun CleanerScreen(state: CleanerUiState, useDarkTheme: Boolean,
     onIntent: (CleanerIntent) -> Unit, onSelectDirectory: () -> Unit, onOpenDirectory: (String) -> Unit) {
+    val showToolbar = state.phase == CleanerPhase.Idle && state.items.isNotEmpty()
+    var toolbarHeight by remember { mutableIntStateOf(0) }
+    val listBottomPadding = if (showToolbar) with(LocalDensity.current) { toolbarHeight.toDp() } else 0.dp
     Box(Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             ClearBuildPreview(state, useDarkTheme)
-            ClearBuildList(state, onIntent, onOpenDirectory)
+            ClearBuildList(state, onIntent, onOpenDirectory, listBottomPadding)
+        }
+        AnimatedVisibility(
+            visible = showToolbar,
+            modifier = Modifier.align(Alignment.BottomCenter),
+            enter = fadeIn() + expandVertically(),
+            exit = shrinkVertically() + fadeOut(),
+        ) {
+            ClearBuildBottom(state, onIntent, onSelectDirectory,
+                modifier = Modifier.onSizeChanged { toolbarHeight = it.height })
         }
         AnimatedVisibility(
             visible = state.phase == CleanerPhase.Idle && state.items.isEmpty(),
@@ -125,7 +140,6 @@ fun CleanerScreen(state: CleanerUiState, signatureHasResult: Boolean, useDarkThe
                 onClick = onSelectDirectory,
                 icon = { Icon(Icons.Rounded.DriveFolderUpload, label) },
                 text = { Text(label) },
-                expanded = !signatureHasResult,
             )
         }
     }
@@ -303,11 +317,19 @@ private fun ClearBuildPreview(state: CleanerUiState, useDarkTheme: Boolean) {
 
 @OptIn(ExperimentalTime::class)
 @Composable
-private fun ClearBuildList(state: CleanerUiState, onIntent: (CleanerIntent) -> Unit, onOpenDirectory: (String) -> Unit) {
+private fun ClearBuildList(
+    state: CleanerUiState,
+    onIntent: (CleanerIntent) -> Unit,
+    onOpenDirectory: (String) -> Unit,
+    bottomContentPadding: Dp,
+) {
     val listState = rememberLazyListState()
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
+            modifier = Modifier.fillMaxSize(),
             state = listState,
+            // Scrollable space lets the final row move entirely above the overlaid toolbar.
+            contentPadding = PaddingValues(bottom = bottomContentPadding),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             itemsIndexed(
@@ -380,73 +402,85 @@ private fun ClearBuildList(state: CleanerUiState, onIntent: (CleanerIntent) -> U
     }
 }
 
+/** 展示当前选择数量和体积，提供全选、排序、清理及重新选择目录操作。 */
 @Composable
-fun ClearBuildBottom(state: CleanerUiState, onIntent: (CleanerIntent) -> Unit, onSelectDirectory: () -> Unit) {
+fun ClearBuildBottom(
+    state: CleanerUiState,
+    onIntent: (CleanerIntent) -> Unit,
+    onSelectDirectory: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     var sequenceExpanded by remember { mutableStateOf(false) }
-    BottomAppBar(actions = {
-        IconButton(onClick = { onIntent(CleanerIntent.CloseSelection) }) {
-            Icon(Icons.Outlined.Close, contentDescription = "Localized description")
-        }
-        IconButton(onClick = { sequenceExpanded = !sequenceExpanded }) {
-            Icon(
-                Icons.AutoMirrored.Outlined.Sort,
-                contentDescription = "Localized description",
-            )
-        }
-        IconButton(onClick = { onIntent(CleanerIntent.ToggleAll) }) {
-            val isAllCheck = state.allSelected
-            Icon(
-                if (isAllCheck) Icons.Outlined.Deselect else Icons.Outlined.SelectAll,
-                contentDescription = "Localized description",
-            )
-        }
-        IconButton(onClick = { onSelectDirectory() }) {
-            Icon(
-                Icons.Outlined.DriveFolderUpload,
-                contentDescription = "Localized description",
-            )
-        }
-    }, floatingActionButton = {
-        FloatingActionButton(
-            onClick = { onIntent(CleanerIntent.RequestDelete) },
-            containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
-            elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-        ) {
-            Icon(Icons.Outlined.Delete, "Localized description")
-        }
-    })
     val onDismissRequest = { sequenceExpanded = false }
-    DropdownMenu(
-        expanded = sequenceExpanded,
-        offset = DpOffset(64.dp, 24.dp),
-        onDismissRequest = onDismissRequest
+    Box(
+        modifier = modifier.fillMaxWidth().padding(FloatingToolbarDefaults.ScreenOffset),
+        contentAlignment = Alignment.Center,
     ) {
-        SequenceDropdownMenu(
-            Res.string.newest_date_first,
-            Sequence.DATE_NEW_TO_OLD,
-            onDismissRequest,
-            state.sort, onIntent
-        )
-        SequenceDropdownMenu(
-            Res.string.oldest_date_first,
-            Sequence.DATE_OLD_TO_NEW,
-            onDismissRequest,
-            state.sort, onIntent
-        )
-        SequenceDropdownMenu(
-            Res.string.largest_first,
-            Sequence.SIZE_LARGE_TO_SMALL,
-            onDismissRequest,
-            state.sort, onIntent
-        )
-        SequenceDropdownMenu(
-            Res.string.smallest_first,
-            Sequence.SIZE_SMALL_TO_LARGE,
-            onDismissRequest,
-            state.sort, onIntent
-        )
-        SequenceDropdownMenu(Res.string.name_a_z, Sequence.NAME_A_TO_Z, onDismissRequest, state.sort, onIntent)
-        SequenceDropdownMenu(Res.string.name_z_a, Sequence.NAME_Z_TO_A, onDismissRequest, state.sort, onIntent)
+        HorizontalFloatingToolbar(
+            expanded = true,
+            floatingActionButton = {
+                FloatingToolbarDefaults.StandardFloatingActionButton(
+                    onClick = { onIntent(CleanerIntent.RequestDelete) },
+                ) {
+                    Icon(Icons.Outlined.Delete, "Localized description")
+                }
+            },
+        ) {
+            IconButton(onClick = { onIntent(CleanerIntent.CloseSelection) }) {
+                Icon(Icons.Outlined.Close, contentDescription = "Localized description")
+            }
+            Box {
+                IconButton(onClick = { sequenceExpanded = !sequenceExpanded }) {
+                    Icon(
+                        Icons.AutoMirrored.Outlined.Sort,
+                        contentDescription = "Localized description",
+                    )
+                }
+                DropdownMenu(
+                    expanded = sequenceExpanded,
+                    onDismissRequest = onDismissRequest
+                ) {
+                    SequenceDropdownMenu(
+                        Res.string.newest_date_first,
+                        Sequence.DATE_NEW_TO_OLD,
+                        onDismissRequest,
+                        state.sort, onIntent
+                    )
+                    SequenceDropdownMenu(
+                        Res.string.oldest_date_first,
+                        Sequence.DATE_OLD_TO_NEW,
+                        onDismissRequest,
+                        state.sort, onIntent
+                    )
+                    SequenceDropdownMenu(
+                        Res.string.largest_first,
+                        Sequence.SIZE_LARGE_TO_SMALL,
+                        onDismissRequest,
+                        state.sort, onIntent
+                    )
+                    SequenceDropdownMenu(
+                        Res.string.smallest_first,
+                        Sequence.SIZE_SMALL_TO_LARGE,
+                        onDismissRequest,
+                        state.sort, onIntent
+                    )
+                    SequenceDropdownMenu(Res.string.name_a_z, Sequence.NAME_A_TO_Z, onDismissRequest, state.sort, onIntent)
+                    SequenceDropdownMenu(Res.string.name_z_a, Sequence.NAME_Z_TO_A, onDismissRequest, state.sort, onIntent)
+                }
+            }
+            IconButton(onClick = { onIntent(CleanerIntent.ToggleAll) }) {
+                Icon(
+                    if (state.allSelected) Icons.Outlined.Deselect else Icons.Outlined.SelectAll,
+                    contentDescription = "Localized description",
+                )
+            }
+            IconButton(onClick = onSelectDirectory) {
+                Icon(
+                    Icons.Outlined.DriveFolderUpload,
+                    contentDescription = "Localized description",
+                )
+            }
+        }
     }
     if (state.deleteConfirmVisible) {
         DeleteAlertDialog(onConfirm = {

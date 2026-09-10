@@ -1,3 +1,0 @@
-23 configurations, 115 density outputs: encoded bytes, decoded pixels, dimensions and naming equal to frozen 498ef364 pipeline.
-All four PNG and six JPEG algorithms, lossless/lossy paths, .jpg/.jpeg extensions and default preferences verified.
-No _resize files remain.

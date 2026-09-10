@@ -14,10 +14,12 @@ import org.tool.kit.domain.repository.BuildCachesRepository
 import java.io.File
 
 class JvmBuildCachesDataSource(private val io: CoroutineDispatcher) : BuildCachesRepository {
+    /** 在 IO 线程遍历最多十层目录，逐项发出 build 目录快照；目录大小另行递归统计。 */
     override fun scan(root: String) = flow {
         val context = currentCoroutineContext()
         val directory = File(root)
         directory.walk().maxDepth(10)
+            // 进入 build 后不再向它的子目录递归查找，避免把内部缓存重复列为独立项目。
             .onEnter { file -> context.ensureActive(); file.parentFile?.nameWithoutExtension != "build" }
             .filter { file -> context.ensureActive(); file.isDirectory && file.nameWithoutExtension == "build" }
             .forEach { file ->
@@ -34,6 +36,7 @@ class JvmBuildCachesDataSource(private val io: CoroutineDispatcher) : BuildCache
             }
     }.flowOn(io).buffer(0)
 
+    /** 删除扫描项后再次读取存在性和目录类型，供页面反映删除后的真实状态。 */
     override suspend fun delete(directory: BuildDirectory): DeleteBuildCacheResult = withContext(io) {
         currentCoroutineContext().ensureActive()
         val file = File(directory.path)

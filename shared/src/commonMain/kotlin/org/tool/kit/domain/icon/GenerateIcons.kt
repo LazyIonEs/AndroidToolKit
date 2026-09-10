@@ -26,6 +26,6 @@ data class IconOutputFiles(val outputPath: String, val temporaryPath: String)
 sealed interface GenerateIconsOutcome {
     data class Success(val outputDirectory: String, val outputPaths: List<String>) : GenerateIconsOutcome
     data class Failure(val outputPaths: List<String>, val message: String?) : GenerateIconsOutcome
-    /** The old unsupported-extension branch was silent; it must now also release busy. */
+    /** Unsupported extensions finish silently without producing any files. */
     data object UnsupportedInput : GenerateIconsOutcome
 }

@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="IconOutputsTest[jvm]" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:28.502Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.01">
-  <properties/>
-  <testcase name="separateServicesSerializeAndKeepOutputsAndUnrelatedFiles[jvm]" classname="org.tool.kit.migration.IconOutputsTest" time="0.005"/>
-  <testcase name="nativeFailureAndCancellationCleanOnlyCurrentTemporaryAfterNativeReturns[jvm]" classname="org.tool.kit.migration.IconOutputsTest" time="0.005"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

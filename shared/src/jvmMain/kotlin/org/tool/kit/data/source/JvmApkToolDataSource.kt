@@ -15,6 +15,7 @@ import org.tool.kit.utils.renameValueAppName
 import java.io.File
 
 class JvmApkToolDataSource(private val template: File, private val io: CoroutineDispatcher) : ApkToolRepository {
+    /** 解码模板并创建绑定本次目录、构建配置和请求参数的会话。 */
     override suspend fun decode(workspace: ApkBuildWorkspace, request: BuildApkRequest): ApkBuildSession = withContext(io) {
         ensureActive()
         val directory = File(workspace.directory)
@@ -31,6 +32,7 @@ class JvmApkToolDataSource(private val template: File, private val io: Coroutine
             override suspend fun updateManifest() = withContext(io) {
                 ensureActive()
                 val manifest = File(directory, "AndroidManifest.xml")
+                // 版本值统一由构建元数据写回，先移除清单旧值以免两处信息冲突。
                 ResXmlUtils.removeManifestVersions(manifest)
                 renameManifestPackage(manifest, request.packageName, request.minSdkVersion, request.targetSdkVersion)
             }
@@ -44,6 +46,7 @@ class JvmApkToolDataSource(private val template: File, private val io: Coroutine
                 for (density in listOf("mdpi", "hdpi", "xhdpi", "xxhdpi", "xxxhdpi")) {
                     ensureActive()
                     val folder = File(directory, "res/mipmap-$density")
+                    // 移除原密度资源后再复制新图标，避免同名资源保留不同扩展名。
                     folder.deleteRecursively()
                     source.copyTo(File(folder, "ic_launcher.${source.extension}"), overwrite = true)
                 }

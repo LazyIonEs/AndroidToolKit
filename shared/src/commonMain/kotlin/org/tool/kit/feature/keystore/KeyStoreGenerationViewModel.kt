@@ -18,6 +18,7 @@ import org.tool.kit.domain.usecase.GenerateKeyStoreUseCase
 import org.tool.kit.feature.app.*
 import org.tool.kit.shared.generated.resources.*
 
+/** 管理密钥库生成表单、输出路径校验和生成状态，凭据仅随本次请求交给用例。 */
 class KeyStoreGenerationViewModel(
     private val generate: GenerateKeyStoreUseCase,
     private val preferences: PreferencesRepository,
@@ -81,6 +82,7 @@ class KeyStoreGenerationViewModel(
         if (form.keyStorePath != old.keyStorePath) validatePath()
     }
 
+    /** 查询当前输出目录并发布 pending 状态，较早路径的结果不能覆盖新路径。 */
     private fun validatePath() {
         pathRequest.cancel()
         val path = _uiState.value.form.keyStorePath
@@ -93,6 +95,7 @@ class KeyStoreGenerationViewModel(
         }
     }
 
+    /** 固定表单与密钥设置，在生成前再次确认输出目录可用，期间忽略重复提交。 */
     private fun submit() {
         if (_uiState.value.busy) return
         val state = _uiState.value

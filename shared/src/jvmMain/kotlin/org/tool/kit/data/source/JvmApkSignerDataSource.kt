@@ -12,6 +12,7 @@ import org.tool.kit.domain.signing.*
 import java.io.File
 
 class JvmApkSignerDataSource(private val io: CoroutineDispatcher) : ApkSigningRepository {
+    /** 在 IO 线程完成输出冲突处理、密钥加载和 APK 签名；保留覆盖策略与签名方案设置。 */
     override suspend fun sign(request: SignApkRequest): SignApkOutcome = withContext(io) {
         try {
             ensureActive()
@@ -24,6 +25,7 @@ class JvmApkSignerDataSource(private val io: CoroutineDispatcher) : ApkSigningRe
             val credentials = request.credentials
             val certificate = KeystoreHelper.getCertificateInfo("JKS", File(credentials.path),
                 credentials.storePassword, credentials.aliasPassword, credentials.alias)
+            // 签名引擎需要私钥和对应证书链；凭据只用于加载，不进入结果对象。
             val config = ApkSigner.SignerConfig.Builder("CERT", KeyConfig.Jca(certificate.key),
                 listOf(certificate.certificate)).build()
             val schemes = request.policy.schemes

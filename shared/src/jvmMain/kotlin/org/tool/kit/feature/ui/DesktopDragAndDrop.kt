@@ -16,9 +16,11 @@ import org.koin.compose.koinInject
 import org.tool.kit.platform.DesktopFileSelection
 import kotlin.io.path.pathString
 
+/** 同步应答桌面拖放协议，再异步检查整批文件并回到页面协程发布结果。 */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 actual fun dragAndDropTarget(dragging: (Boolean) -> Unit, onFinish: (Result<List<String>>) -> Unit): DragAndDropTarget {
+    // 拖放对象会被 remember 保留，因此通过 UpdatedState 使用重组后的最新页面回调。
     val currentDragging by rememberUpdatedState(dragging)
     val currentOnFinish by rememberUpdatedState(onFinish)
     val files = koinInject<DesktopFileSelection>()

@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asSkiaBitmap
 import java.io.File
 
+/** 以原始尺寸加载图片并禁用缓存，让同一路径被重新生成后能展示新文件内容。 */
 private fun imageRequest(data: Any?) =
     ImageRequest.Builder(PlatformContext.INSTANCE)
         .data(data = data)
@@ -29,6 +30,7 @@ private fun imageRequest(data: Any?) =
 class SkiaBitmapFetcher(
     private val data: Bitmap
 ) : Fetcher {
+    /** 将已有 Skia 位图包装为内存图片结果，不再从文件或网络解码。 */
     override suspend fun fetch(): FetchResult {
         return ImageFetchResult(
             image = data.asImage(),

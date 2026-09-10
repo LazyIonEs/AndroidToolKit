@@ -1,5 +1,0 @@
-The following is a diff from the previous accessibility tree for Window: "AndroidToolKit" with ~ and + representing changed and added elements, respectively. Removed elements are summarized by ID range.
-Removed element IDs: 49-50
-+							61 未知 (selectable) 0
-+								62 未知 (selectable) 0
-+									63 进度指示条 (selectable)

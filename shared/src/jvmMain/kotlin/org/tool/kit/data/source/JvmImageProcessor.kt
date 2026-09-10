@@ -6,7 +6,7 @@ import org.tool.kit.domain.repository.ImageProcessor
 import org.tool.kit.platform.*
 import java.io.File
 
-/** The existing facade keeps all conversions, algorithms and Rust error mapping unchanged. */
+/** Adapts image processing operations to the native facade. */
 class JvmImageProcessor(private val io: CoroutineDispatcher) : ImageProcessor {
     override suspend fun resizePng(inputPath: String, outputPath: String, size: Int, algorithm: Int) = withContext(io) {
         org.tool.kit.platform.resizePng(File(inputPath).absolutePath, File(outputPath).absolutePath,

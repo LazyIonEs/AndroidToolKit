@@ -15,6 +15,7 @@ import org.tool.kit.model.JunkMode
 import org.tool.kit.shared.generated.resources.*
 import org.tool.kit.utils.formatFileSize
 
+/** 管理单个与批量 AAR 草稿，随字段变化计算体积估计，提交时固定所选模式的参数。 */
 class JunkCodeViewModel(
     private val generate: GenerateJunkCodeUseCase,
     private val estimate: EstimateJunkSizeUseCase,
@@ -29,6 +30,7 @@ class JunkCodeViewModel(
     val busy = uiState.map { it.busy }.distinctUntilChanged().stateIn(viewModelScope, SharingStarted.Eagerly, false)
     private val output = JunkOutputValidation(viewModelScope, storage)
     private var outputVersion = initial.takeIf { it.ready }?.outputPathVersion
+    // 标识本页面接受的操作；关闭或替换操作后，旧任务不能再发布结果。
     private var operationId = 0L
 
     init {
@@ -47,6 +49,7 @@ class JunkCodeViewModel(
         addCloseable { operationId++; output.close(); _uiState.update { it.copy(busy = false) } }
     }
 
+    /** 在主线程处理页面事件，先更新本地状态，再触发相应的校验或业务操作。 */
     fun onIntent(intent: JunkCodeIntent) {
         when (intent) {
             JunkCodeIntent.Submit -> submit()
@@ -68,6 +71,7 @@ class JunkCodeViewModel(
         }
     }
 
+    /** 根据当前模式的数量配置重新生成大小提示，不启动实际文件生成。 */
     private fun withEstimate(state: JunkCodeUiState): JunkCodeUiState {
         val size = estimate(state.configuration())
         val text = size.minimum.formatFileSize(scale = 1) + (size.maximum?.let { " ~ ${it.formatFileSize(scale = 1)}" } ?: "")
@@ -75,6 +79,7 @@ class JunkCodeViewModel(
     }
     private fun setState(state: JunkCodeUiState) { _uiState.value = withEstimate(state) }
 
+    /** 从校验所有者读取最新路径状态，并捕获当前模式配置，避免流收集延迟放行无效路径。 */
     private fun submit() {
         val state = _uiState.value
         if (state.busy) return

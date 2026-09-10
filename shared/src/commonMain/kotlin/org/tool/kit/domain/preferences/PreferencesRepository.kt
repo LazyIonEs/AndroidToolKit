@@ -12,7 +12,14 @@ enum class ThemePreference { FOLLOW_SYSTEM, LIGHT, DARK }
 enum class CopyPreference { UPPERCASE_WITH_COLON, LOWERCASE_WITH_COLON, UPPERCASE_WITHOUT_COLON, LOWERCASE_WITHOUT_COLON }
 enum class JunkPreference { SINGLE, MULTI }
 
-// Legacy serializer DTOs remain the storage compatibility types during the feature migration.
+/**
+ * 设置的内存快照，业务值与加载、写入状态一同发布。
+ *
+ * @property revision 已接收的修改版本。
+ * @property persistedRevision 已按顺序写入存储的版本，可能落后于 revision。
+ * @property outputPathVersion 默认输出路径实际变化时递增，供页面同步使用。
+ * @property writeFailure 最近一次持久化失败的异常类型名；成功写入后清除。
+ */
 data class PreferencesSnapshot(
     val ready: Boolean = false,
     val revision: Long = 0,
@@ -31,6 +38,7 @@ data class PreferencesSnapshot(
     val junkMode: JunkPreference = JunkPreference.SINGLE,
 )
 
+/** 一次明确的字段修改，避免不同页面用各自的旧快照覆盖其他字段。 */
 sealed interface PreferenceChange {
     data class Theme(val value: ThemePreference) : PreferenceChange
     data class OutputPath(val value: String) : PreferenceChange
@@ -49,6 +57,7 @@ sealed interface PreferenceChange {
     data class IconSettings(val value: IconFactoryData) : PreferenceChange
 }
 
+/** 仅归并业务字段的纯函数；加载标记和版本号由仓库维护。 */
 fun PreferencesSnapshot.changed(change: PreferenceChange): PreferencesSnapshot = when (change) {
     is PreferenceChange.Theme -> copy(themeConfig = change.value)
     is PreferenceChange.OutputPath -> copy(userData = userData.copy(defaultOutputPath = change.value))
@@ -71,5 +80,6 @@ interface PreferencesRepository {
     val state: StateFlow<PreferencesSnapshot>
     /** Main-thread event entry: publishes accepted values immediately; disk writes are serialized. */
     fun change(change: PreferenceChange): PreferencesSnapshot
+    /** 等待初始设置可用后返回当前快照，不代表所有后续修改都已持久化。 */
     suspend fun awaitReady(): PreferencesSnapshot
 }

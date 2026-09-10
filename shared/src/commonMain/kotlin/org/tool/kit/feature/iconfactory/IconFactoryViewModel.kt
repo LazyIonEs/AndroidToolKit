@@ -15,6 +15,7 @@ import org.tool.kit.feature.app.*
 import org.tool.kit.shared.generated.resources.*
 import org.tool.kit.utils.isImage
 
+/** 分别维护已提交的图标设置、弹窗编辑草稿和生成结果，输入变化会使旧预览失效。 */
 class IconFactoryViewModel(
     private val generate: GenerateIconsUseCase,
     private val preferences: PreferencesRepository,
@@ -28,7 +29,9 @@ class IconFactoryViewModel(
     val busy = uiState.map { it.busy }.distinctUntilChanged().stateIn(viewModelScope, SharingStarted.Eagerly, false)
     private val previews = LatestRequest(viewModelScope)
     private var outputVersion = initial.takeIf { it.ready }?.outputPathVersion
+    // 标识本页面接受的操作；关闭或替换操作后，旧任务不能再发布结果。
     private var operationId = 0L
+    // 生成任务未结束时也允许换输入；输入版本单独防止旧图像结果覆盖新选择。
     private var inputRevision = 0L
 
     init {
@@ -48,6 +51,7 @@ class IconFactoryViewModel(
         }
     }
 
+    /** 在主线程处理页面事件，先更新本地状态，再触发相应的校验或业务操作。 */
     fun onIntent(intent: IconFactoryIntent) {
         when (intent) {
             IconFactoryIntent.Submit -> submit()
@@ -83,10 +87,12 @@ class IconFactoryViewModel(
         }
     }
 
+    /** 首次打开设置面板时从已提交设置创建草稿，重复打开不覆盖正在编辑的值。 */
     private fun openSheet() {
         _uiState.update { if (it.sheetOpen) it else it.copy(sheetOpen = true, draft = IconSettingsDraft.from(it.settings)) }
     }
 
+    /** 检查结果路径当前是否存在，以便界面决定是否显示可用预览。 */
     private suspend fun preview(path: String): IconResultUi {
         val available = try { storage.inspectPath(path).let { it.isFile || it.isDirectory } }
         catch (cancelled: CancellationException) { throw cancelled }
@@ -94,22 +100,25 @@ class IconFactoryViewModel(
         return IconResultUi(path, available)
     }
 
+    /** 页面重新进入时复查现有输出，反映用户在应用外删除文件的情况。 */
     private fun refreshPreviews() {
         val paths = _uiState.value.result?.map { it.path } ?: return
         previews.launch(block = { paths.map { preview(it) } }) { result -> _uiState.update { it.copy(result = result) } }
     }
 
+    /** 固定输入图像、输出命名和已提交的压缩设置；生成结果仅能回填到相同输入版本。 */
     private fun submit() {
         val state = _uiState.value
         if (state.busy) return
         val form = state.form
-        // Match the original button: iconDir is only an inline error, not a submit gate.
+        // iconDir validation displays an inline error but does not prevent submission.
         if (form.outputPath.isBlank() || form.fileDir.isBlank() || form.iconName.isBlank()) {
             openSheet()
             viewModelScope.launch { effects.send("icon-factory", SnackbarMessage(UiMessage.Resource(Res.string.check_error))) }
             return
         }
         val input = form.inputPath ?: return
+        // 生成使用已提交设置，滑块尚未提交的草稿只影响编辑界面。
         val options = preferences.state.value.iconFactoryData
         val request = GenerateIconsRequest(input, form.outputPath, form.fileDir, form.iconDir, form.iconName,
             IconProcessingOptions(options.pngTypIdx.typIdx, options.jpegTypIdx.typIdx, options.lossless,

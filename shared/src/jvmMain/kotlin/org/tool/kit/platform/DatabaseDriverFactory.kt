@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/2/20 17:52
- * @Description : 数据库驱动工厂
+ * @Description : 创建基于系统 Preferences 的应用设置存储，读写在 IO 调度器执行
  * @Version     : 1.0
  */
 @OptIn(ExperimentalSettingsApi::class)

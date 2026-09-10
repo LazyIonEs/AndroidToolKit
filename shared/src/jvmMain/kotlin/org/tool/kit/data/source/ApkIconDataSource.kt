@@ -7,13 +7,13 @@ import kotlinx.coroutines.withContext
 import org.jetbrains.skia.Image
 import com.google.devrel.gmscore.tools.apk.arsc.*
 import org.tool.kit.domain.apk.ApkIconSource
-import org.tool.kit.data.source.ArscBlamer
 import org.tool.kit.utils.getZipFileData
 import org.tool.kit.utils.getZipFileInputStream
 import java.util.zip.ZipFile
 
 class ApkIconDataSource(private val io: CoroutineDispatcher) {
     private val logger = KotlinLogging.logger("ApkIconDataSource")
+/** 普通图标直接从 ZIP 读取；XML 图标先解析清单中的资源 ID，再查找位图候选。 */
 suspend fun read(text: String?, apkPath: String, iconPath: String): ApkIconSource? =
     withContext(io) {
         try {
@@ -39,6 +39,7 @@ suspend fun read(text: String?, apkPath: String, iconPath: String): ApkIconSourc
         return@withContext null
     }
 
+/** 按资源 ID 查找常用密度的最后一个匹配配置，复杂资源条目不作为位图解析。 */
 private fun extractBitmapFromResourceTable(apkPath: String, resourceId: Int): ApkIconSource? {
     val binaryResourceIdentifier = ResourceIdentifier.create(resourceId)
 
@@ -65,6 +66,7 @@ private fun extractBitmapFromResourceTable(apkPath: String, resourceId: Int): Ap
     }
 }
 
+/** 读取图标条目并验证图片编码，ZIP 与条目流在返回前关闭。 */
 private fun processIconFromZip(apkPath: String, iconPath: String): ApkIconSource? {
     ZipFile(apkPath).use { zipFile ->
         return zipFile.getZipFileData(iconPath)?.let { bytes ->
@@ -74,8 +76,9 @@ private fun processIconFromZip(apkPath: String, iconPath: String): ApkIconSource
 }
 
 
+    /** 先用 Skia 试解码再发布字节模型，阻止不支持的图像进入页面状态。 */
     private fun validatedSource(bytes: ByteArray): ApkIconSource {
-        Image.makeFromEncoded(bytes).use { /* Same decoder and failure point as the original implementation. */ }
+        Image.makeFromEncoded(bytes).use { /* Reject unsupported image data before publishing it. */ }
         return ApkIconSource(bytes)
     }
 }

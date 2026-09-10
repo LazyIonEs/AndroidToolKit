@@ -10,9 +10,9 @@ import org.tool.kit.core.coroutine.AppDispatchers
 import org.tool.kit.domain.preferences.PreferencesRepository
 import org.tool.kit.domain.repository.*
 import org.tool.kit.feature.app.*
-import org.tool.kit.model.DownloadState
 import org.tool.kit.shared.generated.resources.*
 
+/** 管理检查、下载和安装请求状态；下载版本号拦截取消后仍返回的进度与结果。 */
 class UpdateViewModel(private val repository: UpdateRepository, private val preferences: PreferencesRepository,
     private val effects: AppEffectSink, private val dispatchers: AppDispatchers) : ViewModel() {
     private val _uiState = MutableStateFlow(UpdateUiState())
@@ -24,6 +24,7 @@ class UpdateViewModel(private val repository: UpdateRepository, private val pref
     // Held through transport finally/stream cleanup, including cancellation, before path reuse.
     private val downloadLock = Mutex()
 
+    /** 在主线程处理页面事件，先更新本地状态，再触发相应的校验或业务操作。 */
     fun onIntent(intent: UpdateIntent) {
         when (intent) {
             is UpdateIntent.Check -> check(intent.showMessage)
@@ -50,6 +51,7 @@ class UpdateViewModel(private val repository: UpdateRepository, private val pref
         }
     }
     private fun dismiss() { _uiState.value = UpdateUiState(checking = _uiState.value.checking) }
+    /** 合并重复检查；showMessage 控制最新版本或失败提示，启动静默检查仍可展示可用更新。 */
     private fun check(showMessage: Boolean) {
         if (checkJob?.isActive == true || _uiState.value.downloadState == DownloadState.DOWNLOADING) return
         _uiState.value = UpdateUiState(checking = true)
@@ -68,15 +70,18 @@ class UpdateViewModel(private val repository: UpdateRepository, private val pref
             finally { _uiState.value = _uiState.value.copy(checking = false) }
         }
     }
+    /** 固定资源和输出目录，等上一轮下载清理完毕后再开始写入，并过滤过期进度。 */
     private fun download() {
         val old = _uiState.value
         val asset = old.selectedAsset ?: return
         if (!old.visible || old.downloadState != DownloadState.START) return
+        // 新下载取得独立版本，旧传输即使在取消后回调也无法修改这一轮状态。
         val id = ++generation
         val outputDirectory = preferences.state.value.userData.defaultOutputPath
         _uiState.value = old.copy(downloadState = DownloadState.DOWNLOADING, downloadedPath = null)
         downloadJob = viewModelScope.launch {
             try {
+                // 持锁覆盖传输层的 finally，确保取消后的流关闭完成后才能复用目标路径。
                 downloadLock.withLock {
                     val result = repository.download(asset, outputDirectory) { downloaded, total ->
                         withContext(dispatchers.main) {
@@ -106,6 +111,7 @@ class UpdateViewModel(private val repository: UpdateRepository, private val pref
     private suspend fun notify(message: UiMessage) {
         if (!effects.send("update", SnackbarMessage(message), generation)) return
     }
+    /** 将网络层业务错误映射为可本地化的页面提示。 */
     private fun errorMessage(error: UpdateError) = UiMessage.Resource(when (error) {
         UpdateError.NETWORK -> Res.string.network_error
         UpdateError.CONNECTION -> Res.string.network_connection_error

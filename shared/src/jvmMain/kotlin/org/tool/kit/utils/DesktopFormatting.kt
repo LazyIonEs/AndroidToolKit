@@ -77,6 +77,7 @@ actual fun Long.formatFileUnit(): String {
     return FileSizeType.SIZE_TYPE_TB.unit
 }
 
+/** 逐级换算容量；首次换算向下截断，后续单位使用四舍五入，保持显示边界规则。 */
 private fun formatSizeByTypeWithDivisor(
     size: BigDecimal, scale: Int, sizeType: FileSizeType, divisor: Long
 ): BigDecimal = size.divide(

@@ -1,9 +1,0 @@
-{
-  "checks": [
-    "Pure ApkToolScreen parameters and imports",
-    "No legacy ApkTool owner or signing bridge",
-    "Build domain independent of UI, physical paths and engine types",
-    "Sign/ApkToolInfo/legacy credential adapter removed from production"
-  ],
-  "passed": true
-}

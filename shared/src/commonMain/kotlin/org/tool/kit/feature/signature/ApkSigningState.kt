@@ -51,6 +51,7 @@ sealed interface ApkSigningIntent {
 
 /** The path adapter supplies an existing File.name; the reducer never accesses the filesystem. */
 object SigningFormReducer {
+    /** 按字段事件归并签名表单；切换密钥文件重置凭据，切换别名清空旧别名密码。 */
     fun field(form: ApkSignatureForm, intent: ApkSigningIntent): ApkSignatureForm = when (intent) {
         is ApkSigningIntent.ApkPathChanged -> form.copy(apkPath = intent.value,
             v4FileName = if (intent.value != form.apkPath && intent.value.isBlank())
@@ -69,6 +70,7 @@ object SigningFormReducer {
         is ApkSigningIntent.V4NameChanged -> form.copy(v4FileName = intent.value)
         else -> form
     }
+    /** 以已解析的文件名更新 V4 输出名，路径查询失败时保留当前表单。 */
     fun resolvedName(form: ApkSignatureForm, existingFileName: String?): ApkSignatureForm =
         if (existingFileName == null || form.apkPath.isBlank()) form else form.copy(v4FileName =
             (if (form.outputPrefix.isNotBlank()) "${form.outputPrefix}-" else "") + existingFileName + ".idsig")

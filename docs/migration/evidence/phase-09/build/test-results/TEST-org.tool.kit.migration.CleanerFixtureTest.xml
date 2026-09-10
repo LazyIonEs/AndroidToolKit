@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="CleanerFixtureTest[jvm]" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:15.738Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.013">
-  <properties/>
-  <testcase name="fixtureTreeContainsTheDepthAndNameBoundariesRequiredForMigration[jvm]" classname="org.tool.kit.migration.CleanerFixtureTest" time="0.012"/>
-  <testcase name="originalSizeRuleIncludesDirectoryMetadataAndNestedFiles[jvm]" classname="org.tool.kit.migration.CleanerFixtureTest" time="0.001"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>

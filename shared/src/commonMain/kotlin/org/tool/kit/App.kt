@@ -1,10 +1,5 @@
 package org.tool.kit
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -23,12 +18,10 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.adaptive.ExperimentalMaterial3AdaptiveApi
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -41,29 +34,24 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupPositionProvider
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.feature.apk.navigation.apkInformationEntry
 import org.tool.kit.feature.apk.navigation.apkToolEntry
-import org.tool.kit.feature.cleaner.ClearBuildBottom
-import org.tool.kit.feature.cleaner.navigation.CleanerNavKey
 import org.tool.kit.feature.cleaner.navigation.cleanerEntry
 import org.tool.kit.feature.iconfactory.navigation.iconFactoryEntry
 import org.tool.kit.feature.junk.navigation.JunkCodeNavKey
 import org.tool.kit.feature.junk.navigation.junkCodeEntry
-import org.tool.kit.feature.rememberAppState
+import org.tool.kit.feature.app.rememberAppState
 import org.tool.kit.feature.setting.navigation.settingEntry
 import org.tool.kit.feature.signature.navigation.apkSignatureEntry
 import org.tool.kit.feature.signature.navigation.signatureGenerationEntry
 import org.tool.kit.feature.signature.navigation.signatureInformationEntry
-import org.tool.kit.feature.ui.LoadingAnimate
 import org.tool.kit.feature.update.UpdateRoute
 import org.tool.kit.feature.update.UpdateViewModel
 import org.tool.kit.feature.update.UpdateIntent
-import org.tool.kit.feature.settings.SettingsViewModel
 import org.tool.kit.feature.app.*
 import org.koin.compose.koinInject
 import org.tool.kit.model.DarkThemeConfig
@@ -77,14 +65,11 @@ import org.koin.compose.viewmodel.koinViewModel
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.icon
 import org.tool.kit.theme.AppTheme
-import org.tool.kit.feature.signature.SignatureInformationViewModel
-import org.tool.kit.feature.keystore.KeyStoreGenerationViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.tool.kit.feature.cleaner.*
-import org.tool.kit.feature.ui.rememberDirectoryPickerRequest
 
 
-@Suppress("DEPRECATION") // Keep the explicit root wrapper required by the Koin 4.2.2 migration.
+/** 将已创建的 Koin 容器接入 Compose，随后组合应用根页面。 */
+@Suppress("DEPRECATION") // The root wrapper supplies Koin's Compose context.
 @Composable
 fun App() {
     KoinContext(koin = getKoin()) {
@@ -92,21 +77,12 @@ fun App() {
     }
 }
 
+/** 持有根级主题与更新状态，初始设置就绪后按配置触发一次静默更新检查。 */
 @Composable
 private fun AppRoute() {
-    val windowOwner = checkNotNull(LocalViewModelStoreOwner.current)
-    val cleanerViewModel = koinViewModel<CleanerViewModel>(viewModelStoreOwner = windowOwner)
-    val junkCodeViewModel = koinViewModel<org.tool.kit.feature.junk.JunkCodeViewModel>(viewModelStoreOwner = windowOwner)
-    val iconFactoryViewModel = koinViewModel<org.tool.kit.feature.iconfactory.IconFactoryViewModel>(viewModelStoreOwner = windowOwner)
-    val apkToolViewModel = koinViewModel<org.tool.kit.feature.apk.ApkToolViewModel>(viewModelStoreOwner = windowOwner)
-    val apkSigningViewModel = koinViewModel<org.tool.kit.feature.signature.ApkSigningViewModel>(viewModelStoreOwner = windowOwner)
-    val apkInformationViewModel = koinViewModel<org.tool.kit.feature.apk.ApkInformationViewModel>(viewModelStoreOwner = windowOwner)
-    val signatureViewModel = koinViewModel<SignatureInformationViewModel>(viewModelStoreOwner = windowOwner)
-    val keyStoreViewModel = koinViewModel<KeyStoreGenerationViewModel>(viewModelStoreOwner = windowOwner)
-    val appViewModel = koinViewModel<AppViewModel>(viewModelStoreOwner = windowOwner)
-    val settingsViewModel = koinViewModel<SettingsViewModel>(viewModelStoreOwner = windowOwner)
-    val updateViewModel = koinViewModel<UpdateViewModel>(viewModelStoreOwner = windowOwner)
-    val shell by appViewModel.uiState.collectAsState()
+    val appViewModel = koinViewModel<AppViewModel>()
+    val updateViewModel = koinViewModel<UpdateViewModel>()
+    val shell by appViewModel.uiState.collectAsStateWithLifecycle()
     val themeConfig = shell.themeConfig
     val useDarkTheme = when (themeConfig) {
         DarkThemeConfig.LIGHT -> false
@@ -120,7 +96,7 @@ private fun AppRoute() {
 
     AppTheme(useDarkTheme) {
         CompositionLocalProvider(LocalIsAppDarkTheme provides useDarkTheme) {
-            MainContentScreen(cleanerViewModel, useDarkTheme, shell, settingsViewModel, updateViewModel, keyStoreViewModel, signatureViewModel, apkInformationViewModel, apkSigningViewModel, apkToolViewModel, iconFactoryViewModel, junkCodeViewModel, koinInject(), koinInject())
+            MainContentScreen(shell, updateViewModel, koinInject(), koinInject())
         }
     }
 
@@ -139,39 +115,22 @@ val LocalIsAppDarkTheme = compositionLocalOf<Boolean> {
 fun WindowIcon() = painterResource(Res.drawable.icon)
 
 /**
- * 主要模块
+ * 应用窗口布局：侧栏和消息宿主常驻，导航条目负责页面内容，更新弹窗位于根级。
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3AdaptiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainContentScreen(cleanerViewModel: CleanerViewModel, useDarkTheme: Boolean, shell: AppUiState,
-    settingsViewModel: SettingsViewModel, updateViewModel: UpdateViewModel, keyStoreViewModel: KeyStoreGenerationViewModel, signatureViewModel: SignatureInformationViewModel, apkInformationViewModel: org.tool.kit.feature.apk.ApkInformationViewModel, apkSigningViewModel: org.tool.kit.feature.signature.ApkSigningViewModel, apkToolViewModel: org.tool.kit.feature.apk.ApkToolViewModel, iconFactoryViewModel: org.tool.kit.feature.iconfactory.IconFactoryViewModel, junkCodeViewModel: org.tool.kit.feature.junk.JunkCodeViewModel, effects: AppEffectSink, actions: DesktopActionHandler) {
-    val cleanerState by cleanerViewModel.uiState.collectAsStateWithLifecycle()
-    val selectCleanerDirectory = rememberDirectoryPickerRequest { cleanerViewModel.onIntent(CleanerIntent.Rescan(it)) }
-    val junkBusy by junkCodeViewModel.busy.collectAsStateWithLifecycle()
-    val iconFactoryBusy by iconFactoryViewModel.busy.collectAsStateWithLifecycle()
-    val apkToolBusy by apkToolViewModel.busy.collectAsStateWithLifecycle()
-    val signingBusy by apkSigningViewModel.busy.collectAsStateWithLifecycle()
-    val signatureHasResult by signatureViewModel.hasResult.collectAsStateWithLifecycle()
-    val signatureBusy by signatureViewModel.busy.collectAsStateWithLifecycle()
-    val keyStoreBusy by keyStoreViewModel.busy.collectAsStateWithLifecycle()
-    val apkInformationBusy by apkInformationViewModel.busy.collectAsStateWithLifecycle()
+fun MainContentScreen(
+    shell: AppUiState,
+    updateViewModel: UpdateViewModel,
+    effects: AppEffectSink,
+    actions: DesktopActionHandler,
+) {
     val snackbarHostState = remember { SnackbarHostState() }
     val appState = rememberAppState()
 
     val navigator = remember { Navigator(appState.navigationState) }
 
-    val visibility = cleanerShellVisibility(cleanerState.shell,
-        appState.navigationState.currentTopLevelKey == CleanerNavKey,
-        keyStoreBusy || signatureBusy || apkInformationBusy || signingBusy || apkToolBusy || iconFactoryBusy || junkBusy)
-    Scaffold(bottomBar = {
-        AnimatedVisibility(
-            visible = visibility.showBottomBar,
-            enter = fadeIn() + expandVertically(),
-            exit = shrinkVertically() + fadeOut()
-        ) {
-            ClearBuildBottom(cleanerState, cleanerViewModel::onIntent, selectCleanerDirectory)
-        }
-    }, snackbarHost = {
+    Scaffold(snackbarHost = {
         SnackbarHost(hostState = snackbarHostState)
     }) { innerPadding ->
         Row(
@@ -180,63 +139,62 @@ fun MainContentScreen(cleanerViewModel: CleanerViewModel, useDarkTheme: Boolean,
         ) {
             val isAlwaysShowLabel = shell.isAlwaysShowLabel
             val isShowJunkCode = shell.isShowJunkCode
-            AnimatedVisibility(visibility.showNavigationRail) {
-                NavigationRail(Modifier.fillMaxHeight()) {
-                    Column(
-                        modifier = Modifier.fillMaxHeight(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
-                            if (navKey == JunkCodeNavKey && !isShowJunkCode) {
-                                return@forEach
-                            }
-                            val selected = navKey == appState.navigationState.currentTopLevelKey
-                            TooltipBox(
-                                positionProvider = rememberRichTooltipPositionProvider(),
-                                tooltip = {
-                                    PlainTooltip {
-                                        Text(
-                                            stringResource(navItem.tooltip),
-                                            style = MaterialTheme.typography.bodySmall
-                                        )
-                                    }
+            NavigationRail(Modifier.fillMaxHeight()) {
+                Column(
+                    modifier = Modifier.fillMaxHeight(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    TOP_LEVEL_NAV_ITEMS.forEach { (navKey, navItem) ->
+                        if (navKey == JunkCodeNavKey && !isShowJunkCode) {
+                            return@forEach
+                        }
+                        val selected = navKey == appState.navigationState.currentTopLevelKey
+                        TooltipBox(
+                            positionProvider = rememberRichTooltipPositionProvider(),
+                            tooltip = {
+                                PlainTooltip {
+                                    Text(
+                                        stringResource(navItem.tooltip),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                            },
+                            state = rememberTooltipState(),
+                            enableUserInput = !selected
+                        ) {
+                            val icon = if (selected) navItem.selectedIcon else navItem.unSelectedIcon
+                            NavigationRailItem(
+                                label = { Text(stringResource(navItem.title)) },
+                                icon = {
+                                    Icon(
+                                        icon,
+                                        contentDescription = stringResource(navItem.title)
+                                    )
                                 },
-                                state = rememberTooltipState(),
-                                enableUserInput = !selected
-                            ) {
-                                val icon = if (selected) navItem.selectedIcon else navItem.unSelectedIcon
-                                NavigationRailItem(
-                                    label = { Text(stringResource(navItem.title)) },
-                                    icon = {
-                                        Icon(
-                                            icon,
-                                            contentDescription = stringResource(navItem.title)
-                                        )
-                                    },
-                                    selected = selected,
-                                    onClick = { navigator.navigate(navKey) },
-                                    alwaysShowLabel = isAlwaysShowLabel,
-                                )
-                            }
+                                selected = selected,
+                                onClick = { navigator.navigate(navKey) },
+                                alwaysShowLabel = isAlwaysShowLabel,
+                            )
                         }
                     }
                 }
             }
 
             val entryProvider = entryProvider {
-                signatureInformationEntry(signatureViewModel)
-                apkInformationEntry(apkInformationViewModel)
-                apkSignatureEntry(apkSigningViewModel)
-                signatureGenerationEntry(keyStoreViewModel)
-                apkToolEntry(apkToolViewModel)
-                junkCodeEntry(junkCodeViewModel)
-                iconFactoryEntry(iconFactoryViewModel)
-                cleanerEntry(cleanerViewModel, signatureHasResult, useDarkTheme)
-                settingEntry(settingsViewModel, updateViewModel, actions)
+                signatureInformationEntry()
+                apkInformationEntry()
+                apkSignatureEntry()
+                signatureGenerationEntry()
+                apkToolEntry()
+                junkCodeEntry()
+                iconFactoryEntry()
+                cleanerEntry()
+                settingEntry(updateViewModel, actions)
             }
 
             NavDisplay(
+                modifier = Modifier.weight(1f).fillMaxHeight(),
                 entries = appState.navigationState.toEntries(entryProvider),
                 onBack = { navigator.goBack() },
                 transitionSpec = defaultTransitionSpec()
@@ -244,10 +202,10 @@ fun MainContentScreen(cleanerViewModel: CleanerViewModel, useDarkTheme: Boolean,
         }
     }
     AppEffectHost(effects, snackbarHostState, actions)
-    LoadingAnimate(visibility.showGlobalLoading, useDarkTheme)
     UpdateRoute(updateViewModel, actions)
 }
 
+/** 优先把侧栏提示放在锚点右侧，空间不足时改放左侧或居中。 */
 @Composable
 private fun rememberRichTooltipPositionProvider(): PopupPositionProvider {
     val tooltipAnchorSpacing = with(LocalDensity.current) { 4.dp.roundToPx() }

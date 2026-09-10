@@ -7,6 +7,7 @@ import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.ID_PROBABILITY
 import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.MIPMAP_PROBABILITY
 import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.STRING_PROBABILITY
 
+/** 按生成概率和平均类、资源体积计算经验估计，结果用于 UI 提示而非实际磁盘配额。 */
 object JunkSizePredictor {
 
     // 布局 View 数量: Random.nextInt(2, 18) -> 平均 9.5
@@ -45,6 +46,7 @@ object JunkSizePredictor {
         return baseOverhead + (totalActivities * bytesPerActivityUnit).toLong() + extraResourcesOverhead.toLong()
     }
 
+    /** 估算各子包和根包合计的 Activity 数量，根包使用随机分布的近似平均值。 */
     private fun calculateTotalActivities(packageCount: Int, activityCountPerPackage: Int): Long {
         // 源码逻辑：rootClassCount = Random.nextInt(cnt) + (cnt / 2)
         // 范围 [cnt/2, 1.5*cnt]. 平均 ≈ cnt (即 activityCountPerPackage)
@@ -52,6 +54,7 @@ object JunkSizePredictor {
         return (packageCount * activityCountPerPackage).toLong() + avgRootActivities
     }
 
+    /** 合计一个 Activity 及其平均附属类、资源和元数据的压缩后体积。 */
     private fun calculateUnitSize(): Double {
         // --- 详细拆解 (基于压缩后的体积估算) ---
         // 1. Class 文件 (Bytes)

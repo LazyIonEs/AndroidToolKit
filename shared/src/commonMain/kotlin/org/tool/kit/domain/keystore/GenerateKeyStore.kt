@@ -2,6 +2,7 @@ package org.tool.kit.domain.keystore
 
 enum class KeyStoreFormat { JKS, PKCS12 }
 
+/** 一次密钥库生成提交的完整参数；日志文本隐藏包括密码在内的请求内容。 */
 data class GenerateKeyStoreRequest(
     val outputDirectory: String,
     val fileName: String,

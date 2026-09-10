@@ -116,7 +116,7 @@ import kotlin.math.roundToInt
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/2/8 16:13
- * @Description : 图标工厂
+ * @Description : 展示图标输入、生成结果和设置草稿，区分编辑与提交事件
  * @Version     : 1.0
  */
 @Composable
@@ -459,6 +459,7 @@ private fun IconFactorySetting(form: IconFactoryForm, settings: IconFactoryData,
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @ExperimentalMaterial3Api
 @Composable
+/** 压缩选项编辑器：滑动仅修改草稿，手势结束后发送提交事件。 */
 fun Compression(iconFactoryData: IconFactoryData, draft: IconSettingsDraft, onIntent: (IconFactoryIntent) -> Unit) {
     DisposableEffect(Unit) {
         onIntent(IconFactoryIntent.CompressionEditorEntered)
@@ -642,6 +643,7 @@ private fun IconsFactoryInput(form: IconFactoryForm, onIntent: (IconFactoryInten
 
 @ExperimentalMaterial3Api
 @Composable
+/** 展示 PNG 质量范围和 JPEG 质量草稿，在用户结束拖动时提交对应字段。 */
 private fun CompressRangeSliders(draft: IconSettingsDraft, onIntent: (IconFactoryIntent) -> Unit) {
     DisposableEffect(Unit) {
         onIntent(IconFactoryIntent.LossyEditorEntered)

@@ -19,6 +19,7 @@ import org.tool.kit.utils.formatFileSize
 import org.tool.kit.utils.isImage
 import org.tool.kit.utils.isKey
 
+/** 管理 APK 构建表单和可选签名，路径校验与构建任务分别维护生命周期。 */
 class ApkToolViewModel(
     private val build: BuildApkUseCase,
     private val preferences: PreferencesRepository,
@@ -35,6 +36,7 @@ class ApkToolViewModel(
     private val iconRequest = LatestRequest(viewModelScope)
     private val keyRequest = LatestRequest(viewModelScope)
     private var outputVersion = initial.takeIf { it.ready }?.outputPathVersion
+    // 标识本页面接受的操作；关闭或替换操作后，旧任务不能再发布结果。
     private var operationId = 0L
     private val credentials = SigningCredentialsValidation(viewModelScope, storage, keyStores) { aliases ->
         val form = _uiState.value.form
@@ -59,6 +61,7 @@ class ApkToolViewModel(
         }
     }
 
+    /** 在主线程处理页面事件，先更新本地状态，再触发相应的校验或业务操作。 */
     fun onIntent(intent: ApkToolIntent) {
         when (intent) {
             ApkToolIntent.Submit -> { submit(); return }
@@ -82,6 +85,7 @@ class ApkToolViewModel(
         if (intent is ApkToolIntent.StorePasswordChanged) credentials.passwordChanged(form.credentials)
     }
 
+    /** 发布构建表单，并同步可选签名凭据的校验输入。 */
     private fun setForm(form: ApkToolForm) {
         _uiState.update { it.copy(form = form) }
         credentials.formChanged(form.credentials)
@@ -89,7 +93,9 @@ class ApkToolViewModel(
     private fun validation(update: (ApkToolValidation) -> ApkToolValidation) {
         _uiState.update { it.copy(validation = update(it.validation)) }
     }
+    /** 重新校验输出、图标和密钥路径，以反映页面停留期间的外部文件变化。 */
     private fun refreshPaths() { validateOutput(); validateIcon(); validateKey() }
+    /** 验证非空输出路径是否为目录，空值交由提交时的必填检查处理。 */
     private fun validateOutput() {
         outputRequest.cancel()
         val path = _uiState.value.form.outputPath
@@ -98,6 +104,7 @@ class ApkToolViewModel(
             validation { it.copy(outputError = !valid, outputPending = false) }
         }
     }
+    /** 异步确认非空图标路径为文件，空图标表示沿用模板资源。 */
     private fun validateIcon() {
         iconRequest.cancel()
         val path = _uiState.value.form.icon
@@ -106,6 +113,7 @@ class ApkToolViewModel(
             validation { it.copy(iconError = !valid, iconPending = false) }
         }
     }
+    /** 读取密钥路径的文件状态，待完成状态供可选签名提交检查使用。 */
     private fun validateKey() {
         keyRequest.cancel()
         val path = _uiState.value.form.credentials.path
@@ -115,12 +123,13 @@ class ApkToolViewModel(
         }
     }
 
+    /** 按提交顺序检查必填项和待完成校验，固定构建参数与可选签名配置后启动任务。 */
     private fun submit() {
         val state = _uiState.value
         if (state.busy) return
         val form = state.form
         val validation = state.validation
-        // Preserve Generate's original validation order and scope. Completed key/password errors
+        // Check submission fields in order. Completed key/password errors
         // are displayed inline but optional-signing failure still belongs to the build outcome.
         if (validation.outputError || validation.iconError || validation.outputPending || validation.iconPending ||
             (form.enableSign && (validation.keyPending || credentials.state.value.pending))) {

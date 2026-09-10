@@ -16,6 +16,7 @@ class JunkOutputValidation(scope: CoroutineScope, private val storage: StorageRe
     private val request = LatestRequest(scope)
     private val _state = MutableStateFlow(JunkOutputCheck())
     val state = _state.asStateFlow()
+    /** 路径变化时重新校验目录；force 用于路径未变但文件系统可能变化的刷新。 */
     fun validate(path: String, force: Boolean = false) {
         if (!force && _state.value.path == path) return
         request.cancel()
@@ -28,6 +29,8 @@ class JunkOutputValidation(scope: CoroutineScope, private val storage: StorageRe
             catch (_: Exception) { false }
         }) { _state.value = check.copy(valid = it) }
     }
+    /** 强制复查当前路径，不复用之前的可用性判断。 */
     fun refresh() = validate(_state.value.path, force = true)
+    /** 使当前路径查询失效，并尝试取消底层任务。 */
     fun close() = request.cancel()
 }

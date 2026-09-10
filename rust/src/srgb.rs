@@ -14,6 +14,7 @@ pub trait Clamp: PartialOrd + Sized {
 impl Clamp for f32 {}
 
 #[allow(dead_code)]
+/// 将归一化 sRGB 通道值转换为线性 RGB，低亮度段使用线性分支。
 pub fn srgb_to_linear(v: f32) -> f32 {
     if v < 0.04045 {
         v / 12.92
@@ -22,6 +23,7 @@ pub fn srgb_to_linear(v: f32) -> f32 {
     }
 }
 
+/// 将线性 RGB 通道值转回 sRGB；输出到 8 位像素前由调用方再缩放和限制范围。
 pub fn linear_to_srgb(v: f32) -> f32 {
     if v < 0.0031308 {
         v * 12.92

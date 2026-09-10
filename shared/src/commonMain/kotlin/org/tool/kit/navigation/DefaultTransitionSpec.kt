@@ -9,7 +9,7 @@ import androidx.navigation3.scene.Scene
 
 /**
  * @author      : LazyIonEs
- * @description : 描述
+ * @description : 导航页面切换的默认动画定义
  * @createDate  : 2026/1/22 14:05
  */
 private const val DEFAULT_TRANSITION_DURATION_MILLISECOND = 600

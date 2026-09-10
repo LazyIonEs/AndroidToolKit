@@ -13,6 +13,8 @@ sealed interface UpdateDownloadResult {
     data class Failed(val error: UpdateError) : UpdateDownloadResult
 }
 interface UpdateRepository {
+    /** 检查当前平台是否存在可下载的新版本，网络错误使用业务错误类型返回。 */
     suspend fun check(): UpdateCheckResult
+    /** 将指定资源写入输出目录。progress 的两个参数依次为已下载字节数和总字节数；未知总量为 0。 */
     suspend fun download(asset: UpdateAsset, outputDirectory: String, progress: suspend (Long, Long) -> Unit): UpdateDownloadResult
 }

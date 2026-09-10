@@ -79,7 +79,8 @@ class NavigationState(
 }
 
 /**
- * Convert NavigationState into NavEntries.
+ * 将各子栈转换为导航条目，并为每个条目绑定可保存状态和 ViewModelStore。
+ * 顶层切换时保留各自子栈；条目真正移除时，由装饰器回收其页面 ViewModel。
  */
 @Composable
 fun NavigationState.toEntries(
@@ -87,6 +88,7 @@ fun NavigationState.toEntries(
 ): SnapshotStateList<NavEntry<NavKey>> {
     val decoratedEntries = subStacks.mapValues { (_, stack) ->
         val decorators = listOf(
+            // 可保存状态与 ViewModel 生命周期都按导航条目管理，而不是按当前可见 Composable 管理。
             rememberSaveableStateHolderNavEntryDecorator<NavKey>(),
             rememberViewModelStoreNavEntryDecorator<NavKey>(),
         )
@@ -102,7 +104,7 @@ fun NavigationState.toEntries(
         .toMutableStateList()
 }
 
-// 临时使用 navigation3.runtime
+// 使用平台提供的 NavKey 序列化器保存栈，恢复时需保持导航键的包名和序列化定义稳定。
 @Composable
 private fun rememberNavBackStack(vararg elements: NavKey): NavBackStack<NavKey> {
     return rememberSerializable(

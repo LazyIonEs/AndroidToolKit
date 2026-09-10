@@ -29,18 +29,7 @@ data class CleanerUiState(
     val checkedCount = items.count { it.checked }
     val checkedBytes = items.filter { it.checked }.sumOf { it.bytes }
     val allSelected = items.all { it.checked }
-    val shell = CleanerShellState(items.isNotEmpty(), phase)
 }
-
-data class CleanerShellState(val hasItems: Boolean, val phase: CleanerPhase)
-
-/** The original root predicates, derived together from the same Cleaner snapshot. */
-data class CleanerShellVisibility(val showNavigationRail: Boolean, val showBottomBar: Boolean, val showGlobalLoading: Boolean)
-
-fun cleanerShellVisibility(cleaner: CleanerShellState, isCleanerPage: Boolean, otherFeatureBusy: Boolean) =
-    CleanerShellVisibility(!cleaner.hasItems,
-        isCleanerPage && cleaner.phase == CleanerPhase.Idle && cleaner.hasItems,
-        otherFeatureBusy || cleaner.phase == CleanerPhase.Deleting)
 
 sealed interface CleanerIntent {
     data class Rescan(val root: String) : CleanerIntent
@@ -56,6 +45,7 @@ sealed interface CleanerIntent {
 
 internal fun BuildDirectory.toUi() = CleanerItemUi(path, path, displayPath, bytes, modifiedAt, isDirectory, exists)
 internal fun CleanerItemUi.toDirectory(root: String) = BuildDirectory(root, path, displayPath, bytes, modifiedAt, isDirectory, exists)
+/** 按用户选择返回排序副本；名称排序使用完整路径，避免同名 build 目录混淆。 */
 internal fun List<CleanerItemUi>.sortedBy(sequence: Sequence) = when (sequence) {
     Sequence.DATE_NEW_TO_OLD -> sortedByDescending { it.modifiedAt }
     Sequence.DATE_OLD_TO_NEW -> sortedBy { it.modifiedAt }

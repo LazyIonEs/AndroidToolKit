@@ -61,7 +61,7 @@ import org.tool.kit.utils.getImageRequest
 /**
  * @Author      : LazyIonEs
  * @CreateDate  : 2024/2/8 16:13
- * @Description : APK信息
+ * @Description : 渲染 APK 信息、图标和拖放提示，读取与复制操作通过回调提交
  * @Version     : 1.0
  */
 @Composable

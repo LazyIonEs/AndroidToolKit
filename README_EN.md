@@ -8,7 +8,7 @@
 <a href="https://github.com/LazyIonEs/AndroidToolKit/actions"><img src="https://img.shields.io/github/actions/workflow/status/LazyIonEs/AndroidToolKit/build-release.yml"/></a>
 <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest"><img src="https://img.shields.io/github/downloads/LazyIonEs/AndroidToolKit/total?color=orange"/></a>
 <a href="https://github.com/LazyIonEs/AndroidToolKit/releases/latest"><img src="https://img.shields.io/github/v/release/LazyIonEs/AndroidToolKit"/></a>
-<a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/kotlin-2.3.21-7a54f6"/></a>
+<a href="https://kotlinlang.org"><img src="https://img.shields.io/badge/kotlin-2.4.10-7a54f6"/></a>
 <a href="https://www.rust-lang.org/"><img src="https://img.shields.io/badge/rust-1.95.0-black"/></a>
 </p>
 
@@ -81,6 +81,23 @@ Desktop tools applicable to Android development, supporting Windows, Mac and Lin
 - [uniffi-rs](https://github.com/mozilla/uniffi-rs)
 
 For a complete list of dependencies used, check the [catalog](/gradle/libs.versions.toml) file
+
+## Code Layout
+
+| Directory | Responsibility |
+| --- | --- |
+| `composeApp/src/jvmMain` | Desktop application entry point and window setup |
+| `shared/src/commonMain/kotlin/org/tool/kit/domain` | Business models, repository interfaces, and use cases |
+| `shared/src/commonMain/kotlin/org/tool/kit/feature` | Screens, routes, ViewModels, and state grouped by feature; `ui` holds shared UI components |
+| `shared/src/commonMain/kotlin/org/tool/kit/core` | Shared coroutine and validation infrastructure |
+| `shared/src/jvmMain/kotlin/org/tool/kit/data` | JVM repositories, data sources, and generators; update transport and response models live in `source/update` |
+| `shared/src/jvmMain/kotlin/org/tool/kit/platform` | File selection, clipboard, and desktop system integration |
+| `shared/src/jvmTest/kotlin/org/tool/kit/tests` | Tests grouped by `feature`, `domain`, `data`, `core`, `navigation`, `di`, and `platform`; shared helpers live in `support` |
+| `rust/src` | Native implementations exposed to Kotlin through UniFFI |
+
+Settings files live in `feature/setting`; update dialogs and state live in `feature/update`. Place new files with their owning feature or layer, keeping package names aligned with directories. Navigation key package names are part of serialized state, so moving them requires checking saved-state restoration.
+
+`composeResources`, `jvmMain/resources`, `composeApp/resources`, and `composeApp/launcher` hold resources, configuration, or packaging files and must be retained even without Kotlin code. Build directories, Rust `target`, and Gradle caches are generated artifacts rather than source directories.
 
 ## License
 

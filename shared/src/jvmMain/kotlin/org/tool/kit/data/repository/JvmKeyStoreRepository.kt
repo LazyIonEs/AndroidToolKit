@@ -13,6 +13,7 @@ class JvmKeyStoreRepository(private val io: CoroutineDispatcher,
     private val source: org.tool.kit.data.source.JvmKeyStoreDataSource = org.tool.kit.data.source.JvmKeyStoreDataSource(io)) : KeyStoreRepository {
     override suspend fun generate(request: org.tool.kit.domain.keystore.GenerateKeyStoreRequest) = source.generate(request)
 
+    /** 在 IO 线程打开密钥库并枚举别名，读取失败返回 null；日志只记录异常类型。 */
     override suspend fun loadAliases(path: String, password: String): List<String>? = withContext(io) {
         try {
             val store = KeyStore.getInstance(KeyStore.getDefaultType())
@@ -26,6 +27,7 @@ class JvmKeyStoreRepository(private val io: CoroutineDispatcher,
         }
     }
 
+    /** 同时检查别名存在且私钥可读取，区分密钥库密码与别名密码。 */
     override suspend fun validateAliasPassword(
         path: String, storePassword: String, alias: String?, password: String
     ): Boolean = withContext(io) {

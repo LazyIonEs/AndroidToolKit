@@ -32,6 +32,7 @@ actual fun rememberFilePickerRequest(vararg types: FileSelectorType, onSelected:
     return { launcher.launch() }
 }
 
+/** 保留最新页面回调，取消系统目录选择时保持原表单不变。 */
 @Composable
 actual fun rememberDirectoryPickerRequest(onSelected: (String) -> Unit): () -> Unit {
     val currentOnSelected by rememberUpdatedState(onSelected)

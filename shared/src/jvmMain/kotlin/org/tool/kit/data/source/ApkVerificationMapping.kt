@@ -5,7 +5,7 @@ import org.tool.kit.domain.signature.CertificateInformation
 import org.tool.kit.domain.signature.SignatureVerification
 import java.io.File
 
-/** Keeps the legacy displayed signer order and its deliberately unchanged V3.1 branch. */
+/** Maps verifier results into the displayed signer order. */
 internal fun mapApkVerification(result: ApkVerifier.Result, inputFile: File): Result<SignatureVerification> {
     val path = inputFile.path
     val name = inputFile.name
@@ -83,6 +83,7 @@ internal fun mapApkVerification(result: ApkVerifier.Result, inputFile: File): Re
         }
     }
 
+    // 即使整包校验未通过，也允许展示已读到的证书；是否通过仍由 isSuccess 单独表达。
     return if (isSuccess || list.isNotEmpty()) {
         val apkVerifierResult = SignatureVerification(isSuccess, true, path, name, list.toList())
         Result.success(apkVerifierResult)
