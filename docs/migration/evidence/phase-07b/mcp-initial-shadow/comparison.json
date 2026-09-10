@@ -1,0 +1,92 @@
+{
+  "light/apk-signature": {
+    "differentPixels": 14714,
+    "bounds": [
+      761,
+      119,
+      799,
+      571
+    ]
+  },
+  "light/keystore-generation": {
+    "differentPixels": 14571,
+    "bounds": [
+      761,
+      119,
+      799,
+      571
+    ]
+  },
+  "light/apk-tool": {
+    "differentPixels": 14606,
+    "bounds": [
+      761,
+      119,
+      799,
+      571
+    ]
+  },
+  "light/junk-code": {
+    "differentPixels": 14572,
+    "bounds": [
+      761,
+      119,
+      799,
+      571
+    ]
+  },
+  "light/settings": {
+    "differentPixels": 14580,
+    "bounds": [
+      761,
+      119,
+      799,
+      571
+    ]
+  },
+  "dark/apk-signature": {
+    "differentPixels": 9836,
+    "bounds": [
+      771,
+      137,
+      799,
+      571
+    ]
+  },
+  "dark/keystore-generation": {
+    "differentPixels": 9834,
+    "bounds": [
+      772,
+      137,
+      799,
+      571
+    ]
+  },
+  "dark/apk-tool": {
+    "differentPixels": 9823,
+    "bounds": [
+      774,
+      137,
+      799,
+      571
+    ]
+  },
+  "dark/junk-code": {
+    "differentPixels": 9823,
+    "bounds": [
+      774,
+      137,
+      799,
+      571
+    ]
+  },
+  "dark/settings": {
+    "differentPixels": 9840,
+    "bounds": [
+      761,
+      137,
+      799,
+      571
+    ]
+  }
+}

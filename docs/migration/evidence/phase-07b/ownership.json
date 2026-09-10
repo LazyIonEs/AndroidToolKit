@@ -1,0 +1,15 @@
+{
+  "screenPure": true,
+  "domainPlatformIndependent": true,
+  "oldJunkStateAndValidationRemoved": true,
+  "generatorBodyUnchangedExceptJoinedParallelBoundary": true,
+  "unchangedPaths": [
+    "rust",
+    "gradle/libs.versions.toml",
+    "shared/src/commonMain/composeResources",
+    "shared/src/commonMain/kotlin/org/tool/kit/utils/AndroidJunkBytecodeInject.kt",
+    "shared/src/commonMain/kotlin/org/tool/kit/utils/JunkSizePredictor.kt"
+  ],
+  "outerConcurrency": "availableProcessors().coerceIn(2, 6)",
+  "innerConcurrency": "original common-pool IntStream.parallel; all workers joined before raising the first failure"
+}

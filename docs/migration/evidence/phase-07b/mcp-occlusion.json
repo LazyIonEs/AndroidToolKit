@@ -1,0 +1,5 @@
+{
+  "session": "shared/build/migration/hot-mcp/session-qtc7p61h",
+  "reason": "Other application window occluded native captures; aborted at first unstable static pair. All PNG payloads from this replay were removed; no unrelated window content retained in evidence.",
+  "removedPngFiles": 12
+}

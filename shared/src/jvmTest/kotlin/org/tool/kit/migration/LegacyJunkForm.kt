@@ -70,4 +70,3 @@ internal data class LegacyJunkForm(
         }
     }
 }
-

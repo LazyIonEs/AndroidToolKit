@@ -1,0 +1,82 @@
+{
+  "light/apk-signature": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-07a/software-static/light/apk-signature.png"
+  },
+  "light/keystore-generation": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-07a/software-static/light/keystore-generation.png"
+  },
+  "light/apk-tool": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-07a/software-static/light/apk-tool.png"
+  },
+  "light/junk-code": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-07a/software-static/light/junk-code.png"
+  },
+  "light/settings": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-07a/software-static/light/settings.png"
+  },
+  "dark/apk-signature": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-07a/software-static/dark/apk-signature.png"
+  },
+  "dark/keystore-generation": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-07a/software-static/dark/keystore-generation.png"
+  },
+  "dark/apk-tool": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-07a/software-static/dark/apk-tool.png"
+  },
+  "dark/junk-code": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-07a/software-static/dark/junk-code.png"
+  },
+  "dark/settings": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-07a/software-static/dark/settings.png"
+  }
+}

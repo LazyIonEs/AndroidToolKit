@@ -1,0 +1,620 @@
+[
+  {
+    "id": 1,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    },
+    "parentId": null
+  },
+  {
+    "id": 5,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    },
+    "parentId": 1
+  },
+  {
+    "id": 17,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 1144
+    },
+    "parentId": 5
+  },
+  {
+    "id": 18,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 1144
+    },
+    "parentId": 17
+  },
+  {
+    "id": 19,
+    "bounds": {
+      "x": 0,
+      "y": 8,
+      "width": 160,
+      "height": 1128
+    },
+    "parentId": 18
+  },
+  {
+    "id": 22,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 64,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 24,
+    "role": "Tab",
+    "text": "签名信息",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 64,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 22
+  },
+  {
+    "id": 34,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 177,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 36,
+    "role": "Tab",
+    "text": "APK信息",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 177,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 34
+  },
+  {
+    "id": 46,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 290,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 48,
+    "role": "Tab",
+    "text": "APK签名",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 290,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 46
+  },
+  {
+    "id": 58,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 403,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 60,
+    "role": "Tab",
+    "text": "签名生成",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 403,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 58
+  },
+  {
+    "id": 70,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 516,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 72,
+    "role": "Tab",
+    "text": "APK生成",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 516,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 70
+  },
+  {
+    "id": 84,
+    "role": "Tab",
+    "text": "垃圾代码",
+    "selected": true,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 629,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 94,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 742,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 96,
+    "role": "Tab",
+    "text": "图标生成",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 742,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 94
+  },
+  {
+    "id": 106,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 855,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 108,
+    "role": "Tab",
+    "text": "缓存清理",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 855,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 106
+  },
+  {
+    "id": 118,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 968,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 19
+  },
+  {
+    "id": 120,
+    "role": "Tab",
+    "text": "设置",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 968,
+      "width": 160,
+      "height": 113
+    },
+    "parentId": 118
+  },
+  {
+    "id": 1329,
+    "bounds": {
+      "x": 160,
+      "y": 0,
+      "width": 1440,
+      "height": 1144
+    },
+    "parentId": 5
+  },
+  {
+    "id": 1330,
+    "bounds": {
+      "x": 160,
+      "y": 40,
+      "width": 1412,
+      "height": 1064
+    },
+    "parentId": 1329
+  },
+  {
+    "id": 1332,
+    "bounds": {
+      "x": 160,
+      "y": 40,
+      "width": 1412,
+      "height": 1064
+    },
+    "parentId": 1330
+  },
+  {
+    "id": 1336,
+    "text": "AAR输出路径",
+    "editableText": "/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/output",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 72,
+      "width": 1220,
+      "height": 128
+    },
+    "parentId": 1332
+  },
+  {
+    "id": 1346,
+    "role": "Button",
+    "contentDescription": "FolderOpen",
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 1452,
+      "y": 99,
+      "width": 80,
+      "height": 80
+    },
+    "parentId": 1332
+  },
+  {
+    "id": 1352,
+    "role": "Checkbox",
+    "text": "单AAR模式",
+    "contentDescription": "Done icon",
+    "toggleableState": "On",
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 226,
+      "width": 612,
+      "height": 81
+    },
+    "parentId": 1332
+  },
+  {
+    "id": 1359,
+    "role": "Checkbox",
+    "text": "多AAR模式",
+    "toggleableState": "Off",
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 824,
+      "y": 226,
+      "width": 612,
+      "height": 81
+    },
+    "parentId": 1332
+  },
+  {
+    "id": 1365,
+    "bounds": {
+      "x": 160,
+      "y": 330,
+      "width": 1412,
+      "height": 584
+    },
+    "parentId": 1332
+  },
+  {
+    "id": 1367,
+    "text": "AAR 名称",
+    "editableText": "junk_com_dev_junk_plugin_TT2.2.0.aar",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 330,
+      "width": 1220,
+      "height": 128
+    },
+    "parentId": 1365
+  },
+  {
+    "id": 1379,
+    "text": "包名",
+    "editableText": "com.dev.junk",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 480,
+      "width": 713,
+      "height": 128
+    },
+    "parentId": 1365
+  },
+  {
+    "id": 1389,
+    "text": ".",
+    "bounds": {
+      "x": 937,
+      "y": 568,
+      "width": 10,
+      "height": 40
+    },
+    "parentId": 1365
+  },
+  {
+    "id": 1390,
+    "text": "后缀",
+    "editableText": "plugin",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 963,
+      "y": 480,
+      "width": 465,
+      "height": 128
+    },
+    "parentId": 1365
+  },
+  {
+    "id": 1396,
+    "role": "Image",
+    "contentDescription": "Shuffle",
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 1356,
+      "y": 528,
+      "width": 48,
+      "height": 48
+    },
+    "parentId": 1390
+  },
+  {
+    "id": 1403,
+    "text": "资源前缀",
+    "editableText": "junk_",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 630,
+      "width": 1220,
+      "height": 128
+    },
+    "parentId": 1365
+  },
+  {
+    "id": 1409,
+    "role": "Image",
+    "contentDescription": "Shuffle",
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 1356,
+      "y": 678,
+      "width": 48,
+      "height": 48
+    },
+    "parentId": 1403
+  },
+  {
+    "id": 1417,
+    "text": "包的数量",
+    "editableText": "50",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 780,
+      "width": 594,
+      "height": 128
+    },
+    "parentId": 1365
+  },
+  {
+    "id": 1427,
+    "text": "每个包里 activity 的数量",
+    "editableText": "50",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 834,
+      "y": 780,
+      "width": 594,
+      "height": 128
+    },
+    "parentId": 1365
+  },
+  {
+    "id": 1441,
+    "text": "预估大小",
+    "bounds": {
+      "x": 877,
+      "y": 950,
+      "width": 84,
+      "height": 24
+    },
+    "parentId": 1332
+  },
+  {
+    "id": 1442,
+    "text": "13.2MB",
+    "bounds": {
+      "x": 844,
+      "y": 974,
+      "width": 117,
+      "height": 48
+    },
+    "parentId": 1332
+  },
+  {
+    "id": 1444,
+    "role": "Button",
+    "text": "开始生成",
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 1011,
+      "y": 946,
+      "width": 417,
+      "height": 80
+    },
+    "parentId": 1332
+  },
+  {
+    "id": 7,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    },
+    "parentId": 1
+  },
+  {
+    "id": 8,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    },
+    "parentId": 7
+  }
+]

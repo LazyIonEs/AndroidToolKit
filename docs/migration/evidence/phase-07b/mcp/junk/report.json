@@ -1,0 +1,33 @@
+{
+  "fixture": "/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/phase7b-mcp-hqj0zd2g",
+  "single": {
+    "path": "/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/phase7b-mcp-hqj0zd2g/junk_org_fixture_phase7b_part_one_TT2.2.0.aar",
+    "package": "org.fixture.phase7b.part.one",
+    "bytes": 5689,
+    "classes": 4
+  },
+  "batch": [
+    {
+      "path": "/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/phase7b-mcp-hqj0zd2g/ batch 中文 /junk_com_cdptmp_euggo_TT2.2.0.aar",
+      "package": "com.cdptmp.euggo",
+      "bytes": 8246,
+      "classes": 3
+    },
+    {
+      "path": "/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/phase7b-mcp-hqj0zd2g/ batch 中文 /junk_com_ttuyznq_kiycag_TT2.2.0.aar",
+      "package": "com.ttuyznq.kiycag",
+      "bytes": 7039,
+      "classes": 4
+    }
+  ],
+  "singleMessage": "构建结束：成功，文件大小：5.68KB，点击跳转至构建文件",
+  "batchMessage": "构建结束：成功，文件大小：15.28KB，点击跳转至构建文件",
+  "checks": [
+    "both mode drafts retained across modes and navigation",
+    "single display name versus real filename preserved",
+    "real single and two batch AARs structurally valid",
+    "exact measured size text matches output bytes",
+    "batch rebuild removes only its fixture subdirectory",
+    "original sibling and single output preserved"
+  ]
+}

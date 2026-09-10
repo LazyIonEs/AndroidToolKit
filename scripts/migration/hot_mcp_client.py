@@ -86,7 +86,10 @@ def main():
                     raise RuntimeError(response)
                 return response["result"]["content"]
 
-            if "--phase3-smoke" in sys.argv[2:]:
+            if "--phase7b-smoke" in sys.argv[2:]:
+                from hot_mcp_phase7b import smoke_phase7b
+                smoke_phase7b(call_tool, output, root)
+            elif "--phase3-smoke" in sys.argv[2:]:
                 from hot_mcp_phase3 import smoke_phase3
                 smoke_phase3(call_tool, output, root)
             elif "--phase2-smoke" in sys.argv[2:]:

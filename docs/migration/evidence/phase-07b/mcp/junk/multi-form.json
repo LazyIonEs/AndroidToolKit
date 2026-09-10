@@ -1,0 +1,536 @@
+[
+  {
+    "id": 1,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    }
+  },
+  {
+    "id": 5,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    }
+  },
+  {
+    "id": 17,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 1144
+    }
+  },
+  {
+    "id": 18,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 160,
+      "height": 1144
+    }
+  },
+  {
+    "id": 19,
+    "bounds": {
+      "x": 0,
+      "y": 8,
+      "width": 160,
+      "height": 1128
+    }
+  },
+  {
+    "id": 22,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 64,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 24,
+    "role": "Tab",
+    "text": "签名信息",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 64,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 34,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 177,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 36,
+    "role": "Tab",
+    "text": "APK信息",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 177,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 46,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 290,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 48,
+    "role": "Tab",
+    "text": "APK签名",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 290,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 58,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 403,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 60,
+    "role": "Tab",
+    "text": "签名生成",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 403,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 70,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 516,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 72,
+    "role": "Tab",
+    "text": "APK生成",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 516,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 84,
+    "role": "Tab",
+    "text": "垃圾代码",
+    "selected": true,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 629,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 94,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 742,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 96,
+    "role": "Tab",
+    "text": "图标生成",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 742,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 106,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 855,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 108,
+    "role": "Tab",
+    "text": "缓存清理",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 855,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 118,
+    "actions": [
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 968,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 120,
+    "role": "Tab",
+    "text": "设置",
+    "selected": false,
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 0,
+      "y": 968,
+      "width": 160,
+      "height": 113
+    }
+  },
+  {
+    "id": 3572,
+    "bounds": {
+      "x": 160,
+      "y": 0,
+      "width": 1440,
+      "height": 1144
+    }
+  },
+  {
+    "id": 3573,
+    "bounds": {
+      "x": 160,
+      "y": 40,
+      "width": 1412,
+      "height": 1064
+    }
+  },
+  {
+    "id": 3575,
+    "bounds": {
+      "x": 160,
+      "y": 40,
+      "width": 1412,
+      "height": 1064
+    }
+  },
+  {
+    "id": 3579,
+    "text": "AAR输出路径",
+    "editableText": "/Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/phase7b-mcp-hqj0zd2g",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 72,
+      "width": 1220,
+      "height": 128
+    }
+  },
+  {
+    "id": 3589,
+    "role": "Button",
+    "contentDescription": "FolderOpen",
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 1452,
+      "y": 99,
+      "width": 80,
+      "height": 80
+    }
+  },
+  {
+    "id": 3595,
+    "role": "Checkbox",
+    "text": "单AAR模式",
+    "toggleableState": "Off",
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 226,
+      "width": 612,
+      "height": 81
+    }
+  },
+  {
+    "id": 3602,
+    "role": "Checkbox",
+    "text": "多AAR模式",
+    "contentDescription": "Done icon",
+    "toggleableState": "On",
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 824,
+      "y": 226,
+      "width": 612,
+      "height": 81
+    }
+  },
+  {
+    "id": 3695,
+    "bounds": {
+      "x": 160,
+      "y": 330,
+      "width": 1412,
+      "height": 585
+    }
+  },
+  {
+    "id": 3697,
+    "text": "多AAR输出文件夹名称",
+    "editableText": " batch 中文 ",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 330,
+      "width": 1220,
+      "height": 129
+    }
+  },
+  {
+    "id": 3708,
+    "text": "需要生成的AAR包数量",
+    "editableText": "2",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 481,
+      "width": 1220,
+      "height": 128
+    }
+  },
+  {
+    "id": 3720,
+    "text": "包数量（最小）",
+    "editableText": "1",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 631,
+      "width": 594,
+      "height": 128
+    }
+  },
+  {
+    "id": 3730,
+    "text": "包数量（最大）",
+    "editableText": "1",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 834,
+      "y": 631,
+      "width": 594,
+      "height": 128
+    }
+  },
+  {
+    "id": 3742,
+    "text": "每个包里 activity 的数量（最小）",
+    "editableText": "1",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 208,
+      "y": 781,
+      "width": 594,
+      "height": 128
+    }
+  },
+  {
+    "id": 3752,
+    "text": "每个包里 activity 的数量（最大）",
+    "editableText": "1",
+    "focused": false,
+    "actions": [
+      "onClick",
+      "onLongClick"
+    ],
+    "bounds": {
+      "x": 834,
+      "y": 781,
+      "width": 594,
+      "height": 128
+    }
+  },
+  {
+    "id": 3684,
+    "text": "预估大小",
+    "bounds": {
+      "x": 877,
+      "y": 951,
+      "width": 84,
+      "height": 24
+    }
+  },
+  {
+    "id": 3685,
+    "text": "32.4KB ~ 32.4KB",
+    "bounds": {
+      "x": 689,
+      "y": 975,
+      "width": 272,
+      "height": 48
+    }
+  },
+  {
+    "id": 3687,
+    "role": "Button",
+    "text": "开始生成",
+    "focused": false,
+    "actions": [
+      "onClick"
+    ],
+    "bounds": {
+      "x": 1011,
+      "y": 947,
+      "width": 417,
+      "height": 80
+    }
+  },
+  {
+    "id": 7,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    }
+  },
+  {
+    "id": 8,
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1600,
+      "height": 1144
+    }
+  }
+]
