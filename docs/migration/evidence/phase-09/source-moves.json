@@ -1,0 +1,32 @@
+{
+  "AndroidJunkGenerator": {
+    "from": "shared/src/commonMain/kotlin/org/tool/kit/utils/AndroidJunkGenerator.kt",
+    "to": "shared/src/jvmMain/kotlin/org/tool/kit/data/generator/AndroidJunkGenerator.kt",
+    "bodyUnchangedIgnoringPackageImportsWhitespace": true
+  },
+  "AndroidJunkBytecodeInject": {
+    "from": "shared/src/commonMain/kotlin/org/tool/kit/utils/AndroidJunkBytecodeInject.kt",
+    "to": "shared/src/jvmMain/kotlin/org/tool/kit/data/generator/AndroidJunkBytecodeInject.kt",
+    "bodyUnchangedIgnoringPackageImportsWhitespace": true
+  },
+  "MultiAarGenerator": {
+    "from": "shared/src/commonMain/kotlin/org/tool/kit/utils/MultiAarGenerator.kt",
+    "to": "shared/src/jvmMain/kotlin/org/tool/kit/data/generator/MultiAarGenerator.kt",
+    "bodyUnchangedIgnoringPackageImportsWhitespace": true
+  },
+  "ParallelJunkWork": {
+    "from": "shared/src/commonMain/kotlin/org/tool/kit/utils/ParallelJunkWork.kt",
+    "to": "shared/src/jvmMain/kotlin/org/tool/kit/data/generator/ParallelJunkWork.kt",
+    "bodyUnchangedIgnoringPackageImportsWhitespace": true
+  },
+  "JunkSizePredictor": {
+    "from": "shared/src/commonMain/kotlin/org/tool/kit/utils/JunkSizePredictor.kt",
+    "to": "shared/src/jvmMain/kotlin/org/tool/kit/data/generator/JunkSizePredictor.kt",
+    "bodyUnchangedIgnoringPackageImportsWhitespace": true
+  },
+  "ArscBlamer": {
+    "from": "shared/src/commonMain/kotlin/org/tool/kit/utils/ArscBlamer.kt",
+    "to": "shared/src/jvmMain/kotlin/org/tool/kit/data/source/ArscBlamer.kt",
+    "bodyUnchangedIgnoringPackageImportsWhitespace": true
+  }
+}

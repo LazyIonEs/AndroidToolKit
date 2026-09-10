@@ -1,0 +1,59 @@
+Window: "AndroidToolKit", App: BaselineDesktopKt.
+0 标准窗口 AndroidToolKit, Secondary Actions: Raise
+	1 未知 (selectable) 0
+		2 container (selectable) 0
+			3 container (selectable) 0
+				4 未知 (selectable) 0
+					5 container (selectable) 0
+						6 container (selectable) 0
+							7 未知 (selectable) 0
+								8 单选按钮 (selectable) 签名信息
+							9 未知 (selectable) 0
+								10 单选按钮 (selectable) APK信息
+							11 未知 (selectable) 0
+								12 单选按钮 (selectable) APK签名
+							13 未知 (selectable) 0
+								14 单选按钮 (selectable) 签名生成
+							15 未知 (selectable) 0
+								16 单选按钮 (selectable) APK生成
+							17 未知 (selectable) 0
+								18 单选按钮 (selectable) 垃圾代码
+							19 单选按钮 (selectable) 图标生成
+							20 未知 (selectable) 0
+								21 单选按钮 (selectable) 缓存清理
+							22 未知 (selectable) 0
+								23 单选按钮 (selectable) 设置
+				24 未知 (selectable) 0
+					25 未知 (selectable) 0
+						26 未知 (selectable)
+					27 未知 (selectable) 0
+						28 未知 (selectable) Start
+					29 未知 (selectable) 0
+						30 未知 (selectable) 0
+							31 未知 (selectable)
+						32 未知 (selectable) 0
+							33 未知 (selectable)
+						34 未知 (selectable) 0
+							35 未知 (selectable)
+						36 未知 (selectable) 0
+							37 未知 (selectable)
+						38 未知 (selectable) 0
+							39 未知 (selectable)
+					40 未知 (selectable) 0
+						41 按钮 (selectable) 开始制作
+					42 未知 (selectable) 0
+						43 按钮 (selectable) 上传图片
+					44 未知 (selectable) 0
+						45 按钮 (selectable) Tune
+				46 未知 (selectable) 0
+					47 container (selectable) 0
+						48 文本 (selectable) 图标生成完成。点击跳转至输出目录
+						49 按钮 (selectable) 跳转
+						50 未知 (selectable) 0
+							51 按钮 (selectable) 关闭
+	52 关闭按钮
+	53 全屏幕按钮 Help: 此按钮也可以执行缩放窗口的操作, Secondary Actions: 缩放窗口
+	54 最小化按钮
+	55 文本 AndroidToolKit
+56 menu bar
+	57 AndroidToolKitBaseline

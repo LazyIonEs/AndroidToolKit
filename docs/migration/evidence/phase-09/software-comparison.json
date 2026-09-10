@@ -1,0 +1,722 @@
+{
+  "mode": "Exact full image RGBA comparison, no crop, mask or tolerance.",
+  "staticGate": "58 fixed form/result/menu/dialog renders and 10 static navigation pages. Other initial Lottie pages and focused-input captures retain uncontrolled animation clocks.",
+  "results": [
+    {
+      "image": "dark/apk-information.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": false
+    },
+    {
+      "image": "dark/apk-signature.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "dark/apk-tool.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "dark/cleaner.png",
+      "differentPixels": 1954,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": false,
+      "bounds": [
+        372,
+        54,
+        743,
+        103
+      ]
+    },
+    {
+      "image": "dark/icon-factory.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": false
+    },
+    {
+      "image": "dark/junk-code.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "dark/keystore-generation.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "dark/settings.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "dark/signature-information.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": false
+    },
+    {
+      "image": "interactions/keystore-draft-returned.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": false
+    },
+    {
+      "image": "interactions/signing-draft-returned.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": false
+    },
+    {
+      "image": "light/apk-information.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": false
+    },
+    {
+      "image": "light/apk-signature.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "light/apk-tool.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "light/cleaner.png",
+      "differentPixels": 1954,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": false,
+      "bounds": [
+        372,
+        54,
+        743,
+        103
+      ]
+    },
+    {
+      "image": "light/icon-factory.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": false
+    },
+    {
+      "image": "light/junk-code.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "light/keystore-generation.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "light/settings.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "light/signature-information.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": false
+    },
+    {
+      "image": "phase4b/dark/result-bottom.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase4b/dark/result-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase4b/light/result-bottom.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase4b/light/result-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase4c/dark/no-icon-permission-channel.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase4c/dark/result-bottom.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase4c/dark/result-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase4c/light/no-icon-permission-channel.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase4c/light/result-bottom.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase4c/light/result-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase5/dark/errors-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase5/dark/v4-bottom.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase5/dark/v4-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase5/light/errors-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase5/light/v4-bottom.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase5/light/v4-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase6/dark/enabled-bottom.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase6/dark/enabled-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase6/dark/errors-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase6/light/enabled-bottom.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase6/light/enabled-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase6/light/errors-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/dark/preview-empty.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/dark/preview-null.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/dark/preview-results.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/dark/sheet-algorithms.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/dark/sheet-expanded-lossless.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/dark/sheet-expanded-lossy.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/dark/sheet-partial.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/light/preview-empty.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/light/preview-null.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/light/preview-results.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/light/sheet-algorithms.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/light/sheet-expanded-lossless.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/light/sheet-expanded-lossy.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7a/light/sheet-partial.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7b/dark/multi-bottom.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7b/dark/multi-errors.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7b/dark/multi-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7b/dark/single-bottom.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7b/dark/single-errors.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7b/dark/single-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7b/light/multi-bottom.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7b/light/multi-errors.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7b/light/multi-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7b/light/single-bottom.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7b/light/single-errors.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase7b/light/single-top.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase8/dark/all-selected.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase8/dark/delete-dialog.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase8/dark/failed-item.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase8/dark/mixed-selection.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase8/dark/sort-menu.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase8/light/all-selected.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase8/light/delete-dialog.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase8/light/failed-item.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase8/light/mixed-selection.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    },
+    {
+      "image": "phase8/light/sort-menu.png",
+      "differentPixels": 0,
+      "size": [
+        800,
+        572
+      ],
+      "staticGate": true
+    }
+  ],
+  "nonGateExplanation": "The only changed software images are light/dark initial Cleaner using live disk capacity after clean removed generated artifacts. All changed coordinates are in the capacity card. The 68 fixed-data gates and the other 8 captures are exact matches.",
+  "finalRevision": "6354fb79 production code / b5902b61 source guard"
+}

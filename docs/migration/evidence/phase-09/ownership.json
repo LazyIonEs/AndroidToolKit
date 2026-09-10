@@ -1,0 +1,106 @@
+{
+  "passed": true,
+  "owners": [
+    {
+      "owner": "App",
+      "vm": "shared/src/commonMain/kotlin/org/tool/kit/feature/app/AppViewModel.kt",
+      "contract": "shared/src/commonMain/kotlin/org/tool/kit/feature/app/AppViewModel.kt",
+      "route": "shared/src/commonMain/kotlin/org/tool/kit/App.kt",
+      "screen": "shared/src/commonMain/kotlin/org/tool/kit/App.kt",
+      "scope": "root window ViewModelStore / type key",
+      "entry": "Root resolves VM and supplies it to production Route/Entry; no MainViewModel fallback"
+    },
+    {
+      "owner": "Settings",
+      "vm": "shared/src/commonMain/kotlin/org/tool/kit/feature/settings/SettingsViewModel.kt",
+      "contract": "shared/src/commonMain/kotlin/org/tool/kit/feature/settings/SettingsContract.kt",
+      "route": "shared/src/commonMain/kotlin/org/tool/kit/feature/settings/SettingsRoute.kt",
+      "screen": "shared/src/commonMain/kotlin/org/tool/kit/feature/settings/SettingsScreen.kt",
+      "scope": "root window ViewModelStore / type key",
+      "entry": "Root resolves VM and supplies it to production Route/Entry; no MainViewModel fallback"
+    },
+    {
+      "owner": "Update",
+      "vm": "shared/src/commonMain/kotlin/org/tool/kit/feature/update/UpdateViewModel.kt",
+      "contract": "shared/src/commonMain/kotlin/org/tool/kit/feature/update/UpdateContract.kt",
+      "route": "shared/src/commonMain/kotlin/org/tool/kit/feature/update/UpdateRoute.kt",
+      "screen": "shared/src/commonMain/kotlin/org/tool/kit/feature/ui/UpdateDialog.kt",
+      "scope": "root window ViewModelStore / type key",
+      "entry": "Root resolves VM and supplies it to production Route/Entry; no MainViewModel fallback"
+    },
+    {
+      "owner": "KeyStoreGeneration",
+      "vm": "shared/src/commonMain/kotlin/org/tool/kit/feature/keystore/KeyStoreGenerationViewModel.kt",
+      "contract": "shared/src/commonMain/kotlin/org/tool/kit/feature/keystore/KeyStoreGenerationContract.kt",
+      "route": "shared/src/commonMain/kotlin/org/tool/kit/feature/keystore/KeyStoreGenerationRoute.kt",
+      "screen": "shared/src/commonMain/kotlin/org/tool/kit/feature/keystore/KeyStoreGenerationScreen.kt",
+      "scope": "root window ViewModelStore / type key",
+      "entry": "Root resolves VM and supplies it to production Route/Entry; no MainViewModel fallback"
+    },
+    {
+      "owner": "SignatureInformation",
+      "vm": "shared/src/commonMain/kotlin/org/tool/kit/feature/signature/SignatureInformationViewModel.kt",
+      "contract": "shared/src/commonMain/kotlin/org/tool/kit/feature/signature/SignatureInformationContract.kt",
+      "route": "shared/src/commonMain/kotlin/org/tool/kit/feature/signature/SignatureInformationRoute.kt",
+      "screen": "shared/src/commonMain/kotlin/org/tool/kit/feature/signature/SignatureInformationScreen.kt",
+      "scope": "root window ViewModelStore / type key",
+      "entry": "Root resolves VM and supplies it to production Route/Entry; no MainViewModel fallback"
+    },
+    {
+      "owner": "ApkInformation",
+      "vm": "shared/src/commonMain/kotlin/org/tool/kit/feature/apk/ApkInformationViewModel.kt",
+      "contract": "shared/src/commonMain/kotlin/org/tool/kit/feature/apk/ApkInformationContract.kt",
+      "route": "shared/src/commonMain/kotlin/org/tool/kit/feature/apk/ApkInformationRoute.kt",
+      "screen": "shared/src/commonMain/kotlin/org/tool/kit/feature/apk/ApkInformationScreen.kt",
+      "scope": "root window ViewModelStore / type key",
+      "entry": "Root resolves VM and supplies it to production Route/Entry; no MainViewModel fallback"
+    },
+    {
+      "owner": "ApkSigning",
+      "vm": "shared/src/commonMain/kotlin/org/tool/kit/feature/signature/ApkSigningViewModel.kt",
+      "contract": "shared/src/commonMain/kotlin/org/tool/kit/feature/signature/ApkSigningState.kt",
+      "route": "shared/src/commonMain/kotlin/org/tool/kit/feature/signature/ApkSigningRoute.kt",
+      "screen": "shared/src/commonMain/kotlin/org/tool/kit/feature/signature/ApkSigningScreen.kt",
+      "scope": "root window ViewModelStore / type key",
+      "entry": "Root resolves VM and supplies it to production Route/Entry; no MainViewModel fallback"
+    },
+    {
+      "owner": "ApkTool",
+      "vm": "shared/src/commonMain/kotlin/org/tool/kit/feature/apk/ApkToolViewModel.kt",
+      "contract": "shared/src/commonMain/kotlin/org/tool/kit/feature/apk/ApkToolState.kt",
+      "route": "shared/src/commonMain/kotlin/org/tool/kit/feature/apk/ApkToolRoute.kt",
+      "screen": "shared/src/commonMain/kotlin/org/tool/kit/feature/apk/ApkToolScreen.kt",
+      "scope": "root window ViewModelStore / type key",
+      "entry": "Root resolves VM and supplies it to production Route/Entry; no MainViewModel fallback"
+    },
+    {
+      "owner": "IconFactory",
+      "vm": "shared/src/commonMain/kotlin/org/tool/kit/feature/iconfactory/IconFactoryViewModel.kt",
+      "contract": "shared/src/commonMain/kotlin/org/tool/kit/feature/iconfactory/IconFactoryState.kt",
+      "route": "shared/src/commonMain/kotlin/org/tool/kit/feature/iconfactory/IconFactoryRoute.kt",
+      "screen": "shared/src/commonMain/kotlin/org/tool/kit/feature/iconfactory/IconFactoryScreen.kt",
+      "scope": "root window ViewModelStore / type key",
+      "entry": "Root resolves VM and supplies it to production Route/Entry; no MainViewModel fallback"
+    },
+    {
+      "owner": "JunkCode",
+      "vm": "shared/src/commonMain/kotlin/org/tool/kit/feature/junk/JunkCodeViewModel.kt",
+      "contract": "shared/src/commonMain/kotlin/org/tool/kit/feature/junk/JunkCodeState.kt",
+      "route": "shared/src/commonMain/kotlin/org/tool/kit/feature/junk/JunkCodeRoute.kt",
+      "screen": "shared/src/commonMain/kotlin/org/tool/kit/feature/junk/JunkCodeScreen.kt",
+      "scope": "root window ViewModelStore / type key",
+      "entry": "Root resolves VM and supplies it to production Route/Entry; no MainViewModel fallback"
+    },
+    {
+      "owner": "Cleaner",
+      "vm": "shared/src/commonMain/kotlin/org/tool/kit/feature/cleaner/CleanerViewModel.kt",
+      "contract": "shared/src/commonMain/kotlin/org/tool/kit/feature/cleaner/CleanerState.kt",
+      "route": "shared/src/commonMain/kotlin/org/tool/kit/feature/cleaner/CleanerRoute.kt",
+      "screen": "shared/src/commonMain/kotlin/org/tool/kit/feature/cleaner/CleanerScreen.kt",
+      "scope": "root window ViewModelStore / type key",
+      "entry": "Root resolves VM and supplies it to production Route/Entry; no MainViewModel fallback"
+    }
+  ],
+  "legacyAllowlist": [],
+  "notes": "App is the root orchestrator; AppUiState is declared alongside AppViewModel. UpdateDialog is the pure update Screen. State.kt and Contract.kt are equivalent contract file names. All production Entry providers accept their dedicated VM from Root."
+}

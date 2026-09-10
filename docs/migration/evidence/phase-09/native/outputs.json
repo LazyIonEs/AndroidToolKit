@@ -1,0 +1,52 @@
+[
+  {
+    "file": "shared/build/migration/fixtures/phase9-native/output/res/mipmap-mdpi/ic_launcher.png",
+    "size": [
+      48,
+      48
+    ],
+    "bytes": 645,
+    "sha256": "021ca7c91c43ff5444b00c40b0be0371f20ee2cae0de41f14b0ffae7e00b4583",
+    "matchesFirstRun": true
+  },
+  {
+    "file": "shared/build/migration/fixtures/phase9-native/output/res/mipmap-hdpi/ic_launcher.png",
+    "size": [
+      72,
+      72
+    ],
+    "bytes": 1002,
+    "sha256": "3a5e6123c29e77b20093d9b6afa1b1f4d6e840ed262410981e87137e19fc81e3",
+    "matchesFirstRun": true
+  },
+  {
+    "file": "shared/build/migration/fixtures/phase9-native/output/res/mipmap-xhdpi/ic_launcher.png",
+    "size": [
+      96,
+      96
+    ],
+    "bytes": 1635,
+    "sha256": "21ee1f43744eddc7ba08093c9c209cf67b681690a885057987f154f3ebd5b063",
+    "matchesFirstRun": true
+  },
+  {
+    "file": "shared/build/migration/fixtures/phase9-native/output/res/mipmap-xxhdpi/ic_launcher.png",
+    "size": [
+      144,
+      144
+    ],
+    "bytes": 2546,
+    "sha256": "d488829b19adb86ea631e81c17bdbc983045b87c237f0a5ea76aab5630073340",
+    "matchesFirstRun": true
+  },
+  {
+    "file": "shared/build/migration/fixtures/phase9-native/output/res/mipmap-xxxhdpi/ic_launcher.png",
+    "size": [
+      192,
+      192
+    ],
+    "bytes": 2872,
+    "sha256": "7a95b4b84de99f363994b17c44f5dcce577aade09d002ddc22ea44ba278f5dd9",
+    "matchesFirstRun": true
+  }
+]
