@@ -1,0 +1,1 @@
+The four changed captures moved the pointer away from the selected navigation item after exercising Generate. All changed pixels lie at x=12..67, y=370..401. Replay must return the pointer to the same selected navigation item as the original baseline; no baseline or product visual change.

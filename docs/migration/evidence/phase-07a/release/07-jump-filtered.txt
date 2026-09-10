@@ -1,0 +1,2 @@
+						45 文本栏 (settable) Value:  res 中文 , Secondary Actions: 打开“访达”项目, URL: file:///Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/build/migration/fixtures/phase7a-native/output/jpg-lossless/%20res%20%E4%B8%AD%E6%96%87%20/
+			61 text URL: file:///, Secondary Actions: 打开, Value: Macintosh HD 用户 lazyiones 桌面 AndroidStudioProjects AndroidToolKit shared build migration fixtures phase7a-native output jpg-lossless  res 中文 

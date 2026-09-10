@@ -1,0 +1,1 @@
+PASS: independent jpg reference, lossless=false, minimum=70

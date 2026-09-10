@@ -1,0 +1,92 @@
+{
+  "dark/apk-signature.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-06/software-static/dark/apk-signature.png",
+    "referencePhase0Difference": 0
+  },
+  "dark/apk-tool.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-06/software-static/dark/apk-tool.png",
+    "referencePhase0Difference": 0
+  },
+  "dark/junk-code.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-06/software-static/dark/junk-code.png",
+    "referencePhase0Difference": 0
+  },
+  "dark/keystore-generation.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-06/software-static/dark/keystore-generation.png",
+    "referencePhase0Difference": 0
+  },
+  "dark/settings.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-06/software-static/dark/settings.png",
+    "referencePhase0Difference": 0
+  },
+  "light/apk-signature.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-06/software-static/light/apk-signature.png",
+    "referencePhase0Difference": 0
+  },
+  "light/apk-tool.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-06/software-static/light/apk-tool.png",
+    "referencePhase0Difference": 0
+  },
+  "light/junk-code.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-06/software-static/light/junk-code.png",
+    "referencePhase0Difference": 0
+  },
+  "light/keystore-generation.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-06/software-static/light/keystore-generation.png",
+    "referencePhase0Difference": 0
+  },
+  "light/settings.png": {
+    "differentPixels": 0,
+    "size": [
+      800,
+      572
+    ],
+    "reference": "docs/migration/evidence/phase-06/software-static/light/settings.png",
+    "referencePhase0Difference": 0
+  }
+}

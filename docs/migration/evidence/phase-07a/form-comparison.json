@@ -1,0 +1,100 @@
+{
+  "dark/preview-empty.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  "dark/preview-null.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  "dark/preview-results.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  "dark/sheet-algorithms.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  "dark/sheet-expanded-lossless.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  "dark/sheet-expanded-lossy.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  "dark/sheet-partial.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  "light/preview-empty.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  "light/preview-null.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  "light/preview-results.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  "light/sheet-algorithms.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  "light/sheet-expanded-lossless.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  "light/sheet-expanded-lossy.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  },
+  "light/sheet-partial.png": {
+    "size": [
+      800,
+      572
+    ],
+    "differentPixels": 0
+  }
+}

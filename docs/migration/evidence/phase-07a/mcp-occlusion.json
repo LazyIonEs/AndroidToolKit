@@ -1,0 +1,6 @@
+{
+  "session": "session-7a1wtfp3",
+  "result": "invalid capture: unrelated foreground window occluded test app",
+  "action": "All PNG payloads removed from this failed session; no unrelated image retained in evidence. Unverified images from session-bs4udgp9 also removed; its previously verified own-app failure pair is preserved separately.",
+  "next": "Repeat official MCP with test window kept foreground."
+}

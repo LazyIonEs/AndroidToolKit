@@ -1,0 +1,107 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Configuration on demand is an incubating feature.
+Type-safe project accessors is an incubating feature.
+> Task :shared:cleanJvmMainHotClasses
+
+> Task :shared:checkJvmMainComposeLibrariesCompatibility
+w: Skiko dependencies' versions are incompatible.
+    io.github.panpf.zoomimage:zoomimage-core-desktop:1.7.0-alpha01
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.150.1
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :shared:dependencies  --configuration jvmRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Note: Skiko is considered implementation detail in Compose Multiplatform and might be incompatible across versions.
+Please align Skiko dependencies to the same version. If possible, avoid direct Skiko references and use Compose APIs instead.
+
+
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:convertXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :shared:exportLibraryDefinitions UP-TO-DATE
+> Task :shared:copyNonXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :shared:prepareComposeResourcesTaskForCommonMain UP-TO-DATE
+> Task :shared:generateResourceAccessorsForCommonMain UP-TO-DATE
+> Task :shared:convertXmlValueResourcesForJvmMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForJvmMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForJvmMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForJvmMain NO-SOURCE
+> Task :shared:generateActualResourceCollectorsForJvmMain UP-TO-DATE
+> Task :shared:generateBuildConfigClasses UP-TO-DATE
+> Task :shared:generateComposeResClass UP-TO-DATE
+> Task :shared:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :shared:generateJvmMainBuildConfigClasses SKIPPED
+
+> Task :shared:buildRustLibrary
+    Finished `release` profile [optimized] target(s) in 0.44s
+
+> Task :shared:generateRustBindings UP-TO-DATE
+> Task :shared:compileKotlinJvm FROM-CACHE
+> Task :shared:compileJvmMainJava NO-SOURCE
+
+> Task :shared:checkJvmTestComposeLibrariesCompatibility
+w: Skiko dependencies' versions are incompatible.
+    io.github.panpf.zoomimage:zoomimage-core-desktop:1.7.0-alpha01
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.150.1
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :shared:dependencies  --configuration jvmTestRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Note: Skiko is considered implementation detail in Compose Multiplatform and might be incompatible across versions.
+Please align Skiko dependencies to the same version. If possible, avoid direct Skiko references and use Compose APIs instead.
+
+
+> Task :shared:generateJvmTestBuildConfigClasses SKIPPED
+> Task :shared:convertXmlValueResourcesForCommonTest NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForCommonTest NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForCommonTest NO-SOURCE
+> Task :shared:generateResourceAccessorsForCommonTest NO-SOURCE
+> Task :shared:convertXmlValueResourcesForJvmTest NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForJvmTest NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForJvmTest NO-SOURCE
+> Task :shared:generateResourceAccessorsForJvmTest NO-SOURCE
+> Task :shared:generateTestBuildConfigClasses SKIPPED
+> Task :shared:assembleJvmMainResources UP-TO-DATE
+> Task :shared:removeLegacyRustLibrary UP-TO-DATE
+> Task :shared:copyRustLibrary UP-TO-DATE
+> Task :shared:jvmProcessResources UP-TO-DATE
+> Task :shared:processJvmMainResources SKIPPED
+> Task :shared:jvmMainClasses UP-TO-DATE
+> Task :shared:jvmJar UP-TO-DATE
+> Task :shared:compileTestKotlinJvm UP-TO-DATE
+> Task :shared:compileJvmTestJava NO-SOURCE
+> Task :shared:hotSnapshotJvmMain
+> Task :shared:assembleJvmTestResources UP-TO-DATE
+> Task :shared:jvmTestProcessResources UP-TO-DATE
+> Task :shared:processJvmTestResources SKIPPED
+> Task :shared:jvmTestClasses UP-TO-DATE
+> Task :shared:syncJvmMainStartupClasses UP-TO-DATE
+> Task :shared:syncJvmMainStartupLibs UP-TO-DATE
+> Task :shared:baselineHotRunArgfile UP-TO-DATE
+> Task :shared:prepareBaselineResources UP-TO-DATE
+> Task :shared:rustTasks UP-TO-DATE
+
+> Task :shared:baselineHotRun
+  ________________________________________________________________________________________________
+| 
+| Compose Hot Reload (1.2.0)
+| Running 'org.tool.kit.migration.BaselineDesktopKt'
+| JetBrains Runtime: /Users/lazyiones/.gradle/jdks/jetbrains_s_r_o_-21-aarch64-os_x.2/jbrsdk_jcef-21.0.6-osx-aarch64-b895.109/Contents/Home/bin/java
+| ________________________________________________________________________________________________
+| Explicit Reload Mode:
+| Use `./gradlew reload` to hot reload the application
+| Use `./gradlew :shared:hotReloadJvmMain` to hot reload the application (alternative)
+| Use `./gradlew :shared:baselineHotRun --auto` to automatically reload the application on source changes
+| ________________________________________________________________________________________________
+kotlin-logging: initializing... active logger factory: Slf4jLoggerFactory
+2026-09-10 10:53:39.631 [AWT-EventQueue-0] INFO  App - 启动App, 应用版本号: 1.6.11
+2026-09-10 10:53:40.115 java[78685:4037024] error messaging the mach port for IMKCFRunLoopWakeUpReliable
+
+BUILD SUCCESSFUL in 57s
+30 actionable tasks: 7 executed, 1 from cache, 22 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.5.1/userguide/configuration_cache_enabling.html

@@ -1,0 +1,36 @@
+{
+  "platform": "macOS arm64",
+  "build": "SUCCESS 5m48s",
+  "proguard": "7.9.1 optimize and obfuscate enabled; no keep-rule changes",
+  "fixture": "73x57 synthetic Chinese/spaced PNG and JPG inputs; isolated memory preferences",
+  "realUI": [
+    "PNG lossless five densities",
+    "PNG lossy default QUALITY_TOO_LOW failure restores interaction, then minimum=0 retry",
+    "JPEG lossy quality85 five densities",
+    "JPEG lossless quality100 five densities",
+    "FileKit choose and cancel preserves input and results",
+    "custom Chinese/spaced fileDir, drawable and icon name",
+    "partial/expanded sheet, real range slider release",
+    "output directory jump through Finder",
+    "nine navigation pages, dark theme and retained icon form/results",
+    "open source license window",
+    "restore MainKt, fresh launch and normal close"
+  ],
+  "outputs": {
+    "cases": 4,
+    "images": 20,
+    "encodedBytesEqual": true,
+    "decodedPixelsEqual": true,
+    "dimensionsEqual": true,
+    "namesAndWhitespaceEqual": true,
+    "temporaryFilesRemaining": 0
+  },
+  "independentVerification": "VerifyIconOutputs.java freezes the 498ef364 algorithm and uses unchanged UniFFI functions; each UI output compared to the corresponding generated reference",
+  "automationNotes": [
+    "Several accessibility actions returned before the macOS operation was visible; re-read state and repeated uncompleted actions.",
+    "AX trims displayed boundary spaces; actual output filesystem comparison confirms both spaces are preserved.",
+    "A native picker capture made before dismissal was removed and replaced with main-window-only capture guards.",
+    "Clipboard-based name input was corrected via type_text before generation; all final names verified.",
+    "Initial jump attempts missed the brief Snackbar; the final JPEG completion action was clicked immediately and its actual Finder path recorded."
+  ]
+}
