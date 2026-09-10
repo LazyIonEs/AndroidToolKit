@@ -31,9 +31,6 @@ import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,15 +38,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.stringResource
-import org.tool.kit.feature.ui.FolderInputWithPicker
+import org.tool.kit.feature.ui.FolderInput
 import org.tool.kit.feature.ui.IntInput
 import org.tool.kit.feature.ui.StringInput
 import org.tool.kit.model.JunkMode
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.aar_name
 import org.tool.kit.shared.generated.resources.aar_output_path
-import org.tool.kit.shared.generated.resources.check_empty
-import org.tool.kit.shared.generated.resources.check_error
 import org.tool.kit.shared.generated.resources.estimated_size
 import org.tool.kit.shared.generated.resources.junk_package_name
 import org.tool.kit.shared.generated.resources.number_of_activities
@@ -57,9 +52,6 @@ import org.tool.kit.shared.generated.resources.number_of_packages
 import org.tool.kit.shared.generated.resources.resource_prefix
 import org.tool.kit.shared.generated.resources.start_generating
 import org.tool.kit.shared.generated.resources.suffix
-import org.tool.kit.utils.generateSecureToken
-import org.tool.kit.vm.MainViewModel
-import org.tool.kit.vm.LegacyPathField
 
 /**
  * @Author      : LazyIonEs
@@ -68,52 +60,42 @@ import org.tool.kit.vm.LegacyPathField
  * @Version     : 1.0
  */
 @Composable
-fun JunkCode(viewModel: MainViewModel) {
-    LaunchedEffect(viewModel) { viewModel.refreshPathChecks(LegacyPathField.JUNK_OUTPUT) }
-    JunkCodeBox(viewModel)
-}
-
-@Composable
-private fun JunkCodeBox(viewModel: MainViewModel) {
+fun JunkCodeScreen(state: JunkCodeUiState, onIntent: (JunkCodeIntent) -> Unit, pickOutput: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxSize()
             .padding(top = 20.dp, bottom = 20.dp, end = 14.dp)
     ) {
-        val paths by viewModel.pathValidation.collectAsState()
-        val outputPathError = paths[LegacyPathField.JUNK_OUTPUT]?.isError == true
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             item {
                 Spacer(Modifier.size(16.dp))
-                FolderInputWithPicker(
-                    value = viewModel.junkCodeInfoState.outputPath,
+                FolderInput(
+                    value = state.outputPath,
                     label = stringResource(Res.string.aar_output_path),
-                    isError = outputPathError,
+                    isError = state.outputValidation.isError,
+                    onPickerRequest = pickOutput,
                     onValueChange = { path ->
-                        viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputPath = path))
+                        onIntent(JunkCodeIntent.OutputPathChanged(path))
                     })
             }
             item {
                 Spacer(Modifier.size(6.dp))
-                JunkMode(viewModel)
+                JunkMode(state.mode, onIntent)
             }
             item {
                 Spacer(Modifier.size(8.dp))
-                val currentJunkMode by viewModel.junkMode.collectAsState()
-                AnimatedContent(currentJunkMode) { junkMode ->
+                AnimatedContent(state.mode) { junkMode ->
                     when (junkMode) {
-                        JunkMode.SINGLE -> SingleUi(viewModel)
-                        JunkMode.MULTI -> MultiUi(viewModel)
+                        JunkMode.SINGLE -> SingleUi(state.single, onIntent)
+                        JunkMode.MULTI -> MultiUi(state.multi, onIntent)
                     }
                 }
             }
             item {
                 Spacer(Modifier.size(12.dp))
-                Generate(
-                    viewModel, outputPathError
-                )
+                Generate(state.estimatedSize) { onIntent(JunkCodeIntent.Submit) }
                 Spacer(Modifier.size(24.dp))
             }
         }
@@ -121,113 +103,97 @@ private fun JunkCodeBox(viewModel: MainViewModel) {
 }
 
 @Composable
-private fun SingleUi(viewModel: MainViewModel) {
+private fun SingleUi(form: SingleJunkForm, onIntent: (JunkCodeIntent) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         StringInput(
-            value = viewModel.junkCodeInfoState.aarName,
+            value = form.aarName,
             label = stringResource(Res.string.aar_name),
             isError = false,
             realOnly = true,
             onValueChange = { })
         Spacer(Modifier.size(8.dp))
-        PackageName(viewModel)
+        PackageName(form, onIntent)
         Spacer(Modifier.size(8.dp))
         StringInput(
-            value = viewModel.junkCodeInfoState.resPrefix,
+            value = form.resPrefix,
             label = stringResource(Res.string.resource_prefix),
-            isError = viewModel.junkCodeInfoState.resPrefix.isBlank(),
+            isError = form.resPrefix.isBlank(),
             trailingIcon = {
                 Icon(
                     Icons.Rounded.Shuffle,
                     contentDescription = "Shuffle",
                     modifier = Modifier.clickable {
-                        viewModel.updateJunkCodeInfo(
-                            viewModel.junkCodeInfoState.copy(
-                                resPrefix = generateSecureToken(2, 6) + "_"
-                            )
-                        )
+                        onIntent(JunkCodeIntent.RandomPrefix)
                     })
             },
             onValueChange = { resPrefix ->
-                viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(resPrefix = resPrefix))
+                onIntent(JunkCodeIntent.ResPrefixChanged(resPrefix))
             })
         Spacer(Modifier.size(8.dp))
         MultiIntTextField(
-            value1 = viewModel.junkCodeInfoState.packageCount,
-            value2 = viewModel.junkCodeInfoState.activityCountPerPackage,
+            value1 = form.packageCount,
+            value2 = form.activityCountPerPackage,
             label1 = stringResource(Res.string.number_of_packages),
             label2 = stringResource(Res.string.number_of_activities),
-            isError1 = viewModel.junkCodeInfoState.packageCount.isBlank(),
-            isError2 = viewModel.junkCodeInfoState.activityCountPerPackage.isBlank(),
+            isError1 = form.packageCount.isBlank(),
+            isError2 = form.activityCountPerPackage.isBlank(),
             onValue1Change = { packageCount ->
-                viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(packageCount = packageCount))
+                onIntent(JunkCodeIntent.PackageCountChanged(packageCount))
             },
             onValue2Change = { activityCountPerPackage ->
-                viewModel.updateJunkCodeInfo(
-                    viewModel.junkCodeInfoState.copy(
-                        activityCountPerPackage = activityCountPerPackage
-                    )
-                )
+                onIntent(JunkCodeIntent.ActivityCountChanged(activityCountPerPackage))
             }
         )
     }
 }
 
 @Composable
-private fun MultiUi(viewModel: MainViewModel) {
+private fun MultiUi(form: MultiJunkForm, onIntent: (JunkCodeIntent) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
         StringInput(
-            value = viewModel.junkCodeInfoState.outputDir,
+            value = form.outputDir,
             label = "多AAR输出文件夹名称",
-            isError = viewModel.junkCodeInfoState.outputDir.isBlank(),
+            isError = form.outputDir.isBlank(),
             onValueChange = { outputDir ->
-                viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(outputDir = outputDir))
+                onIntent(JunkCodeIntent.OutputDirChanged(outputDir))
             })
         Spacer(Modifier.size(8.dp))
         IntInput(
-            value = viewModel.junkCodeInfoState.aarCount,
+            value = form.aarCount,
             label = "需要生成的AAR包数量",
-            isError = viewModel.junkCodeInfoState.aarCount.isBlank(),
+            isError = form.aarCount.isBlank(),
             onValueChange = { aarCount ->
-                viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(aarCount = aarCount))
+                onIntent(JunkCodeIntent.AarCountChanged(aarCount))
             }
         )
         Spacer(Modifier.size(8.dp))
         MultiIntTextField(
-            value1 = viewModel.junkCodeInfoState.leastPackageCount,
-            value2 = viewModel.junkCodeInfoState.maximumPackageCount,
+            value1 = form.leastPackageCount,
+            value2 = form.maximumPackageCount,
             label1 = "包数量（最小）",
             label2 = "包数量（最大）",
-            isError1 = viewModel.junkCodeInfoState.leastPackageCount.isBlank(),
-            isError2 = viewModel.junkCodeInfoState.maximumPackageCount.isBlank(),
+            isError1 = form.leastPackageCount.isBlank(),
+            isError2 = form.maximumPackageCount.isBlank(),
             onValue1Change = { leastPackageCount ->
-                viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(leastPackageCount = leastPackageCount))
+                onIntent(JunkCodeIntent.LeastPackagesChanged(leastPackageCount))
             },
             onValue2Change = { maximumPackageCount ->
-                viewModel.updateJunkCodeInfo(
-                    viewModel.junkCodeInfoState.copy(
-                        maximumPackageCount = maximumPackageCount
-                    )
-                )
+                onIntent(JunkCodeIntent.MaximumPackagesChanged(maximumPackageCount))
             }
         )
         Spacer(Modifier.size(8.dp))
         MultiIntTextField(
-            value1 = viewModel.junkCodeInfoState.leastActivityCountPerPackage,
-            value2 = viewModel.junkCodeInfoState.maximumActivityCountPerPackage,
+            value1 = form.leastActivityCountPerPackage,
+            value2 = form.maximumActivityCountPerPackage,
             label1 = "每个包里 activity 的数量（最小）",
             label2 = "每个包里 activity 的数量（最大）",
-            isError1 = viewModel.junkCodeInfoState.leastActivityCountPerPackage.isBlank(),
-            isError2 = viewModel.junkCodeInfoState.maximumActivityCountPerPackage.isBlank(),
+            isError1 = form.leastActivityCountPerPackage.isBlank(),
+            isError2 = form.maximumActivityCountPerPackage.isBlank(),
             onValue1Change = { leastActivityCountPerPackage ->
-                viewModel.updateJunkCodeInfo(viewModel.junkCodeInfoState.copy(leastActivityCountPerPackage = leastActivityCountPerPackage))
+                onIntent(JunkCodeIntent.LeastActivitiesChanged(leastActivityCountPerPackage))
             },
             onValue2Change = { maximumActivityCountPerPackage ->
-                viewModel.updateJunkCodeInfo(
-                    viewModel.junkCodeInfoState.copy(
-                        maximumActivityCountPerPackage = maximumActivityCountPerPackage
-                    )
-                )
+                onIntent(JunkCodeIntent.MaximumActivitiesChanged(maximumActivityCountPerPackage))
             }
         )
     }
@@ -235,9 +201,8 @@ private fun MultiUi(viewModel: MainViewModel) {
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun JunkMode(viewModel: MainViewModel) {
+private fun JunkMode(currentJunkMode: JunkMode, onIntent: (JunkCodeIntent) -> Unit) {
     val junkModeList = JunkMode.entries
-    val currentJunkMode by viewModel.junkMode.collectAsState()
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 68.dp),
         horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
@@ -248,7 +213,7 @@ private fun JunkMode(viewModel: MainViewModel) {
                 checked = mode == currentJunkMode,
                 onCheckedChange = {
                     if (mode != currentJunkMode) {
-                        viewModel.saveJunkMode(mode)
+                        onIntent(JunkCodeIntent.ModeChanged(mode))
                     }
                 },
                 colors = ToggleButtonDefaults.elevatedToggleButtonColors(),
@@ -277,7 +242,7 @@ private fun JunkMode(viewModel: MainViewModel) {
 }
 
 @Composable
-private fun PackageName(viewModel: MainViewModel) {
+private fun PackageName(form: SingleJunkForm, onIntent: (JunkCodeIntent) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 64.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -285,11 +250,9 @@ private fun PackageName(viewModel: MainViewModel) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp)
                 .weight(3f),
-            value = viewModel.junkCodeInfoState.packageName,
+            value = form.packageName,
             onValueChange = { packageName ->
-                val junkCodeInfo = viewModel.junkCodeInfoState.copy()
-                junkCodeInfo.packageName = packageName
-                viewModel.updateJunkCodeInfo(junkCodeInfo)
+                onIntent(JunkCodeIntent.PackageNameChanged(packageName))
             },
             label = {
                 Text(
@@ -298,7 +261,7 @@ private fun PackageName(viewModel: MainViewModel) {
                 )
             },
             singleLine = true,
-            isError = viewModel.junkCodeInfoState.packageName.isBlank()
+            isError = form.packageName.isBlank()
         )
         Text(
             ".",
@@ -308,20 +271,16 @@ private fun PackageName(viewModel: MainViewModel) {
         OutlinedTextField(
             modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 3.dp)
                 .weight(2f),
-            value = viewModel.junkCodeInfoState.suffix,
+            value = form.suffix,
             onValueChange = { suffix ->
-                val junkCodeInfo = viewModel.junkCodeInfoState.copy()
-                junkCodeInfo.suffix = suffix
-                viewModel.updateJunkCodeInfo(junkCodeInfo)
+                onIntent(JunkCodeIntent.SuffixChanged(suffix))
             },
             trailingIcon = {
                 Icon(
                     Icons.Rounded.Shuffle,
                     contentDescription = "Shuffle",
                     modifier = Modifier.clickable {
-                        val junkCodeInfo = viewModel.junkCodeInfoState.copy()
-                        junkCodeInfo.suffix = generateSecureToken(3, 8)
-                        viewModel.updateJunkCodeInfo(junkCodeInfo)
+                        onIntent(JunkCodeIntent.RandomSuffix)
                     })
             },
             label = {
@@ -331,7 +290,7 @@ private fun PackageName(viewModel: MainViewModel) {
                 )
             },
             singleLine = true,
-            isError = viewModel.junkCodeInfoState.suffix.isBlank()
+            isError = form.suffix.isBlank()
         )
     }
 }
@@ -388,11 +347,7 @@ private fun MultiIntTextField(
 }
 
 @Composable
-private fun Generate(
-    viewModel: MainViewModel, outputPathError: Boolean
-) {
-    val currentJunkMode by viewModel.junkMode.collectAsState()
-    val estimateSize = viewModel.junkCodeInfoState.estimateAarSize(currentJunkMode)
+private fun Generate(estimateSize: String, onSubmit: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min).padding(end = 72.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -415,21 +370,7 @@ private fun Generate(
         VerticalDivider(
             modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp)
         )
-        Button(onClick = {
-            if (outputPathError || viewModel.hasPendingPathChecks(LegacyPathField.JUNK_OUTPUT)) {
-                viewModel.updateSnackbarVisuals(Res.string.check_error)
-                return@Button
-            }
-            if (viewModel.junkCodeInfoState.outputPath.isBlank() || viewModel.junkCodeInfoState.packageName.isBlank() || viewModel.junkCodeInfoState.suffix.isBlank() || viewModel.junkCodeInfoState.packageCount.isBlank() || viewModel.junkCodeInfoState.activityCountPerPackage.isEmpty() || viewModel.junkCodeInfoState.resPrefix.isBlank()) {
-                viewModel.updateSnackbarVisuals(Res.string.check_empty)
-                return@Button
-            }
-            if (viewModel.junkCodeInfoState.outputDir.isBlank() || viewModel.junkCodeInfoState.aarCount.isBlank() || viewModel.junkCodeInfoState.leastPackageCount.isBlank() || viewModel.junkCodeInfoState.maximumPackageCount.isBlank() || viewModel.junkCodeInfoState.leastActivityCountPerPackage.isEmpty() || viewModel.junkCodeInfoState.maximumActivityCountPerPackage.isBlank()) {
-                viewModel.updateSnackbarVisuals(Res.string.check_empty)
-                return@Button
-            }
-            viewModel.generateJunkCode()
-        }) {
+        Button(onClick = onSubmit) {
             Text(
                 text = stringResource(Res.string.start_generating),
                 style = MaterialTheme.typography.titleMedium,

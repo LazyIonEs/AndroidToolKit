@@ -66,19 +66,19 @@ class Phase3PreferencesTest {
         }, AppDispatchers(dispatcher, dispatcher, dispatcher))
         val sink = AppEffectSink()
         val vm = SettingsViewModel(repository, AllPathsExist, sink, RecordingDesktopActions())
-        val legacy = MainViewModel(repository, AllPathsExist, sink, org.tool.kit.domain.usecase.GenerateJunkCodeUseCase { error("Unexpected generation") })
+        val junk = junkViewModel(repository, AllPathsExist, sink)
         val signing = org.tool.kit.feature.signature.ApkSigningViewModel(org.tool.kit.domain.usecase.SignApkUseCase { error("Unexpected signing") },
             repository, AllPathsExist, EmptyKeys, sink, org.tool.kit.feature.signature.SigningPresets(emptyList(), "All", "Huawei"))
         val icons = org.tool.kit.feature.iconfactory.IconFactoryViewModel(unusedGenerateIcons(), repository, AllPathsExist, sink)
         val apkTool = org.tool.kit.feature.apk.ApkToolViewModel(unusedBuildApk(), repository, AllPathsExist, EmptyKeys, sink, "Huawei")
         val keys = KeyStoreGenerationViewModel(GenerateKeyStoreUseCase(EmptyKeys), repository, AllPathsExist, sink)
-        val store = ViewModelStore().also { it.put("settings", vm); it.put("legacy", legacy); it.put("keys", keys); it.put("signing", signing); it.put("apk-tool", apkTool); it.put("icons", icons) }
+        val store = ViewModelStore().also { it.put("settings", vm); it.put("junk", junk); it.put("keys", keys); it.put("signing", signing); it.put("apk-tool", apkTool); it.put("icons", icons) }
         fun paths() = listOf(signing.uiState.value.form.outputPath, keys.uiState.value.form.keyStorePath,
-            legacy.junkCodeInfoState.outputPath, icons.uiState.value.form.outputPath, apkTool.uiState.value.form.outputPath)
+            junk.uiState.value.outputPath, icons.uiState.value.form.outputPath, apkTool.uiState.value.form.outputPath)
         fun chooseCustomPaths() {
             signing.onIntent(org.tool.kit.feature.signature.ApkSigningIntent.OutputPathChanged("sign custom"))
             keys.onIntent(KeyStoreGenerationIntent.OutputPathChanged("key custom"))
-            legacy.updateJunkCodeInfo(legacy.junkCodeInfoState.copy(outputPath = "junk custom"))
+            junk.onIntent(org.tool.kit.feature.junk.JunkCodeIntent.OutputPathChanged("junk custom"))
             icons.onIntent(org.tool.kit.feature.iconfactory.IconFactoryIntent.OutputPathChanged("icon custom"))
             apkTool.onIntent(org.tool.kit.feature.apk.ApkToolIntent.OutputPathChanged("apk tool custom"))
         }
@@ -109,12 +109,15 @@ class Phase3PreferencesTest {
             assertEquals(repository.state.value.userData, actual.read().userData)
             assertEquals("suffix 29", vm.uiState.value.preferences.userData.defaultSignerSuffix)
             val later = org.tool.kit.feature.apk.ApkToolViewModel(unusedBuildApk(), repository, AllPathsExist, EmptyKeys, sink, "Huawei")
+            val laterJunk = junkViewModel(repository, AllPathsExist, sink)
+            store.put("laterJunk", laterJunk)
             val laterIcons = org.tool.kit.feature.iconfactory.IconFactoryViewModel(unusedGenerateIcons(), repository, AllPathsExist, sink)
             val laterKeys = KeyStoreGenerationViewModel(GenerateKeyStoreUseCase(EmptyKeys), repository, AllPathsExist, sink)
             store.put("later", later)
             store.put("laterKeys", laterKeys)
             store.put("laterIcons", laterIcons)
             runCurrent()
+            assertEquals(" output 29 ", laterJunk.uiState.value.outputPath)
             assertEquals(" output 29 ", later.uiState.value.form.outputPath)
             assertEquals(" output 29 ", laterKeys.uiState.value.form.keyStorePath)
             assertEquals(" output 29 ", laterIcons.uiState.value.form.outputPath)

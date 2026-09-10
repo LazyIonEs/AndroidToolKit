@@ -18,7 +18,7 @@ import org.tool.kit.domain.repository.StorageRepository
 import org.tool.kit.feature.signature.SigningCredentialsUi
 import org.tool.kit.feature.signature.SigningCredentialsValidation
 import org.tool.kit.model.DarkThemeConfig
-import org.tool.kit.vm.*
+import org.tool.kit.feature.junk.JunkOutputValidation
 import org.tool.kit.core.validation.KeyAliasesValidation
 import androidx.lifecycle.ViewModelStore
 import kotlin.test.*
@@ -87,25 +87,24 @@ class Phase2ValidationTest {
                 CompletableDeferred<PathMetadata>().also { pending += it }.await()
             }
         }
-        val paths = LegacyPathChecks(backgroundScope, storage)
-        val field = LegacyPathField.JUNK_OUTPUT
-        paths.validate(field, "A", PathKind.DIRECTORY)
+        val paths = JunkOutputValidation(backgroundScope, storage)
+        paths.validate("A")
         runCurrent()
-        repeat(20) { paths.validate(field, "A", PathKind.DIRECTORY) }
+        repeat(20) { paths.validate("A") }
         assertEquals(1, pending.size)
-        paths.validate(field, "B", PathKind.DIRECTORY)
+        paths.validate("B")
         runCurrent()
-        paths.validate(field, "A", PathKind.DIRECTORY)
+        paths.validate("A")
         runCurrent()
         pending[2].complete(PathMetadata(false, false))
         runCurrent()
         pending[0].complete(PathMetadata(false, true))
         pending[1].complete(PathMetadata(false, true))
         runCurrent()
-        assertTrue(paths.state.value.getValue(field).isError)
-        paths.validate(field, "", PathKind.DIRECTORY)
-        assertFalse(paths.state.value.getValue(field).isError)
-        assertFalse(paths.state.value.getValue(field).pending)
+        assertTrue(paths.state.value.isError)
+        paths.validate("")
+        assertFalse(paths.state.value.isError)
+        assertFalse(paths.state.value.pending)
     }
 
     @Test fun settingsDraftsUpdateBeforeQueuedWritesAndFieldsDoNotOverwriteEachOther() = runTest {
@@ -152,16 +151,15 @@ class Phase2ValidationTest {
                 return PathMetadata(false, exists)
             }
         }
-        val checks = LegacyPathChecks(backgroundScope, storage)
-        val field = LegacyPathField.JUNK_OUTPUT
-        checks.validate(field, "same-path", PathKind.DIRECTORY)
+        val checks = JunkOutputValidation(backgroundScope, storage)
+        checks.validate("same-path")
         runCurrent()
-        assertTrue(checks.state.value.getValue(field).isError)
+        assertTrue(checks.state.value.isError)
         exists = true
-        checks.refresh(field)
-        assertTrue(checks.state.value.getValue(field).pending)
+        checks.refresh()
+        assertTrue(checks.state.value.pending)
         runCurrent()
-        assertFalse(checks.state.value.getValue(field).isError)
+        assertFalse(checks.state.value.isError)
         assertEquals(2, reads)
     }
 }

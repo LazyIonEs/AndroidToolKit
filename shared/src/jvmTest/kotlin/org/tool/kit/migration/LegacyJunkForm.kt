@@ -1,4 +1,6 @@
-package org.tool.kit.model
+package org.tool.kit.migration
+
+import org.tool.kit.model.JunkMode
 
 import org.tool.kit.utils.JunkSizePredictor
 import org.tool.kit.utils.formatFileSize
@@ -11,7 +13,7 @@ import org.tool.kit.utils.formatFileSize
 /**
  * 垃圾代码生成信息，存储页面信息，viewModel中
  */
-data class JunkCodeInfo(
+internal data class LegacyJunkForm(
     var outputPath: String = "", // 输出路径
 
     // 单aar模式使用
@@ -69,7 +71,3 @@ data class JunkCodeInfo(
     }
 }
 
-enum class JunkMode(val title: String) {
-    SINGLE("单AAR模式"),
-    MULTI("多AAR模式")
-}

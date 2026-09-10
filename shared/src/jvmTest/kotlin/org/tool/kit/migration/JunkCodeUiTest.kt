@@ -13,10 +13,16 @@ import org.junit.Test
 import org.koin.compose.KoinIsolatedContext
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.dsl.koinApplication
+import org.koin.dsl.module
+import kotlinx.coroutines.CompletableDeferred
+import org.tool.kit.domain.junk.*
+import org.tool.kit.domain.repository.JunkCodeRepository
+import kotlin.test.*
 import org.tool.kit.App
 import org.tool.kit.di.desktopModules
 import org.tool.kit.model.JunkMode
-import org.tool.kit.vm.MainViewModel
+import org.tool.kit.feature.junk.*
+import org.tool.kit.feature.junk.JunkCodeIntent.*
 import java.io.File
 import java.awt.image.BufferedImage
 import javax.imageio.ImageIO
@@ -33,12 +39,16 @@ class JunkCodeUiTest {
         prepareBaselinePreferences(fixture, theme)
         val owner = DefaultArchitectureComponentsOwner(enforceMainThread = false)
         owner.setLifecycleState(Lifecycle.State.RESUMED)
-        val container = koinApplication { modules(desktopModules()) }
-        lateinit var vm: MainViewModel
+        val requests = mutableListOf<GenerateJunkCodeRequest>()
+        val gate = CompletableDeferred<GeneratedJunkCode>()
+        val container = koinApplication { modules(desktopModules() + module {
+            single<JunkCodeRepository> { JunkCodeRepository { requests += it; gate.await() } }
+        }) }
+        lateinit var vm: JunkCodeViewModel
         try {
             setContent { CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
                 KoinIsolatedContext(container) {
-                    val current = koinViewModel<MainViewModel>()
+                    val current = koinViewModel<JunkCodeViewModel>()
                     App()
                     SideEffect { vm = current }
                 }
@@ -60,17 +70,35 @@ class JunkCodeUiTest {
             bottom(); capture("single-bottom")
             top()
             runOnIdle {
-                val form = vm.junkCodeInfoState.copy(packageCount = "", activityCountPerPackage = "", resPrefix = "")
-                form.packageName = ""; form.suffix = ""
-                vm.updateJunkCodeInfo(form)
+                listOf(PackageCountChanged(""), ActivityCountChanged(""), ResPrefixChanged(""), PackageNameChanged(""), SuffixChanged("")).forEach(vm::onIntent)
             }
             capture("single-errors")
-            runOnIdle { vm.saveJunkMode(JunkMode.MULTI) }
+            runOnIdle { vm.onIntent(ModeChanged(JunkMode.MULTI)) }
             capture("multi-top")
             bottom(); capture("multi-bottom")
             top()
-            runOnIdle { vm.updateJunkCodeInfo(vm.junkCodeInfoState.copy(outputDir = "", aarCount = "", leastPackageCount = "", maximumPackageCount = "", leastActivityCountPerPackage = "", maximumActivityCountPerPackage = "")) }
+            runOnIdle { listOf(OutputDirChanged(""), AarCountChanged(""), LeastPackagesChanged(""), MaximumPackagesChanged(""), LeastActivitiesChanged(""), MaximumActivitiesChanged("")).forEach(vm::onIntent) }
             capture("multi-errors")
+            // Drive the real form callbacks and global Loading after the unchanged baseline scenes.
+            runOnIdle {
+                listOf(PackageNameChanged("com.fixture"), SuffixChanged("plugin"), ResPrefixChanged("fixture_"), PackageCountChanged("1"), ActivityCountChanged("1"),
+                    OutputDirChanged("batch"), AarCountChanged("2"), LeastPackagesChanged("1"), MaximumPackagesChanged("1"), LeastActivitiesChanged("1"), MaximumActivitiesChanged("1")).forEach(vm::onIntent)
+            }
+            onNode(hasText("单AAR模式") and hasClickAction()).performClick()
+            onNodeWithText("包名").performTextReplacement("org.fixture.ui")
+            onNodeWithText("后缀").performTextReplacement("part.one")
+            onNode(hasText("APK信息") and hasClickAction()).performClick()
+            onNode(hasText("垃圾代码") and hasClickAction()).performClick()
+            onNodeWithText("后缀").assertTextContains("part.one")
+            bottom()
+            onNodeWithText("开始生成").performClick()
+            waitUntil(timeoutMillis = 10_000) { vm.uiState.value.busy && requests.size == 1 }
+            onAllNodesWithContentDescription("Lottie animation").onFirst().assertExists()
+            val request = requests.single()
+            assertEquals(JunkConfiguration.Single("org.fixture.ui.part.one", 1, 1, "fixture_"), request.configuration)
+            runOnIdle { gate.complete(GeneratedJunkCode("fixture-result.aar", listOf("fixture-result.aar"), 123)) }
+            waitUntil(timeoutMillis = 10_000) { !vm.uiState.value.busy }
+            onNodeWithText("跳转").assertExists()
         } finally { owner.viewModelStore.clear(); container.close() }
     }
 }
