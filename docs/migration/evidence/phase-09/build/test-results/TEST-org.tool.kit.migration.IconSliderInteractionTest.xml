@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="IconSliderInteractionTest[jvm]" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:28.513Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.108">
+  <properties/>
+  <testcase name="bothPngThumbsAndJpegSliderPersistOnlyAfterPointerRelease[jvm]" classname="org.tool.kit.migration.IconSliderInteractionTest" time="0.108"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

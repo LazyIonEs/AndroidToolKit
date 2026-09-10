@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="JunkCodeViewModelTest[jvm]" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:30.660Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.016">
+  <properties/>
+  <testcase name="randomEventsCallTheInjectedGeneratorExactlyOnceAndModesKeepBothDrafts[jvm]" classname="org.tool.kit.migration.JunkCodeViewModelTest" time="0.004"/>
+  <testcase name="failuresPreserveNullAndEmptyMessagesAndAllowRetry[jvm]" classname="org.tool.kit.migration.JunkCodeViewModelTest" time="0.003"/>
+  <testcase name="validationKeepsErrorPriorityAndChecksBothHiddenDrafts[jvm]" classname="org.tool.kit.migration.JunkCodeViewModelTest" time="0.002"/>
+  <testcase name="outputExceptionsAreInlineAndRefreshCanRecoverWithoutUnrelatedPreferenceOverwrite[jvm]" classname="org.tool.kit.migration.JunkCodeViewModelTest" time="0.001"/>
+  <testcase name="bothModesCaptureEveryFieldBeforeSuspensionAndDuplicateSubmitsAreIgnored[jvm]" classname="org.tool.kit.migration.JunkCodeViewModelTest" time="0.003"/>
+  <testcase name="cancellationAndWindowClosureCannotPublishLateCompletionOrKeepLoading[jvm]" classname="org.tool.kit.migration.JunkCodeViewModelTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

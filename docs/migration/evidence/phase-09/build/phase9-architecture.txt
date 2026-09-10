@@ -1,0 +1,20 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Configuration on demand is an incubating feature.
+Type-safe project accessors is an incubating feature.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+A problem occurred configuring project ':shared'.
+> Could not create task ':shared:compileDomainBoundary'.
+   > Could not create task of type 'KotlinCompile'.
+      > Unable to determine constructor argument #1: missing parameter of type KotlinJvmCompilerOptions, or no service of type KotlinJvmCompilerOptions.
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 10s

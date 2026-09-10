@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="JunkGenerationTest[jvm]" tests="6" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:30.677Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.269">
+  <properties/>
+  <testcase name="randomBatchUsesInclusiveBoundsAndRetriesDuplicatePackagesAndPrefixes[jvm]" classname="org.tool.kit.migration.JunkGenerationTest" time="0.001"/>
+  <testcase name="realSingleAndBatchArchivesPreserveNamingStructureAndSizeRules[jvm]" classname="org.tool.kit.migration.JunkGenerationTest" time="0.033"/>
+  <testcase name="useCaseMapsTheWholeRequestAndNullableErrorsButPropagatesCancellation[jvm]" classname="org.tool.kit.migration.JunkGenerationTest" time="0.003"/>
+  <testcase name="batchWorkersUseIndependentDirectoriesAndAllFinishBeforeFailureCleanup[jvm]" classname="org.tool.kit.migration.JunkGenerationTest" time="0.114"/>
+  <testcase name="separateServicesSerializeOutputsAndCancellationWaitsForSynchronousGenerator[jvm]" classname="org.tool.kit.migration.JunkGenerationTest" time="0.115"/>
+  <testcase name="parallelFailureIsReportedOnlyAfterOtherWorkersExit[jvm]" classname="org.tool.kit.migration.JunkGenerationTest" time="0.002"/>
+  <system-out><![CDATA[2026-09-10 13:15:30.682 [DefaultDispatcher-worker-1 @coroutine#64823] INFO  AndroidJunkGenerator - startGenerate 准备生成, 正在清理工作空间 工作空间目录: /var/folders/jt/1lc6n9756w7489cqg5bxtt9w0000gn/T/junit2886097611588125513/work/toolkit-junk-3893489450432154969/comfixturejunkpart
+2026-09-10 13:15:30.682 [DefaultDispatcher-worker-1 @coroutine#64823] INFO  AndroidJunkGenerator - startGenerate 工作空间已就绪, 开始生成
+2026-09-10 13:15:30.686 [DefaultDispatcher-worker-1 @coroutine#64823] INFO  AndroidJunkGenerator - startGenerate class 文件生成完成
+2026-09-10 13:15:30.688 [DefaultDispatcher-worker-1 @coroutine#64823] INFO  AndroidJunkGenerator - strings 文件数量: 1
+2026-09-10 13:15:30.688 [DefaultDispatcher-worker-1 @coroutine#64823] INFO  AndroidJunkGenerator - layouts 文件数量: 1
+2026-09-10 13:15:30.688 [DefaultDispatcher-worker-1 @coroutine#64823] INFO  AndroidJunkGenerator - drawables 文件数量: 4
+2026-09-10 13:15:30.688 [DefaultDispatcher-worker-1 @coroutine#64823] INFO  AndroidJunkGenerator - anims 文件数量: 1
+2026-09-10 13:15:30.688 [DefaultDispatcher-worker-1 @coroutine#64823] INFO  AndroidJunkGenerator - mipmaps 文件数量: 3
+2026-09-10 13:15:30.688 [DefaultDispatcher-worker-1 @coroutine#64823] INFO  AndroidJunkGenerator - ids 大小: 0
+2026-09-10 13:15:30.688 [DefaultDispatcher-worker-1 @coroutine#64823] INFO  AndroidJunkGenerator - startGenerate 资源文件生成完成, 开始打包
+2026-09-10 13:15:30.690 [DefaultDispatcher-worker-1 @coroutine#64823] INFO  AndroidJunkGenerator - startGenerate 打包完成, 输出文件路径: /var/folders/jt/1lc6n9756w7489cqg5bxtt9w0000gn/T/junit2886097611588125513/中文 output/junk_com_fixture_junk_part_TT2.2.0.aar , 文件大小: 9.65KB
+2026-09-10 13:15:30.690 [DefaultDispatcher-worker-1 @coroutine#64823] INFO  AndroidJunkGenerator - startGenerate 生成结束, 用时: 0.7 秒
+2026-09-10 13:15:30.698 [DefaultDispatcher-worker-4 @coroutine#64824] INFO  AndroidJunkGenerator - startGenerate 准备生成, 正在清理工作空间 工作空间目录: /var/folders/jt/1lc6n9756w7489cqg5bxtt9w0000gn/T/junit2886097611588125513/work/toolkit-junk-5662824141077743568/aar-1254248556557395016/comvbormoyx
+2026-09-10 13:15:30.698 [DefaultDispatcher-worker-1 @coroutine#64825] INFO  AndroidJunkGenerator - startGenerate 准备生成, 正在清理工作空间 工作空间目录: /var/folders/jt/1lc6n9756w7489cqg5bxtt9w0000gn/T/junit2886097611588125513/work/toolkit-junk-5662824141077743568/aar-6990237597348169078/comnhybrmbb
+2026-09-10 13:15:30.698 [DefaultDispatcher-worker-4 @coroutine#64824] INFO  AndroidJunkGenerator - startGenerate 工作空间已就绪, 开始生成
+2026-09-10 13:15:30.698 [DefaultDispatcher-worker-1 @coroutine#64825] INFO  AndroidJunkGenerator - startGenerate 工作空间已就绪, 开始生成
+2026-09-10 13:15:30.702 [DefaultDispatcher-worker-1 @coroutine#64825] INFO  AndroidJunkGenerator - startGenerate class 文件生成完成
+2026-09-10 13:15:30.702 [DefaultDispatcher-worker-4 @coroutine#64824] INFO  AndroidJunkGenerator - startGenerate class 文件生成完成
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-1 @coroutine#64825] INFO  AndroidJunkGenerator - strings 文件数量: 0
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-1 @coroutine#64825] INFO  AndroidJunkGenerator - layouts 文件数量: 1
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-1 @coroutine#64825] INFO  AndroidJunkGenerator - drawables 文件数量: 1
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-1 @coroutine#64825] INFO  AndroidJunkGenerator - anims 文件数量: 0
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-1 @coroutine#64825] INFO  AndroidJunkGenerator - mipmaps 文件数量: 0
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-1 @coroutine#64825] INFO  AndroidJunkGenerator - ids 大小: 0
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-1 @coroutine#64825] INFO  AndroidJunkGenerator - startGenerate 资源文件生成完成, 开始打包
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-4 @coroutine#64824] INFO  AndroidJunkGenerator - strings 文件数量: 1
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-4 @coroutine#64824] INFO  AndroidJunkGenerator - layouts 文件数量: 1
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-4 @coroutine#64824] INFO  AndroidJunkGenerator - drawables 文件数量: 1
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-4 @coroutine#64824] INFO  AndroidJunkGenerator - anims 文件数量: 0
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-4 @coroutine#64824] INFO  AndroidJunkGenerator - mipmaps 文件数量: 2
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-4 @coroutine#64824] INFO  AndroidJunkGenerator - ids 大小: 0
+2026-09-10 13:15:30.703 [DefaultDispatcher-worker-4 @coroutine#64824] INFO  AndroidJunkGenerator - startGenerate 资源文件生成完成, 开始打包
+2026-09-10 13:15:30.704 [DefaultDispatcher-worker-1 @coroutine#64825] INFO  AndroidJunkGenerator - startGenerate 打包完成, 输出文件路径: /var/folders/jt/1lc6n9756w7489cqg5bxtt9w0000gn/T/junit2886097611588125513/中文 output/ batch 中文 /junk_com_nhybr_mbb_TT2.2.0.aar , 文件大小: 5.13KB
+2026-09-10 13:15:30.704 [DefaultDispatcher-worker-1 @coroutine#64825] INFO  AndroidJunkGenerator - startGenerate 生成结束, 用时: 0.6 秒
+2026-09-10 13:15:30.705 [DefaultDispatcher-worker-4 @coroutine#64824] INFO  AndroidJunkGenerator - startGenerate 打包完成, 输出文件路径: /var/folders/jt/1lc6n9756w7489cqg5bxtt9w0000gn/T/junit2886097611588125513/中文 output/ batch 中文 /junk_com_vborm_oyx_TT2.2.0.aar , 文件大小: 7.03KB
+2026-09-10 13:15:30.705 [DefaultDispatcher-worker-4 @coroutine#64824] INFO  AndroidJunkGenerator - startGenerate 生成结束, 用时: 0.7 秒
+2026-09-10 13:15:30.709 [DefaultDispatcher-worker-4 @coroutine#64823] INFO  AndroidJunkGenerator - startGenerate 准备生成, 正在清理工作空间 工作空间目录: /var/folders/jt/1lc6n9756w7489cqg5bxtt9w0000gn/T/junit2886097611588125513/work/toolkit-junk-16359737192424714695/comfixturefail
+2026-09-10 13:15:30.709 [DefaultDispatcher-worker-4 @coroutine#64823] INFO  AndroidJunkGenerator - startGenerate 工作空间已就绪, 开始生成
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

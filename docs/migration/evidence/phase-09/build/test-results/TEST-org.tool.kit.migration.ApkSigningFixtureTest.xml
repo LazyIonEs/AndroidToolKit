@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ApkSigningFixtureTest[jvm]" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:14:41.600Z" hostname="LazyIonEsdeMacBook-Pro.local" time="2.371">
+  <properties/>
+  <testcase name="unsignedAndFiveSignaturePoliciesHaveTheExpectedSchemes[jvm]" classname="org.tool.kit.migration.ApkSigningFixtureTest" time="2.369"/>
+  <testcase name="cancellationBeforeIoDoesNotDeleteExistingOutputOrReportFailure[jvm]" classname="org.tool.kit.migration.ApkSigningFixtureTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

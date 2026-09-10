@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="CertificateMappingTest[jvm]" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:12.424Z" hostname="LazyIonEsdeMacBook-Pro.local" time="3.313">
+  <properties/>
+  <testcase name="droppedFilesAreFilteredAsAWholeThenOnlyFirstSurvivorIsConsidered[jvm]" classname="org.tool.kit.migration.CertificateMappingTest" time="0.004"/>
+  <testcase name="emptyStoresHaveNoAliasesAndMalformedAndUnsignedApksUseOriginalFallback[jvm]" classname="org.tool.kit.migration.CertificateMappingTest" time="0.429"/>
+  <testcase name="rotatedApkPreservesTheKnownV31CertificateDuplicationInsteadOfFixingItDuringMigration[jvm]" classname="org.tool.kit.migration.CertificateMappingTest" time="0.782"/>
+  <testcase name="onlyTheLegacyErrorSetIsDisplayedAndPreservesItsTrailingNewline[jvm]" classname="org.tool.kit.migration.CertificateMappingTest" time="0.405"/>
+  <testcase name="realSignedApkKeepsVersionOrderAndV4RequiresTheSameExplicitSidecarAsBefore[jvm]" classname="org.tool.kit.migration.CertificateMappingTest" time="0.686"/>
+  <testcase name="ecCertificateKeepsOriginalEmptyRsaOnlyPublicKeyFields[jvm]" classname="org.tool.kit.migration.CertificateMappingTest" time="0.026"/>
+  <testcase name="jksAndPkcs12KeepEveryOriginalCertificateFieldAndWrongPasswordBehavior[jvm]" classname="org.tool.kit.migration.CertificateMappingTest" time="0.218"/>
+  <testcase name="multipleSignersKeepTheirOrderAndCertificatesStillDisplayWhenVerificationFails[jvm]" classname="org.tool.kit.migration.CertificateMappingTest" time="0.763"/>
+  <system-out><![CDATA[2026-09-10 13:15:12.855 [DefaultDispatcher-worker-2 @coroutine#22103] INFO  SignatureRepository - apkVerifier 获取APK签名信息开始, APK文件路径: /var/folders/jt/1lc6n9756w7489cqg5bxtt9w0000gn/T/junit12242560081609871236/中文 unsigned.apk
+2026-09-10 13:15:12.856 [DefaultDispatcher-worker-2 @coroutine#22103] INFO  SignatureRepository - apkVerifier 获取APK签名信息开始, APK文件路径: /var/folders/jt/1lc6n9756w7489cqg5bxtt9w0000gn/T/junit12242560081609871236/损坏 file.apk
+2026-09-10 13:15:12.857 [DefaultDispatcher-worker-2 @coroutine#22103] ERROR SignatureRepository - apkVerifier 获取APK签名信息异常, 异常信息: Malformed APK: not a ZIP archive
+com.android.apksig.apk.ApkFormatException: Malformed APK: not a ZIP archive
+	at com.android.apksig.ApkVerifier.verify(ApkVerifier.java:194)
+	at com.android.apksig.ApkVerifier.verify(ApkVerifier.java:167)
+	at org.tool.kit.data.repository.JvmSignatureRepository$verifyApk$2.invokeSuspend(JvmSignatureRepository.kt:32)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:34)
+	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:100)
+	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:124)
+	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:89)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:586)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:798)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:717)
+	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:704)
+Caused by: com.android.apksig.zip.ZipFormatException: ZIP End of Central Directory record not found
+	at com.android.apksig.apk.ApkUtilsLite.findZipSections(ApkUtilsLite.java:49)
+	at com.android.apksig.apk.ApkUtils.findZipSections(ApkUtils.java:60)
+	at com.android.apksig.ApkVerifier.verify(ApkVerifier.java:192)
+	... 10 common frames omitted
+2026-09-10 13:15:13.586 [DefaultDispatcher-worker-2 @coroutine#22104] INFO  SignatureRepository - apkVerifier 获取APK签名信息开始, APK文件路径: /var/folders/jt/1lc6n9756w7489cqg5bxtt9w0000gn/T/junit14417819630831462380/rotated.apk
+2026-09-10 13:15:14.646 [DefaultDispatcher-worker-2 @coroutine#22105] INFO  SignatureRepository - apkVerifier 获取APK签名信息开始, APK文件路径: /var/folders/jt/1lc6n9756w7489cqg5bxtt9w0000gn/T/junit14148906152603406091/中文 signed.apk
+2026-09-10 13:15:14.871 [DefaultDispatcher-worker-2 @coroutine#22106] ERROR KeyStoreRepository - verifyAlisa 验证签名异常 (IOException)
+2026-09-10 13:15:14.974 [DefaultDispatcher-worker-2 @coroutine#22106] ERROR KeyStoreRepository - verifyAlisa 验证签名异常 (IOException)
+2026-09-10 13:15:15.684 [DefaultDispatcher-worker-2 @coroutine#22107] INFO  SignatureRepository - apkVerifier 获取APK签名信息开始, APK文件路径: /var/folders/jt/1lc6n9756w7489cqg5bxtt9w0000gn/T/junit11746779559692657510/multi.apk
+2026-09-10 13:15:15.731 [DefaultDispatcher-worker-2 @coroutine#22107] INFO  SignatureRepository - apkVerifier 获取APK签名信息开始, APK文件路径: /var/folders/jt/1lc6n9756w7489cqg5bxtt9w0000gn/T/junit11746779559692657510/tampered.apk
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

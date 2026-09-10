@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ApkToolViewModelTest[jvm]" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:12.371Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.021">
+  <properties/>
+  <testcase name="submissionCapturesEveryFieldAndPreferenceAndRejectsDuplicateGeneration[jvm]" classname="org.tool.kit.migration.ApkToolViewModelTest" time="0.006"/>
+  <testcase name="dropsUseOnlyTheFirstAcceptedPlatformItemAndTheSameCredentialReset[jvm]" classname="org.tool.kit.migration.ApkToolViewModelTest" time="0.002"/>
+  <testcase name="disabledSigningAndFailedOptionalSigningKeepOriginalCompletionMessage[jvm]" classname="org.tool.kit.migration.ApkToolViewModelTest" time="0.003"/>
+  <testcase name="latePathChecksCannotReplaceNewPathAndRefreshRechecksDisk[jvm]" classname="org.tool.kit.migration.ApkToolViewModelTest" time="0.002"/>
+  <testcase name="aClosedWindowDropsNonCooperativeCompletionAndCleansItsOperation[jvm]" classname="org.tool.kit.migration.ApkToolViewModelTest" time="0.002"/>
+  <testcase name="lateAliasesAndPasswordsCannotRestoreCredentialsAfterToggleClearsTheKey[jvm]" classname="org.tool.kit.migration.ApkToolViewModelTest" time="0.002"/>
+  <testcase name="buildFailureUsesOriginalTextOrFallbackAndAllowsRetry[jvm]" classname="org.tool.kit.migration.ApkToolViewModelTest" time="0.002"/>
+  <testcase name="pendingInvalidAndEmptyChecksPreserveOriginalPriority[jvm]" classname="org.tool.kit.migration.ApkToolViewModelTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

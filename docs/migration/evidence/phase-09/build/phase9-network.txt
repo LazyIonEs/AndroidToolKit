@@ -1,0 +1,101 @@
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.5.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Daemon will be stopped at the end of the build 
+Configuration on demand is an incubating feature.
+Type-safe project accessors is an incubating feature.
+
+> Task :shared:checkJvmMainComposeLibrariesCompatibility
+w: Skiko dependencies' versions are incompatible.
+    io.github.panpf.zoomimage:zoomimage-core-desktop:1.7.0-alpha01
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.150.1
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :shared:dependencies  --configuration jvmRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Note: Skiko is considered implementation detail in Compose Multiplatform and might be incompatible across versions.
+Please align Skiko dependencies to the same version. If possible, avoid direct Skiko references and use Compose APIs instead.
+
+
+> Task :shared:kmpPartiallyResolvedDependenciesChecker
+> Task :shared:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :shared:convertXmlValueResourcesForCommonMain UP-TO-DATE
+
+> Task :shared:exportLibraryDefinitions
+GitHub `rate_limit` exhausted. Won't be able to use the GitHub API. Please check if the token is provided, or enable `offlineMode`.
+
+> Task :shared:copyNonXmlValueResourcesForCommonMain UP-TO-DATE
+> Task :shared:prepareComposeResourcesTaskForCommonMain UP-TO-DATE
+> Task :shared:generateResourceAccessorsForCommonMain UP-TO-DATE
+> Task :shared:convertXmlValueResourcesForJvmMain NO-SOURCE
+> Task :shared:copyNonXmlValueResourcesForJvmMain NO-SOURCE
+> Task :shared:prepareComposeResourcesTaskForJvmMain NO-SOURCE
+> Task :shared:generateResourceAccessorsForJvmMain NO-SOURCE
+> Task :shared:generateActualResourceCollectorsForJvmMain UP-TO-DATE
+> Task :shared:generateBuildConfigClasses UP-TO-DATE
+> Task :shared:generateComposeResClass UP-TO-DATE
+> Task :shared:generateExpectResourceCollectorsForCommonMain UP-TO-DATE
+> Task :shared:generateJvmMainBuildConfigClasses SKIPPED
+
+> Task :shared:buildRustLibrary
+    Finished `release` profile [optimized] target(s) in 0.42s
+
+> Task :shared:generateRustBindings UP-TO-DATE
+
+> Task :composeApp:checkJvmMainComposeLibrariesCompatibility
+w: Skiko dependencies' versions are incompatible.
+    io.github.panpf.zoomimage:zoomimage-core-desktop:1.7.0-alpha01
+    \--- org.jetbrains.skiko:skiko:0.144.6 -> 0.150.1
+
+This may lead to compilation errors or unexpected behavior at runtime.
+Such version mismatch might be caused by dependency constraints in one of the included libraries.
+You can inspect resulted dependencies tree via `./gradlew :composeApp:dependencies  --configuration jvmRuntimeClasspath`.
+See more details in Gradle documentation: https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html#sec:listing-dependencies
+
+Note: Skiko is considered implementation detail in Compose Multiplatform and might be incompatible across versions.
+Please align Skiko dependencies to the same version. If possible, avoid direct Skiko references and use Compose APIs instead.
+
+
+> Task :composeApp:kmpPartiallyResolvedDependenciesChecker
+> Task :composeApp:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :composeApp:convertXmlValueResourcesForCommonMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForCommonMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForCommonMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForCommonMain SKIPPED
+> Task :composeApp:convertXmlValueResourcesForJvmMain NO-SOURCE
+> Task :composeApp:copyNonXmlValueResourcesForJvmMain NO-SOURCE
+> Task :composeApp:prepareComposeResourcesTaskForJvmMain NO-SOURCE
+> Task :composeApp:generateResourceAccessorsForJvmMain SKIPPED
+> Task :composeApp:generateActualResourceCollectorsForJvmMain SKIPPED
+> Task :composeApp:generateComposeResClass SKIPPED
+> Task :composeApp:generateExpectResourceCollectorsForCommonMain SKIPPED
+> Task :shared:assembleJvmMainResources UP-TO-DATE
+
+> Task :shared:compileKotlinJvm
+e: file:///Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/src/jvmMain/kotlin/org/tool/kit/data/repository/JvmUpdateRepository.kt:24:27 Unresolved reference 'isSuccess' on receiver of type 'Nothing'.
+e: file:///Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/src/jvmMain/kotlin/org/tool/kit/data/repository/JvmUpdateRepository.kt:24:127 Unresolved reference 'msg' on receiver of type 'Nothing'.
+e: file:///Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/src/jvmMain/kotlin/org/tool/kit/data/source/UpdateTransport.kt:27:27 Unresolved reference 'DownloadResult'.
+e: file:///Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/src/jvmMain/kotlin/org/tool/kit/data/source/UpdateTransport.kt:49:22 Return type 'Nothing' needs to be specified explicitly.
+e: file:///Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/src/jvmMain/kotlin/org/tool/kit/data/source/UpdateTransport.kt:85:9 Unresolved reference 'DownloadResult'.
+e: file:///Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/src/jvmMain/kotlin/org/tool/kit/data/source/UpdateTransport.kt:91:9 Unresolved reference 'DownloadResult'.
+e: file:///Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/shared/src/jvmMain/kotlin/org/tool/kit/data/source/UpdateTransport.kt:95:9 Unresolved reference 'DownloadResult'.
+
+> Task :shared:compileKotlinJvm FAILED
+
+[Incubating] Problems report is available at: file:///Users/lazyiones/Desktop/AndroidStudioProjects/AndroidToolKit/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':shared:compileKotlinJvm' (registered in build file 'shared/build.gradle.kts').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Compilation error. See log for more details
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 23s
+17 actionable tasks: 7 executed, 10 up-to-date

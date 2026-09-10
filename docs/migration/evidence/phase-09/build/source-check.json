@@ -1,0 +1,21 @@
+{
+  "passed": true,
+  "production_files": 178,
+  "self_tests": 19,
+  "legacy_allowlist": [],
+  "excluded_sources": {
+    "shared/src/jvmTest": "Isolated fakes, mutation fixtures and frozen legacy comparison oracles; never packaged as production.",
+    "shared/src/commonTest": "Test-only dependencies and sources.",
+    "shared/build/generated": "Generated resource/build-config/UniFFI code; UniFFI is wired only into jvmMain."
+  },
+  "domain_companion_files": [
+    "model/IconFactoryData.kt",
+    "model/UserData.kt"
+  ],
+  "resource_read_exceptions": {
+    "feature/settings/SettingsRoute.kt": "Res.readBytes inside the suspend produceLibraries loader for packaged license metadata.",
+    "utils/LottieAnimation.kt": "Res.readBytes inside suspend rememberLottieComposition; original packaged animation loader."
+  },
+  "violations": [],
+  "limits": "Lexical guard only; review aliases through helpers, template expressions and cross-function I/O. Domain compilation is a separate Gradle gate."
+}

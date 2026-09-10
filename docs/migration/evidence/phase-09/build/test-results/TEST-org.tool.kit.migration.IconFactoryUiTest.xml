@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="IconFactoryUiTest[jvm]" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:21.595Z" hostname="LazyIonEsdeMacBook-Pro.local" time="3.486">
+  <properties/>
+  <testcase name="lightPreviewAndSheet[jvm]" classname="org.tool.kit.migration.IconFactoryUiTest" time="1.863"/>
+  <testcase name="darkPreviewAndSheet[jvm]" classname="org.tool.kit.migration.IconFactoryUiTest" time="1.623"/>
+  <system-out><![CDATA[2026-09-10 13:15:21.643 [AWT-EventQueue-0 @coroutine#46230] INFO  App - 启动App, 应用版本号: 1.6.11
+2026-09-10 13:15:23.500 [AWT-EventQueue-0 @coroutine#50893] INFO  App - 启动App, 应用版本号: 1.6.11
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

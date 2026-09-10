@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="KoinLifecycleTest[jvm]" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:35.714Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.046">
+  <properties/>
+  <testcase name="ownerKeysKeepViewModelsWhilePreferencesStayUniquePerContainer[jvm]" classname="org.tool.kit.migration.KoinLifecycleTest" time="0.003"/>
+  <testcase name="shutdownIsIdempotentAcrossCloseAndFinally[jvm]" classname="org.tool.kit.migration.KoinLifecycleTest" time="0.001"/>
+  <testcase name="recompositionKeepsTheWindowViewModelAndOwnerClearsItOnce[jvm]" classname="org.tool.kit.migration.KoinLifecycleTest" time="0.042"/>
+  <system-out><![CDATA[2026-09-10 13:15:35.743 [AWT-EventQueue-0 @coroutine#71816] INFO  App - 启动App, 应用版本号: 1.6.11
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

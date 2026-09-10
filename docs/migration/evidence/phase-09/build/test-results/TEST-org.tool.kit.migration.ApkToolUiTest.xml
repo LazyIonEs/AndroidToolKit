@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ApkToolUiTest[jvm]" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:09.792Z" hostname="LazyIonEsdeMacBook-Pro.local" time="2.577">
+  <properties/>
+  <testcase name="darkResult[jvm]" classname="org.tool.kit.migration.ApkToolUiTest" time="1.455"/>
+  <testcase name="lightResult[jvm]" classname="org.tool.kit.migration.ApkToolUiTest" time="1.122"/>
+  <system-out><![CDATA[2026-09-10 13:15:09.830 [AWT-EventQueue-0 @coroutine#13420] INFO  App - 启动App, 应用版本号: 1.6.11
+2026-09-10 13:15:11.271 [AWT-EventQueue-0 @coroutine#17663] INFO  App - 启动App, 应用版本号: 1.6.11
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

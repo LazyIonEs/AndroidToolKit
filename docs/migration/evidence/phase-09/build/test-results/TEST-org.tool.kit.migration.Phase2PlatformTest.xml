@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="Phase2PlatformTest[jvm]" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:35.787Z" hostname="LazyIonEsdeMacBook-Pro.local" time="0.077">
+  <properties/>
+  <testcase name="fingerprintFormattingKeepsAllFourModes[jvm]" classname="org.tool.kit.migration.Phase2PlatformTest" time="0.001"/>
+  <testcase name="repositoryLoadsBothStoreTypesAndPreservesFailureResults[jvm]" classname="org.tool.kit.migration.Phase2PlatformTest" time="0.072"/>
+  <testcase name="fileSelectionRetainsUriOrderSymlinksAndOriginalPickerAcceptance[jvm]" classname="org.tool.kit.migration.Phase2PlatformTest" time="0.004"/>
+  <system-out><![CDATA[2026-09-10 13:15:35.817 [pool-77-thread-1 @coroutine#72315] ERROR KeyStoreRepository - verifyAlisa 验证签名异常 (IOException)
+2026-09-10 13:15:35.818 [pool-77-thread-1 @coroutine#72315] ERROR KeyStoreRepository - verifyAlisaPassword 验证别名密码异常 (UnrecoverableKeyException)
+2026-09-10 13:15:35.818 [pool-77-thread-1 @coroutine#72315] ERROR KeyStoreRepository - verifyAlisaPassword 验证别名密码异常 (NullPointerException)
+2026-09-10 13:15:35.848 [pool-77-thread-1 @coroutine#72315] ERROR KeyStoreRepository - verifyAlisa 验证签名异常 (IOException)
+2026-09-10 13:15:35.855 [pool-77-thread-1 @coroutine#72315] ERROR KeyStoreRepository - verifyAlisaPassword 验证别名密码异常 (UnrecoverableKeyException)
+2026-09-10 13:15:35.858 [pool-77-thread-1 @coroutine#72315] ERROR KeyStoreRepository - verifyAlisaPassword 验证别名密码异常 (NullPointerException)
+2026-09-10 13:15:35.860 [pool-77-thread-1 @coroutine#72315] ERROR KeyStoreRepository - verifyAlisa 验证签名异常 (FileNotFoundException)
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

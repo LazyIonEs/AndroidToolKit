@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ComposeBaselineTest[jvm]" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:18.085Z" hostname="LazyIonEsdeMacBook-Pro.local" time="3.491">
+  <properties/>
+  <testcase name="lightNavigationRendersAllNinePages[jvm]" classname="org.tool.kit.migration.ComposeBaselineTest" time="1.474"/>
+  <testcase name="darkNavigationRendersAllNinePages[jvm]" classname="org.tool.kit.migration.ComposeBaselineTest" time="1.341"/>
+  <testcase name="signingAndKeyStoreDraftsSurviveTopLevelNavigation[jvm]" classname="org.tool.kit.migration.ComposeBaselineTest" time="0.676"/>
+  <system-out><![CDATA[2026-09-10 13:15:18.110 [AWT-EventQueue-0 @coroutine#30852] INFO  App - 启动App, 应用版本号: 1.6.11
+2026-09-10 13:15:19.581 [AWT-EventQueue-0 @coroutine#36835] INFO  App - 启动App, 应用版本号: 1.6.11
+2026-09-10 13:15:20.924 [AWT-EventQueue-0 @coroutine#42462] INFO  App - 启动App, 应用版本号: 1.6.11
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

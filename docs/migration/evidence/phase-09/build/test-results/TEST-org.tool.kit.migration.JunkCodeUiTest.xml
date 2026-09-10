@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="JunkCodeUiTest[jvm]" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-09-10T05:15:28.674Z" hostname="LazyIonEsdeMacBook-Pro.local" time="1.984">
+  <properties/>
+  <testcase name="darkForms[jvm]" classname="org.tool.kit.migration.JunkCodeUiTest" time="1.045"/>
+  <testcase name="lightForms[jvm]" classname="org.tool.kit.migration.JunkCodeUiTest" time="0.939"/>
+  <system-out><![CDATA[2026-09-10 13:15:28.699 [AWT-EventQueue-0 @coroutine#56202] INFO  App - 启动App, 应用版本号: 1.6.11
+2026-09-10 13:15:29.742 [AWT-EventQueue-0 @coroutine#60443] INFO  App - 启动App, 应用版本号: 1.6.11
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
