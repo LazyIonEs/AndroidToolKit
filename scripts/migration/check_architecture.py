@@ -99,6 +99,22 @@ def inspect_source(path, source):
     # accumulators and Compose-local menu/animation state may remain mutable.
     for start, end in constructor_spans(code):
         reject("published-model-mutability", MUTABLE, code[start:end], start)
+        body = re.match(r"\s*(?::[^\n{}]+)?\s*\{", code[end + 1:])
+        if body:
+            body_start = end + 1 + body.end()
+            depth = 1
+            for token in re.finditer(r"[{}]|\bvar\b", code[body_start:]):
+                value = token.group()
+                if value == "{":
+                    depth += 1
+                elif value == "}":
+                    depth -= 1
+                    if depth == 0:
+                        break
+                elif depth == 1:
+                    # Properties declared after the primary constructor are also
+                    # model fields; locals inside methods/init blocks are not.
+                    reject("published-model-mutability", r"\bvar\b", value, body_start + token.start())
     if domain or relative.startswith("model/") or (relative.startswith("feature/") and relative.endswith(("State.kt", "Contract.kt"))):
         reject("published-collection-mutability", r"\b(?:MutableList|MutableSet|MutableMap|ArrayList|SnapshotStateList|MutableState)\s*<")
     return findings
@@ -116,6 +132,8 @@ def self_test():
         (common + "feature/x/XViewModel.kt", "import org.tool.kit.data.source.Engine", "viewmodel-platform-dependency"),
         (common + "feature/x/XState.kt", "data class X(val items: List<String> = listOf(), var busy: Boolean)", "published-model-mutability"),
         (common + "domain/Bad.kt", "data class X(val items: MutableList<String>)", "published-model-mutability"),
+        (common + "feature/x/XState.kt", "data class X(val id: Int) { var busy = false }", "published-model-mutability"),
+        (common + "domain/Bad.kt", "data class X(val id: Int) : Result { private var cached = 0 }", "published-model-mutability"),
         (common + "feature/x/XRoute.kt", 'fun x() = java.io.File("x").readBytes()', "platform-capability-location"),
         (common + "di/Bad.kt", "viewModel { MainViewModel() }", "legacy-symbol"),
         (common + "model/Sign.kt", "open class Sign {}", "legacy-model"),
@@ -127,7 +145,8 @@ def self_test():
     assert not inspect_source(common + "feature/x/XScreen.kt", '// File("x")\nval label = "MainViewModel"')
     assert not inspect_source("shared/src/jvmMain/kotlin/org/tool/kit/data/source/Engine.kt", 'import java.io.File\nfun x() = File("fixture").readBytes()')
     assert not inspect_source(common + "feature/x/XScreen.kt", "private fun Sign(state: ApkToolUiState) {}\nSign(state)")
-    return len(cases) + 4
+    assert not inspect_source(common + "domain/Good.kt", "data class Good(val id: Int) { fun count() { var count = 0; count++ } }")
+    return len(cases) + 5
 
 
 def main():
