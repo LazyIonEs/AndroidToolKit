@@ -138,7 +138,7 @@ class ReadApkInformationUseCaseTest {
 
     @Test
     fun sourceBytesCannotBeMutatedExternally() {
-        val bytes = byteArrayOf(1, 2);
+        val bytes = byteArrayOf(1, 2)
         val source = ApkIconSource(bytes)
         bytes[0] = 8; source.bytes()[1] = 9
         assertContentEquals(byteArrayOf(1, 2), source.bytes())

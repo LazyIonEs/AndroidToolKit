@@ -207,7 +207,7 @@ class JvmApkInformationRepositoryTest {
             expected.width,
             actual.width
         ); assertEquals(expected.height, actual.height)
-        val a = expected.toPixelMap();
+        val a = expected.toPixelMap()
         val b = actual.toPixelMap()
         for (y in 0 until expected.height) for (x in 0 until expected.width) assertEquals(
             a[x, y].toArgb(),
