@@ -25,6 +25,7 @@ import org.tool.kit.domain.repository.*
 import org.tool.kit.feature.apk.*
 import org.tool.kit.feature.app.*
 import org.tool.kit.feature.cleaner.CleanerViewModel
+import org.tool.kit.feature.cleaner.CleanerRulesViewModel
 import org.tool.kit.feature.iconfactory.IconFactoryViewModel
 import org.tool.kit.feature.junk.JunkCodeViewModel
 import org.tool.kit.feature.keystore.KeyStoreGenerationViewModel
@@ -36,7 +37,7 @@ import org.tool.kit.tests.support.AllPathsExist
 /** Resolve the production graph with every external capability replaced before first resolution. */
 @OptIn(ExperimentalSettingsApi::class, kotlinx.coroutines.ExperimentalCoroutinesApi::class, KoinInternalApi::class)
 class ArchitectureGraphTest {
-    @Test fun allElevenOwnersResolveSharePreferencesAndCloseWithoutExternalWork() = runTest {
+    @Test fun allTwelveOwnersResolveSharePreferencesAndCloseWithoutExternalWork() = runTest {
         val dispatcher = StandardTestDispatcher(testScheduler)
         Dispatchers.setMain(dispatcher)
         var reads = 0
@@ -78,13 +79,13 @@ class ArchitectureGraphTest {
             val types: List<KClass<out ViewModel>> = listOf(AppViewModel::class, SettingsViewModel::class,
                 UpdateViewModel::class, KeyStoreGenerationViewModel::class, SignatureInformationViewModel::class,
                 ApkInformationViewModel::class, ApkSigningViewModel::class, ApkToolViewModel::class,
-                IconFactoryViewModel::class, JunkCodeViewModel::class, CleanerViewModel::class)
+                IconFactoryViewModel::class, JunkCodeViewModel::class, CleanerRulesViewModel::class, CleanerViewModel::class)
             fun <T : ViewModel> resolve(type: KClass<T>) = resolveViewModel(type, store, type.qualifiedName,
                 CreationExtras.Empty, scope = container.koin.scopeRegistry.rootScope)
             val owners = types.map { type -> resolve(type).also { it.addCloseable { closed++ } } }
             runCurrent()
             types.zip(owners).forEach { (type, owner) -> assertSame(owner, resolve(type)) }
-            assertEquals(11, owners.toSet().size)
+            assertEquals(12, owners.toSet().size)
             assertSame(preferences, container.koin.get<PreferencesRepository>())
             assertEquals(1, reads)
             assertEquals(StorageCapacity(1_000, 400), (owners.last() as CleanerViewModel).uiState.value.capacity)
@@ -99,9 +100,9 @@ class ArchitectureGraphTest {
             assertTrue(unexpected.isEmpty(), "No FFI, process, network, clipboard, or generator work at construction: $unexpected")
             store.clear()
             runCurrent()
-            assertEquals(11, closed)
+            assertEquals(12, closed)
             store.clear()
-            assertEquals(11, closed)
+            assertEquals(12, closed)
         } finally {
             store.clear()
             container.close()

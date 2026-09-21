@@ -76,6 +76,16 @@ class IconFactoryUiTest {
             waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("APK签名").fetchSemanticsNodes().isNotEmpty() }
             onNode(hasText("APK签名") and hasClickAction()).performClick()
             onNode(hasText("图标生成") and hasClickAction()).performClick()
+            onNodeWithTag("icon-generate").assertIsNotEnabled()
+            onNodeWithTag("icon-more-settings").assertIsEnabled().performClick()
+            waitForIdle()
+            onNodeWithText("图标输出路径").assertExists()
+            runOnIdle {
+                assertNull(vm.uiState.value.form.inputPath)
+                assertTrue(vm.uiState.value.sheetOpen)
+                vm.onIntent(IconFactoryIntent.SheetClosed)
+            }
+            waitForIdle()
             runOnIdle { vm.onIntent(IconFactoryIntent.InputChanged(input.path)) }
             waitForIdle()
             onNodeWithText("开始制作").performClick()

@@ -13,7 +13,7 @@ class ReadApkInformationUseCase(private val repository: ApkInformationRepository
         val output = repository.badging(path)
         val metadata = repository.metadata(path)
         val manifest = repository.manifest(path)
-        var result = ApkInformationData(size = metadata.size, md5 = metadata.md5)
+        var result = ApkInformationData(size = metadata.size, md5 = metadata.md5, sha256 = metadata.sha256)
         // 统一各平台换行符并忽略空行，保留行首缩进以维持下方前缀匹配的含义。
         for (line in output.replace("\r\n", "\n").replace('\r', '\n').split('\n').filter { it.isNotEmpty() }) {
             result = when {
@@ -29,13 +29,18 @@ class ReadApkInformationUseCase(private val repository: ApkInformationRepository
                     versionCode = extractValue(line, "versionCode"), versionName = extractValue(line, "versionName"),
                     compileSdkVersion = extractValue(line, "compileSdkVersion"))
                 line.startsWith("targetSdkVersion:") -> result.copy(targetSdkVersion = extractVersion(line, "targetSdkVersion"))
+                line.startsWith("launchable-activity:") -> result.copy(launchableActivity = extractValue(line, "name"))
                 line.startsWith("sdkVersion:") -> result.copy(minSdkVersion = extractVersion(line, "sdkVersion"))
                 line.startsWith("uses-permission:") -> result.copy(usesPermissionList = result.usesPermissionList.orEmpty() + extractValue(line, "name"))
                 line.startsWith("native-code:") -> result.copy(nativeCode = (line.split("native-code:").getOrNull(1) ?: "").trim().replace("'", ""))
                 else -> result
             }
         }
-        result = result.copy(channel = extractChannel(manifest))
+        result = result.copy(channel = extractChannel(manifest), components = repository.components(path))
+        val archive = repository.archive(path)
+        // aapt may include ordinary lib/ subdirectories in native-code; prefer actual packaged .so entries.
+        result = result.copy(archive = archive, nativeCode = archive?.nativeLibraries
+            ?.map { it.abi }?.distinct()?.sorted()?.joinToString(" ") ?: result.nativeCode)
         if (result.isBlank()) Result.failure(EmptyApkInformation()) else Result.success(result)
     } catch (cancelled: CancellationException) { throw cancelled }
     catch (error: Exception) { Result.failure(error) }
@@ -62,4 +67,3 @@ internal fun extractChannel(text: String?): String? {
         """A: http://schemas\.android\.com/apk/res/android:name\(0x[0-9a-fA-F]{8}\)="UMENG_CHANNEL" \(Raw: "UMENG_CHANNEL"\)\s+A: http://schemas\.android\.com/apk/res/android:value\(0x[0-9a-fA-F]{8}\)="([^"]+)"""".toRegex()
     return regex.find(text)?.groupValues?.getOrNull(1)
 }
-

@@ -9,6 +9,7 @@ import org.tool.kit.domain.repository.BuildCachesRepository
 class ScanBuildCachesUseCase(private val repository: BuildCachesRepository) {
     /** 返回逐项扫描结果，由收集方控制扫描的启动和取消。 */
     operator fun invoke(root: String) = repository.scan(root)
+    operator fun invoke(request: org.tool.kit.domain.cleaner.CleanerScanRequest, onIssue: (String) -> Unit = {}) = repository.scan(request, onIssue)
 }
 
 class DeleteBuildCachesUseCase(private val repository: BuildCachesRepository) {

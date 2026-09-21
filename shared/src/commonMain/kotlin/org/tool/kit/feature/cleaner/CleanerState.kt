@@ -1,6 +1,6 @@
 package org.tool.kit.feature.cleaner
 
-import org.tool.kit.domain.cleaner.BuildDirectory
+import org.tool.kit.domain.cleaner.*
 import org.tool.kit.domain.repository.StorageCapacity
 import org.tool.kit.model.Sequence
 
@@ -16,6 +16,9 @@ data class CleanerItemUi(
     val exists: Boolean,
     val checked: Boolean = true,
     val deleteFailed: Boolean = false,
+    val safetyFailure: Boolean = false,
+    val matchedRuleNames: List<String> = emptyList(),
+    val snapshot: BuildDirectory? = null,
 )
 
 data class CleanerUiState(
@@ -25,7 +28,18 @@ data class CleanerUiState(
     val sort: Sequence = Sequence.SIZE_LARGE_TO_SMALL,
     val capacity: StorageCapacity = StorageCapacity(0, 0),
     val deleteConfirmVisible: Boolean = false,
+    val config: CleanerRuleConfig = CleanerRuleConfig(),
+    val rulesReady: Boolean = true,
+    val rulesRecovered: Boolean = false,
+    val unsupportedRules: Boolean = false,
+    val scanIssueCount: Int = 0,
+    val needsRescan: Boolean = false,
+    val hasScanned: Boolean = false,
+    val scanFailed: Boolean = false,
+    val confirmationItems: List<CleanerItemUi> = emptyList(),
 ) {
+    val checkedFiles = items.count { it.checked && !it.isDirectory }
+    val checkedDirectories = items.count { it.checked && it.isDirectory }
     val checkedCount = items.count { it.checked }
     val checkedBytes = items.filter { it.checked }.sumOf { it.bytes }
     val allSelected = items.all { it.checked }
@@ -43,8 +57,14 @@ sealed interface CleanerIntent {
     data object RefreshCapacity : CleanerIntent
 }
 
-internal fun BuildDirectory.toUi() = CleanerItemUi(path, path, displayPath, bytes, modifiedAt, isDirectory, exists)
-internal fun CleanerItemUi.toDirectory(root: String) = BuildDirectory(root, path, displayPath, bytes, modifiedAt, isDirectory, exists)
+internal fun BuildDirectory.toUi() = CleanerItemUi(
+    path, path, displayPath, bytes, modifiedAt, isDirectory, exists,
+    checked = defaultSelected, matchedRuleNames = matchedRuleNames, snapshot = this
+)
+
+internal fun CleanerItemUi.toDirectory(root: String) =
+    snapshot ?: BuildDirectory(root, path, displayPath, bytes, modifiedAt, isDirectory, exists)
+
 /** 按用户选择返回排序副本；名称排序使用完整路径，避免同名 build 目录混淆。 */
 internal fun List<CleanerItemUi>.sortedBy(sequence: Sequence) = when (sequence) {
     Sequence.DATE_NEW_TO_OLD -> sortedByDescending { it.modifiedAt }

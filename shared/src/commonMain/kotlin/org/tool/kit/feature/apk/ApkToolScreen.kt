@@ -58,8 +58,6 @@ import org.tool.kit.shared.generated.resources.apktool_package_name
 import org.tool.kit.shared.generated.resources.apktool_target_sdk_version
 import org.tool.kit.shared.generated.resources.apktool_version_code
 import org.tool.kit.shared.generated.resources.apktool_version_name
-import org.tool.kit.shared.generated.resources.check_empty
-import org.tool.kit.shared.generated.resources.check_error
 import org.tool.kit.shared.generated.resources.icon_file
 import org.tool.kit.shared.generated.resources.key_alias
 import org.tool.kit.shared.generated.resources.key_password
@@ -70,9 +68,11 @@ import org.tool.kit.shared.generated.resources.start_generating
 
 /** 根据构建状态展示字段和校验结果，通过回调请求文件选择及提交。 */
 @Composable
-fun ApkToolScreen(state: ApkToolUiState, onIntent: (ApkToolIntent) -> Unit,
+fun ApkToolScreen(
+    state: ApkToolUiState, onIntent: (ApkToolIntent) -> Unit,
     pickOutput: () -> Unit, pickIcon: () -> Unit, pickKey: () -> Unit,
-    dragging: Boolean, target: androidx.compose.ui.draganddrop.DragAndDropTarget) {
+    dragging: Boolean, target: androidx.compose.ui.draganddrop.DragAndDropTarget
+) {
     Card(
         modifier = Modifier.fillMaxSize().dragAndDropTarget(
             shouldStartDragAndDrop = { true }, target = target
@@ -278,7 +278,11 @@ private fun Sign(state: ApkToolUiState, onIntent: (ApkToolIntent) -> Unit, pickK
 }
 
 @Composable
-private fun Signature(state: ApkToolUiState, onIntent: (ApkToolIntent) -> Unit, pickKey: () -> Unit) {
+private fun Signature(
+    state: ApkToolUiState,
+    onIntent: (ApkToolIntent) -> Unit,
+    pickKey: () -> Unit
+) {
     val signatureError = state.validation.keyError
     val signaturePasswordError = state.storePasswordError
     val signatureAlisaPasswordError = state.aliasPasswordError

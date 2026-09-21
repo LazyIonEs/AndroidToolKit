@@ -1,69 +1,51 @@
+@file:OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3ExpressiveApi::class
+)
+
 package org.tool.kit.feature.apk
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.onClick
-import androidx.compose.material3.Card
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.rememberWindowState
-import coil3.compose.AsyncImage
-import com.github.panpf.zoomimage.CoilZoomAsyncImage
-import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import org.tool.kit.feature.ui.FileButton
+import org.tool.kit.feature.ui.LoadingAnimate
 import org.tool.kit.feature.ui.UploadAnimate
-import org.tool.kit.shared.generated.resources.ABIs
 import org.tool.kit.shared.generated.resources.Res
-import org.tool.kit.shared.generated.resources.app_name
-import org.tool.kit.shared.generated.resources.channel
-import org.tool.kit.shared.generated.resources.compile_sdk_version
-import org.tool.kit.shared.generated.resources.file_md5
-import org.tool.kit.shared.generated.resources.icon
-import org.tool.kit.shared.generated.resources.let_go
-import org.tool.kit.shared.generated.resources.minimum_sdk_version
-import org.tool.kit.shared.generated.resources.package_name
-import org.tool.kit.shared.generated.resources.permissions
-import org.tool.kit.shared.generated.resources.size
-import org.tool.kit.shared.generated.resources.target_sdk_version
-import org.tool.kit.shared.generated.resources.upload_apk
-import org.tool.kit.shared.generated.resources.version
-import org.tool.kit.shared.generated.resources.version_code
-import org.tool.kit.theme.AppTheme
-import org.tool.kit.utils.LottieAnimation
-import org.tool.kit.utils.formatFileSize
-import org.tool.kit.utils.getImageRequest
+import org.tool.kit.shared.generated.resources.apk_info_loading
+import org.tool.kit.shared.generated.resources.apk_info_pick
+import org.tool.kit.shared.generated.resources.apk_info_replace
 
-/**
- * @Author      : LazyIonEs
- * @CreateDate  : 2024/2/8 16:13
- * @Description : 渲染 APK 信息、图标和拖放提示，读取与复制操作通过回调提交
- * @Version     : 1.0
- */
+/** 复用公共加载和拖入动画，操作与数据读取仍交由 Route/ViewModel。 */
 @Composable
 fun ApkInformationScreen(
     state: ApkInformationUiState,
@@ -73,234 +55,79 @@ fun ApkInformationScreen(
     dragging: Boolean,
     dropTarget: DragAndDropTarget,
 ) {
-    if (state.phase == ApkInformationPhase.Idle) ApkInformationLottie(useDarkTheme)
-    ApkInformationBox(state, useDarkTheme) { onIntent(ApkInformationIntent.CopyText(it)) }
-    ApkDraggingBox(state.phase == ApkInformationPhase.Idle, onPickFile, dragging, dropTarget)
-}
-
-/**
- * 主页动画
- */
-@Composable
-private fun ApkInformationLottie(useDarkTheme: Boolean) {
+    val showDrop = dragging && !state.busy
     Box(
-        modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
+        Modifier.fillMaxSize().testTag("apk-information-page")
+            .dragAndDropTarget(shouldStartDragAndDrop = { !state.busy }, target = dropTarget)
     ) {
-        if (useDarkTheme) {
-            LottieAnimation("files/lottie_main_2_dark.json")
-        } else {
-            LottieAnimation("files/lottie_main_2_light.json")
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun ApkDraggingBox(expanded: Boolean, onPickFile: () -> Unit, dragging: Boolean, dropTarget: DragAndDropTarget) {
-    UploadAnimate(dragging)
-    Box(
-        modifier = Modifier.fillMaxSize()
-            .dragAndDropTarget(
-                shouldStartDragAndDrop = accept@{ true },
-                target = dropTarget
-            )
-    ) {
-        Box(
-            modifier = Modifier.align(Alignment.BottomEnd)
-        ) {
-            FileButton(
-                value = if (dragging) {
-                    stringResource(Res.string.let_go)
-                } else {
-                    stringResource(Res.string.upload_apk)
-                }, expanded = expanded, onClick = onPickFile
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun ApkInformationBox(
-    state: ApkInformationUiState,
-    useDarkTheme: Boolean,
-    onCopy: (String) -> Unit,
-) {
-    AnimatedVisibility(
-        visible = state.phase == ApkInformationPhase.Result, enter = fadeIn(), exit = fadeOut()
-    ) {
-        Card(
-            modifier = Modifier.fillMaxSize().padding(top = 14.dp, bottom = 14.dp, end = 14.dp),
-            border = BorderStroke(2.dp, MaterialTheme.colorScheme.outline)
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize().padding(vertical = 12.dp)
-            ) {
-                state.result?.let { apkInformation ->
-                    LazyColumn {
-                        item {
-                            AppInfoItem(
-                                stringResource(Res.string.app_name),
-                                apkInformation.label,
-                                onCopy
-                            )
-                        }
-                        item {
-                            AppInfoItem(
-                                stringResource(Res.string.version),
-                                apkInformation.versionName,
-                                onCopy
-                            )
-                        }
-                        item {
-                            AppInfoItem(
-                                stringResource(Res.string.version_code),
-                                apkInformation.versionCode,
-                                onCopy
-                            )
-                        }
-                        item {
-                            AppInfoItem(
-                                stringResource(Res.string.package_name),
-                                apkInformation.packageName,
-                                onCopy
-                            )
-                        }
-                        item {
-                            AppInfoItem(
-                                stringResource(Res.string.compile_sdk_version),
-                                apkInformation.compileSdkVersion,
-                                onCopy
-                            )
-                        }
-                        item {
-                            AppInfoItem(
-                                stringResource(Res.string.minimum_sdk_version),
-                                apkInformation.minSdkVersion,
-                                onCopy
-                            )
-                        }
-                        item {
-                            AppInfoItem(
-                                stringResource(Res.string.target_sdk_version),
-                                apkInformation.targetSdkVersion,
-                                onCopy
-                            )
-                        }
-                        item {
-                            AppInfoItem(
-                                stringResource(Res.string.ABIs),
-                                apkInformation.nativeCode,
-                                onCopy
-                            )
-                        }
-                        item {
-                            AppInfoItem(
-                                stringResource(Res.string.file_md5),
-                                apkInformation.md5,
-                                onCopy
-                            )
-                        }
-                        item {
-                            AppInfoItem(
-                                stringResource(Res.string.size),
-                                apkInformation.size.formatFileSize(scale = 1, withInterval = true),
-                                onCopy
-                            )
-                        }
-                        apkInformation.channel?.let { channel ->
-                            item {
-                                AppInfoItem(stringResource(Res.string.channel), channel, onCopy)
-                            }
-                        }
-                        item {
-                            PermissionsList(apkInformation.usesPermissionList)
-                        }
-                    }
-
-                    apkInformation.icon?.let { image ->
-                        var isOpenImage by remember { mutableStateOf(false) }
-                        if (isOpenImage) {
-                            val windowState = rememberWindowState(size = DpSize(450.dp, 450.dp))
-                            Window(
-                                onCloseRequest = { isOpenImage = false },
-                                state = windowState,
-                                title = "Zoom Image",
-                                icon = painterResource(Res.drawable.icon),
-                                alwaysOnTop = true
+        Surface(Modifier.fillMaxSize()) {
+            Box(Modifier.fillMaxSize()) {
+                val effects = MaterialTheme.motionScheme.defaultEffectsSpec<Float>()
+                AnimatedContent(
+                    state,
+                    modifier = Modifier.fillMaxSize(),
+                    contentKey = { it.phase },
+                    transitionSpec = { fadeIn(effects) togetherWith fadeOut(effects) },
+                    label = "APK read state"
+                ) { displayed ->
+                    Box(Modifier.fillMaxSize()) {
+                        when (displayed.phase) {
+                            ApkInformationPhase.Idle -> ApkInformationEmptyState { if (state.phase == ApkInformationPhase.Idle) onPickFile() }
+                            ApkInformationPhase.Loading -> Column(
+                                Modifier.align(Alignment.BottomCenter).padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                AppTheme(useDarkTheme) {
-                                    Surface(color = MaterialTheme.colorScheme.background) {
-                                        CoilZoomAsyncImage(
-                                            model = getImageRequest(image),
-                                            contentDescription = "zoom image",
-                                            modifier = Modifier.fillMaxSize(),
-                                        )
+                                Text(
+                                    stringResource(Res.string.apk_info_loading),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                displayed.inputFile?.let { ApkInputFile(it) }
+                            }
+
+                            ApkInformationPhase.Result -> displayed.result?.let { result ->
+                                ApkInformationResult(
+                                    result, displayed.inputFile, useDarkTheme,
+                                    active = state.phase == ApkInformationPhase.Result && state.inputFile == displayed.inputFile,
+                                    onPickFile = { if (state.phase == ApkInformationPhase.Result) onPickFile() }) {
+                                    if (state.phase == ApkInformationPhase.Result && state.inputFile == displayed.inputFile) {
+                                        onIntent(ApkInformationIntent.CopyText(it))
                                     }
                                 }
                             }
                         }
-                        AsyncImage(
-                            model = getImageRequest(image),
-                            contentDescription = "app icon",
-                            modifier = Modifier.align(Alignment.TopEnd)
-                                .padding(top = 6.dp, end = 18.dp)
-                                .size(128.dp)
-                                .onClick {
-                                    isOpenImage = !isOpenImage
-                                }
-                        )
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun AppInfoItem(title: String, value: String, onCopy: (String) -> Unit) {
-    Card(modifier = Modifier.padding(horizontal = 12.dp).height(36.dp), onClick = {
-        onCopy(value)
-    }) {
-        Row(
-            modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp)
-        ) {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.weight(1.2f).align(Alignment.CenterVertically)
-            )
-            Text(
-                value,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(4f).align(Alignment.CenterVertically)
-            )
-        }
-    }
-}
-
-@Composable
-private fun PermissionsList(permissions: List<String>?) {
-    permissions?.let {
-        Column(
-            modifier = Modifier.padding(horizontal = 12.dp),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp)
-            ) {
-                Text(
-                    stringResource(Res.string.permissions),
-                    modifier = Modifier.weight(1.2f),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Column(
-                    modifier = Modifier.weight(4f)
+                // Reserve the bottom status area so the shared full-size artwork never covers its text.
+                Box(
+                    Modifier.fillMaxSize().padding(bottom = 104.dp)
+                        .then(if (state.busy) Modifier.testTag("apk-loading-animation") else Modifier)
                 ) {
-                    it.forEach { permission ->
-                        Text(text = permission, style = MaterialTheme.typography.bodyMedium)
-                    }
+                    LoadingAnimate(state.busy, useDarkTheme)
                 }
             }
         }
+        // Cover the identity header and the complete workspace; block click-through during a drop.
+        UploadAnimate(
+            showDrop,
+            modifier = Modifier.matchParentSize()
+                .then(if (showDrop) Modifier.testTag("apk-drop-animation") else Modifier),
+            shape = RectangleShape
+        )
     }
+}
+
+@Composable
+internal fun ApkSelectButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    replace: Boolean = false
+) {
+    val content: @Composable RowScope.() -> Unit = {
+        Icon(Icons.Outlined.FolderOpen, null, Modifier.size(ButtonDefaults.IconSize))
+        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Text(stringResource(if (replace) Res.string.apk_info_replace else Res.string.apk_info_pick))
+    }
+    if (replace) FilledTonalButton(onClick, modifier.testTag("apk-pick-file"), content = content)
+    else Button(onClick, modifier.testTag("apk-pick-file"), content = content)
 }

@@ -28,7 +28,7 @@ import org.tool.kit.tests.support.prepareTestPreferences
 class ApkInformationUiTest {
     @Test fun lightResult() = result("LIGHT")
     @Test fun darkResult() = result("DARK")
-    private fun result(theme: String) = runDesktopComposeUiTest(width = 800, height = 572, testTimeout = 60.seconds) {
+    private fun result(theme: String) = runDesktopComposeUiTest(width = 1400, height = 840, testTimeout = 60.seconds) {
         prepareTestPreferences(File(checkNotNull(System.getProperty("test.fixtureRoot"))), theme)
         val owner = DefaultArchitectureComponentsOwner(enforceMainThread = false)
         owner.setLifecycleState(Lifecycle.State.RESUMED)
@@ -55,13 +55,15 @@ class ApkInformationUiTest {
             onNode(hasText("APK信息") and hasClickAction()).performClick()
             runOnIdle { vm.onIntent(ApkInformationIntent.ReadApk("/中文 空格.apk")) }
             waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("测试 APK").fetchSemanticsNodes().isNotEmpty() }
-            waitUntil(timeoutMillis = 10_000) { onAllNodesWithContentDescription("app icon").fetchSemanticsNodes().isNotEmpty() }
+            waitUntil(timeoutMillis = 10_000) { onAllNodesWithContentDescription("查看应用图标").fetchSemanticsNodes().isNotEmpty() }
             waitForIdle()
             waitForIdle()
-            onNode(hasScrollAction()).performScrollToNode(hasText("android.permission.CAMERA"))
+            onNodeWithTag("apk-tab-1").performClick()
+            onNodeWithTag("apk-permission-android.permission.CAMERA").assertIsDisplayed()
             waitForIdle()
             onNode(hasText("APK签名") and hasClickAction()).performClick()
             onNode(hasText("APK信息") and hasClickAction()).performClick()
+            onNodeWithTag("apk-results-list").performScrollToIndex(0)
             onNodeWithText("测试 APK").assertExists()
             runOnIdle {
                 repository.output = "application: label='无图标 APK' icon='adaptive.xml'"
@@ -70,7 +72,7 @@ class ApkInformationUiTest {
             }
             waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("无图标 APK").fetchSemanticsNodes().isNotEmpty() }
             waitForIdle()
-            onNodeWithContentDescription("app icon").assertDoesNotExist()
+            onNodeWithContentDescription("查看应用图标").assertDoesNotExist()
             onNodeWithText("android.permission.CAMERA").assertDoesNotExist()
             waitForIdle()
             onNodeWithText("无图标 APK").performClick()

@@ -9,6 +9,11 @@ data class BuildDirectory(
     val modifiedAt: Long,
     val isDirectory: Boolean,
     val exists: Boolean,
+    val matchedRuleIds: Set<String> = emptySet(),
+    val matchedRuleNames: List<String> = emptyList(),
+    val defaultSelected: Boolean = true,
+    val request: CleanerScanRequest? = null,
+    val fileKey: String? = null,
 )
 
 data class DeleteBuildCacheResult(
@@ -16,4 +21,5 @@ data class DeleteBuildCacheResult(
     val deleted: Boolean,
     val isDirectory: Boolean,
     val exists: Boolean,
+    val safetyFailure: Boolean = false,
 )

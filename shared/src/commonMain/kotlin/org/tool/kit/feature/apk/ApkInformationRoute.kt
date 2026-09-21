@@ -2,7 +2,6 @@ package org.tool.kit.feature.apk
 
 import androidx.compose.runtime.*
 import org.koin.compose.viewmodel.koinViewModel
-import org.tool.kit.feature.ui.FeaturePage
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.tool.kit.LocalIsAppDarkTheme
 import org.tool.kit.feature.ui.dragAndDropTarget
@@ -15,14 +14,20 @@ import org.tool.kit.utils.isApk
 fun ApkInformationRoute(viewModel: ApkInformationViewModel = koinViewModel()) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var dragging by remember { mutableStateOf(false) }
-    val selectFile: (String) -> Unit = { path -> apkInformationFileIntent(path)?.let(viewModel::onIntent) }
+    val selectFile: (String) -> Unit =
+        { path -> apkInformationFileIntent(path)?.let(viewModel::onIntent) }
     val picker = rememberFilePickerRequest(FileSelectorType.APK, onSelected = selectFile)
     val target = dragAndDropTarget(dragging = { dragging = it }, onFinish = { result ->
         result.onSuccess { files -> files.firstOrNull()?.let { selectFile(it) } }
     })
-    FeaturePage(busy = state.busy) {
-        ApkInformationScreen(state, LocalIsAppDarkTheme.current, viewModel::onIntent, picker, dragging, target)
-    }
+    ApkInformationScreen(
+        state,
+        LocalIsAppDarkTheme.current,
+        viewModel::onIntent,
+        picker,
+        dragging,
+        target
+    )
 }
 
 /** Receives the first item after platform existence filtering of the complete list. */

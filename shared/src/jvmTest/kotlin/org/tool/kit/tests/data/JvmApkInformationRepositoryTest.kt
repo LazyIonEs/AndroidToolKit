@@ -43,9 +43,30 @@ class JvmApkInformationRepositoryTest {
             assertNotNull(result.icon)
             assertEquals(3569137L, result.size)
             assertEquals("e4211c3ac04c1e42b8fc3447951b1bc5", result.md5)
+            assertEquals("c4c1b8699b997c57e3afc18cb9796123d805c7d2bfe533a8eaca7f82500085a3", result.sha256)
+            assertEquals("com.lazyiones.helloandroid.MainActivity", result.launchableActivity)
+            assertEquals("com.lazyiones.helloandroid.MainActivity", assertNotNull(result.components).single().name)
+            assertEquals(ApkExportedDeclaration.Enabled, result.components.single().exported)
+            assertEquals("com.lazyiones.helloandroid", result.components.single().process)
+            val archive = assertNotNull(result.archive)
+            assertTrue(archive.files.any { it.path == "classes.dex" && it.category == ApkFileCategory.Dex })
+            assertEquals(result.size, archive.files.sumOf { it.compressedSize } + archive.overheadBytes)
+            assertTrue(archive.nativeLibraries.isEmpty())
             assertIconEntry(apk, "res/o-.png", result.icon)
             // Windows also proves metadata/ZIP handles are closed when this file is removed.
             assertTrue(apk.delete())
+        } finally { dir.deleteRecursively() }
+        Unit
+    }
+    @Test fun metadataStreamsBothDigestsForEmptyAndSmallFiles() = runBlocking {
+        val dir = Files.createTempDirectory("apk-digests-").toFile()
+        try {
+            val file = File(dir, "fixture.apk")
+            file.writeText("")
+            assertEquals(ApkFileMetadata(0, "d41d8cd98f00b204e9800998ecf8427e", "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"), repository.metadata(file.path))
+            file.writeText("abc")
+            assertEquals(ApkFileMetadata(3, "900150983cd24fb0d6963f7d28e17f72", "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"), repository.metadata(file.path))
+            assertTrue(file.delete())
         } finally { dir.deleteRecursively() }
         Unit
     }

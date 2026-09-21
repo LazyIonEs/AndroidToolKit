@@ -32,9 +32,23 @@
 - [x] APK签名 - 对APK进行签名
 - [x] 签名生成 - 生成签名证书
 - [x] 图标生成 - 一键生成多尺寸图标
-- [x] 缓存清理 - 清理Android项目缓存目录
+- [x] 缓存清理 - 按自定义规则扫描文件和文件夹，预览、选择并安全清理
 
 > 支持APK签名校验；单签名校验（需输入签名密码）；文件拖拽；apk签名文件对齐；生成签名指定密钥类型，密钥大小；外观浅色深色模式。
+
+## 缓存清理自定义规则
+
+在「缓存清理 → 管理规则」中创建文件或文件夹规则。名称和相对路径支持等于、开头、结尾和包含；文件还支持大小超过指定 KB/MB/GB。组内选择满足全部或任意条件，已启用的组之间使用 OR。
+
+规则编辑使用独立桌面窗口承载，默认 800×600 普通尺寸，支持移动和调整尺寸；主清理页保留当前结果，扫描完成后的底部悬浮工具栏也可进入。所有既有规则默认收起，每次展开一条；条件先显示可读摘要，点击后进入编辑。规则详情、条件编辑、其他选项与扫描设置通过高度和淡入淡出动画平滑切换，条件增删也带有动画。规则支持复制、排序、启停和默认勾选设置；取消会放弃草稿，右上角更多菜单中的恢复默认也仅修改草稿。「保存并试运行」保存并关闭规则窗口后打开目录选择器，新配置会清空旧扫描结果。
+
+默认规则只匹配大小写一致的 `build` 文件夹，**`build.foo` 和 `Build` 不再命中**。新建规则默认勾选命中结果，可在其他选项中关闭。扫描和删除不跟随符号链接，删除前会按扫描快照重新核验路径、类型和规则，路径变化的项目会保留并显示失败原因。
+
+| 浅色规则编辑页 | 深色规则编辑页 |
+|:---:|:---:|
+| ![浅色规则编辑页](screenshots/screenshot_cleaner_rules_light.png) | ![深色规则编辑页](screenshots/screenshot_cleaner_rules_dark.png) |
+
+实现与验证说明见 [缓存清理自定义规则落地说明](docs/cache-cleaner-implementation.md)。
 
 ## 下载 - [Releases](https://github.com/LazyIonEs/AndroidToolKit/releases/latest)
 
@@ -58,9 +72,9 @@
 |                                            APK信息                                            |                                            APK签名                                            |                                            签名生成                                             |
 |    <img src="./screenshots/screenshot_apk_information_1.png" alt="" style="zoom:32%;" />    |     <img src="./screenshots/screenshot_apk_signature_1.png" alt="" style="zoom:33%;" />     | <img src="./screenshots/screenshot_signature_generation_1.png" alt="" style="zoom:33%;" />  |
 |                                            图标生成                                             |                                            缓存清理                                             |                                            黑白主题                                             |
-|     <img src="./screenshots/screenshot_icon_factory_1.png" alt="" style="zoom:33%;" />      |      <img src="./screenshots/screenshot_cache_clear_0.png" alt="" style="zoom:33%;" />      |          <img src="./screenshots/screenshot_light.png" alt="" style="zoom:33%;" />          |
+|     <img src="./screenshots/screenshot_icon_factory_1.png" alt="" style="zoom:33%;" />      |      <img src="./screenshots/screenshot_cleaner_idle_light.png" alt="" style="zoom:33%;" />      |          <img src="./screenshots/screenshot_light.png" alt="" style="zoom:33%;" />          |
 |                                            图标生成                                             |                                            缓存清理                                             |                                            黑白主题                                             |
-|     <img src="./screenshots/screenshot_icon_factory_2.png" alt="" style="zoom:33%;" />      |      <img src="./screenshots/screenshot_cache_clear_1.png" alt="" style="zoom:33%;" />      |          <img src="./screenshots/screenshot_dark.png" alt="" style="zoom:33%;" />           |
+|     <img src="./screenshots/screenshot_icon_factory_2.png" alt="" style="zoom:33%;" />      |      <img src="./screenshots/screenshot_cleaner_results_dark.png" alt="" style="zoom:33%;" />      |          <img src="./screenshots/screenshot_dark.png" alt="" style="zoom:33%;" />           |
 
 ## 技术栈
 

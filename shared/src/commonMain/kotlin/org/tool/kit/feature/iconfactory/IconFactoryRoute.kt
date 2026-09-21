@@ -2,10 +2,8 @@ package org.tool.kit.feature.iconfactory
 
 import androidx.compose.runtime.*
 import org.koin.compose.viewmodel.koinViewModel
-import org.tool.kit.feature.ui.FeaturePage
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.request.ImageRequest
-import org.tool.kit.LocalIsAppDarkTheme
 import org.tool.kit.feature.ui.*
 import org.tool.kit.model.FileSelectorType
 import org.tool.kit.utils.getFileImageRequest
@@ -23,7 +21,9 @@ fun IconFactoryRoute(viewModel: IconFactoryViewModel = koinViewModel()) {
     }
     var dragging by remember { mutableStateOf(false) }
     val target = dragAndDropTarget(dragging = { dragging = it }, onFinish = { result ->
-        result.onSuccess { files -> viewModel.onIntent(IconFactoryIntent.FilesDropped(files)) }
+        result.onSuccess { files ->
+            if (!state.busy && !state.sheetOpen) viewModel.onIntent(IconFactoryIntent.FilesDropped(files))
+        }
     })
     val pickIcon = rememberFilePickerRequest(FileSelectorType.IMAGE) { viewModel.onIntent(IconFactoryIntent.FileSelected(it)) }
     val pickOutput = rememberDirectoryPickerRequest { viewModel.onIntent(IconFactoryIntent.OutputPathChanged(it)) }
@@ -31,8 +31,6 @@ fun IconFactoryRoute(viewModel: IconFactoryViewModel = koinViewModel()) {
     val resultImages = remember(state.result) { state.result?.map { result ->
         if (result.previewAvailable) IconImageUi(result.path, getFileImageRequest(result.path)) else null
     } }
-    FeaturePage(busy = state.busy) {
-        IconFactoryScreen(state, inputImage, resultImages, LocalIsAppDarkTheme.current,
-            viewModel::onIntent, pickOutput, pickIcon, dragging, target)
-    }
+    IconFactoryScreen(state, inputImage, resultImages,
+        viewModel::onIntent, pickOutput, pickIcon, dragging, target)
 }

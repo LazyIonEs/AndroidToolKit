@@ -13,6 +13,35 @@ import org.tool.kit.tests.support.FixtureApkRepository
 import org.tool.kit.tests.support.apkBadgingFixture
 
 class ReadApkInformationUseCaseTest {
+    @Test fun readsLauncherNameAndPassesThroughFileSha256WithoutInventingMissingValues() = runBlocking {
+        val digest = "c4c1b8699b997c57e3afc18cb9796123d805c7d2bfe533a8eaca7f82500085a3"
+        val repository = object : FixtureApkRepository() {
+            override suspend fun metadata(path: String) = ApkFileMetadata(123, "md5", digest)
+        }
+        for (separator in listOf("\n", "\r\n", "\r")) {
+            repository.output = "package: name='a'${separator}launchable-activity: name='a.MainActivity'  label='入口' icon=''"
+            val result = ReadApkInformationUseCase(repository)("a.apk").getOrThrow()
+            assertEquals("a.MainActivity", result.launchableActivity)
+            assertEquals(digest, result.sha256)
+        }
+        repository.output = "package: name='a'\napplication-label:'launchable-activity: fake'"
+        assertEquals("", ReadApkInformationUseCase(repository)("a.apk").getOrThrow().launchableActivity)
+        assertEquals("", ReadApkInformationUseCase(FixtureApkRepository())("old.apk").getOrThrow().sha256)
+    }
+    @Test fun architectureReadoutUsesPackagedLibrariesAndFallsBackWhenInspectionIsUnavailable() = runBlocking {
+        val library = ApkNativeLibrary("lib/arm64-v8a/libsample.so", "arm64-v8a", 100, 100, false,
+            ApkAlignment.Unknown, ApkAlignment.Unknown)
+        var archive: ApkArchiveInformation? = ApkArchiveInformation(emptyList(), listOf(library, library), 0)
+        val repo = object : FixtureApkRepository(output = "package: name='sample'\nnative-code: 'arm64-v8a' 'fonts' 'images'") {
+            override suspend fun archive(path: String) = archive
+        }
+        assertEquals("arm64-v8a", ReadApkInformationUseCase(repo)("sample.apk").getOrThrow().nativeCode)
+        archive = archive!!.copy(nativeLibraries = emptyList())
+        assertEquals("", ReadApkInformationUseCase(repo)("sample.apk").getOrThrow().nativeCode)
+        archive = null
+        assertEquals("arm64-v8a fonts images", ReadApkInformationUseCase(repo)("sample.apk").getOrThrow().nativeCode)
+    }
+
     @Test fun fieldsChannelPermissionsAndSeparators() = runBlocking {
         val repository = FixtureApkRepository()
         val expected = ApkInformationData(label = "测试 APK", size = 123456, md5 = "0123456789abcdef0123456789abcdef",

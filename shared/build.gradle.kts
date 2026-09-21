@@ -244,6 +244,8 @@ kotlin {
             implementation(libs.android.sdk.common)
             implementation(libs.google.guava)
             implementation(libs.android.binary.resources)
+            implementation(libs.android.apkanalyzer)
+            implementation(libs.android.zipflinger)
             implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
             implementation(libs.commons.codec)
             implementation(libs.apktool.lib)

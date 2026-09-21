@@ -79,7 +79,7 @@ class CleanerViewModelTest {
         } finally { old.complete(Unit); current.close(); f.close() }
     }
 
-    @Test fun confirmationUsesTheLatestSelectionAndCancelledOrStaleConfirmationNeverDeletes() = runTest {
+    @Test fun confirmationUsesSelectedSnapshotAndCancelledOrStaleConfirmationNeverDeletes() = runTest {
         // Resource loading uses real IO. Let runTest's wall-clock timeout bound it and the effect waits.
         val completed = UiMessage.Text(getString(Res.string.cleanup_complete, 12L.formatFileSize()))
         val f = CleanerVmFixture(StandardTestDispatcher(testScheduler))
@@ -92,8 +92,8 @@ class CleanerViewModelTest {
             f.vm.onIntent(RequestDelete); f.vm.onIntent(Rescan("new")); f.vm.onIntent(ConfirmDelete); runCurrent(); assertTrue(f.deleted.isEmpty())
             f.scans.getValue("new").close(); runCurrent()
             f.scanItems(this, listOf(cache("a/build", 12), cache("b/build", 30)))
-            f.vm.onIntent(RequestDelete)
             f.vm.onIntent(ItemCheckedChanged("root/b/build", false))
+            f.vm.onIntent(RequestDelete)
             f.vm.onIntent(ConfirmDelete); f.vm.onIntent(ConfirmDelete)
             assertEquals(CleanerPhase.Deleting, f.vm.uiState.value.phase)
             f.vm.onIntent(ToggleAll); f.vm.onIntent(Rescan("ignored")); f.vm.onIntent(CloseSelection)
@@ -120,7 +120,7 @@ class CleanerViewModelTest {
             f.pending[1].complete(DeleteBuildCacheResult(f.deleted[1], false, false, true)); runCurrent()
             f.effects.effects.first { it.snackbar.message == failedMessage }
             val failed = f.vm.uiState.value.items.first()
-            assertTrue(failed.deleteFailed && failed.checked && failed.exists); assertFalse(failed.isDirectory)
+            assertTrue(failed.deleteFailed && failed.checked && failed.exists); assertTrue(failed.isDirectory) // Keep the scan type for deletion revalidation.
             assertEquals(30, failed.bytes); assertStatistics(f.vm.uiState.value)
             f.vm.onIntent(RequestDelete); f.vm.onIntent(ConfirmDelete); runCurrent()
             f.pending.last().complete(DeleteBuildCacheResult(f.deleted.last(), true, false, false)); runCurrent()

@@ -66,6 +66,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -74,7 +76,6 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
-import org.tool.kit.feature.ui.FileButton
 import org.tool.kit.feature.ui.UploadAnimate
 import org.tool.kit.model.CopyMode
 import androidx.compose.ui.draganddrop.DragAndDropTarget
@@ -85,13 +86,10 @@ import org.tool.kit.shared.generated.resources.cancel
 import org.tool.kit.shared.generated.resources.confirm
 import org.tool.kit.shared.generated.resources.key_alias
 import org.tool.kit.shared.generated.resources.key_store_password
-import org.tool.kit.shared.generated.resources.let_go
 import org.tool.kit.shared.generated.resources.password_verification
 import org.tool.kit.shared.generated.resources.switch_copy_mode
 import org.tool.kit.shared.generated.resources.upload
-import org.tool.kit.shared.generated.resources.upload_apk_signature_file
 import org.tool.kit.shared.generated.resources.wrong_key_store_password
-import org.tool.kit.utils.LottieAnimation
 
 /**
  * @Author      : LazyIonEs
@@ -102,36 +100,35 @@ import org.tool.kit.utils.LottieAnimation
 @Composable
 fun SignatureInformationScreen(
     state: SignatureInformationUiState,
-    useDarkTheme: Boolean,
     onIntent: (SignatureInformationIntent) -> Unit,
     onPickFile: () -> Unit,
     dragging: Boolean,
     dropTarget: DragAndDropTarget,
 ) {
-    if (state.phase == VerificationPhase.Idle) SignatureLottie(useDarkTheme)
-    SignatureList(state.result, onIntent)
-    SignatureBox(state.phase, state.copyMode, onIntent, onPickFile, dragging, dropTarget)
+    val showDrop = dragging && !state.busy && state.passwordDialog == null
+    val pickFile = { if (!state.busy && !dragging && state.passwordDialog == null) onPickFile() }
+    Box(
+        Modifier.fillMaxSize().testTag("signature-page")
+            .dragAndDropTarget(shouldStartDragAndDrop = { !state.busy && state.passwordDialog == null }, target = dropTarget)
+    ) {
+        if (state.phase == VerificationPhase.Idle) {
+            SignatureInformationEmptyState(pickFile)
+        } else {
+            SignatureList(state.result, onIntent)
+            SignatureBox(state.phase, state.copyMode, onIntent, pickFile)
+        }
+        UploadAnimate(
+            showDrop,
+            modifier = Modifier.matchParentSize()
+                .then(if (showDrop) Modifier.testTag("signature-drop-animation") else Modifier),
+            shape = RectangleShape,
+        )
+    }
     SignatureDialog(state.passwordDialog, onIntent)
 }
 
 /**
- * 主页动画
- */
-@Composable
-private fun SignatureLottie(useDarkTheme: Boolean) {
-    Box(
-        modifier = Modifier.padding(6.dp), contentAlignment = Alignment.Center
-    ) {
-        if (useDarkTheme) {
-            LottieAnimation("files/lottie_main_1_dark.json")
-        } else {
-            LottieAnimation("files/lottie_main_1_light.json")
-        }
-    }
-}
-
-/**
- * 签名主页，包含拖拽文件逻辑
+ * 结果页文件选择与复制格式操作
  */
 @OptIn(
     ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class,
@@ -141,29 +138,11 @@ private fun SignatureLottie(useDarkTheme: Boolean) {
 private fun SignatureBox(
     phase: VerificationPhase, copyMode: CopyMode,
     onIntent: (SignatureInformationIntent) -> Unit, onPickFile: () -> Unit,
-    dragging: Boolean, dropTarget: DragAndDropTarget,
 ) {
-    UploadAnimate(dragging)
     Box(
-        modifier = Modifier.fillMaxSize()
-            .dragAndDropTarget(
-                shouldStartDragAndDrop = { true }, target = dropTarget
-            ), contentAlignment = Alignment.TopCenter
+        modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter
     ) {
         Row(modifier = Modifier.align(Alignment.BottomEnd)) {
-            AnimatedVisibility(
-                visible = phase == VerificationPhase.Idle,
-            ) {
-                FileButton(
-                    value = if (dragging) {
-                        stringResource(Res.string.let_go)
-                    } else {
-                        stringResource(Res.string.upload_apk_signature_file)
-                    },
-                    expanded = true,
-                    onClick = onPickFile
-                )
-            }
             AnimatedVisibility(
                 visible = phase == VerificationPhase.Result,
                 modifier = Modifier.padding(end = 16.dp, bottom = 8.dp)

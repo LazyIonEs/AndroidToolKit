@@ -20,30 +20,28 @@ import org.tool.kit.utils.getFileLength
 class ScanBuildCachesUseCaseTest {
     @get:Rule val temporary = TemporaryFolder()
 
-    @Test fun originalTraversalMetadataAndSizeRulesMatchIncludingDepthAndDuplicateNames() = runTest {
+    @Test fun exactNamesDepthBoundariesAndRootExclusion() = runTest {
         val root = temporary.root
         fun atDepth(depth: Int) = root.resolve("depth-$depth/" + (1 until depth - 1).joinToString("/") { "level-$it" } + "/build").apply { mkdirs(); resolve("data").writeBytes(ByteArray(depth)) }
         val nine = atDepth(9); val ten = atDepth(10); val eleven = atDepth(11)
-        val foo = root.resolve("build.foo").apply { mkdirs(); resolve("inner/build/data").apply { parentFile.mkdirs(); writeText("nested") } }
-        val a = root.resolve("a/build").apply { mkdirs() }; val b = root.resolve("b/build").apply { mkdirs() }
+        val foo = root.resolve("build.foo").apply { mkdirs() }
+        val nested = foo.resolve("inner/build").apply { mkdirs() }
+        root.resolve("Build").mkdirs()
         val hidden = root.resolve(".hidden/build").apply { mkdirs() }
-        root.resolve("ordinary/build").apply { parentFile.mkdirs(); writeText("a file is not a cache directory") }
-        val expected = root.walk().maxDepth(10).onEnter { it.parentFile?.nameWithoutExtension != "build" }
-            .filter { it.isDirectory && it.nameWithoutExtension == "build" }.toList()
-        val actual = ScanBuildCachesUseCase(JvmBuildCachesDataSource(Dispatchers.IO))(root.path).toList()
-        assertEquals(setOf(nine, ten, foo, a, b, hidden).map { it.absolutePath }.toSet(), actual.map { it.path }.toSet())
+        root.resolve("ordinary/build").apply { parentFile.mkdirs(); writeText("file") }
+        val repo = JvmBuildCachesDataSource(Dispatchers.IO)
+        val actual = repo.scan(root.path).toList()
+        assertEquals(setOf(nine, ten, nested, hidden).map { it.canonicalPath }.toSet(), actual.map { it.path }.toSet())
         assertTrue(eleven.exists())
-        assertEquals(expected.map { it.absolutePath }, actual.map { it.path })
-        actual.zip(expected).forEach { (item, file) ->
+        actual.forEach { item ->
+            val file = java.io.File(item.path)
             assertEquals(file.getFileLength(), item.bytes)
             assertEquals(file.lastModified(), item.modifiedAt)
-            assertEquals(root.absolutePath, item.scanRoot)
-            assertEquals(file.absolutePath.replace(root.absolutePath + java.io.File.separatorChar, ""), item.displayPath)
-            assertTrue(item.isDirectory && item.exists)
+            assertEquals(root.canonicalPath, item.scanRoot)
+            assertEquals(setOf("android-build"), item.matchedRuleIds)
         }
-        // A root named build is itself selected. A parent build still blocks entry exactly as before.
-        assertEquals(listOf(foo.absolutePath), ScanBuildCachesUseCase(JvmBuildCachesDataSource(Dispatchers.IO))(foo.path).toList().map { it.path })
-        assertTrue(ScanBuildCachesUseCase(JvmBuildCachesDataSource(Dispatchers.IO))(foo.resolve("inner").path).toList().isEmpty())
+        assertEquals(listOf(nested.canonicalPath), repo.scan(foo.path).toList().map { it.path })
+        assertTrue(repo.scan(nine.path).toList().isEmpty())
     }
 
     @Test fun realDeletionPreservesUnselectedSiblingsAndUsesTheScannedLengthAfterChanges() = runTest {
@@ -53,26 +51,25 @@ class ScanBuildCachesUseCaseTest {
         val missing = root.resolve("missing/build").apply { mkdirs() }
         val sibling = root.resolve("keep/build").apply { mkdirs(); resolve("keep").writeText("keep") }
         val repo = JvmBuildCachesDataSource(Dispatchers.IO)
-        val original = repo.scan(root.path).toList().filter { it.path != sibling.absolutePath }
+        val original = repo.scan(root.path).toList().filter { it.path != sibling.canonicalPath }
         selected.resolve("later").writeBytes(ByteArray(901))
         assertTrue(changed.delete()); changed.writeText("replaced with file")
         assertTrue(missing.delete())
         val result = DeleteBuildCachesUseCase(repo)(original).toList()
-        assertTrue(result.all { it.deleted && !it.exists && !it.isDirectory })
+        assertEquals(listOf(selected.canonicalPath), result.filter { it.deleted }.map { it.directory.path })
+        assertTrue(result.filterNot { it.deleted }.all { it.safetyFailure })
+        assertTrue(changed.isFile)
         assertEquals(original.sumOf { it.bytes }, result.sumOf { it.directory.bytes })
         assertEquals("keep", sibling.resolve("keep").readText())
     }
 
-    @Test fun symbolicDirectoryLinksKeepTheOriginalTraversalAndPathIdentity() = runTest {
+    @Test fun symbolicLinksAreNeverCandidatesOrTraversed() = runTest {
         val root = temporary.newFolder("scan")
         val target = temporary.newFolder("linked-fixture").apply { resolve("build/data").apply { parentFile.mkdirs(); writeText("fixture") } }
         Files.createSymbolicLink(root.resolve("alias").toPath(), target.toPath())
-        val expected = root.walk().maxDepth(10).onEnter { it.parentFile?.nameWithoutExtension != "build" }
-            .filter { it.isDirectory && it.nameWithoutExtension == "build" }.toList()
+        Files.createSymbolicLink(root.resolve("build").toPath(), target.toPath())
         val actual = ScanBuildCachesUseCase(JvmBuildCachesDataSource(Dispatchers.IO))(root.path).toList()
-        assertEquals(expected.map { it.absolutePath }, actual.map { it.path })
-        assertEquals(listOf(root.resolve("alias/build").absolutePath), actual.map { it.path })
-        assertEquals(expected.single().getFileLength(), actual.single().bytes)
+        assertTrue(actual.isEmpty())
     }
 
     @Test fun realPermissionFailureReturnsTheSurvivingMetadataAndCanRetry() = runTest {

@@ -46,7 +46,7 @@ class CleanerUiTest {
             val intents = mutableListOf<CleanerIntent>()
             setContent {
                 org.tool.kit.theme.AppTheme(false) {
-                    CleanerScreen(CleanerUiState(items = items), false, intents::add, {}, {})
+                    CleanerScreen(CleanerUiState(items = items), intents::add, {}, {})
                 }
             }
             val list = onNode(hasScrollToIndexAction())
@@ -57,8 +57,7 @@ class CleanerUiTest {
             onNodeWithText(items.last().displayPath).assertIsDisplayed()
             val lastCheckbox = onAllNodes(isToggleable()).onLast()
             lastCheckbox.assertIsDisplayed()
-            val toolbarTop = onAllNodesWithContentDescription("Localized description")
-                .fetchSemanticsNodes().minOf { it.boundsInRoot.top }
+            val toolbarTop = onNodeWithTag("cleaner-toolbar").fetchSemanticsNode().boundsInRoot.top
             assertTrue(lastCheckbox.fetchSemanticsNode().boundsInRoot.bottom < toolbarTop,
                 "The last row must scroll above the toolbar, not remain hidden under it")
             lastCheckbox.performTouchInput { click() }
@@ -100,28 +99,28 @@ class CleanerUiTest {
             runOnIdle { discoveries.trySend(a) }
             waitUntil { vm.uiState.value.items.size == 1 }
             onNode(hasText("设置") and hasClickAction()).assertIsDisplayed()
-            onAllNodesWithContentDescription("Localized description").assertCountEquals(0)
+            onNodeWithTag("cleaner-toolbar").assertDoesNotExist()
             onAllNodesWithContentDescription("Lottie animation").assertCountEquals(0)
             onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo.Indeterminate)).assertExists()
             runOnIdle { discoveries.trySend(b); discoveries.close() }
             waitUntil { vm.uiState.value.phase == CleanerPhase.Idle && vm.uiState.value.items.size == 2 }
-            onAllNodesWithContentDescription("Localized description").assertCountEquals(5)
-            onAllNodesWithContentDescription("Localized description")[4].performClick()
+            onNodeWithTag("cleaner-toolbar").assertIsDisplayed()
+            onNodeWithTag("cleaner-delete-selected").performClick()
             onNodeWithText("取消").performClick()
             assertTrue(requests.isEmpty())
-            onAllNodesWithContentDescription("Localized description")[4].performClick()
+            onNodeWithTag("cleaner-delete-selected").performClick()
             onNodeWithText("确认删除").performClick()
             waitUntil { requests.size == 1 && vm.uiState.value.phase == CleanerPhase.Deleting }
-            onAllNodesWithContentDescription("Lottie animation").onFirst().assertExists()
+            onNodeWithTag("cleaner-progress").assertExists()
             val original = vm
             // Use pointer input: a window-wide overlay would swallow this click.
             onNode(hasText("设置") and hasClickAction()).performTouchInput { click() }
             waitUntil { onAllNodesWithText("默认输出路径").fetchSemanticsNodes().isNotEmpty() }
             onAllNodesWithContentDescription("Lottie animation").assertCountEquals(0)
-            onAllNodesWithContentDescription("Localized description").assertCountEquals(0)
+            onNodeWithTag("cleaner-toolbar").assertDoesNotExist()
             onNode(hasText("签名信息") and hasClickAction()).performTouchInput { click() }
             onNode(hasText("缓存清理") and hasClickAction()).performTouchInput { click() }
-            waitUntil { onAllNodesWithContentDescription("Lottie animation").fetchSemanticsNodes().isNotEmpty() }
+            waitUntil { onAllNodesWithTag("cleaner-progress").fetchSemanticsNodes().isNotEmpty() }
             assertSame(original, vm)
             assertEquals(CleanerPhase.Deleting, vm.uiState.value.phase)
             runOnIdle { first.complete(DeleteBuildCacheResult(a, true, false, false)) }
@@ -131,7 +130,7 @@ class CleanerUiTest {
             waitUntil { vm.uiState.value.phase == CleanerPhase.Idle }
             assertTrue(vm.uiState.value.items.single().deleteFailed)
             onAllNodesWithContentDescription("Lottie animation").assertCountEquals(0)
-            onAllNodesWithContentDescription("Localized description")[0].performClick()
+            onNodeWithTag("cleaner-close-selection").performClick()
             onNode(hasText("设置") and hasClickAction()).assertExists()
             assertEquals(1, creations)
         } finally { first.cancel(); second.cancel(); discoveries.close(); owner.viewModelStore.clear(); container.close() }
@@ -175,10 +174,10 @@ class CleanerUiTest {
             waitForIdle()
             runOnIdle { seed(vm.uiState.value.items.mapIndexed { index, item -> if (index == 2) item.copy(deleteFailed = true) else item }) }
             waitForIdle()
-            onAllNodesWithContentDescription("Localized description")[1].performClick()
+            onNodeWithTag("cleaner-sort").performClick()
             waitForIdle()
             onNodeWithText("名称（从 A 到 Z）").performClick()
-            onAllNodesWithContentDescription("Localized description")[4].performClick()
+            onNodeWithTag("cleaner-delete-selected").performClick()
             waitForIdle()
             onNodeWithText("取消").performClick()
         } finally { owner.viewModelStore.clear(); container.close() }

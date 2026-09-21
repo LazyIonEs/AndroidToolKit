@@ -4,7 +4,6 @@ import androidx.compose.runtime.*
 import org.koin.compose.viewmodel.koinViewModel
 import org.tool.kit.feature.ui.FeaturePage
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.tool.kit.LocalIsAppDarkTheme
 import org.tool.kit.feature.ui.dragAndDropTarget
 import org.tool.kit.feature.ui.rememberFilePickerRequest
 import org.tool.kit.model.FileSelectorType
@@ -27,7 +26,7 @@ fun SignatureInformationRoute(viewModel: SignatureInformationViewModel = koinVie
         onDispose { viewModel.onIntent(SignatureInformationIntent.DismissPasswordDialog) }
     }
     FeaturePage(busy = state.busy) {
-        SignatureInformationScreen(state, LocalIsAppDarkTheme.current, viewModel::onIntent, picker, dragging, target)
+        SignatureInformationScreen(state, viewModel::onIntent, picker, dragging, target)
     }
 }
 

@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.IntOffset
@@ -212,11 +213,14 @@ fun PasswordInput(value: String, label: String, isError: Boolean, onValueChange:
 /**
  * 上传动画
  * @param dragging 是否在拖拽中
+ * @param modifier 遮罩覆盖范围，由调用页面决定
+ * @param shape 默认保留卡片圆角；整页遮罩可使用矩形，避免边缘露出底层内容
  */
 @Composable
-fun UploadAnimate(dragging: Boolean) {
+fun UploadAnimate(dragging: Boolean, modifier: Modifier = Modifier, shape: Shape = CardDefaults.shape) {
     AnimatedVisibility(
         visible = dragging,
+        modifier = modifier,
         enter = fadeIn() + slideIn(
             tween(
                 durationMillis = 400, easing = LinearOutSlowInEasing
@@ -229,7 +233,7 @@ fun UploadAnimate(dragging: Boolean) {
         ) { fullSize -> IntOffset(fullSize.width, fullSize.height) } + fadeOut(),
     ) {
         Card(
-            modifier = Modifier.fillMaxSize(), colors = CardDefaults.cardColors(
+            modifier = Modifier.fillMaxSize(), shape = shape, colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.background,
             )
         ) {

@@ -34,12 +34,24 @@ Desktop tools applicable to Android development, supporting Windows, Mac and Lin
 - [x] APK Signature - Sign your APK
 - [x] Signature Generation - Generate a signed certificate
 - [x] Icon Generation - Generate icons of multiple sizes with one click
-- [x] Cache Cleaner - Cleans the Android project cache directory
+- [x] Cache Cleaner - Scan files and folders with custom rules, preview matches, and clean selected items safely
 
 > Supports APK signature verification; single signature verification (signature password required);
 > file dragging; apk
 > signature file alignment; generate signatures with specified key type and key size; appearance
 > light and dark modes.
+
+## Custom cleanup rules
+
+Open **Cache Cleaner → Manage rules** to create file or folder rules. Match names and relative paths using equals, starts with, ends with, or contains. File rules can also require a size greater than a KB/MB/GB threshold. Combine conditions with ALL or ANY; enabled rule groups are joined with OR.
+
+The Material 3 editor opens in a separate desktop window, at the default 800×600 size, with standard window controls. The main cleaner keeps its current results. The results floating toolbar also provides a rules shortcut. All existing rules start collapsed, with one rule open at a time. Conditions appear as readable summaries and reveal their controls when edited. Rule details, condition editing, other options, and scan settings use smooth height and fade transitions. The editor supports duplication, ordering, enable/disable, and default selection. Cancel discards the draft; restoring defaults from the top-right menu changes only the draft. **Save and try scan** opens the existing directory picker after saving and closing the editor window. Saving a new configuration clears previous scan results.
+
+The default rule now matches only the exact, case-sensitive folder name `build`: **`build.foo` and `Build` no longer match**. New rules select their matches by default; this can be turned off in Other options. Scanning and deletion never follow symbolic links. Before deletion, paths, types, and matching rules are checked against the scan snapshot; changed paths remain visible with a failure message.
+
+| Light rule editor | Dark rule editor |
+|:---:|:---:|
+| ![Light rule editor](screenshots/screenshot_cleaner_rules_light_en.png) | ![Dark rule editor](screenshots/screenshot_cleaner_rules_dark_en.png) |
 
 ## Download - [Releases](https://github.com/LazyIonEs/AndroidToolKit/releases/latest)
 

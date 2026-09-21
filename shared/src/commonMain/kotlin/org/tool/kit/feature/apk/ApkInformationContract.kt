@@ -1,6 +1,8 @@
 package org.tool.kit.feature.apk
 
 import androidx.compose.ui.graphics.ImageBitmap
+import org.tool.kit.domain.apk.ApkComponent
+import org.tool.kit.domain.apk.ApkArchiveInformation
 
 enum class ApkInformationPhase { Idle, Loading, Result }
 data class ApkInformationUiState(
@@ -26,6 +28,10 @@ data class ApkInformationResultUi(
     val usesPermissionList: List<String>? = null, // 权限列表
     val nativeCode: String = "", // 架构
     val channel: String? = null, // 渠道
+    val sha256: String = "", // APK 文件 SHA-256（非证书指纹）
+    val launchableActivity: String = "", // 启动入口
+    val components: List<ApkComponent>? = null,
+    val archive: ApkArchiveInformation? = null,
 ) {
     fun isBlank(): Boolean {
         return label.isBlank() && packageName.isBlank() && versionCode.isBlank() && versionName.isBlank()
