@@ -3,9 +3,15 @@ package org.tool.kit.data.source
 import com.android.ide.common.pagealign.readElfAlignmentProblems
 import com.android.zipflinger.ZipRepo
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import org.tool.kit.domain.apk.*
+import kotlinx.coroutines.withContext
+import org.tool.kit.domain.apk.ApkAlignment
+import org.tool.kit.domain.apk.ApkArchiveFile
+import org.tool.kit.domain.apk.ApkArchiveInformation
+import org.tool.kit.domain.apk.ApkFileCategory
+import org.tool.kit.domain.apk.ApkNativeLibrary
 import java.io.ByteArrayInputStream
 import java.io.EOFException
 import java.io.File
@@ -55,7 +61,9 @@ catch (_: Exception) { null }
 
 /** Validate boundaries before calling the official verifier, which otherwise accepts partial headers. */
 internal suspend fun inspectElfAlignment(input: InputStream, size: Long = Long.MAX_VALUE): ApkAlignment {
-    val header = input.readNBytes(64)
+    val header = withContext(Dispatchers.IO) {
+        input.readNBytes(64)
+    }
     if (header.size != 64 || !header.copyOf(4).contentEquals(byteArrayOf(0x7f, 69, 76, 70)) || header[6].toInt() != 1) return ApkAlignment.Unknown
     if (header[4].toInt() == 1) return ApkAlignment.NotApplicable
     // Android's verifier supports little-endian ELF64; never label unsupported formats as aligned.
@@ -73,7 +81,9 @@ internal suspend fun inspectElfAlignment(input: InputStream, size: Long = Long.M
     if (sectionCount > 0 && (sectionCount >= 0x8000 || sectionStride < 64 || sectionStride >= 0x8000 || sectionOffset < 64 || sectionEnd < sectionOffset || sectionEnd > size)) return ApkAlignment.Unknown
     val context = currentCoroutineContext()
     context.ensureActive()
-    val remaining = input.readNBytes((end - 64).toInt())
+    val remaining = withContext(Dispatchers.IO) {
+        input.readNBytes((end - 64).toInt())
+    }
     if (remaining.size != end.toInt() - 64) return ApkAlignment.Unknown
     val prefix = header + remaining
     val programs = ByteBuffer.wrap(prefix).order(ByteOrder.LITTLE_ENDIAN)

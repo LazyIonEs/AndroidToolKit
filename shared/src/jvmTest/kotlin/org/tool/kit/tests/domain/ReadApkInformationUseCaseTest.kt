@@ -13,56 +13,96 @@ import org.tool.kit.tests.support.FixtureApkRepository
 import org.tool.kit.tests.support.apkBadgingFixture
 
 class ReadApkInformationUseCaseTest {
-    @Test fun readsLauncherNameAndPassesThroughFileSha256WithoutInventingMissingValues() = runBlocking {
+    @Test
+    fun readsLauncherNameAndPassesThroughFileSha256WithoutInventingMissingValues() = runBlocking {
         val digest = "c4c1b8699b997c57e3afc18cb9796123d805c7d2bfe533a8eaca7f82500085a3"
         val repository = object : FixtureApkRepository() {
             override suspend fun metadata(path: String) = ApkFileMetadata(123, "md5", digest)
         }
         for (separator in listOf("\n", "\r\n", "\r")) {
-            repository.output = "package: name='a'${separator}launchable-activity: name='a.MainActivity'  label='入口' icon=''"
+            repository.output =
+                "package: name='a'${separator}launchable-activity: name='a.MainActivity'  label='入口' icon=''"
             val result = ReadApkInformationUseCase(repository)("a.apk").getOrThrow()
             assertEquals("a.MainActivity", result.launchableActivity)
             assertEquals(digest, result.sha256)
         }
         repository.output = "package: name='a'\napplication-label:'launchable-activity: fake'"
-        assertEquals("", ReadApkInformationUseCase(repository)("a.apk").getOrThrow().launchableActivity)
-        assertEquals("", ReadApkInformationUseCase(FixtureApkRepository())("old.apk").getOrThrow().sha256)
-    }
-    @Test fun architectureReadoutUsesPackagedLibrariesAndFallsBackWhenInspectionIsUnavailable() = runBlocking {
-        val library = ApkNativeLibrary("lib/arm64-v8a/libsample.so", "arm64-v8a", 100, 100, false,
-            ApkAlignment.Unknown, ApkAlignment.Unknown)
-        var archive: ApkArchiveInformation? = ApkArchiveInformation(emptyList(), listOf(library, library), 0)
-        val repo = object : FixtureApkRepository(output = "package: name='sample'\nnative-code: 'arm64-v8a' 'fonts' 'images'") {
-            override suspend fun archive(path: String) = archive
-        }
-        assertEquals("arm64-v8a", ReadApkInformationUseCase(repo)("sample.apk").getOrThrow().nativeCode)
-        archive = archive!!.copy(nativeLibraries = emptyList())
-        assertEquals("", ReadApkInformationUseCase(repo)("sample.apk").getOrThrow().nativeCode)
-        archive = null
-        assertEquals("arm64-v8a fonts images", ReadApkInformationUseCase(repo)("sample.apk").getOrThrow().nativeCode)
+        assertEquals(
+            "",
+            ReadApkInformationUseCase(repository)("a.apk").getOrThrow().launchableActivity
+        )
+        assertEquals(
+            "",
+            ReadApkInformationUseCase(FixtureApkRepository())("old.apk").getOrThrow().sha256
+        )
     }
 
-    @Test fun fieldsChannelPermissionsAndSeparators() = runBlocking {
+    @Test
+    fun architectureReadoutUsesPackagedLibrariesAndFallsBackWhenInspectionIsUnavailable() =
+        runBlocking {
+            val library = ApkNativeLibrary(
+                "lib/arm64-v8a/libsample.so", "arm64-v8a", 100, 100, false,
+                ApkAlignment.Unknown, ApkAlignment.Unknown
+            )
+            var archive: ApkArchiveInformation? =
+                ApkArchiveInformation(emptyList(), listOf(library, library), 0)
+            val repo = object :
+                FixtureApkRepository(output = "package: name='sample'\nnative-code: 'arm64-v8a' 'fonts' 'images'") {
+                override suspend fun archive(path: String) = archive
+            }
+            assertEquals(
+                "arm64-v8a",
+                ReadApkInformationUseCase(repo)("sample.apk").getOrThrow().nativeCode
+            )
+            archive = archive!!.copy(nativeLibraries = emptyList())
+            assertEquals("", ReadApkInformationUseCase(repo)("sample.apk").getOrThrow().nativeCode)
+            archive = null
+            assertEquals(
+                "arm64-v8a fonts images",
+                ReadApkInformationUseCase(repo)("sample.apk").getOrThrow().nativeCode
+            )
+        }
+
+    @Test
+    fun fieldsChannelPermissionsAndSeparators() = runBlocking {
         val repository = FixtureApkRepository()
-        val expected = ApkInformationData(label = "测试 APK", size = 123456, md5 = "0123456789abcdef0123456789abcdef",
-            packageName = "org.fixture.apk", versionCode = "42", versionName = "1.2 测试", compileSdkVersion = "35",
-            minSdkVersion = "23", targetSdkVersion = "35", usesPermissionList = listOf("android.permission.INTERNET", "android.permission.CAMERA"),
-            nativeCode = "arm64-v8a armeabi-v7a", channel = "测试渠道")
+        val expected = ApkInformationData(
+            label = "测试 APK",
+            size = 123456,
+            md5 = "0123456789abcdef0123456789abcdef",
+            packageName = "org.fixture.apk",
+            versionCode = "42",
+            versionName = "1.2 测试",
+            compileSdkVersion = "35",
+            minSdkVersion = "23",
+            targetSdkVersion = "35",
+            usesPermissionList = listOf("android.permission.INTERNET", "android.permission.CAMERA"),
+            nativeCode = "arm64-v8a armeabi-v7a",
+            channel = "测试渠道"
+        )
         for (separator in listOf("\n", "\r\n", "\r")) {
             repository.output = apkBadgingFixture.replace("\n", separator)
-            assertEquals(expected, ReadApkInformationUseCase(repository)("/中文 空格 ' APK.apk").getOrThrow())
+            assertEquals(
+                expected,
+                ReadApkInformationUseCase(repository)("/中文 空格 ' APK.apk").getOrThrow()
+            )
         }
         // Cover the line parser's whitespace-only and leading-space inputs.
         val text = "\r\n \r\n\t\rpackage: name='a'\n application: label='ignored'\r"
-        assertEquals(StringUtil.split(StringUtil.convertLineSeparators(text), "\n", true, true),
+        assertEquals(
+            StringUtil.split(StringUtil.convertLineSeparators(text), "\n", true, true),
             text.replace("\r\n", "\n").replace('\r', '\n').split('\n').filter { it.isNotEmpty() })
     }
-    @Test fun preservesSequentialIconFallbackAndXmlExclusion() = runBlocking {
+
+    @Test
+    fun preservesSequentialIconFallbackAndXmlExclusion() = runBlocking {
         val source = ApkIconSource(byteArrayOf(1))
-        val repo = FixtureApkRepository(xml = null).apply { images = mapOf("fallback.png" to source) }
+        val repo =
+            FixtureApkRepository(xml = null).apply { images = mapOf("fallback.png" to source) }
         assertSame(source, ReadApkInformationUseCase(repo)("a").getOrThrow().icon)
         assertEquals(listOf("res/icon.png", "fallback.png"), repo.iconRequests)
-        repo.output = "application: label='A' icon='fallback.png'\napplication-icon-640:'missing.png'"
+        repo.output =
+            "application: label='A' icon='fallback.png'\napplication-icon-640:'missing.png'"
         repo.iconRequests.clear()
         assertNull(ReadApkInformationUseCase(repo)("a").getOrThrow().icon) // Later 640 failure overwrites earlier fallback.
         assertEquals(listOf("fallback.png", "missing.png"), repo.iconRequests)
@@ -76,40 +116,70 @@ class ReadApkInformationUseCaseTest {
         assertSame(source, ReadApkInformationUseCase(repo)("a").getOrThrow().icon)
         assertEquals(listOf("res/icon.png"), repo.iconRequests)
     }
-    @Test fun fourFieldBlankRuleAndPermissionDuplicates() = runBlocking {
+
+    @Test
+    fun fourFieldBlankRuleAndPermissionDuplicates() = runBlocking {
         val repo = FixtureApkRepository(output = "sdkVersion:'23'")
         assertIs<EmptyApkInformation>(ReadApkInformationUseCase(repo)("a").exceptionOrNull())
-        for (line in listOf("application: label='a'", "package: name='a'", "package: versionCode='1'", "package: versionName='a'")) {
-            repo.output = "$line\nuses-permission: name='x'\nuses-permission: name='x'\nuses-permission: wrong='y'"
-            assertEquals(listOf("x", "x", ""), ReadApkInformationUseCase(repo)("a").getOrThrow().usesPermissionList)
+        for (line in listOf(
+            "application: label='a'",
+            "package: name='a'",
+            "package: versionCode='1'",
+            "package: versionName='a'"
+        )) {
+            repo.output =
+                "$line\nuses-permission: name='x'\nuses-permission: name='x'\nuses-permission: wrong='y'"
+            assertEquals(
+                listOf("x", "x", ""),
+                ReadApkInformationUseCase(repo)("a").getOrThrow().usesPermissionList
+            )
         }
     }
-    @Test fun sourceBytesCannotBeMutatedExternally() {
-        val bytes = byteArrayOf(1, 2); val source = ApkIconSource(bytes)
+
+    @Test
+    fun sourceBytesCannotBeMutatedExternally() {
+        val bytes = byteArrayOf(1, 2);
+        val source = ApkIconSource(bytes)
         bytes[0] = 8; source.bytes()[1] = 9
         assertContentEquals(byteArrayOf(1, 2), source.bytes())
     }
-    @Test fun commandArgumentsExitFallbackTimeoutAndCancellation() = runBlocking {
+
+    @Test
+    fun commandArgumentsExitFallbackTimeoutAndCancellation() = runBlocking {
         val dir = Files.createTempDirectory("aapt 中文 ").toFile()
         try {
             val requests = mutableListOf<ProcessRequest>()
             var result = ProcessResult(0, "  result  ", "warning")
-            val source = Aapt2DataSource(Aapt2Locator({ dir.path }, false), ProcessRunner { requests += it; result }, Dispatchers.Unconfined)
+            val source = Aapt2DataSource(
+                Aapt2Locator({ dir.path }, false),
+                { requests += it; result }, Dispatchers.Unconfined
+            )
             assertEquals("  result  ", source.badging("中文 ' file.apk"))
             assertEquals(listOf("dump", "badging", "中文 ' file.apk"), requests.last().arguments)
             assertEquals(60_000, requests.last().timeoutMillis)
             assertEquals("result  ", source.manifest("x.apk"))
-            assertEquals(listOf("dump", "xmltree", "x.apk", "--file", "AndroidManifest.xml"), requests.last().arguments)
+            assertEquals(
+                listOf("dump", "xmltree", "x.apk", "--file", "AndroidManifest.xml"),
+                requests.last().arguments
+            )
             result = ProcessResult(7, "partial", "bad")
             assertFailsWith<ApkCommandFailed> { source.badging("x") }; assertNull(source.manifest("x"))
             result = ProcessResult(255, "", "", timedOut = true)
             assertFailsWith<ApkCommandFailed> { source.badging("x") }
             assertEquals("aapt2.exe", Aapt2Locator({ dir.path }, true).locate().name)
-            val cancelled = Aapt2DataSource(Aapt2Locator({ dir.path }), ProcessRunner { throw CancellationException() }, Dispatchers.Unconfined)
+            val cancelled = Aapt2DataSource(
+                Aapt2Locator({ dir.path }),
+                { throw CancellationException() },
+                Dispatchers.Unconfined
+            )
             assertFailsWith<CancellationException> { cancelled.manifest("x") }
-            val repo = object : FixtureApkRepository() { override suspend fun badging(path: String): String = throw CancellationException() }
+            val repo = object : FixtureApkRepository() {
+                override suspend fun badging(path: String): String = throw CancellationException()
+            }
             assertFailsWith<CancellationException> { ReadApkInformationUseCase(repo)("x") }
-        } finally { dir.deleteRecursively() }
+        } finally {
+            dir.deleteRecursively()
+        }
         Unit
     }
 }

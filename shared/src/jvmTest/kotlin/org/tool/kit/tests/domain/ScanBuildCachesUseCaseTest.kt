@@ -13,7 +13,6 @@ import org.tool.kit.data.source.JvmBuildCachesDataSource
 import org.tool.kit.domain.cleaner.*
 import org.tool.kit.domain.repository.BuildCachesRepository
 import org.tool.kit.domain.usecase.*
-import org.tool.kit.tests.support.release
 import org.tool.kit.utils.getFileLength
 
 @OptIn(ExperimentalCoroutinesApi::class)

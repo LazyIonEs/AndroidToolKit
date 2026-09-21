@@ -89,7 +89,6 @@ import org.tool.kit.shared.generated.resources.key_store_password
 import org.tool.kit.shared.generated.resources.password_verification
 import org.tool.kit.shared.generated.resources.switch_copy_mode
 import org.tool.kit.shared.generated.resources.upload
-import org.tool.kit.shared.generated.resources.wrong_key_store_password
 
 /**
  * @Author      : LazyIonEs

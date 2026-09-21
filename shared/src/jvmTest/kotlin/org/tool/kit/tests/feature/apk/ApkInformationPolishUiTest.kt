@@ -1,25 +1,53 @@
 package org.tool.kit.tests.feature.apk
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.asSkiaBitmap
-import java.io.File
-import org.jetbrains.skia.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.*
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asSkiaBitmap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.SemanticsMatcher
+import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.getUnclippedBoundsInRoot
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
+import androidx.compose.ui.unit.dp
+import org.jetbrains.skia.Image
 import org.junit.Test
-import org.tool.kit.feature.apk.*
-import org.tool.kit.domain.apk.*
+import org.tool.kit.domain.apk.ApkArchiveFile
+import org.tool.kit.domain.apk.ApkArchiveInformation
+import org.tool.kit.domain.apk.ApkFileCategory
+import org.tool.kit.feature.apk.ApkInformationIntent
+import org.tool.kit.feature.apk.ApkInformationPhase
+import org.tool.kit.feature.apk.ApkInformationScreen
+import org.tool.kit.feature.apk.ApkInformationUiState
 import org.tool.kit.theme.AppTheme
-import kotlin.test.*
+import java.io.File
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class ApkInformationPolishUiTest {
@@ -176,7 +204,7 @@ class ApkInformationPolishUiTest {
         val copied = mutableListOf<String>()
         val longName = "com.example." + "VeryLongNamespace.".repeat(90) + "Activity"
         val longComponent = sample.components!!.first().copy(name = longName, process = "com.example.longprocess")
-        val result = sample.copy(components = sample.components.orEmpty() + longComponent)
+        val result = sample.copy(components = sample.components + longComponent)
         setContent { AppTheme(false) {
             ApkInformationScreen(ApkInformationUiState(ApkInformationPhase.Result, "/test.apk", result), false,
                 { if (it is ApkInformationIntent.CopyText) copied += it.value }, {}, false, target)

@@ -142,7 +142,7 @@ class CleanerRulesViewModel(private val repository: CleanerRulesRepository) : Vi
     fun deleteRule(id: String) = edit { it.copy(rules = it.rules.filterNot { it.id == id }) }
     fun moveRule(id: String, offset: Int) = edit { config ->
         val rules = config.rules.toMutableList()
-        val index = rules.indexOfFirst { it.id == id };
+        val index = rules.indexOfFirst { it.id == id }
         val destination = index + offset
         if (index >= 0 && destination in rules.indices) {
             val rule = rules.removeAt(index); rules.add(destination, rule)

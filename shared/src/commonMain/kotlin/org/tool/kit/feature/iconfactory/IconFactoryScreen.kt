@@ -47,10 +47,10 @@ import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTooltipState
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,7 +69,6 @@ import org.tool.kit.feature.ui.UploadAnimate
 import org.tool.kit.model.IconFactoryData
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.android_directory
-import org.tool.kit.shared.generated.resources.check_error
 import org.tool.kit.shared.generated.resources.close
 import org.tool.kit.shared.generated.resources.compress_custom
 import org.tool.kit.shared.generated.resources.compression_speed
@@ -102,7 +101,7 @@ fun IconFactoryScreen(
     dragging: Boolean,
     target: androidx.compose.ui.draganddrop.DragAndDropTarget,
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+    val sheetState = rememberBottomSheetState(initialValue = SheetValue.Hidden)
     Box(Modifier.fillMaxSize().dragAndDropTarget(
         shouldStartDragAndDrop = { !state.busy && !state.sheetOpen }, target = target,
     )) {

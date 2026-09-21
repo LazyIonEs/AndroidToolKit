@@ -8,11 +8,36 @@ package org.tool.kit.feature.apk
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.outlined.HelpOutline
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.RemoveCircleOutline
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.WarningAmber
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,8 +49,28 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
-import org.tool.kit.domain.apk.*
-import org.tool.kit.shared.generated.resources.*
+import org.tool.kit.domain.apk.ApkAlignment
+import org.tool.kit.domain.apk.ApkExportedDeclaration
+import org.tool.kit.domain.apk.ApkFileCategory
+import org.tool.kit.shared.generated.resources.Res
+import org.tool.kit.shared.generated.resources.apk_info_alignment_fail
+import org.tool.kit.shared.generated.resources.apk_info_alignment_pass
+import org.tool.kit.shared.generated.resources.apk_info_analysis_unavailable
+import org.tool.kit.shared.generated.resources.apk_info_category_assets
+import org.tool.kit.shared.generated.resources.apk_info_category_dex
+import org.tool.kit.shared.generated.resources.apk_info_category_metadata
+import org.tool.kit.shared.generated.resources.apk_info_category_native
+import org.tool.kit.shared.generated.resources.apk_info_category_other
+import org.tool.kit.shared.generated.resources.apk_info_category_resources
+import org.tool.kit.shared.generated.resources.apk_info_clear_search
+import org.tool.kit.shared.generated.resources.apk_info_copy
+import org.tool.kit.shared.generated.resources.apk_info_declared_false
+import org.tool.kit.shared.generated.resources.apk_info_declared_true
+import org.tool.kit.shared.generated.resources.apk_info_detail_matches
+import org.tool.kit.shared.generated.resources.apk_info_no_detail_matches
+import org.tool.kit.shared.generated.resources.apk_info_no_entries
+import org.tool.kit.shared.generated.resources.apk_info_not_applicable
+import org.tool.kit.shared.generated.resources.apk_info_undeclared
 import org.tool.kit.utils.formatFileSize
 
 @Composable
@@ -150,7 +195,7 @@ internal fun ApkAlignmentText(label: String, status: ApkAlignment) {
         ApkAlignment.Aligned -> Icons.Outlined.CheckCircle
         ApkAlignment.Unaligned -> Icons.Outlined.WarningAmber
         ApkAlignment.NotApplicable -> Icons.Outlined.RemoveCircleOutline
-        ApkAlignment.Unknown -> Icons.Outlined.HelpOutline
+        ApkAlignment.Unknown -> Icons.AutoMirrored.Outlined.HelpOutline
     }
     val color =
         if (status == ApkAlignment.Unaligned) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant

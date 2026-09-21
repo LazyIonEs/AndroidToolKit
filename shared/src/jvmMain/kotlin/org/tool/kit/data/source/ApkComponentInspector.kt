@@ -2,24 +2,30 @@ package org.tool.kit.data.source
 
 import com.android.tools.apk.analyzer.BinaryXmlParser
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import org.tool.kit.domain.apk.*
+import kotlinx.coroutines.withContext
+import org.tool.kit.domain.apk.ApkComponent
+import org.tool.kit.domain.apk.ApkComponentType
+import org.tool.kit.domain.apk.ApkExportedDeclaration
 import org.w3c.dom.Element
 import java.util.zip.ZipFile
 import javax.xml.parsers.DocumentBuilderFactory
 
 internal suspend fun inspectApkComponents(path: String): List<ApkComponent>? = try {
-    ZipFile(path).use { zip ->
-        currentCoroutineContext().ensureActive()
-        val entry = zip.getEntry("AndroidManifest.xml") ?: return null
-        // Resource decoding should not allocate unbounded memory for a corrupt manifest.
-        require(entry.size in 0..16 * 1024 * 1024)
-        val bytes = zip.getInputStream(entry).use { it.readNBytes(16 * 1024 * 1024 + 1) }
-        require(bytes.size <= 16 * 1024 * 1024)
-        val xml = BinaryXmlParser.decodeXml(bytes)
-        currentCoroutineContext().ensureActive()
-        readApkComponents(xml)
+    withContext(Dispatchers.IO) {
+        ZipFile(path).use { zip ->
+            currentCoroutineContext().ensureActive()
+            val entry = zip.getEntry("AndroidManifest.xml") ?: return@use null
+            // Resource decoding should not allocate unbounded memory for a corrupt manifest.
+            require(entry.size in 0..16 * 1024 * 1024)
+            val bytes = zip.getInputStream(entry).use { it.readNBytes(16 * 1024 * 1024 + 1) }
+            require(bytes.size <= 16 * 1024 * 1024)
+            val xml = BinaryXmlParser.decodeXml(bytes)
+            currentCoroutineContext().ensureActive()
+            readApkComponents(xml)
+        }
     }
 } catch (cancelled: CancellationException) { throw cancelled }
 catch (_: Exception) { null }
