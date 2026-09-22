@@ -127,7 +127,7 @@ private fun SingleUi(form: SingleJunkForm, onIntent: (JunkCodeIntent) -> Unit) {
                     })
             },
             onValueChange = { resPrefix ->
-                onIntent(JunkCodeIntent.ResPrefixChanged(resPrefix))
+                onIntent(JunkCodeIntent.ResPrefixChanged(resPrefix.trim()))
             })
         Spacer(Modifier.size(8.dp))
         MultiIntTextField(
@@ -252,7 +252,7 @@ private fun PackageName(form: SingleJunkForm, onIntent: (JunkCodeIntent) -> Unit
                 .weight(3f),
             value = form.packageName,
             onValueChange = { packageName ->
-                onIntent(JunkCodeIntent.PackageNameChanged(packageName))
+                onIntent(JunkCodeIntent.PackageNameChanged(packageName.trim()))
             },
             label = {
                 Text(
@@ -273,7 +273,7 @@ private fun PackageName(form: SingleJunkForm, onIntent: (JunkCodeIntent) -> Unit
                 .weight(2f),
             value = form.suffix,
             onValueChange = { suffix ->
-                onIntent(JunkCodeIntent.SuffixChanged(suffix))
+                onIntent(JunkCodeIntent.SuffixChanged(suffix.trim()))
             },
             trailingIcon = {
                 Icon(
