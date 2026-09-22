@@ -21,7 +21,7 @@ data class JunkResourceBudget(
 data class JunkGenerationPolicy(
     val seed: Long = Random.nextLong(),
     val resources: JunkResourceBudget = JunkResourceBudget(),
-    val batchResourceTotal: Int = 3840,
+    val batchResourceTotal: Int = 25600,
     val minAssociatedClasses: Int = 3,
     val maxAssociatedClasses: Int = 9,
     val minMethodsPerClass: Int = 8,
