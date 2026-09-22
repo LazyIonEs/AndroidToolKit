@@ -220,7 +220,7 @@ private fun IconDetailLayout(
             Column(Modifier.width(248.dp).fillMaxHeight()) {
                 Column(Modifier.fillMaxWidth().testTag("icon-source")) {
                     Text(stringResource(Res.string.icon_factory_source), style = MaterialTheme.typography.titleMedium)
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(12.dp))
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         IconSourceImage(inputImage, 48.dp)
                         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -234,13 +234,13 @@ private fun IconDetailLayout(
                     IconCaption(stringResource(if (state.form.inputPath != null) Res.string.icon_factory_replace_hint
                         else Res.string.icon_factory_size_hint))
                 }
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(18.dp))
                 HorizontalDivider()
-                Spacer(Modifier.height(24.dp))
+                Spacer(Modifier.height(18.dp))
                 IconOutputSummary(state, Modifier.fillMaxWidth())
                 Spacer(Modifier.weight(1f))
                 IconSettingsButton(state, onIntent, Modifier.align(Alignment.End))
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.weight(1f))
                 IconGenerateButton(state, onIntent, Modifier.fillMaxWidth())
             }
         }
