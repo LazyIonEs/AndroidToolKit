@@ -10,7 +10,6 @@ import org.junit.Test
 import org.tool.kit.domain.junk.*
 import org.tool.kit.domain.preferences.*
 import org.tool.kit.domain.repository.*
-import org.tool.kit.domain.usecase.*
 import org.tool.kit.feature.app.*
 import org.tool.kit.feature.junk.*
 import org.tool.kit.feature.junk.JunkCodeIntent.*
@@ -147,7 +146,7 @@ private class JunkVmFixture(dispatcher: TestDispatcher, storage: StorageReposito
     val vm: JunkCodeViewModel
     init {
         Dispatchers.setMain(dispatcher)
-        vm = junkViewModel(preferences, storage, effects, JunkCodeRepository { request ->
+        vm = junkViewModel(preferences, storage, effects, { request ->
             requests += request; val gate = CompletableDeferred<GeneratedJunkCode>(); pending += gate
             if (nonCooperative) withContext(NonCancellable) { gate.await() } else gate.await()
         }, tokens)

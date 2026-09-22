@@ -4,22 +4,22 @@ package org.tool.kit.data.generator
 import io.github.oshai.kotlinlogging.KotlinLogging
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.longOrNull
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
-import java.io.File
 import kotlin.random.Random
 
 /**
@@ -205,8 +205,8 @@ object MultiAarGenerator {
             var packageName: String
             do {
                 checkActive()
-                val part1 = generateRandomLowercaseString(3, 8, random)
-                val part2 = generateRandomLowercaseString(3, 8, random)
+                val part1 = generateRandomLowercaseString(random)
+                val part2 = generateRandomLowercaseString(random)
                 packageName = "com.$part1.$part2"
             } while (!generatedPackages.add(packageName))
 
@@ -214,7 +214,7 @@ object MultiAarGenerator {
             var resPrefix: String
             do {
                 checkActive()
-                resPrefix = generateRandomLowercaseString(3, 8, random) + "_"
+                resPrefix = generateRandomLowercaseString(random) + "_"
             } while (!generatedPrefixes.add(resPrefix))
 
             // 4. 随机包数量：在 leastPackageCount 到 maximumPackageCount 之间随机
@@ -239,8 +239,8 @@ object MultiAarGenerator {
     /**
      * 生成指定长度范围内的纯小写随机字符串（通过预置字符池提升性能）
      */
-    private fun generateRandomLowercaseString(minLength: Int, maxLength: Int, random: Random): String {
-        val length = random.nextInt(minLength, maxLength + 1)
+    private fun generateRandomLowercaseString(random: Random): String {
+        val length = random.nextInt(3, 8 + 1)
         val chars = CharArray(length)
         for (i in 0 until length) {
             chars[i] = CHAR_POOL[random.nextInt(CHAR_POOL.size)]

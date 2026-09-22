@@ -2,7 +2,21 @@ package org.tool.kit.data.generator
 
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes.*
+import org.objectweb.asm.Opcodes.GOTO
+import org.objectweb.asm.Opcodes.IADD
+import org.objectweb.asm.Opcodes.IAND
+import org.objectweb.asm.Opcodes.ICONST_0
+import org.objectweb.asm.Opcodes.ICONST_1
+import org.objectweb.asm.Opcodes.IFNE
+import org.objectweb.asm.Opcodes.IF_ICMPGE
+import org.objectweb.asm.Opcodes.ILOAD
+import org.objectweb.asm.Opcodes.IMUL
+import org.objectweb.asm.Opcodes.INVOKESTATIC
+import org.objectweb.asm.Opcodes.INVOKEVIRTUAL
+import org.objectweb.asm.Opcodes.IREM
+import org.objectweb.asm.Opcodes.ISTORE
+import org.objectweb.asm.Opcodes.IUSHR
+import org.objectweb.asm.Opcodes.IXOR
 import kotlin.random.Random
 
 /**

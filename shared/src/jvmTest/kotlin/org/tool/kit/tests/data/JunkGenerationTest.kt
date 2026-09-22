@@ -19,7 +19,7 @@ import org.tool.kit.data.generator.parallelJunkWork
 import org.tool.kit.data.source.JvmJunkCodeDataSource
 import org.tool.kit.domain.junk.*
 import org.tool.kit.domain.usecase.GenerateJunkCodeUseCase
-import org.tool.kit.tests.support.release
+import kotlin.time.Duration.Companion.milliseconds
 
 class JunkGenerationTest {
     @get:Rule val temporary = TemporaryFolder()
@@ -99,7 +99,7 @@ class JunkGenerationTest {
         val generate: (String, String, JunkConfiguration.Single) -> File = { path, out, config ->
             starts.incrementAndGet(); activeWork = File(path).resolve("still-writing").apply { writeText("active") }
             entered.countDown(); check(release.await(10, TimeUnit.SECONDS))
-            assertTrue(activeWork!!.exists())
+            assertTrue(activeWork.exists())
             File(out, "${config.appPackageName}.aar").apply { writeText("completed output") }
         }
         val one = JvmJunkCodeDataSource(work, Dispatchers.IO, generateArchive = generate)
@@ -109,7 +109,7 @@ class JunkGenerationTest {
         try {
             assertTrue(entered.await(10, TimeUnit.SECONDS)); first.cancel()
             val second = launch(start = CoroutineStart.UNDISPATCHED) { two.generate(request) }
-            delay(100); assertEquals(1, starts.get()); second.cancelAndJoin()
+            delay(100.milliseconds); assertEquals(1, starts.get()); second.cancelAndJoin()
             assertTrue(activeWork!!.isFile); assertFalse(first.isCompleted)
         } finally { release.countDown(); first.join() }
         assertTrue(work.listFiles()!!.isEmpty()); assertEquals("completed output", output.resolve("com.fixture.aar").readText())
@@ -128,7 +128,7 @@ class JunkGenerationTest {
         }
         val task = async(Dispatchers.Default) { GenerateJunkCodeUseCase(source)(GenerateJunkCodeRequest(output.path, JunkConfiguration.Multi("batch", 2, 1, 1, 1, 1))) }
         try {
-            assertTrue(entered.await(10, TimeUnit.SECONDS)); delay(100)
+            assertTrue(entered.await(10, TimeUnit.SECONDS)); delay(100.milliseconds)
             assertFalse(task.isCompleted); assertEquals(2, roots.size); assertTrue(roots.all { File(it, "active").isFile })
         } finally { release.countDown() }
         assertEquals(GenerateJunkCodeOutcome.Failure("batch failure"), task.await())
