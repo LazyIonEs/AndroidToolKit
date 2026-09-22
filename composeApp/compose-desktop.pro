@@ -27,6 +27,9 @@
 -dontwarn kotlinx.coroutines.**
 
 -keep class androidx.compose.** { *; }
+# Plain -keep still permits method-body optimization. ProGuard 7.10.0 produces
+# invalid stack-map frames in Material3's InteractiveListItem without includecode.
+-keep,includecode class androidx.compose.material3.ListItemKt { *; }
 -keep enum org.jetbrains.nav_cupcake.** { *; }
 -keep class com.android.ddmlib.** { *; }
 -keep class org.lwjgl.** { *; }

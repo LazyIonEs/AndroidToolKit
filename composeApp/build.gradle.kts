@@ -180,7 +180,7 @@ compose.desktop {
 
         // ProGuard configuration for release builds
         buildTypes.release.proguard {
-            version.set("7.9.1")
+            version.set("7.10.0")
             obfuscate.set(true)
             optimize.set(true)
             joinOutputJars.set(true)

@@ -244,7 +244,11 @@ kotlin {
             implementation(libs.android.sdk.common)
             implementation(libs.google.guava)
             implementation(libs.android.binary.resources)
-            implementation(libs.android.apkanalyzer)
+            implementation(libs.android.apkanalyzer.get().copy()) {
+                // Apktool supplies its Smali fork under the same com.android.tools.smali packages.
+                // Keep that complete set; Google's artifacts duplicate classes in the release JAR.
+                exclude(group = "com.android.tools.smali")
+            }
             implementation(libs.android.zipflinger)
             implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
             implementation(libs.commons.codec)
