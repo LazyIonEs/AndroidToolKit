@@ -75,7 +75,7 @@ class JunkCodeViewModelTest {
             runCurrent(); f.vm.onIntent(RandomSuffix); f.vm.onIntent(RandomPrefix)
             assertEquals(listOf(3 to 8, 2 to 6), calls)
             assertEquals("random1", f.vm.uiState.value.single.suffix); assertEquals("random2_", f.vm.uiState.value.single.resPrefix)
-            assertEquals("junk_com_dev_junk_random1_TT2.2.0.aar", f.vm.uiState.value.single.aarName)
+            assertEquals("junk_com_dev_junk_random1_TT3.0.0.aar", f.vm.uiState.value.single.aarName)
             val single = f.vm.uiState.value.single
             f.vm.onIntent(ModeChanged(JunkMode.MULTI)); f.vm.onIntent(OutputDirChanged(" batch ")); f.vm.onIntent(ModeChanged(JunkMode.SINGLE)); runCurrent()
             assertEquals(single, f.vm.uiState.value.single); assertEquals(" batch ", f.vm.uiState.value.multi.outputDir)

@@ -1,1328 +1,252 @@
 package org.tool.kit.data.generator
 
-import org.tool.kit.utils.*
-
-import io.github.oshai.kotlinlogging.KotlinLogging
-import org.objectweb.asm.ClassWriter
-import org.objectweb.asm.Label
-import org.objectweb.asm.Opcodes
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
-import java.util.jar.JarEntry
-import java.util.jar.JarOutputStream
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.random.Random
 
-/**
- * @Author      : Shihwan
- * @CreateDate  : 2024/4/2 19:46
- * @Description : 垃圾代码生成
- * @Version     : 1.0
- */
-
-private val logger = KotlinLogging.logger("AndroidJunkGenerator")
-
-private const val ANDROID_SCHEMA = "http://schemas.android.com/apk/res/android"
-
-private val KEYWORDS = setOf( /*基本数据类型*/
-    "boolean",
-    "byte",
-    "char",
-    "short",
-    "int",
-    "long",
-    "float",
-    "double",
-    "String",  /*用于定义访问权限修饰符的关键字*/
-    "private",
-    "protected",
-    "public",  /*用于定义类、函数、变量修饰符的关键字*/
-    "abstract",
-    "final",
-    "static",
-    "synchronized",  /*用于定义类与类之间关系的关键字*/
-    "extends",
-    "implements",  /*用于定义类的类型*/
-    "class",
-    "interface",  /*用于定义建立实例及引用实例、判断实例的关键字*/
-    "new",
-    "this",
-    "super",
-    "instanceof",  /*用于异常处理的关键字*/
-    "try",
-    "catch",
-    "finally",
-    "throw",
-    "throws",  /*用于包的关键字*/
-    "package",
-    "import",  /*其他修饰符关键字*/
-    "native",
-    "strictfp",
-    "transient",
-    "volatile",
-    "assert",
-    "null",
-    "goto",
-    "void",
-    "const",
-    "continue",
-    "default",
-    "false",
-    "true",
-    "case",
-    "enum",
-    "for",
-    "else",
-    "do",
-    "if",
-    "while",
-    "return",
-    "break",
-    "switch"
-)
-
-private val XML_KEYWORDS = setOf("null")
-
-private val CHARACTER = "abcdefghijklmnopqrstuvwxyz".toCharArray()
-
-private val COLORS = "0123456789abcdef".toCharArray()
-
-private val VIEW_GROUPS = arrayOf(
-    "FrameLayout",
-    "LinearLayout",
-    "RelativeLayout",
-    "GridLayout"
-)
-
-private val VIEWS = arrayOf(
-    "Button",
-    "ImageButton",
-    "ImageView",
-    "ProgressBar",
-    "TextView",
-    "ViewFlipper",
-    "ListView",
-    "GridView",
-    "StackView",
-    "AdapterViewFlipper"
-)
-
-private val DRAWABLE_DIRS = arrayOf("drawable", "drawable-hdpi", "drawable-mdpi", "drawable-xhdpi", "drawable-xxhdpi", "drawable-xxxhdpi")
-private val MIPMAP_DIRS = arrayOf("mipmap", "mipmap-hdpi", "mipmap-mdpi", "mipmap-xhdpi", "mipmap-xxhdpi", "mipmap-xxxhdpi")
-
-/**
- * 在独占工作目录生成 Android 类、资源和清单，再封装为可引用的 AAR。
- * 每个实例保存自己的名称集合和资源索引，调用方负责隔离并发实例的工作根目录。
- */
+/** Plans deterministic Activity units, bounds optional resources, and publishes only complete AARs. */
 class AndroidJunkGenerator(
-    // 工作目录
-    dir: String,
-    // 输出保存的目录
+    private val dir: String,
     private val output: String,
-    // 包名
     private val appPackageName: String,
-    // 包数量
     private val packageCount: Int,
-    // 每个包里 activity 的数量
     private val activityCountPerPackage: Int,
-    // 资源前缀
-    private val resPrefix: String
+    private val resPrefix: String,
+    private val policy: JunkGenerationPolicy = JunkGenerationPolicy(),
+    private val checkCancelled: () -> Unit = {},
+    private val onProgress: (JunkGenerationProgress) -> Unit = {},
+    private val logReport: Boolean = true,
 ) {
-    private val workspace = File(dir, appPackageName.replace(".", ""))
+    var lastReport: JunkGenerationReport? = null; private set
 
-    private val classesDir = "classes"
+    fun startGenerate(): File {
+        validate()
+        checkCancelled()
+        val start = System.nanoTime()
+        val timings = linkedMapOf<String, Long>()
+        fun timed(name: String, block: () -> Unit) {
+            val before = System.nanoTime(); block(); timings[name] = (System.nanoTime() - before) / 1_000_000
+        }
+        val root = File(dir).apply { mkdirs() }
+        val workspace = Files.createTempDirectory(root.toPath(), "junk-").toFile()
+        try {
+            val token = java.lang.Long.toUnsignedString(policy.seedFor(0, 7), 36)
+            val namespace = policy.resourceNamespace ?: "$appPackageName.toolkitres$token"
+            require(packagePattern.matches(namespace)) { "Invalid resource namespace: $namespace" }
+            require(namespace != appPackageName) { "Resource namespace must differ from the code prefix; the host may already own its R class" }
+            val random = Random(policy.seedFor(0, 1))
+            val rootActivities = random.nextInt(activityCountPerPackage) + activityCountPerPackage / 2
+            val total = packageCount.toLong() * activityCountPerPackage + rootActivities
+            require(total in 1..policy.maxActivities.toLong()) { "Activity count $total exceeds configured safe range 1..${policy.maxActivities}" }
+            require(total * (1 + policy.maxAssociatedClasses) * policy.maxMethodsPerClass <= policy.maxMethods) {
+                "Requested worst-case method workload exceeds ${policy.maxMethods}; reduce Activities or the internal method/class ranges"
+            }
+            require(total * (1 + policy.maxAssociatedClasses) + 5 <= policy.maxClasses) { "Requested worst-case classes exceed ${policy.maxClasses}" }
+            val shared = List(random.nextInt(2, 6)) { "$appPackageName.generated$token.shared.Core$it".replace('.', '/') }
+            val packages = List(packageCount) { i ->
+                val depth = random.nextInt(1, 4)
+                appPackageName + "." + List(depth) { level -> "p${i.toString(36)}${level}_${random.nextInt(1_000_000).toString(36)}" }.joinToString(".")
+            }
+            val units = List(total.toInt()) { index ->
+                val pkg = if (index < packageCount.toLong() * activityCountPerPackage) packages[index / activityCountPerPackage] else appPackageName
+                JunkCodeUnit(index, "${pkg.replace('.', '/')}/A${token}_${index.toString(36)}Activity",
+                    "${resPrefix}layout_${token}_${index.toString(36)}", policy.seedFor(index, 2), shared)
+            }
+            val metrics = JunkCodeMetrics()
+            val classNames = java.util.concurrent.ConcurrentHashMap.newKeySet<String>()
+            fun writeClass(name: String, bytes: ByteArray, role: String) {
+                require(bytes.size <= policy.maxClassBytes) { "Class $name has ${bytes.size} bytes, limit ${policy.maxClassBytes}" }
+                check(classNames.add(name)) { "Duplicate generated class: $name" }
+                require(classNames.size <= policy.maxClasses) { "Class count exceeds ${policy.maxClasses}" }
+                metrics.add(bytes, role)
+                require(metrics.methods <= policy.maxMethods && metrics.fields <= policy.maxFields) { "Generated methods/fields exceed configured work budget" }
+                File(workspace, "classes/$name.class").apply { parentFile.mkdirs(); writeBytes(bytes) }
+            }
+            shared.forEachIndexed { i, name -> writeClass(name, JunkCodeComposer.sharedHelper(name, policy.seedFor(i, 3)), "sharedHelper") }
+            val customViews = arrayOfNulls<List<String>>(units.size)
+            var completedClasses = 0
+            val progressLock = Any()
+            timed("classes") {
+                parallelJunkWork(units.size, policy.maxParallelism) { index ->
+                    checkCancelled()
+                    try {
+                        val result = JunkCodeComposer.compose(units[index], namespace, policy)
+                        result.classes.forEach { (name, bytes) -> writeClass(name, bytes, result.roles[name] ?: "helper") }
+                        customViews[index] = result.customViews
+                        synchronized(progressLock) {
+                            completedClasses++
+                            if (completedClasses % 32 == 0 || completedClasses == units.size)
+                                onProgress(JunkGenerationProgress("classes", completedClasses, units.size))
+                        }
+                    } catch (error: Exception) {
+                        if (error is java.util.concurrent.CancellationException) throw error
+                        throw IllegalStateException("Activity unit $index (seed=${units[index].seed}): ${error.message}", error)
+                    }
+                }
+            }
+            val pool = JunkResourcePool(workspace, "${resPrefix}r${token}_", policy.resources)
+            val ids = sortedSetOf<String>()
+            val layoutFingerprints = mutableSetOf<String>()
+            val layoutTypes = sortedSetOf<String>()
+            val complexities = sortedMapOf<String, Int>()
+            val containers = mutableListOf<Int>(); val attributes = mutableListOf<Int>()
+            val nodes = mutableListOf<Int>(); val depths = mutableListOf<Int>(); val layoutSizes = mutableListOf<Int>()
+            var layoutBytes = 0L
+            timed("layoutsAndResources") {
+                // Deterministic publication order makes quotas and reuse independent of worker scheduling.
+                units.forEachIndexed { index, unit ->
+                    checkCancelled()
+                    val result = JunkLayoutComposer.compose(unit.layoutName, Random(policy.seedFor(index, 4)), pool, customViews[index].orEmpty(), policy)
+                    val bytes = result.xml.toByteArray(Charsets.UTF_8)
+                    check(bytes.size <= policy.maxLayoutBytes && result.nodes <= policy.maxLayoutNodes && result.depth <= policy.maxLayoutDepth) { "Layout ${unit.layoutName} exceeded limits: bytes=${bytes.size}, nodes=${result.nodes}, depth=${result.depth}" }
+                    File(workspace, "res/layout/${unit.layoutName}.xml").apply { parentFile.mkdirs(); writeBytes(bytes) }
+                    ids.addAll(result.ids); layoutFingerprints.add(result.fingerprint); layoutTypes.addAll(result.types.map { if ('.' in it) "generated.CustomView" else it })
+                    complexities[result.complexity] = (complexities[result.complexity] ?: 0) + 1
+                    containers.add(result.containers); attributes.add(result.attributes); nodes.add(result.nodes); depths.add(result.depth); layoutSizes.add(bytes.size); layoutBytes += bytes.size
+                    // Optional animations/assets have their own bounded request strategy; never grow per-package unbounded.
+                    val extras = Random(policy.seedFor(index, 5))
+                    if (extras.nextDouble() < 0.04) pool.request("anim", extras)
+                    if (extras.nextDouble() < 0.01) pool.request("assets", extras)
+                    if (index % 32 == 0 || index == units.lastIndex) onProgress(JunkGenerationProgress("layouts", index + 1, units.size))
+                }
+                pool.finish()
+            }
+            val symbols = pool.symbols().toMutableMap().apply {
+                put("layout", units.map { it.layoutName }.sorted()); put("id", ids.toList())
+            }
+            val activities = units.map { it.activityName.replace('/', '.') }
+            timed("metadata") {
+                File(workspace, "AndroidManifest.xml").writeText(buildString {
+                    append("<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\" package=\"$namespace\">\n")
+                    append("<uses-sdk android:minSdkVersion=\"21\"/><application>\n")
+                    activities.forEach { append("<activity android:name=\"$it\" android:exported=\"false\"/>\n") }
+                    append("</application></manifest>\n")
+                })
+                // proguard.txt is the consumer rule entry in the AAR specification. No host-wide wildcard.
+                File(workspace, "proguard.txt").bufferedWriter().use { writer ->
+                    classNames.sorted().forEach { writer.write("-keep class ${it.replace('/', '.')} { *; }\n") }
+                }
+                // Layouts have direct R references in kept Activities; XML tracks their resource dependencies.
+                // Do not add an unbudgeted raw keep resource (in particular when total budget is zero).
+                File(workspace, "R.txt").bufferedWriter().use { writer ->
+                    symbols.toSortedMap().filterKeys { it != "assets" }.forEach { (type, names) ->
+                        names.sorted().forEach { writer.write("int $type $it 0x0\n") }
+                    }
+                }
+                File(workspace, "toolkit-generation.json").writeText(jsonValue(linkedMapOf(
+                    "schema" to 1, "seed" to policy.seed, "codePackagePrefix" to appPackageName, "resourceNamespace" to namespace,
+                    "minSdk" to 21, "androidxFragmentRequired" to policy.enableFragments,
+                    "activityLayouts" to units.associate { it.activityName.replace('/', '.') to it.layoutName },
+                    "code" to metrics.snapshot(), "optionalResources" to pool.snapshot().generated)))
+            }
+            timed("classesJar") { zip(File(workspace, "classes"), File(workspace, "classes.jar")) }
+            val classJarBytes = File(workspace, "classes.jar").length()
+            val archiveName = "junk_${appPackageName.replace('.', '_')}_TT3.0.0.aar"
+            val staged = File(workspace, archiveName)
+            timed("aar") { zip(workspace, staged) { !it.startsWith("classes/") && it != archiveName } }
+            val resourceFiles = File(workspace, "res").walkTopDown().filter { it.isFile }.toList()
+            val optionalFiles = resourceFiles.filter { !it.relativeTo(workspace).invariantSeparatorsPath.startsWith("res/layout/") && !it.relativeTo(workspace).invariantSeparatorsPath.startsWith("res/raw/") }
+            val assets = File(workspace, "assets").walkTopDown().filter { it.isFile }.toList()
+            val compressed = sortedMapOf<String, Long>()
+            ZipFile(staged).use { z -> z.entries().asSequence().forEach { e ->
+                val kind = when { e.name == "classes.jar" -> "classesJar"; e.name.startsWith("res/layout/") -> "layouts"; e.name.startsWith("res/") -> "otherResources"; e.name.startsWith("assets/") -> "assets"; else -> "metadata" }
+                compressed[kind] = (compressed[kind] ?: 0) + e.compressedSize
+            } }
+            val resourceStats = pool.snapshot()
+            fun distribution(values: List<Int>) = linkedMapOf("min" to (values.minOrNull() ?: 0), "max" to (values.maxOrNull() ?: 0), "mean" to if (values.isEmpty()) 0.0 else values.average())
+            val report = JunkGenerationReport(linkedMapOf(
+                "schema" to 1, "seed" to policy.seed, "codePackagePrefix" to appPackageName, "resourceNamespace" to namespace,
+                "packageCount" to packageCount, "activitiesPerPackage" to activityCountPerPackage, "rootActivities" to rootActivities,
+                "activities" to units.size, "policy" to policy.snapshot(), "code" to metrics.snapshot(),
+                "layouts" to linkedMapOf("count" to units.size, "bytes" to layoutBytes, "nodes" to distribution(nodes), "containers" to distribution(containers), "attributes" to distribution(attributes), "depth" to distribution(depths), "fileBytes" to distribution(layoutSizes), "types" to layoutTypes, "complexity" to complexities, "uniqueStructures" to layoutFingerprints.size, "normalizedDuplicateRate" to 1.0 - layoutFingerprints.size.toDouble() / units.size),
+                "resources" to linkedMapOf("generated" to resourceStats.generated, "requests" to resourceStats.requests, "reused" to resourceStats.reused,
+                    "reuseRate" to if (resourceStats.requests.values.sum() == 0) 0.0 else resourceStats.reused.values.sum().toDouble() / resourceStats.requests.values.sum(),
+                    "optionalFiles" to optionalFiles.size, "optionalBytes" to optionalFiles.sumOf { it.length() }, "valuesEntries" to (resourceStats.generated["string"] ?: 0), "ids" to ids.size,
+                    "assets" to assets.size, "assetBytes" to assets.sumOf { it.length() }, "metadataResourceFiles" to 0),
+                "sizes" to linkedMapOf("aarBytes" to staged.length(), "classesJarBytes" to classJarBytes, "classBytes" to metrics.classBytes,
+                    "layoutBytes" to layoutBytes, "compressedEntryBytes" to compressed,
+                    "classShareOfClassAndResourceBytes" to metrics.classBytes.toDouble() / (metrics.classBytes + resourceFiles.sumOf { it.length() } + assets.sumOf { it.length() })),
+                "phasesMs" to timings, "totalMs" to (System.nanoTime() - start) / 1_000_000,
+                "runtime" to linkedMapOf("java" to System.getProperty("java.version"), "os" to System.getProperty("os.name"), "arch" to System.getProperty("os.arch"), "processors" to Runtime.getRuntime().availableProcessors()),
+                "dexOrApkMeasured" to false,
+                "warnings" to buildList { if (metrics.methods >= 60000 || metrics.fields >= 60000) add("DEX references exceed a single-dex planning threshold; verify host multidex and Release output") ; if (units.size >= 5000) add("Layouts still grow with Activities; validate AAPT2/host resource pressure") },
+            ))
+            val outputDir = File(output).apply { mkdirs() }
+            checkCancelled()
+            onProgress(JunkGenerationProgress("publish", 1, 1))
+            val destination = File(outputDir, archiveName)
+            // Atomic replacement requires staging on the destination filesystem, even when work root is elsewhere.
+            publishAll(listOf(staged to destination))
+            val completedReport = report.copy(values = report.values + ("totalMs" to (System.nanoTime() - start) / 1_000_000))
+            lastReport = completedReport
+            if (logReport) logJunkArchiveReport(destination, completedReport)
+            return destination
+        } finally {
+            check(workspace.deleteRecursively()) { "Cannot clean generator workspace: $workspace" }
+        }
+    }
 
-    // 并行生成共享名称索引；必须原子地添加并检测重复，普通 HashSet 不适用于此处。
-    private val mCheckActivityNames = ConcurrentHashMap.newKeySet<String>(1024)
-    private val mCheckClassName = ConcurrentHashMap.newKeySet<String>()
+    private fun validate() {
+        require(packagePattern.matches(appPackageName)) { "Invalid code package prefix: $appPackageName" }
+        require(resPrefix.isEmpty() || Regex("[a-z][a-z0-9_]*").matches(resPrefix)) { "Resource prefix must contain lowercase ASCII letters, digits or underscores" }
+        require(packageCount >= 0 && activityCountPerPackage > 0) { "Package count must be nonnegative and Activity count positive" }
+        require(packageCount.toLong() * activityCountPerPackage + activityCountPerPackage / 2 <= policy.maxActivities) { "Requested Activity scale exceeds ${policy.maxActivities}" }
+    }
 
-    private val mDrawableIds = ConcurrentHashMap.newKeySet<String>(4098)
-    private val mAnimIds = ConcurrentHashMap.newKeySet<String>(4098)
-    private val mMipmapIds = ConcurrentHashMap.newKeySet<String>(4098)
-    private val mLayoutIds = ConcurrentHashMap.newKeySet<String>(max(packageCount * activityCountPerPackage, 1024))
-    private val mStringIds = ConcurrentHashMap.newKeySet<String>(4098)
-    private val mIds = ConcurrentHashMap.newKeySet<String>(4098)
+    private fun zip(root: File, output: File, include: (String) -> Boolean = { true }) {
+        val entries = root.walkTopDown().filter { it.isFile && it != output }
+            .map { it.relativeTo(root).invariantSeparatorsPath to it }.filter { include(it.first) }.sortedBy { it.first }.toList()
+        ZipOutputStream(output.outputStream().buffered()).use { zip ->
+            entries.forEach { (name, file) ->
+                checkCancelled()
+                zip.putNextEntry(ZipEntry(name).apply { time = 0L })
+                file.inputStream().use { it.copyTo(zip) }; zip.closeEntry()
+            }
+        }
+    }
 
-    private val mActivities = ConcurrentHashMap.newKeySet<String>(max(packageCount * activityCountPerPackage, 1024))
-
-    private val mRClassType = getTypedName(appPackageName, "R")
+    private fun publishAll(files: List<Pair<File, File>>) {
+        val staged = mutableListOf<Pair<java.nio.file.Path, java.nio.file.Path>>()
+        val backups = mutableListOf<Pair<java.nio.file.Path, java.nio.file.Path>>()
+        val installed = mutableListOf<java.nio.file.Path>()
+        var committed = false
+        try {
+            files.forEach { (source, destination) ->
+                val temp = Files.createTempFile(destination.parentFile.toPath(), ".${destination.name}", ".part")
+                staged += temp to destination.toPath()
+                Files.copy(source.toPath(), temp, StandardCopyOption.REPLACE_EXISTING)
+            }
+            staged.forEach { (_, destination) ->
+                if (Files.exists(destination)) {
+                    require(Files.isRegularFile(destination)) { "Output is not a regular file: $destination" }
+                    val backup = Files.createTempFile(destination.parent, ".junk-backup-", ".part")
+                    Files.move(destination, backup, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+                    backups += backup to destination
+                }
+            }
+            staged.forEach { (source, destination) ->
+                Files.move(source, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+                installed.add(destination)
+            }
+            committed = true
+        } catch (error: Throwable) {
+            installed.forEach { Files.deleteIfExists(it) }
+            backups.asReversed().forEach { (backup, destination) ->
+                try { Files.move(backup, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING) }
+                catch (restore: Exception) { error.addSuppressed(restore) } // Preserve a backup if restoration itself fails.
+            }
+            throw error
+        } finally {
+            staged.forEach { Files.deleteIfExists(it.first) }
+            if (committed) backups.forEach { Files.deleteIfExists(it.first) }
+        }
+    }
 
     companion object {
-        const val ID_PROBABILITY = 0.03  // id 生成概率 3%
-        const val DRAWABLE_PROBABILITY = 0.2
-        const val STRING_PROBABILITY = 0.1
-        const val MIPMAP_PROBABILITY = 0.05
-        const val ANIM_PROBABILITY = 0.03
-        const val ASSET_PROBABILITY = 0.01
-        const val LIFECYCLE_PROBABILITY = 0.2
-    }
-
-    /**
-     * 按类、清单、资源索引和归档顺序生成 AAR，成功后清理工作目录并返回输出文件。
-     * 发生异常时交由外层工作区所有者清理，不把未完成归档报告为成功。
-     */
-    fun startGenerate(): File {
-        // 清理原工作目录中的文件
-        logger.info { "startGenerate 准备生成, 正在清理工作空间 工作空间目录: ${workspace.absolutePath}" }
-
-        workspace.deleteRecursively()
-        logger.info { "startGenerate 工作空间已就绪, 开始生成" }
-
-        val start = System.nanoTime()
-        generateClasses()
-        generateManifest()
-        logger.info { "startGenerate class 文件生成完成" }
-
-        generateStringsFile()
-        generateOtherResources()
-        generateKeepProguard()
-
-        writeRFile()
-        logger.info { "startGenerate 资源文件生成完成, 开始打包" }
-
-        // 正在打包
-        val outPath = assembleAar()
-        logger.info {
-            "startGenerate 打包完成, 输出文件路径: $outPath , 文件大小: ${
-                outPath.length().formatFileSize()
-            }"
-        }
-
-        val end = System.nanoTime()
-
-        val timeMills = (end - start) / 1_000_000
-        val s = timeMills / 1000
-        val ms = timeMills % 1000
-
-        logger.info { "startGenerate 生成结束, 用时: ${s}.${ms} 秒" }
-
-        workspace.deleteRecursively()
-
-        return outPath
-    }
-
-    /** 按包并行生成 Activity，再补充根包 Activity；所有工作线程结束后才返回。 */
-    private fun generateClasses() {
-        parallelJunkWork(packageCount) { _ ->
-            val packageName = generatePackageName()
-            // 生成Activity
-            (0 until activityCountPerPackage).forEach { _ ->
-                val packageName1 = "$appPackageName.$packageName"
-                val activityName = generateClassName(packageName1)
-                generateActivity(packageName1, activityName)
-            }
-        }
-
-        val rootClassCount: Int =
-            Random.nextInt(activityCountPerPackage) + (activityCountPerPackage shr 1)
-
-        parallelJunkWork(rootClassCount) { _ ->
-            val activityPreName: String = generateClassName(appPackageName)
-            generateActivity(appPackageName, activityPreName)
-        }
-    }
-
-    /** 生成 Activity、布局及所需辅助类，并登记清单和资源索引使用的名称。 */
-    private fun generateActivity(packageName: String, activityPreName: String) {
-        val className = activityPreName + "Activity"
-        mActivities.add("$packageName.$className")
-
-        // 保存当前类里面的所有方法名，防止重名
-
-        val methods = hashSetOf<String>()
-        methods.add("onCreate")
-
-        // 需要排除 activity 自带的方法名
-        fun nextMethod(): String {
-            while (true) {
-                val name = generateMethodName()
-                if (methods.add(name)) {
-                    return name
-                }
-
-                logger.info { "nextMethod exclude：$name" }
-            }
-        }
-
-        val layoutName = resPrefix + "layout_" + activityPreName.lowercase()
-        mLayoutIds.add(layoutName)
-
-        val selfType = getTypedName(packageName, className)
-
-        val strRes = resPrefix + generateResName()
-        if (Random.nextDouble() < STRING_PROBABILITY) {
-            mStringIds.add(strRes)
-        }
-
-        val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES or ClassWriter.COMPUTE_MAXS)
-        cw.visit(Opcodes.V1_6, Opcodes.ACC_PUBLIC, selfType, null, "android/app/Activity", null)
-
-        val ccm = cw.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null)
-        ccm.visitVarInsn(Opcodes.ALOAD, 0)
-        ccm.visitMethodInsn(Opcodes.INVOKESPECIAL, "android/app/Activity", "<init>", "()V", false)
-        ccm.visitInsn(Opcodes.RETURN)
-        ccm.visitMaxs(1, 1)
-        ccm.visitEnd()
-
-        // 生成无关类
-        repeat(Random.nextInt(1, 3)) {
-            val name = generateClassName(packageName)
-            val (_, m) = generateOtherClass(packageName, name)
-
-            val that = getTypedName(packageName, name)
-            val fieldName = name.lowercase()
-
-            val descriptor = "L$that;"
-
-            cw.visitField(Opcodes.ACC_PRIVATE, fieldName, descriptor, null, null).visitEnd()
-
-            val method = nextMethod()
-            val mv = cw.visitMethod(Opcodes.ACC_PUBLIC, method, "()V", null, null)
-            mv.visitCode()
-
-            // 初始化 & 随便调用一个方法
-            mv.visitVarInsn(Opcodes.ALOAD, 0)
-            mv.visitTypeInsn(Opcodes.NEW, that)
-            mv.visitInsn(Opcodes.DUP)
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, that, "<init>", "()V", false)
-
-            mv.visitFieldInsn(Opcodes.PUTFIELD, selfType, fieldName, descriptor)
-
-            val mSize = m.size
-            val callCnt = if (mSize <= 1) max(0, mSize) else Random.nextInt(1, mSize)
-
-            repeat(callCnt) {
-                mv.visitVarInsn(Opcodes.ALOAD, 0)
-                mv.visitFieldInsn(Opcodes.GETFIELD, selfType, fieldName, descriptor)
-                mv.visitMethodInsn(
-                    Opcodes.INVOKEVIRTUAL,
-                    that,
-                    m[it],
-                    "()Ljava/lang/String;",
-                    false
-                )
-                mv.visitInsn(Opcodes.POP)
-            }
-
-            mv.visitInsn(Opcodes.RETURN)
-            mv.visitMaxs(1, 1)
-            mv.visitEnd()
-
-        }
-
-        val otherClassName = generateClassName(packageName)
-        val (otherFields, otherMethods) = generateOtherClass(packageName, otherClassName)
-
-        // 生成onCreate 方法
-        val mv =
-            cw.visitMethod(Opcodes.ACC_PROTECTED, "onCreate", "(Landroid/os/Bundle;)V", null, null)
-        mv.visitCode()
-        mv.visitVarInsn(Opcodes.ALOAD, 0)
-        mv.visitVarInsn(Opcodes.ALOAD, 1)
-        mv.visitMethodInsn(
-            Opcodes.INVOKESPECIAL,
-            "android/app/Activity",
-            "onCreate",
-            "(Landroid/os/Bundle;)V",
-            false
-        )
-
-        // new 一个对象，并给其字段赋值
-        val otherType = getTypedName(packageName, otherClassName)
-        mv.visitTypeInsn(Opcodes.NEW, otherType)
-        mv.visitInsn(Opcodes.DUP)
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, otherType, "<init>", "()V", false)
-
-        mv.visitVarInsn(Opcodes.ASTORE, 2)
-        mv.visitVarInsn(Opcodes.ALOAD, 2)
-
-        otherFields.forEach { field ->
-            mv.visitVarInsn(Opcodes.ALOAD, 2)
-            mv.visitLdcInsn(generateBigValue())
-            mv.visitFieldInsn(Opcodes.PUTFIELD, otherType, field, "Ljava/lang/String;")
-        }
-
-        val callCnt = if (otherMethods.isEmpty()) 0 else Random.nextInt(otherMethods.size)
-        if (callCnt > 0) otherMethods.shuffled()
-
-        val otherOwner = getTypedName(packageName, otherClassName)
-
-        repeat(callCnt) {
-            val m = otherMethods[it]
-            mv.visitVarInsn(Opcodes.ALOAD, 2)
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, otherOwner, m, "()Ljava/lang/String;", false)
-            mv.visitInsn(Opcodes.POP)
-        }
-
-        val viewIds = generateLayout(layoutName)
-        mIds.addAll(viewIds)
-
-        // setContentView
-        mv.visitVarInsn(Opcodes.ALOAD, 0)
-        mv.visitFieldInsn(Opcodes.GETSTATIC, "$mRClassType\$layout", layoutName, "I")
-        mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, selfType, "setContentView", "(I)V", false)
-
-        // 初始化view
-        val initViews = viewIds.mapIndexed { index, viewId ->
-
-            val listener = "${className}${
-                viewId.take(1).uppercase()
-            }${viewId.substring(1)}OnClickListener"
-
-            // 使用 a - z  aa-zz的方法命名
-            val size = CHARACTER.size
-            val name = if (index < size) {
-                CHARACTER[index].toString()
-            } else if (index < size * size) {
-                val first = index / (size * size)
-                val second = index % (size * size)
-                "${CHARACTER[first]}${CHARACTER[second]}"
-            } else {
-                nextMethod()
-            }
-
-            // 处理点击事件
-            val cwi = ClassWriter(ClassWriter.COMPUTE_FRAMES)
-            cwi.visit(
-                Opcodes.V1_6,
-                Opcodes.ACC_MODULE,
-                getTypedName(packageName, listener),
-                null,
-                "java/lang/Object",
-                arrayOf("android/view/View\$OnClickListener")
-            )
-
-            cwi.visitField(
-                Opcodes.ACC_MODULE, generateResName(), "Landroid/view/View;", null, null
-            ).visitEnd()
-
-            val cc = cwi.visitMethod(Opcodes.ACC_PUBLIC, "<init>", "()V", null, null)
-            cc.visitVarInsn(Opcodes.ALOAD, 0)
-            cc.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/Object", "<init>", "()V", false)
-            cc.visitInsn(Opcodes.RETURN)
-            cc.visitMaxs(1, 1)
-            cc.visitEnd()
-
-            val onClick =
-                cwi.visitMethod(Opcodes.ACC_PUBLIC, "onClick", "(Landroid/view/View;)V", null, null)
-            onClick.visitCode()
-
-            onClick.visitIntInsn(Opcodes.ALOAD, 1)
-
-            when (Random.nextInt(3)) {
-                0 -> onClick.visitInsn(Opcodes.ICONST_0)
-                1 -> onClick.visitInsn(Opcodes.ICONST_4)
-                else -> onClick.visitIntInsn(Opcodes.BIPUSH, 8)
-            }
-
-            onClick.visitMethodInsn(
-                Opcodes.INVOKEVIRTUAL,
-                "android/view/View",
-                "setVisibility",
-                "(I)V",
-                true
-            )
-            onClick.visitInsn(Opcodes.RETURN)
-            onClick.visitMaxs(1, 1)
-            onClick.visitEnd()
-
-            cwi.visitEnd()
-
-            val bytes = cwi.toByteArray()
-            writeClassToFile(packageName, listener, bytes)
-
-            return@mapIndexed name
-        }
-
-        initViews.forEachIndexed { index, name ->
-            val viewId = viewIds[index]
-
-            val listener = "${className}${
-                viewId.take(1).uppercase()
-            }${viewId.substring(1)}OnClickListener"
-            val type = getTypedName(packageName, listener)
-
-            // 一个方法初始化一个view 方便生成
-            val method = cw.visitMethod(Opcodes.ACC_PRIVATE, name, "()V", null, null)
-            method.visitVarInsn(Opcodes.ALOAD, 0)
-//            // R.id.xx
-            method.visitFieldInsn(Opcodes.GETSTATIC, "$mRClassType\$id", viewId, "I")
-
-            method.visitMethodInsn(
-                Opcodes.INVOKEVIRTUAL,
-                selfType,
-                "findViewById",
-                "(I)Landroid/view/View;",
-                false
-            )
-            method.visitTypeInsn(Opcodes.NEW, type)
-            method.visitInsn(Opcodes.DUP)
-
-            method.visitMethodInsn(
-                Opcodes.INVOKESPECIAL, type, "<init>", "()V", false
-            )
-//            // invokevirtual android/view/View setOnClickListener (Landroid/view/View$OnClickListener;)V
-            method.visitMethodInsn(
-                Opcodes.INVOKEVIRTUAL,
-                "android/view/View",
-                "setOnClickListener",
-                "(Landroid/view/View\$OnClickListener;)V",
-                false
-            )
-
-            method.visitInsn(Opcodes.RETURN)
-            method.visitMaxs(1, 1)
-            method.visitEnd()
-        }
-
-        // 生成其他方法
-        val cnt = Random.nextInt(2, 15)
-        val others = (0 until cnt).map {
-            return@map nextMethod()
-        }
-
-        // 创建方法体
-        others.forEachIndexed { index, s ->
-            val method = cw.visitMethod(Opcodes.ACC_PRIVATE, s, "()V", null, null)
-            method.visitVarInsn(Opcodes.ALOAD, 0)
-
-            // 防止死循环
-            val fn = Random.nextInt(index, others.size)
-            if (fn == index) {
-                // 弹Toast
-                method.visitLdcInsn(generateBigValue())
-                method.visitInsn(Opcodes.ICONST_0)
-                method.visitMethodInsn(
-                    Opcodes.INVOKESTATIC,
-                    "android/widget/Toast",
-                    "makeText",
-                    "(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;",
-                    false
-                )
-
-                method.visitMethodInsn(
-                    Opcodes.INVOKEVIRTUAL,
-                    "android/widget/Toast",
-                    "show",
-                    "()V",
-                    false
-                )
-                method.visitInsn(Opcodes.RETURN)
-            } else {
-                val get = others[fn]
-                method.visitMethodInsn(Opcodes.INVOKEVIRTUAL, selfType, get, "()V", false)
-            }
-
-            method.visitInsn(Opcodes.RETURN)
-            method.visitMaxs(1, 1)
-            method.visitEnd()
-        }
-
-        val call = initViews + others.subList(0, Random.nextInt(max(1, others.size / 3)) + 1)
-
-        call.shuffled().forEach { name ->
-            mv.visitVarInsn(Opcodes.ALOAD, 0)
-            mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, selfType, name, "()V", false)
-        }
-
-        mv.visitInsn(Opcodes.RETURN)
-        mv.visitMaxs(1, 1)
-        mv.visitEnd()
-
-        // 随机生成其他生命周期方法，增加内部逻辑多样性
-        val lifecycleMethods = listOf("onStart", "onResume", "onPause", "onStop", "onDestroy")
-        
-        lifecycleMethods.forEach { methodName ->
-            // onResume 强制生成，其他看概率
-            if (Random.nextDouble() < LIFECYCLE_PROBABILITY || methodName == "onResume") {
-                val methodMv = cw.visitMethod(Opcodes.ACC_PROTECTED, methodName, "()V", null, null)
-                methodMv.visitCode()
-                methodMv.visitVarInsn(Opcodes.ALOAD, 0)
-                methodMv.visitMethodInsn(Opcodes.INVOKESPECIAL, "android/app/Activity", methodName, "()V", false)
-                
-                // 注入随机字节码逻辑
-                val snippetsCount = Random.nextInt(1, 4)
-                repeat(snippetsCount) {
-                    injectRandomBytecode(methodMv, className)
-                }
-
-                // 如果是 onResume，则额外注入资源引用
-                if (methodName == "onResume") {
-                    if (Random.nextDouble() < ASSET_PROBABILITY) {
-                        val assetFileName = resPrefix + generateResName() + ".txt"
-                        generateAsset(assetFileName)
-                        
-                        val l0 = Label()
-                        val l1 = Label()
-                        val l2 = Label()
-                        methodMv.visitTryCatchBlock(l0, l1, l2, "java/lang/Exception")
-                        methodMv.visitLabel(l0)
-                        methodMv.visitVarInsn(Opcodes.ALOAD, 0)
-                        methodMv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "android/app/Activity", "getAssets", "()Landroid/content/res/AssetManager;", false)
-                        methodMv.visitLdcInsn(assetFileName)
-                        methodMv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "android/content/res/AssetManager", "open", "(Ljava/lang/String;)Ljava/io/InputStream;", false)
-                        methodMv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "java/io/InputStream", "close", "()V", false)
-                        methodMv.visitLabel(l1)
-                        val l3 = Label()
-                        methodMv.visitJumpInsn(Opcodes.GOTO, l3)
-                        methodMv.visitLabel(l2)
-                        methodMv.visitVarInsn(Opcodes.ASTORE, 1)
-                        methodMv.visitLabel(l3)
-                    }
-
-                    if (Random.nextDouble() < ANIM_PROBABILITY) {
-                        val animName = resPrefix + generateResName()
-                        if (mAnimIds.add(animName)) {
-                            generateAnim(animName)
-                            methodMv.visitVarInsn(Opcodes.ALOAD, 0)
-                            methodMv.visitFieldInsn(Opcodes.GETSTATIC, "$mRClassType\$anim", animName, "I")
-                            methodMv.visitMethodInsn(Opcodes.INVOKESTATIC, "android/view/animation/AnimationUtils", "loadAnimation", "(Landroid/content/Context;I)Landroid/view/animation/Animation;", false)
-                            methodMv.visitInsn(Opcodes.POP)
-                        }
-                    }
-
-                    if (Random.nextDouble() < MIPMAP_PROBABILITY) {
-                        val mipmapName = resPrefix + generateResName()
-                        if (mMipmapIds.add(mipmapName)) {
-                            generateMipmap(mipmapName)
-                            methodMv.visitVarInsn(Opcodes.ALOAD, 0)
-                            methodMv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "android/app/Activity", "getResources", "()Landroid/content/res/Resources;", false)
-                            methodMv.visitFieldInsn(Opcodes.GETSTATIC, "$mRClassType\$mipmap", mipmapName, "I")
-                            methodMv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, "android/content/res/Resources", "getDrawable", "(I)Landroid/graphics/drawable/Drawable;", false)
-                            methodMv.visitInsn(Opcodes.POP)
-                        }
-                    }
-                }
-                
-                methodMv.visitInsn(Opcodes.RETURN)
-                methodMv.visitMaxs(5, 3)
-                methodMv.visitEnd()
-            }
-        }
-
-        cw.visitEnd()
-
-        val bytes = cw.toByteArray()
-
-        writeClassToFile(packageName, className, bytes)
-    }
-
-    /** 向当前 ASM 方法插入一段随机指令，名称和值由本生成器提供。 */
-    private fun injectRandomBytecode(mv: org.objectweb.asm.MethodVisitor, className: String) {
-        AndroidJunkBytecodeInject.injectRandomBytecode(mv, className, ::generateResName, ::generateBigValue)
-    }
-
-    /** 生成带随机属性的布局，返回具有 ID 的控件名称供 Activity 生成监听代码。 */
-    private fun generateLayout(layoutName: String): List<String> {
-        val drawableName = resPrefix + generateResName()
-        if (Random.nextDouble() < DRAWABLE_PROBABILITY && mDrawableIds.add(drawableName)) {
-            generateDrawable(drawableName)
-        }
-
-        val ids = mutableSetOf<String>()
-        val rnd = Random.nextInt(2, 18)
-        val rootGroup = VIEW_GROUPS[Random.nextInt(VIEW_GROUPS.size)]
-        val isLinear = rootGroup == "LinearLayout"
-
-        val root = """<?xml version="1.0" encoding="utf-8"?>
-            <$rootGroup xmlns:android="http://schemas.android.com/apk/res/android"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                ${if (isLinear) "android:orientation=\"vertical\"" else ""}>
-                
-        """.trimIndent()
-
-        val xml = StringBuilder(root)
-
-        val dimens = arrayOf("match_parent", "wrap_content", "dp")
-
-        fun getDimens(): String {
-            val d = dimens[Random.nextInt(dimens.size)]
-            val prefix = if (d == "dp") Random.nextInt(100).toString() else ""
-            return prefix + d
-        }
-
-        fun linear() =
-            if (Random.nextBoolean()) "android:orientation=\"vertical\"" else "android:orientation=\"horizontal\""
-
-        (0 until rnd).forEach { _ ->
-            val viewId = generateResName()
-            val hasId = if (Random.nextDouble() < ID_PROBABILITY) {
-                ids.add(viewId)
-            } else {
-                false
-            }
-
-            val widget = VIEWS[Random.nextInt(VIEWS.size)]
-            val extraAttrs = StringBuilder()
-            var hasBackground = false
-
-            if (Random.nextDouble() < MIPMAP_PROBABILITY) {
-                val mipmapName = resPrefix + generateResName()
-                if (mMipmapIds.add(mipmapName)) {
-                    generateMipmap(mipmapName)
-                    extraAttrs.append("\n                    android:background=\"@mipmap/$mipmapName\"")
-                    hasBackground = true
-                }
-            }
-
-            if (Random.nextDouble() < ANIM_PROBABILITY) {
-                val animName = resPrefix + generateResName()
-                if (mAnimIds.add(animName)) {
-                    generateAnim(animName)
-                    extraAttrs.append("\n                    android:layoutAnimation=\"@anim/$animName\"")
-                }
-            }
-
-            if (Random.nextDouble() < DRAWABLE_PROBABILITY) {
-                val dName = resPrefix + generateResName()
-                if (mDrawableIds.add(dName)) {
-                    generateDrawable(dName)
-                    if (widget.contains("Image")) {
-                        extraAttrs.append("\n                    android:src=\"@drawable/$dName\"")
-                    } else if (!hasBackground) {
-                        extraAttrs.append("\n                    android:background=\"@drawable/$dName\"")
-                        hasBackground = true
-                    }
-                }
-            }
-
-            if (Random.nextDouble() < STRING_PROBABILITY) {
-                val strRes = resPrefix + generateResName()
-                mStringIds.add(strRes)
-                if (widget.contains("Text") || widget.contains("Button")) {
-                    extraAttrs.append("\n                    android:text=\"@string/$strRes\"")
-                }
-            }
-
-            val tpl = """
-                <$widget
-                    ${if (hasId) "android:id=\"@+id/$viewId\"" else ""}   
-                    android:layout_width="${getDimens()}"
-                    ${if (widget == "LinearLayout") linear() else ""}
-                    android:layout_height="${getDimens()}"$extraAttrs />
-            """.trimIndent()
-
-            xml.append(tpl).append("\n")
-        }
-
-        xml.append("</$rootGroup>")
-
-        val file = File(workspace, "res/layout/$layoutName.xml")
-        writeStringToFile(file, xml.toString())
-
-        return ids.toList()
-    }
-
-    private fun generateOtherResources() {
-        val count = Random.nextInt(packageCount * 5, packageCount * 15)
-        parallelJunkWork(count) { _ ->
-            if (Random.nextDouble() < ANIM_PROBABILITY) {
-                val animName = resPrefix + generateResName()
-                if (mAnimIds.add(animName)) {
-                    generateAnim(animName)
-                }
-            }
-            if (Random.nextDouble() < MIPMAP_PROBABILITY) {
-                val mipmapName = resPrefix + generateResName()
-                if (mMipmapIds.add(mipmapName)) {
-                    generateMipmap(mipmapName)
-                }
-            }
-            if (Random.nextDouble() < ASSET_PROBABILITY) {
-                generateAsset()
-            }
-            if (Random.nextDouble() < DRAWABLE_PROBABILITY) {
-                val drawableName = resPrefix + generateResName()
-                if (mDrawableIds.add(drawableName)) {
-                    generateDrawable(drawableName)
-                }
-            }
-        }
-    }
-
-    private fun generateAnim(animName: String) {
-        val animTypes = arrayOf("alpha", "scale", "translate", "rotate", "set")
-        val root = animTypes[Random.nextInt(animTypes.size)]
-        
-        val content = java.lang.StringBuilder("""<?xml version="1.0" encoding="utf-8"?>""")
-        content.append("\n<").append(root).append(" xmlns:android=\"").append(ANDROID_SCHEMA).append("\"")
-        
-        fun generateAnimAttributes(): String {
-            val attrs = java.lang.StringBuilder()
-            attrs.append(" android:duration=\"").append(Random.nextInt(300, 2000)).append("\"")
-            if (Random.nextBoolean()) attrs.append(" android:fillAfter=\"").append(Random.nextBoolean()).append("\"")
-            if (Random.nextBoolean()) attrs.append(" android:repeatCount=\"").append(Random.nextInt(1, 10)).append("\"")
-            return attrs.toString()
-        }
-
-        fun generateChildAnim(type: String): String {
-            val child = java.lang.StringBuilder("\n    <").append(type).append(generateAnimAttributes())
-            when (type) {
-                "alpha" -> {
-                    child.append(" android:fromAlpha=\"").append(Random.nextDouble().toFloat()).append("\"")
-                    child.append(" android:toAlpha=\"").append(Random.nextDouble().toFloat()).append("\"")
-                }
-                "scale" -> {
-                    child.append(" android:fromXScale=\"").append(Random.nextDouble().toFloat()).append("\"")
-                    child.append(" android:toXScale=\"").append(Random.nextDouble().toFloat()).append("\"")
-                    child.append(" android:fromYScale=\"").append(Random.nextDouble().toFloat()).append("\"")
-                    child.append(" android:toYScale=\"").append(Random.nextDouble().toFloat()).append("\"")
-                    child.append(" android:pivotX=\"").append(Random.nextInt(0, 100)).append("%\"")
-                    child.append(" android:pivotY=\"").append(Random.nextInt(0, 100)).append("%\"")
-                }
-                "translate" -> {
-                    child.append(" android:fromXDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
-                    child.append(" android:toXDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
-                    child.append(" android:fromYDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
-                    child.append(" android:toYDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
-                }
-                "rotate" -> {
-                    child.append(" android:fromDegrees=\"").append(Random.nextInt(0, 360)).append("\"")
-                    child.append(" android:toDegrees=\"").append(Random.nextInt(0, 360)).append("\"")
-                    child.append(" android:pivotX=\"").append(Random.nextInt(0, 100)).append("%\"")
-                    child.append(" android:pivotY=\"").append(Random.nextInt(0, 100)).append("%\"")
-                }
-            }
-            child.append(" />")
-            return child.toString()
-        }
-
-        if (root == "set") {
-            content.append(generateAnimAttributes()).append(">\n")
-            val childCount = Random.nextInt(1, 4)
-            for (i in 0 until childCount) {
-                val childType = animTypes[Random.nextInt(animTypes.size - 1)]
-                content.append(generateChildAnim(childType))
-            }
-            content.append("\n</").append(root).append(">\n")
-        } else {
-            content.append(generateAnimAttributes())
-            when (root) {
-                "alpha" -> {
-                    content.append(" android:fromAlpha=\"").append(Random.nextDouble().toFloat()).append("\"")
-                    content.append(" android:toAlpha=\"").append(Random.nextDouble().toFloat()).append("\"")
-                }
-                "scale" -> {
-                    content.append(" android:fromXScale=\"").append(Random.nextDouble().toFloat()).append("\"")
-                    content.append(" android:toXScale=\"").append(Random.nextDouble().toFloat()).append("\"")
-                    content.append(" android:fromYScale=\"").append(Random.nextDouble().toFloat()).append("\"")
-                    content.append(" android:toYScale=\"").append(Random.nextDouble().toFloat()).append("\"")
-                    content.append(" android:pivotX=\"").append(Random.nextInt(0, 100)).append("%\"")
-                    content.append(" android:pivotY=\"").append(Random.nextInt(0, 100)).append("%\"")
-                }
-                "translate" -> {
-                    content.append(" android:fromXDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
-                    content.append(" android:toXDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
-                    content.append(" android:fromYDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
-                    content.append(" android:toYDelta=\"").append(Random.nextInt(-100, 100)).append("%\"")
-                }
-                "rotate" -> {
-                    content.append(" android:fromDegrees=\"").append(Random.nextInt(0, 360)).append("\"")
-                    content.append(" android:toDegrees=\"").append(Random.nextInt(0, 360)).append("\"")
-                    content.append(" android:pivotX=\"").append(Random.nextInt(0, 100)).append("%\"")
-                    content.append(" android:pivotY=\"").append(Random.nextInt(0, 100)).append("%\"")
-                }
-            }
-            content.append(" />\n")
-        }
-
-        val file = File(workspace, "res/anim/$animName.xml")
-        writeStringToFile(file, content.toString())
-    }
-
-    private fun generateAsset(fileName: String? = null) {
-        val assetTypes = arrayOf(".xml", ".yaml", ".json", ".config", ".txt")
-        val ext = assetTypes[Random.nextInt(assetTypes.size)]
-        val name = fileName ?: (resPrefix + generateResName() + ext)
-        
-        val content = java.lang.StringBuilder()
-        when (ext) {
-            ".json" -> {
-                content.append("{\n")
-                val keyCount = Random.nextInt(5, 20)
-                for (i in 0 until keyCount) {
-                    content.append("  \"").append(generateResName()).append("\": \"").append(generateBigValue(20)).append("\"")
-                    if (i < keyCount - 1) content.append(",\n") else content.append("\n")
-                }
-                content.append("}")
-            }
-            ".xml" -> {
-                content.append("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<root>\n")
-                val keyCount = Random.nextInt(5, 20)
-                for (i in 0 until keyCount) {
-                    val node = generateResName()
-                    content.append("  <").append(node).append(">").append(generateBigValue(20)).append("</").append(node).append(">\n")
-                }
-                content.append("</root>")
-            }
-            ".yaml", ".config" -> {
-                val keyCount = Random.nextInt(5, 20)
-                for (i in 0 until keyCount) {
-                    content.append(generateResName()).append(": ").append(generateBigValue(20)).append("\n")
-                }
-            }
-            else -> {
-                val lineCount = Random.nextInt(10, 50)
-                for (i in 0 until lineCount) {
-                    content.append(generateBigValue()).append("\n")
-                }
-            }
-        }
-        
-        val file = File(workspace, "assets/$name")
-        writeStringToFile(file, content.toString())
-    }
-
-    private fun generateVectorContent(): String {
-        val width = Random.nextInt(24, 200)
-        val height = Random.nextInt(24, 200)
-        val content = java.lang.StringBuilder(
-            """<vector xmlns:android="$ANDROID_SCHEMA"
-                    android:width="${width}dp"
-                    android:height="${height}dp"
-                    android:viewportWidth="${width}"
-                    android:viewportHeight="${height}">"""
-        )
-        val pathCount = Random.nextInt(1, 5)
-        for (p in 0 until pathCount) {
-            content.append("\n    <path android:fillColor=\"${generateColor()}\"")
-            if (Random.nextBoolean()) {
-                content.append(" android:strokeColor=\"${generateColor()}\" android:strokeWidth=\"${Random.nextInt(1, 5)}\"")
-            }
-            content.append(" android:pathData=\"M")
-            val pointCount = Random.nextInt(5, 20)
-            for (i in 0 until pointCount) {
-                if (Random.nextBoolean()) {
-                    content.append(" ").append(Random.nextInt(width)).append(",").append(Random.nextInt(height))
-                } else {
-                    content.append(" C ").append(Random.nextInt(width)).append(" ").append(Random.nextInt(height))
-                        .append(", ").append(Random.nextInt(width)).append(" ").append(Random.nextInt(height))
-                        .append(", ").append(Random.nextInt(width)).append(" ").append(Random.nextInt(height))
-                }
-                if (i != pointCount - 1) {
-                    content.append(" L ")
-                }
-            }
-            content.append(" Z\" />")
-        }
-        content.append("\n</vector>\n")
-        return content.toString()
-    }
-
-    private fun generateMipmap(mipmapName: String) {
-        val dirName = MIPMAP_DIRS[Random.nextInt(MIPMAP_DIRS.size)]
-        val file = File(workspace, "res/$dirName/$mipmapName.xml")
-        writeStringToFile(file, generateVectorContent())
-    }
-
-    private fun generateDrawable(drawableName: String) {
-        val dirName = DRAWABLE_DIRS[Random.nextInt(DRAWABLE_DIRS.size)]
-        val drawableFile = File(workspace, "res/$dirName/$drawableName.xml")
-        writeStringToFile(drawableFile, generateVectorContent())
-    }
-
-    private fun generateOtherClass(
-        packageName: String,
-        className: String
-    ): Pair<Set<String>, List<String>> {
-        val cw = ClassWriter(ClassWriter.COMPUTE_FRAMES)
-        val owner = getTypedName(packageName, className)
-
-        val acc = if (className.hashCode() and 1 == 0) Opcodes.ACC_PUBLIC else Opcodes.ACC_MODULE
-
-        cw.visit(Opcodes.V1_6, acc, owner, null, "java/lang/Object", null)
-
-
-        val fields = HashSet<String>(16)
-
-        val cnt = Random.nextInt(2, 16)
-
-        repeat(cnt) {
-            var field: String
-            do {
-                field = generateFieldName()
-            } while (!fields.add(field))
-            cw.visitField(Opcodes.ACC_MODULE, field, "Ljava/lang/String;", null, null).visitEnd()
-        }
-
-        val descriptor = arrayOf(
-            "()V", "()Ljava/lang/String;", "()I"
-        )
-
-        // 生成随机方法
-        val methods = HashSet<String>(16)
-
-        // 静态方法 0-3
-        val sMethodCnt = Random.nextInt(3)
-        repeat(sMethodCnt) {
-            var name: String
-            do {
-                name = generateMethodName()
-            } while (!methods.add(name))
-
-            val index = Random.nextInt(descriptor.size)
-            val des = descriptor[index]
-
-            val method = cw.visitMethod(
-                Opcodes.ACC_PUBLIC + Opcodes.ACC_STATIC, name, des, null, null
-            )
-
-            method.visitCode()
-            when (index) {
-                0 -> {
-                    // 调用log日志
-                    method.visitLdcInsn(className)
-                    method.visitLdcInsn(name)
-                    method.visitMethodInsn(
-                        Opcodes.INVOKESTATIC,
-                        "android/util/Log",
-                        "d",
-                        "(Ljava/lang/String;Ljava/lang/String;)I",
-                        false
-                    )
-                    method.visitInsn(Opcodes.POP)
-                    method.visitInsn(Opcodes.RETURN)
-                }
-
-                1 -> {
-                    // 返回一个随机字符串
-                    method.visitLdcInsn(generateBigValue())
-                    method.visitInsn(Opcodes.ARETURN)
-                }
-
-                2 -> {
-                    // 返回一个 hash
-                    method.visitLdcInsn(generateBigValue())
-                    method.visitMethodInsn(
-                        Opcodes.INVOKEVIRTUAL,
-                        "java/lang/String",
-                        "hashCode",
-                        "()I",
-                        false
-                    )
-                    method.visitInsn(Opcodes.IRETURN)
-                }
-
-                else -> {
-                    method.visitInsn(Opcodes.RETURN)
-                }
-            }
-
-            method.visitMaxs(1, 1)
-            method.visitEnd()
-        }
-
-        val listFields = fields.toList()
-        listFields.shuffled()
-
-        val size = listFields.size
-
-        val getMethods = arrayListOf<String>()
-
-        // 普通方法 0-5
-        val methodCnt = Random.nextInt(0, min(size, 5))
-        repeat(methodCnt) {
-            val field = listFields[it]
-            val name = "get" + field.take(1).uppercase() + field.substring(1)
-
-            getMethods.add(name)
-
-            val mv = cw.visitMethod(
-                Opcodes.ACC_PUBLIC, name, "()Ljava/lang/String;", null, null
-            )
-
-            mv.visitCode()
-            mv.visitVarInsn(Opcodes.ALOAD, 0)
-            mv.visitFieldInsn(Opcodes.GETFIELD, owner, field, "Ljava/lang/String;")
-
-            mv.visitInsn(Opcodes.ARETURN)
-            mv.visitMaxs(1, 1)
-            mv.visitEnd()
-        }
-
-
-        cw.visitEnd()
-
-        val bytes = cw.toByteArray()
-
-        writeClassToFile(packageName, className, bytes)
-
-        return (fields to getMethods)
-    }
-
-    /** 生成可作标识符的小写名称，排除 Java 和 XML 保留字。 */
-    private fun generatePackageName(): String {
-        val len = Random.nextInt(3, 10)
-
-        val chars = CharArray(len)
-
-        for (i in 0 until len) {
-            chars[i] = CHARACTER[Random.nextInt(CHARACTER.size)]
-        }
-
-        val name = chars.concatToString()
-        // 排除关键字
-        if (KEYWORDS.contains(name) || XML_KEYWORDS.contains(name)) {
-            logger.info { "generatePackageName 排除关键字 exclude：$name" }
-            return generatePackageName()
-        }
-
-        return name
-    }
-
-    /** 生成首字母大写的类名，并通过并发集合同时约束简单名和完整类名不重复。 */
-    private fun generateClassName(packageName: String): String {
-        val len = Random.nextInt(4, 12)
-        val chars = CharArray(len)
-        for (i in 0 until len) {
-            chars[i] = CHARACTER[Random.nextInt(CHARACTER.size)]
-        }
-
-        chars[0] = chars[0].uppercaseChar()
-
-        val name = chars.concatToString()
-        // 排除关键字和已经存在的名字
-        if (KEYWORDS.contains(name) || XML_KEYWORDS.contains(name) || !mCheckActivityNames.add(name) || !mCheckClassName.add(
-                "$packageName.$name"
-            )
-        ) {
-            logger.info { "generateClassName 排除关键字和已经存在的名字 exclude：$packageName.$name" }
-            return generateClassName(packageName)
-        }
-
-        return name
-    }
-
-    private fun generateResName(): String {
-        return generatePackageName()
-    }
-
-    private fun generateFieldName(): String {
-        return generatePackageName()
-    }
-
-    private fun generateMethodName(): String {
-        return generatePackageName()
-    }
-
-    private fun generateColor(): String {
-        val sb = java.lang.StringBuilder(7)
-        sb.append("#")
-        (0..5).forEach { _ ->
-            sb.append(COLORS[Random.nextInt(COLORS.size)])
-        }
-        return sb.toString()
-    }
-
-    private val BIG_VALUE_CHARS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKMNLOPQRSTUVWZYZ0123456789".toCharArray()
-
-    private fun generateBigValue(length: Int = Random.nextInt(10, 100)): String {
-        val sb = java.lang.StringBuilder(length)
-        (0 until length).forEach { _ ->
-            sb.append(BIG_VALUE_CHARS[Random.nextInt(BIG_VALUE_CHARS.size)])
-        }
-        return sb.toString()
-    }
-
-    /** 将点分隔的包名转换为 ASM 使用的斜杠类内部名称。 */
-    private fun getTypedName(packageName: String?, className: String): String {
-        val fullName = if (packageName.isNullOrEmpty()) className else "$packageName/$className"
-        return fullName.replace(".", "/")
-    }
-
-
-    /** 使用已收集的 Activity 集合写清单，应在并行类生成全部结束后调用。 */
-    private fun generateManifest() {
-        val manifestFile = File(workspace, "AndroidManifest.xml")
-        if (!manifestFile.parentFile.exists()) {
-            manifestFile.parentFile.mkdirs()
-        }
-
-        manifestFile.bufferedWriter().use { writer ->
-            writer.write("""<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="$appPackageName"> 
-        <application>
-        
-        """.trimIndent())
-            
-            mActivities.forEach { activity ->
-                writer.write("<activity android:name=\"$activity\" />\n")
-            }
-            
-            writer.write("""
-       </application>
-    </manifest>
-        """.trimIndent())
-        }
-    }
-
-    /** 把类和布局生成期间登记的字符串资源写入 values/strings.xml。 */
-    private fun generateStringsFile() {
-        val res = File(workspace, "res/values/strings.xml")
-        if (!res.parentFile.exists()) {
-            res.parentFile.mkdirs()
-        }
-
-        res.bufferedWriter().use { writer ->
-            writer.write("""<?xml version="1.0" encoding="utf-8"?>
-            <resources>
-                """.trimIndent())
-            writer.newLine()
-            mStringIds.forEach { 
-                writer.write("<string name=\"$it\">${generateBigValue()}</string>\n")
-            }
-            writer.write("            </resources>")
-        }
-    }
-
-    /** 生成类保留规则及按资源前缀匹配的 tools:keep，防止引用方裁剪生成内容。 */
-    private fun generateKeepProguard() {
-
-        // 生成混淆保持文件
-        val proguard = "-keep class ${appPackageName}.**{*;}"
-        writeStringToFile(File(workspace, "consumer-rules.pro"), proguard)
-
-        val prefix: String = resPrefix
-
-        if (prefix.isEmpty()) {
-            return
-        }
-
-        val keep = "@layout/$prefix*,@drawable/$prefix*,@string/$prefix*,@anim/$prefix*,@mipmap/$prefix*"
-
-        val content = """<?xml version="1.0" encoding="utf-8"?>
-        <resources xmlns:tools="http://schemas.android.com/tools"
-        tools:keep="$keep"
-        tools:shrinkMode="strict"/>""".trimIndent()
-        val rnd = generateMethodName()
-        writeStringToFile(File(workspace, "res/raw/" + prefix + rnd + "_keep.xml"), content)
-    }
-
-    /** 把各资源集合写为 AAR 的 R.txt 符号表，具体资源 ID 留给引用方构建时分配。 */
-    private fun writeRFile() {
-        val file = File(workspace, "R.txt")
-        if (!file.parentFile.exists()) {
-            file.parentFile.mkdirs()
-        }
-
-        file.bufferedWriter().use { writer ->
-            mStringIds.forEach { writer.write("int string $it 0x0\n") }
-            writer.newLine()
-            mLayoutIds.forEach { writer.write("int layout $it 0x0\n") }
-            writer.newLine()
-            mDrawableIds.forEach { writer.write("int drawable $it 0x0\n") }
-            writer.newLine()
-            mAnimIds.forEach { writer.write("int anim $it 0x0\n") }
-            writer.newLine()
-            mMipmapIds.forEach { writer.write("int mipmap $it 0x0\n") }
-            writer.newLine()
-            mIds.forEach { writer.write("int id $it 0x0\n") }
-        }
-
-        logger.info { "strings 文件数量: ${mStringIds.size}" }
-        logger.info { "layouts 文件数量: ${mLayoutIds.size}" }
-        logger.info { "drawables 文件数量: ${mDrawableIds.size}" }
-        logger.info { "anims 文件数量: ${mAnimIds.size}" }
-        logger.info { "mipmaps 文件数量: ${mMipmapIds.size}" }
-        logger.info { "ids 大小: ${mIds.size}" }
-    }
-
-    /** 先把 class 文件封装成 classes.jar，再连同清单、资源和规则打包为 AAR。 */
-    private fun assembleAar(): File {
-        // 将 class 打包成jar
-        val classJar = File(workspace, "classes.jar")
-        val dir = File(workspace, classesDir)
-
-        classJar.outputStream().buffered().use { fos ->
-            val jos = JarOutputStream(fos)
-
-            dir.listFiles()?.forEach { file ->
-                addFileToJar(file, "", jos)
-            }
-
-            jos.finish()
-        }
-
-        // 删除 class 目录
-        // dir.deleteRecursively()
-
-        // 打包aar
-        val out = File(output, "junk_" + appPackageName.replace(".", "_") + "_TT2.2.0.aar")
-        val parent = out.parentFile
-        if (!parent.exists()) {
-            parent.mkdirs()
-        }
-
-        out.outputStream().buffered().use { fos ->
-            val zos = ZipOutputStream(fos)
-            // 原始 class 目录已经打进 classes.jar，外层 AAR 排除它以避免重复保存。
-            workspace.listFiles { _, name -> name != classesDir }
-                ?.forEach { file -> addFileToZip(file, "", zos) }
-
-            zos.finish()
-        }
-
-        return out
-    }
-
-    /** 递归添加 class 目录内容，用斜杠构造与操作系统无关的归档路径。 */
-    private fun addFileToJar(file: File, node: String, jos: JarOutputStream) {
-        if (file.isDirectory) {
-            file.listFiles()?.forEach { f ->
-                addFileToJar(f, node + file.name + "/", jos)
-            }
-        } else {
-            val entry = JarEntry(node + file.name)
-            copyEntry(entry, file, jos)
-        }
-    }
-
-    /** 递归添加资源文件，归档项名称保持相对工作目录的层级。 */
-    private fun addFileToZip(file: File, node: String, zos: ZipOutputStream) {
-        if (file.isDirectory) {
-            file.listFiles()?.forEach { f ->
-                addFileToZip(f, node + file.name + "/", zos)
-            }
-        } else {
-            val entry = ZipEntry(node + file.name)
-            copyEntry(entry, file, zos)
-        }
-    }
-
-    /** 流式复制单个归档项并关闭该项；外层输出流由归档过程统一管理。 */
-    private fun copyEntry(entry: ZipEntry, file: File, zos: ZipOutputStream) {
-        zos.putNextEntry(entry)
-        file.inputStream().use { fis ->
-            fis.copyTo(zos)
-        }
-        zos.closeEntry()
-    }
-
-    /** 创建父目录并写入文本；文本写入异常转为 false，由调用方决定如何处理。 */
-    private fun writeStringToFile(file: File, content: String): Boolean {
-        if (!file.parentFile.exists()) {
-            file.parentFile.mkdirs()
-        }
-
-        return runCatching {
-            file.writeText(content)
-        }.isSuccess
-    }
-
-    /** 按 Java 包名创建 classes 下的目录，并写入 ASM 生成的类字节。 */
-    private fun writeClassToFile(packageName: String, className: String, bytes: ByteArray) {
-        val dir = File(workspace, classesDir)
-        val parent = File(dir, packageName.replace(".", "/"))
-        val file = File(parent, "$className.class")
-
-        if (!parent.exists()) {
-            parent.mkdirs()
-        }
-
-        file.writeBytes(bytes)
+        private val packagePattern = Regex("[a-zA-Z_][a-zA-Z0-9_]*(\\.[a-zA-Z_][a-zA-Z0-9_]*)+")
     }
 }
-

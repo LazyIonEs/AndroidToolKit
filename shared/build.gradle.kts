@@ -268,6 +268,7 @@ kotlin {
             implementation(libs.multiplatform.settings.test)
         }
         jvmTest.dependencies {
+            implementation("org.ow2.asm:asm-util:${libs.versions.asm.get()}")
             implementation(libs.kotlin.test.junit)
             implementation(libs.junit)
             implementation(libs.compose.ui.test)
@@ -385,4 +386,18 @@ tasks.withType<Test>().configureEach {
     systemProperty("test.fixtureRoot", layout.buildDirectory.dir("test-fixtures").get().asFile.absolutePath)
     systemProperty("user.language", "zh")
     systemProperty("user.country", "CN")
+}
+
+// Reproducible AAR generation without changing desktop input fields.
+tasks.register<JavaExec>("generateValidationAar") {
+    group = "verification"
+    dependsOn("jvmMainClasses")
+    classpath(kotlin.targets["jvm"].compilations["main"].output.allOutputs, configurations["jvmRuntimeClasspath"])
+    mainClass.set("org.tool.kit.data.generator.JunkValidationCli")
+    maxHeapSize = "3g"
+    doFirst {
+        args(rootProject.file(providers.gradleProperty("junkOutput").getOrElse(layout.buildDirectory.dir("aar-validation/small").get().asFile.path)).absolutePath,
+            providers.gradleProperty("junkPackages").getOrElse("12"), providers.gradleProperty("junkActivities").getOrElse("1"),
+            providers.gradleProperty("junkSeed").getOrElse("20260922"), providers.gradleProperty("junkAars").getOrElse("1"))
+    }
 }

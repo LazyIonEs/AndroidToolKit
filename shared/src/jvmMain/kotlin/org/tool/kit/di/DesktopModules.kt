@@ -28,7 +28,13 @@ private fun desktopDataModule() = module {
     single<org.tool.kit.data.source.PreferencesStorage> { get<org.tool.kit.data.source.PreferencesDataSource>() }
     single<org.tool.kit.domain.repository.BuildCachesRepository> { org.tool.kit.data.source.JvmBuildCachesDataSource(get<AppDispatchers>().io) }
     single<org.tool.kit.domain.repository.JunkCodeRepository> { org.tool.kit.data.source.JvmJunkCodeDataSource(java.io.File(System.getProperty("java.io.tmpdir")), get<AppDispatchers>().io) }
-    single<org.tool.kit.domain.repository.JunkSizeEstimator> { org.tool.kit.domain.repository.JunkSizeEstimator(org.tool.kit.data.generator.JunkSizePredictor::estimateAarSize) }
+    single<org.tool.kit.domain.repository.JunkSizeEstimator> { object : org.tool.kit.domain.repository.JunkSizeEstimator {
+        override fun bytes(packageCount: Int, activityCount: Int) = org.tool.kit.data.generator.JunkSizePredictor.estimateAarSize(packageCount, activityCount)
+        override fun range(packageCount: Int, activityCount: Int): org.tool.kit.domain.junk.JunkSizeEstimate {
+            val estimate = org.tool.kit.data.generator.JunkSizePredictor.estimate(packageCount, activityCount)
+            return org.tool.kit.domain.junk.JunkSizeEstimate(estimate.minimumBytes, estimate.maximumBytes)
+        }
+    } }
     single<org.tool.kit.domain.repository.JunkTokenGenerator> { org.tool.kit.domain.repository.JunkTokenGenerator({ min, max -> org.tool.kit.utils.generateSecureToken(min, max) }) }
     single<org.tool.kit.domain.repository.ImageProcessor> { org.tool.kit.data.source.JvmImageProcessor(get<AppDispatchers>().io) }
     single<org.tool.kit.domain.repository.IconOutputs> { org.tool.kit.data.source.JvmIconOutputs(get<AppDispatchers>().io) }

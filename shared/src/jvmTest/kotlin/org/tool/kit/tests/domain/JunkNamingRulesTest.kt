@@ -15,18 +15,18 @@ class JunkNamingRulesTest {
         val packages = listOf("com.example" to "com_example", "" to "", " .中文.name. " to " _中文_name_ ", "unchanged" to "unchanged")
         for ((value, fileStem) in packages) {
             form = JunkFormReducer.single(form, PackageNameChanged(value))
-            assertEquals("junk_${fileStem}_${form.suffix}_TT2.2.0.aar", form.aarName)
+            assertEquals("junk_${fileStem}_${form.suffix}_TT3.0.0.aar", form.aarName)
             assertEquals(value, form.packageName)
             for (suffix in listOf("plugin", "a.b", "", " suffix ")) {
                 form = JunkFormReducer.single(form, SuffixChanged(suffix))
-                assertEquals("junk_${fileStem}_${suffix}_TT2.2.0.aar", form.aarName)
+                assertEquals("junk_${fileStem}_${suffix}_TT3.0.0.aar", form.aarName)
                 assertEquals(suffix, form.suffix)
             }
         }
         val state = JunkCodeUiState("out", JunkMode.SINGLE, single = SingleJunkForm(packageName = "com.example", suffix = "a.b"))
         assertEquals("com.example.a.b", assertIs<JunkConfiguration.Single>(state.configuration()).appPackageName)
         val display = JunkFormReducer.single(state.single, SuffixChanged("a.b")).aarName
-        assertEquals("junk_com_example_a.b_TT2.2.0.aar", display) // Real generator flattens the suffix's dot as well.
+        assertEquals("junk_com_example_a.b_TT3.0.0.aar", display) // Real generator flattens the suffix's dot as well.
     }
 
     @Test fun everyRawFieldAndOverflowFallbackArePreserved() {
@@ -51,7 +51,7 @@ class JunkNamingRulesTest {
                 val state = JunkCodeUiState("out", JunkMode.SINGLE, SingleJunkForm(packageCount = packages, activityCountPerPackage = activities),
                     MultiJunkForm(aarCount = count, leastPackageCount = packages, maximumPackageCount = "7", leastActivityCountPerPackage = activities, maximumActivityCountPerPackage = "9"))
                 val minimum = JunkSizePredictor.estimateAarSize(packages.toIntOrNull() ?: 0, activities.toIntOrNull() ?: 0)
-                val maximum = JunkSizePredictor.estimateAarSize(7, 9)
+                val maximum = JunkSizePredictor.estimateAarSize(maxOf(7, packages.toIntOrNull() ?: 0), 9)
                 assertEquals(JunkSizeEstimate(minimum), estimate(state.configuration()))
                 val range = 0 until (count.toIntOrNull() ?: 0)
                 assertEquals(JunkSizeEstimate(range.sumOf { minimum }, range.sumOf { maximum }),

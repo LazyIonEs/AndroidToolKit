@@ -1,99 +1,36 @@
 package org.tool.kit.data.generator
 
-import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.ANIM_PROBABILITY
-import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.ASSET_PROBABILITY
-import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.DRAWABLE_PROBABILITY
-import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.ID_PROBABILITY
-import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.MIPMAP_PROBABILITY
-import org.tool.kit.data.generator.AndroidJunkGenerator.Companion.STRING_PROBABILITY
-
-/** 按生成概率和平均类、资源体积计算经验估计，结果用于 UI 提示而非实际磁盘配额。 */
+/** Empirical compressed-size model; a preview, never an Android resource or archive safety limit. */
 object JunkSizePredictor {
+    data class Estimate(
+        val aarBytes: Long, val minimumBytes: Long, val maximumBytes: Long,
+        val classesJarBytes: Long, val layoutBytes: Long, val otherResourceBytes: Long,
+        val expectedActivities: Double,
+    )
 
-    // 布局 View 数量: Random.nextInt(2, 18) -> 平均 9.5
-    private const val AVG_VIEWS_PER_LAYOUT = 9.5
+    fun estimateAarSize(packageCount: Int, activityCountPerPackage: Int): Long =
+        estimate(packageCount, activityCountPerPackage).aarBytes
 
-    // 额外类数量:
-    // 1. 内部循环 repeat(Random.nextInt(1, 3)) -> 平均 1.5 个
-    // 2. onCreate 中 new 一个 -> 1 个
-    // 总计 2.5 个
-    private const val AVG_OTHER_CLASSES = 2.5
-
-    /**
-     * 估算生成的 AAR 大小
-     * @param packageCount 包数量
-     * @param activityCountPerPackage 每个包 Activity 数量
-     * @return 估算的字节数 (Bytes)
-     */
-    fun estimateAarSize(packageCount: Int, activityCountPerPackage: Int): Long {
-        val totalActivities = calculateTotalActivities(packageCount, activityCountPerPackage)
-        val bytesPerActivityUnit = calculateUnitSize()
-
-        // generateOtherResources 会为每个 Package 额外生成大量各种各样的资源
-        // 数量: Random.nextInt(packageCount * 5, packageCount * 15) -> 平均 packageCount * 10
-        // 这些资源包括 Asset, Anim, Mipmap, Drawable
-        val extraResourcesOverhead = packageCount * 10 * (
-                (ASSET_PROBABILITY * 750.0) +
-                        (ANIM_PROBABILITY * 260.0) +
-                        (MIPMAP_PROBABILITY * 260.0) +
-                        (DRAWABLE_PROBABILITY * 260.0)
-        )
-
-        // 基础开销：Jar 头, Manifest 头, R.txt 头, Proguard 文件, 少量 keep xml
-        // 估算为 5KB (压缩后)
-        val baseOverhead = 5120L
-
-        return baseOverhead + (totalActivities * bytesPerActivityUnit).toLong() + extraResourcesOverhead.toLong()
-    }
-
-    /** 估算各子包和根包合计的 Activity 数量，根包使用随机分布的近似平均值。 */
-    private fun calculateTotalActivities(packageCount: Int, activityCountPerPackage: Int): Long {
-        // 源码逻辑：rootClassCount = Random.nextInt(cnt) + (cnt / 2)
-        // 范围 [cnt/2, 1.5*cnt]. 平均 ≈ cnt (即 activityCountPerPackage)
-        val avgRootActivities = activityCountPerPackage
-        return (packageCount * activityCountPerPackage).toLong() + avgRootActivities
-    }
-
-    /** 合计一个 Activity 及其平均附属类、资源和元数据的压缩后体积。 */
-    private fun calculateUnitSize(): Double {
-        // --- 详细拆解 (基于压缩后的体积估算) ---
-        // 1. Class 文件 (Bytes)
-        // Activity Class (主类) - 包含 5 大生命周期方法，随机注入近 300 种庞大的字节码 Snippets
-        val activityClassSize = 2650.0
-
-        // Other Class - 字段 + getter + static methods
-        // 平均 2.5 个类
-        val otherClassSize = 600.0
-
-        // Listener Class - 仅在 view 有 ID 时生成 (根据 idProbability)
-        val avgListeners = AVG_VIEWS_PER_LAYOUT * ID_PROBABILITY // 9.5 * 0.03 = 0.285
-        val listenerClassSize = 200.0 // 匿名内部类/实现类通常很小
-
-        val totalClassSize = activityClassSize +
-                (AVG_OTHER_CLASSES * otherClassSize) +
-                (avgListeners * listenerClassSize)
-
-        // 2. 资源文件 (Bytes)
-        // Layout XML: 包含各种 layoutAnimation, mipmap, drawable 等复杂注入属性
-        val layoutXmlSize = 780.0
-
-        // Vector Drawable / Mipmap (0.3 概率) -> 包含多 path 和 贝塞尔曲线
-        val drawableSize = 300.0
-
-        // String (0.3 概率, entries in strings.xml)
-        val stringEntrySize = 50.0
-
-        val totalResSize = layoutXmlSize +
-                (drawableSize * DRAWABLE_PROBABILITY) +
-                (stringEntrySize * STRING_PROBABILITY)
-
-        // 3. 配置与元数据增量
-        // Manifest entry (<activity.../>) + R.txt entries (layout, string, drawable, ids)
-        val manifestEntry = 65.0
-        val rTextEntries = 30.0
-
-        val configOverhead = manifestEntry + rTextEntries
-
-        return totalClassSize + totalResSize + configOverhead
+    fun estimate(packageCount: Int, activityCountPerPackage: Int, policy: JunkGenerationPolicy = JunkGenerationPolicy(seed = 0)): Estimate {
+        if (packageCount < 0 || activityCountPerPackage <= 0) return Estimate(0, 0, 0, 0, 0, 0, 0.0)
+        val activities = packageCount.toDouble() * activityCountPerPackage + activityCountPerPackage / 2 + (activityCountPerPackage - 1) / 2.0
+        val helpers = (policy.minAssociatedClasses + policy.maxAssociatedClasses) / 2.0
+        val methods = (policy.minMethodsPerClass + policy.maxMethodsPerClass) / 2.0
+        // Calibrated at seed 20260922: 12/200 Activities, classes.jar 239817/3818481 bytes.
+        // Coefficients are empirical; the range intentionally covers role/complexity variation.
+        val operationScale = 0.55 + 0.45 * policy.maxMethodOperations.coerceAtMost(48) / 24.0
+        val classJar = activities * (1 + helpers) * (340.0 + methods * 130.0 * operationScale) + 4000
+        // Simple/medium/complex trees have different node/attribute densities; XML is separately measured.
+        val meanNodes = minOf(policy.maxLayoutNodes.toDouble(), (10.0 + 28.0 + 54.0) / 3.0)
+        val layoutRaw = activities * minOf(200 + meanNodes * 420, policy.maxLayoutBytes * 0.8)
+        val caps = policy.resources
+        val extraEntries = minOf(caps.total.toDouble(), activities * meanNodes * caps.newResourceProbability * 0.25,
+            (caps.drawable.toLong() + caps.mipmap + caps.anim + caps.string + caps.assets).toDouble())
+        val extrasRaw = extraEntries * 350
+        // Outer AAR deflates classes.jar again. Metadata grows with both classes and Activities.
+        val aar = classJar * 0.90 + layoutRaw * 0.11 + extrasRaw * 0.55 + activities * (260 + helpers * 36) + 2500
+        // One Activity can draw any role/size combination; aggregate samples have less sampling spread.
+        val spread = 0.35 + 0.35 / kotlin.math.sqrt(activities.coerceAtLeast(1.0))
+        return Estimate(aar.toLong(), (aar * (1 - spread)).toLong(), (aar * (1 + spread)).toLong(), classJar.toLong(), layoutRaw.toLong(), extrasRaw.toLong(), activities)
     }
 }

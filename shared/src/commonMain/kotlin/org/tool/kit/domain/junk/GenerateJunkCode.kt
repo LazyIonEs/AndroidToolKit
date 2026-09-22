@@ -7,7 +7,7 @@ sealed interface JunkConfiguration {
         val leastActivities: Int, val maximumActivities: Int) : JunkConfiguration
 }
 
-data class GenerateJunkCodeRequest(val outputPath: String, val configuration: JunkConfiguration)
+data class GenerateJunkCodeRequest(val outputPath: String, val configuration: JunkConfiguration, val seed: Long? = null)
 data class GeneratedJunkCode(val outputPath: String, val archivePaths: List<String>, val totalBytes: Long)
 sealed interface GenerateJunkCodeOutcome {
     data class Success(val result: GeneratedJunkCode) : GenerateJunkCodeOutcome

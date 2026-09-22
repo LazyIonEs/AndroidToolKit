@@ -4,7 +4,7 @@ import org.tool.kit.domain.junk.*
 import org.tool.kit.model.JunkMode
 
 data class SingleJunkForm(
-    val aarName: String = "junk_com_dev_junk_plugin_TT2.2.0.aar",
+    val aarName: String = "junk_com_dev_junk_plugin_TT3.0.0.aar",
     val packageName: String = "com.dev.junk",
     val suffix: String = "plugin",
     val packageCount: String = "50",
@@ -16,9 +16,9 @@ data class MultiJunkForm(
     val outputDir: String = "junk",
     val aarCount: String = "50",
     val leastPackageCount: String = "5",
-    val maximumPackageCount: String = "20",
+    val maximumPackageCount: String = "10",
     val leastActivityCountPerPackage: String = "5",
-    val maximumActivityCountPerPackage: String = "20",
+    val maximumActivityCountPerPackage: String = "10",
 )
 
 data class JunkCodeUiState(
@@ -73,7 +73,7 @@ object JunkFormReducer {
         is JunkCodeIntent.MaximumActivitiesChanged -> form.copy(maximumActivityCountPerPackage = intent.value)
         else -> form
     }
-    private fun displayName(packageName: String, suffix: String) = "junk_${packageName.replace('.', '_')}_${suffix}_TT2.2.0.aar"
+    private fun displayName(packageName: String, suffix: String) = "junk_${packageName.replace('.', '_')}_${suffix}_TT3.0.0.aar"
 }
 
 /** 仅将当前模式草稿转换为提交配置；无法转为整数的输入按 0 处理。 */

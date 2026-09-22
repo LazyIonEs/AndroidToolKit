@@ -61,7 +61,7 @@ class JunkGenerationTest {
         val sentinel = work.resolve("comfixturejunk").apply { mkdirs(); resolve("keep").writeText("keep") }
         val source = JvmJunkCodeDataSource(work, Dispatchers.IO, Random(7))
         val single = source.generate(GenerateJunkCodeRequest(output.path, JunkConfiguration.Single("com.fixture.junk.part", 1, 1, "fixture_")))
-        assertEquals("junk_com_fixture_junk_part_TT2.2.0.aar", File(single.outputPath).name)
+        assertEquals("junk_com_fixture_junk_part_TT3.0.0.aar", File(single.outputPath).name)
         assertArchive(File(single.outputPath), "com.fixture.junk.part", "fixture_")
         assertEquals(File(single.outputPath).length(), single.totalBytes)
         val sibling = output.resolve("unrelated.txt").apply { writeText("keep") }
@@ -70,13 +70,26 @@ class JunkGenerationTest {
         assertEquals(File(output, " batch 中文 ").path, batch.outputPath)
         assertEquals(2, batch.archivePaths.size); assertEquals(2, batch.archivePaths.distinct().size)
         batch.archivePaths.forEach { assertArchive(File(it), null, null) }
-        assertEquals(File(batch.outputPath).walkBottomUp().filter { it.isFile }.sumOf { it.length() }, batch.totalBytes)
+        assertEquals(batch.archivePaths.sumOf { File(it).length() }, batch.totalBytes)
         assertFalse(stale.exists()); assertEquals("keep", sibling.readText()); assertEquals("keep", sentinel.resolve("keep").readText())
         assertEquals(listOf(sentinel.name), work.list()!!.toList())
         // Zero activities cause generation to fail; cleanup must stay within its workspace.
         val failure = GenerateJunkCodeUseCase(source)(GenerateJunkCodeRequest(output.path, JunkConfiguration.Single("com.fixture.fail", 1, 0, "fixture_")))
         assertIs<GenerateJunkCodeOutcome.Failure>(failure)
         assertEquals(listOf(sentinel.name), work.list()!!.toList()); assertTrue(File(single.outputPath).isFile)
+    }
+
+    @Test fun explicitRequestSeedReproducesTheWholeDataSourceBatch() = runBlocking {
+        val work = temporary.newFolder("seed-work")
+        val firstOutput = temporary.newFolder("seed-a")
+        val secondOutput = temporary.newFolder("seed-b")
+        val source = JvmJunkCodeDataSource(work, Dispatchers.IO, Random(17))
+        val config = JunkConfiguration.Multi("batch", 2, 1, 2, 1, 2)
+        val a = source.generate(GenerateJunkCodeRequest(firstOutput.path, config, seed = 731))
+        val b = source.generate(GenerateJunkCodeRequest(secondOutput.path, config, seed = 731))
+        assertEquals(a.archivePaths.map { File(it).name }, b.archivePaths.map { File(it).name })
+        a.archivePaths.zip(b.archivePaths).forEach { (first, second) -> assertContentEquals(File(first).readBytes(), File(second).readBytes()) }
+        assertTrue(work.listFiles()!!.isEmpty())
     }
 
     @Test fun separateServicesSerializeOutputsAndCancellationWaitsForSynchronousGenerator() = runBlocking {
@@ -141,7 +154,7 @@ class JunkGenerationTest {
     private fun assertArchive(file: File, expectedPackage: String?, prefix: String?) {
         ZipFile(file).use { zip ->
             val manifest = zip.getInputStream(assertNotNull(zip.getEntry("AndroidManifest.xml"))).reader().readText()
-            expectedPackage?.let { assertTrue(manifest.contains("package=\"$it\""), manifest) }
+            expectedPackage?.let { assertTrue(manifest.contains("package=\"$it.toolkitres"), manifest) }
             assertNotNull(zip.getEntry("R.txt")); assertTrue(zip.entries().asSequence().any { it.name.startsWith("res/layout/") })
             if (prefix != null) assertTrue(zip.entries().asSequence().filter { it.name.startsWith("res/layout/") && !it.isDirectory }.all { it.name.substringAfterLast('/').startsWith(prefix) })
             var count = 0
