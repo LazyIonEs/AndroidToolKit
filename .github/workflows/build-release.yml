@@ -62,7 +62,7 @@ jobs:
 
       - name: Setup JDK (ARM64)
         if: runner.arch == 'ARM64'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
           distribution: "jetbrains"
           java-version: "21"
