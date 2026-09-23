@@ -142,7 +142,7 @@ jobs:
           echo "✅ Rename complete for ${{ matrix.name }}."
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-assets-${{ matrix.name }}
           path: |
@@ -161,7 +161,7 @@ jobs:
 
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: release-assets
           pattern: release-assets-*
