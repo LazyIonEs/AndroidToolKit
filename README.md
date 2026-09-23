@@ -234,22 +234,57 @@ Windows PowerShell：
 
 有关所使用依赖项的完整列表，请查看 [catalog](/gradle/libs.versions.toml) 文件
 
-## 代码目录
+## 项目架构
 
-| 目录 | 职责 |
-| --- | --- |
-| `composeApp/src/jvmMain` | 桌面应用入口和窗口装配 |
-| `shared/src/commonMain/kotlin/org/tool/kit/domain` | 业务模型、仓库接口和用例 |
-| `shared/src/commonMain/kotlin/org/tool/kit/feature` | 按功能组织页面、Route、ViewModel 和页面状态；`ui` 放公共 UI 组件 |
-| `shared/src/commonMain/kotlin/org/tool/kit/core` | 协程、校验等基础能力 |
-| `shared/src/jvmMain/kotlin/org/tool/kit/data` | JVM 仓库实现、数据源和生成器；更新传输及响应模型位于 `source/update` |
-| `shared/src/jvmMain/kotlin/org/tool/kit/platform` | 文件选择、剪贴板及桌面系统能力 |
-| `shared/src/jvmTest/kotlin/org/tool/kit/tests` | 按 `feature`、`domain`、`data`、`core`、`navigation`、`di`、`platform` 分组的测试；共用辅助代码放在 `support` |
-| `rust/src` | 通过 UniFFI 提供给 Kotlin 的原生实现 |
+项目采用 Compose Desktop、Kotlin Multiplatform 和 Rust。Gradle 工程包含 `:composeApp`、`:shared` 两个模块，目前只配置 JVM 桌面目标；`rust` 是由 Gradle 构建任务调用的独立 Cargo 工程。`commonMain`、`jvmMain` 是 `:shared` 的源集，并非额外的 Gradle 模块。
 
-设置页统一放在 `feature/setting`，更新弹窗与状态放在 `feature/update`。新增文件应与所属功能或层放在一起，包名与目录保持一致。导航键的包名参与状态序列化，调整位置时需检查已保存状态的恢复。
+### 模块与职责
 
-`composeResources`、`jvmMain/resources`、`composeApp/resources` 和 `composeApp/launcher` 存放资源、配置或打包文件，即使没有 Kotlin 代码也需要保留。`build`、Rust `target` 和 Gradle 缓存是构建产物，不属于源码目录。
+| 架构单元 | 主要职责 | 依赖边界 |
+| --- | --- | --- |
+| `:composeApp` | `main()`、Koin 启动、应用初始化、桌面窗口和安装包配置 | 依赖 `:shared`，不承载具体工具的业务流程 |
+| `:shared` / `commonMain` | Compose 页面、Route、ViewModel、导航、主题、业务模型、用例和仓库接口；也包含设置、清理规则等通用数据实现 | 用例通过接口访问数据，不引用桌面仓库实现或 Rust API |
+| `:shared` / `jvmMain` | 仓库与数据源实现、文件和进程操作、APK 工具、网络更新、桌面平台适配及依赖装配 | 实现 `commonMain` 的契约，调用 JVM 库、系统能力和 UniFFI 绑定 |
+| `rust` | 图像缩放、PNG 量化与优化、JPEG 重新编码 | 通过 UniFFI 定义的接口供 JVM 侧调用 |
+
+下图表示一次业务请求在运行时的主要流向。仓库接口定义在 `commonMain`，具体实现由桌面端的 Koin 模块绑定。
+
+```mermaid
+flowchart TD
+    A["composeApp<br/>入口 · 窗口"] --> B["shared / commonMain<br/>Route · Screen · ViewModel"]
+    B --> C["shared / commonMain<br/>UseCase · 仓库接口"]
+    C -- "运行时调用 Koin 注入的实现" --> D["shared / jvmMain<br/>仓库 · 数据源 · 平台适配"]
+    D --> E["JVM 库 · 文件 · 进程 · 网络"]
+    D --> F["UniFFI Kotlin 绑定"]
+    F --> G["rust<br/>图像处理"]
+```
+
+### 启动与依赖装配
+
+1. `main()` 调用 `startKoin(desktopModules())`。桌面依赖图组合了调度器与设置、桌面数据实现、业务用例和各页面 ViewModel。
+2. 创建窗口前，`AppBootstrap.prepare()` 等待初始设置加载，并读取存储容量。首屏因此使用已恢复的设置，而不是临时默认值。
+3. `Window { App() }` 将 Koin 容器接入 Compose。根页面观察设置状态以决定主题和侧栏选项，承载导航、全局消息和更新弹窗；启用自动检查时再发起静默更新检查。
+4. 窗口关闭时应用会话幂等地关闭 Koin。导航条目分别管理可保存的页面状态与 ViewModel 的生命周期。
+
+### 功能调用链
+
+功能通常按 **Screen → Route → ViewModel → UseCase → 仓库接口 → 桌面实现** 协作：Screen 显示状态并上报操作，Route 接入文件选择或拖放等界面能力，ViewModel 处理 Intent 并通过 `StateFlow` 发布页面状态，用例编排业务步骤。桌面数据源负责耗时的文件、进程和网络操作。
+
+- **图标生成**：`IconFactoryViewModel` 调用 `GenerateIconsUseCase`，后者通过 `ImageProcessor` 和 `IconOutputs` 生成五种密度的图标。`JvmImageProcessor` 在 IO 调度器上调用 UniFFI 绑定，Rust 完成缩放和压缩；输出会话管理临时文件。
+- **APK 信息与生成**：`ReadApkInformationUseCase` 汇总包体元数据、清单、图标和组件信息；`BuildApkUseCase` 编排模板修改、构建和可选签名。文件解析、`aapt2`、APK 工具及签名实现位于 JVM 数据层。
+- **更新检查**：根级 `UpdateViewModel` 通过 `UpdateRepository` 获取版本和下载安装包；JVM 实现负责 HTTP 传输及当前系统的发布资源筛选，安装请求再由桌面动作适配器交给操作系统处理。
+
+### 状态、导航与生命周期
+
+- Navigation 3 为顶层页面维护独立子栈，切换侧栏时保留各自的返回历史。导航条目持有可保存的 UI 状态和对应的 ViewModelStore；导航键按完整类名序列化，移动或重命名时需检查旧状态恢复。
+- 设置通过 `PreferencesRepository.state` 向根页面和功能页面发布快照。修改先更新内存状态，再由单一写入队列顺序持久化；`revision` 与 `persistedRevision` 可区分已接收和已落盘的变更。
+- 一次性提示由应用级 `AppEffectSink` 发送到根级 `AppEffectHost`，页面离开不会关闭该通道。更新弹窗同样位于根页面，避免绑定到某个工具页面的生命周期。
+
+### 构建与验证
+
+`:shared:rustTasks` 串联 Cargo 原生库编译、UniFFI Kotlin 绑定生成和动态库资源复制；`jvmMain` 将生成的源码与资源加入编译。`:composeApp` 的运行与打包任务依赖这些准备工作，并按当前操作系统生成安装包。Compose 资源、桌面配置和安装图标分别由所属模块管理。
+
+测试集中在 `:shared` 的 `jvmTest` 源集，覆盖功能状态、业务用例、数据实现、导航、依赖装配和平台适配。运行方式见上方的[编译、测试与打包](#编译测试与打包)。
 
 ## License
 

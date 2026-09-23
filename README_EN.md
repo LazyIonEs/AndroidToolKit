@@ -234,22 +234,57 @@ Build installers on their target OS; local builds use the current architecture b
 
 For a complete list of dependencies used, check the [catalog](/gradle/libs.versions.toml) file
 
-## Code Layout
+## Project Architecture
 
-| Directory | Responsibility |
-| --- | --- |
-| `composeApp/src/jvmMain` | Desktop application entry point and window setup |
-| `shared/src/commonMain/kotlin/org/tool/kit/domain` | Business models, repository interfaces, and use cases |
-| `shared/src/commonMain/kotlin/org/tool/kit/feature` | Screens, routes, ViewModels, and state grouped by feature; `ui` holds shared UI components |
-| `shared/src/commonMain/kotlin/org/tool/kit/core` | Shared coroutine and validation infrastructure |
-| `shared/src/jvmMain/kotlin/org/tool/kit/data` | JVM repositories, data sources, and generators; update transport and response models live in `source/update` |
-| `shared/src/jvmMain/kotlin/org/tool/kit/platform` | File selection, clipboard, and desktop system integration |
-| `shared/src/jvmTest/kotlin/org/tool/kit/tests` | Tests grouped by `feature`, `domain`, `data`, `core`, `navigation`, `di`, and `platform`; shared helpers live in `support` |
-| `rust/src` | Native implementations exposed to Kotlin through UniFFI |
+The project uses Compose Desktop, Kotlin Multiplatform, and Rust. The Gradle build has two modules, `:composeApp` and `:shared`, and currently configures only a JVM desktop target. `rust` is a separate Cargo project invoked by Gradle build tasks. `commonMain` and `jvmMain` are source sets within `:shared`, not additional Gradle modules.
 
-Settings files live in `feature/setting`; update dialogs and state live in `feature/update`. Place new files with their owning feature or layer, keeping package names aligned with directories. Navigation key package names are part of serialized state, so moving them requires checking saved-state restoration.
+### Modules and responsibilities
 
-`composeResources`, `jvmMain/resources`, `composeApp/resources`, and `composeApp/launcher` hold resources, configuration, or packaging files and must be retained even without Kotlin code. Build directories, Rust `target`, and Gradle caches are generated artifacts rather than source directories.
+| Architecture unit | Main responsibilities | Dependency boundary |
+| --- | --- | --- |
+| `:composeApp` | `main()`, Koin startup, application initialization, desktop window, and installer configuration | Depends on `:shared`; does not implement individual tool workflows |
+| `:shared` / `commonMain` | Compose screens, Routes, ViewModels, navigation, theming, domain models, use cases, and repository interfaces; also common data implementations such as preferences and cleaner rules | Use cases access data through interfaces, without referring to desktop repositories or Rust APIs |
+| `:shared` / `jvmMain` | Repository and data source implementations, file and process operations, APK tooling, network updates, desktop adapters, and dependency wiring | Implements `commonMain` contracts and calls JVM libraries, system services, and UniFFI bindings |
+| `rust` | Image resizing, PNG quantization and optimization, and JPEG re-encoding | Exposed to the JVM through interfaces defined with UniFFI |
+
+The diagram shows the main runtime request path. Repository interfaces are defined in `commonMain`; the desktop Koin modules bind them to concrete implementations.
+
+```mermaid
+flowchart TD
+    A["composeApp<br/>Entry point · window"] --> B["shared / commonMain<br/>Route · Screen · ViewModel"]
+    B --> C["shared / commonMain<br/>UseCase · repository interfaces"]
+    C -- "Calls Koin-injected implementation at runtime" --> D["shared / jvmMain<br/>Repositories · data sources · desktop adapters"]
+    D --> E["JVM libraries · files · processes · network"]
+    D --> F["UniFFI Kotlin bindings"]
+    F --> G["rust<br/>Image processing"]
+```
+
+### Startup and dependency wiring
+
+1. `main()` calls `startKoin(desktopModules())`. The desktop dependency graph combines dispatchers and settings, desktop data implementations, domain use cases, and page ViewModels.
+2. Before creating the window, `AppBootstrap.prepare()` waits for the initial settings load and reads storage capacity. The first screen therefore uses restored settings instead of temporary defaults.
+3. `Window { App() }` connects Koin to Compose. The root observes settings to choose the theme and navigation rail options, hosts navigation, global messages, and the update dialog, and starts a silent update check when enabled.
+4. Closing the window shuts down Koin idempotently. Navigation entries manage the saved state and lifetime of their page ViewModels separately.
+
+### Feature request flow
+
+Features generally follow **Screen → Route → ViewModel → UseCase → repository interface → desktop implementation**. A Screen renders state and reports actions; its Route connects UI services such as file pickers or drag and drop; the ViewModel handles intents and publishes page state through `StateFlow`; a use case coordinates the business steps. Desktop data sources perform time-consuming file, process, and network work.
+
+- **Icon generation:** `IconFactoryViewModel` calls `GenerateIconsUseCase`, which uses `ImageProcessor` and `IconOutputs` to create icons for five densities. `JvmImageProcessor` invokes the UniFFI bindings on an IO dispatcher, Rust resizes and compresses the images, and the output session manages temporary files.
+- **APK inspection and generation:** `ReadApkInformationUseCase` combines package metadata, manifest, icons, and components. `BuildApkUseCase` coordinates template changes, the build, and optional signing. File inspection, `aapt2`, APK tooling, and signing implementations live in the JVM data layer.
+- **Update checks:** The root `UpdateViewModel` gets release information and downloads installers through `UpdateRepository`. Its JVM implementation handles HTTP transport and filters release assets for the current OS; a desktop action adapter passes installation requests to the operating system.
+
+### State, navigation, and lifecycle
+
+- Navigation 3 keeps a separate back stack for each top-level page, preserving its history when users switch navigation rail items. Navigation entries own saveable UI state and a ViewModelStore. Navigation keys are serialized by fully qualified class name, so moving or renaming them requires checking restoration of previously saved state.
+- `PreferencesRepository.state` publishes snapshots to the root and feature pages. Changes update in-memory state first, then a single writer persists them in order. `revision` and `persistedRevision` distinguish accepted changes from persisted ones.
+- Pages send one-time messages through the application-level `AppEffectSink` to the root `AppEffectHost`; leaving a page does not close that channel. The update dialog also lives at the root, independent of any tool page's lifecycle.
+
+### Build and verification
+
+`:shared:rustTasks` coordinates Cargo compilation, UniFFI Kotlin binding generation, and copying the native library as a resource. `jvmMain` includes the generated sources and resources in compilation. `:composeApp` run and packaging tasks depend on this preparation and produce installers for the current operating system. Compose resources, desktop configuration, and installer icons are managed by their respective modules.
+
+Tests live in `:shared`'s `jvmTest` source set and cover feature state, domain use cases, data implementations, navigation, dependency wiring, and platform adapters. See [Compile, Test, and Package](#compile-test-and-package) above for commands.
 
 ## License
 
