@@ -1,0 +1,64 @@
+package org.tool.kit.tests.domain
+
+import kotlin.test.*
+import org.junit.Test
+import org.tool.kit.data.generator.JunkSizePredictor
+import org.tool.kit.domain.junk.*
+import org.tool.kit.domain.usecase.EstimateJunkSizeUseCase
+import org.tool.kit.feature.junk.*
+import org.tool.kit.feature.junk.JunkCodeIntent.*
+import org.tool.kit.model.JunkMode
+
+class JunkNamingRulesTest {
+    @Test fun archiveNamesFlattenPackageDotsAndPreserveRawSuffixes() {
+        var form = SingleJunkForm()
+        val packages = listOf("com.example" to "com_example", "" to "", " .中文.name. " to " _中文_name_ ", "unchanged" to "unchanged")
+        for ((value, fileStem) in packages) {
+            form = JunkFormReducer.single(form, PackageNameChanged(value))
+            assertEquals("junk_${fileStem}_${form.suffix}_TT3.0.0.aar", form.aarName)
+            assertEquals(value, form.packageName)
+            for (suffix in listOf("plugin", "a.b", "", " suffix ")) {
+                form = JunkFormReducer.single(form, SuffixChanged(suffix))
+                assertEquals("junk_${fileStem}_${suffix}_TT3.0.0.aar", form.aarName)
+                assertEquals(suffix, form.suffix)
+            }
+        }
+        val state = JunkCodeUiState("out", JunkMode.SINGLE, single = SingleJunkForm(packageName = "com.example", suffix = "a.b"))
+        assertEquals("com.example.a.b", assertIs<JunkConfiguration.Single>(state.configuration()).appPackageName)
+        val display = JunkFormReducer.single(state.single, SuffixChanged("a.b")).aarName
+        assertEquals("junk_com_example_a.b_TT3.0.0.aar", display) // Real generator flattens the suffix's dot as well.
+    }
+
+    @Test fun everyRawFieldAndOverflowFallbackArePreserved() {
+        var single = SingleJunkForm(); var multi = MultiJunkForm()
+        for (event in listOf(PackageCountChanged("0001"), ActivityCountChanged("2147483648"), ResPrefixChanged(" prefix ")))
+            single = JunkFormReducer.single(single, event)
+        for (event in listOf(OutputDirChanged(" dir "), AarCountChanged(""), LeastPackagesChanged("0002"), MaximumPackagesChanged("2147483648"), LeastActivitiesChanged(" "), MaximumActivitiesChanged("5")))
+            multi = JunkFormReducer.multi(multi, event)
+        assertEquals("0001", single.packageCount); assertEquals("2147483648", single.activityCountPerPackage)
+        val state = JunkCodeUiState(" output ", JunkMode.SINGLE, single, multi)
+        assertEquals(JunkConfiguration.Single("com.dev.junk.plugin", 1, 0, " prefix "), state.configuration())
+        assertEquals(JunkConfiguration.Multi(" dir ", 0, 2, 0, 0, 5), state.copy(mode = JunkMode.MULTI).configuration())
+        assertTrue(state.hasMissingFields(), "Hidden multi draft participates in submission validation")
+        val spaces = JunkCodeUiState("out", JunkMode.SINGLE, SingleJunkForm(activityCountPerPackage = " "), MultiJunkForm(leastActivityCountPerPackage = " "))
+        assertFalse(spaces.hasMissingFields(), "Activity count fields accept whitespace until numeric conversion")
+    }
+
+    @Test fun sizeEstimatesUseParsedCountsAndAccumulateBothBatchBounds() {
+        val estimate = EstimateJunkSizeUseCase(JunkSizePredictor::estimateAarSize)
+        for (packages in listOf("", "0", "1", "0002", "50", "2147483648")) {
+            for (activities in listOf("", "1", "5")) for (count in listOf("", "0", "1", "3", "-1")) {
+                val state = JunkCodeUiState("out", JunkMode.SINGLE, SingleJunkForm(packageCount = packages, activityCountPerPackage = activities),
+                    MultiJunkForm(aarCount = count, leastPackageCount = packages, maximumPackageCount = "7", leastActivityCountPerPackage = activities, maximumActivityCountPerPackage = "9"))
+                val minimum = JunkSizePredictor.estimateAarSize(packages.toIntOrNull() ?: 0, activities.toIntOrNull() ?: 0)
+                val maximum = JunkSizePredictor.estimateAarSize(maxOf(7, packages.toIntOrNull() ?: 0), 9)
+                assertEquals(JunkSizeEstimate(minimum), estimate(state.configuration()))
+                val range = 0 until (count.toIntOrNull() ?: 0)
+                assertEquals(JunkSizeEstimate(range.sumOf { minimum }, range.sumOf { maximum }),
+                    estimate(state.copy(mode = JunkMode.MULTI).configuration()))
+            }
+        }
+        val huge = estimate(JunkConfiguration.Multi("out", Int.MAX_VALUE, 1, 1, 1, 1))
+        assertEquals(JunkSizePredictor.estimateAarSize(1, 1) * Int.MAX_VALUE.toLong(), huge.minimum)
+    }
+}

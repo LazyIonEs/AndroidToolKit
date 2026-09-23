@@ -9,7 +9,7 @@ import org.tool.kit.shared.generated.resources.uppercase_without_colon
 
 /**
  * @author      : LazyIonEs
- * @description : 描述
+ * @description : 证书指纹复制时的大小写与冒号格式选项
  * @createDate  : 2026/1/19 14:58
  */
 enum class CopyMode(val title: StringResource) {

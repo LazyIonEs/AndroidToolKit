@@ -8,7 +8,7 @@ crate-type = ["cdylib"]
 name = "toolkit_rs"
 
 [dependencies]
-uniffi = { version = "0.31.2", features = [ "cli" ] }
+uniffi = { version = "0.32.1", features = [ "cli" ] }
 image = "0.25.10"
 imagequant = "4.4.1"
 thiserror = "2.0.18"
@@ -20,7 +20,7 @@ rgb = { version = "0.8.52", default-features = false }
 resize = "0.8.9"
 
 [build-dependencies]
-uniffi = { version = "0.31.2", features = ["build"] }
+uniffi = { version = "0.32.1", features = ["build"] }
 
 [[bin]]
 name = "uniffi-bindgen"

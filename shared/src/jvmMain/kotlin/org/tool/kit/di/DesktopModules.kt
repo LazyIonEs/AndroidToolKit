@@ -1,0 +1,60 @@
+package org.tool.kit.di
+
+import com.russhwolf.settings.ExperimentalSettingsApi
+import com.russhwolf.settings.coroutines.FlowSettings
+import kotlinx.coroutines.Dispatchers
+import org.koin.core.module.Module
+import org.koin.dsl.module
+import org.tool.kit.core.coroutine.AppDispatchers
+import org.tool.kit.data.repository.JvmKeyStoreRepository
+import org.tool.kit.data.repository.JvmStorageRepository
+import org.tool.kit.domain.repository.KeyStoreRepository
+import org.tool.kit.domain.repository.StorageRepository
+import org.tool.kit.platform.createFlowSettings
+import org.tool.kit.platform.DesktopFileSelection
+
+@OptIn(ExperimentalSettingsApi::class)
+/** 组合桌面应用完整依赖图；设置工厂和调度器可由测试替换。 */
+fun desktopModules(
+    settingsFactory: () -> FlowSettings = ::createFlowSettings,
+    dispatchers: AppDispatchers = AppDispatchers(Dispatchers.IO, Dispatchers.Default, Dispatchers.Main.immediate),
+): List<Module> = listOf(coreModule(dispatchers, settingsFactory), desktopDataModule(), domainModule(), viewModelModule())
+
+@OptIn(ExperimentalSettingsApi::class)
+/** 在 JVM 边界把仓库接口绑定到真实文件、进程、图像和系统服务实现。 */
+private fun desktopDataModule() = module {
+    includes(dataModule())
+    single { org.tool.kit.data.source.PreferencesDataSource(get(), get<AppDispatchers>().io) }
+    single<org.tool.kit.data.source.PreferencesStorage> { get<org.tool.kit.data.source.PreferencesDataSource>() }
+    single<org.tool.kit.domain.repository.BuildCachesRepository> { org.tool.kit.data.source.JvmBuildCachesDataSource(get<AppDispatchers>().io) }
+    single<org.tool.kit.domain.repository.JunkCodeRepository> { org.tool.kit.data.source.JvmJunkCodeDataSource(java.io.File(System.getProperty("java.io.tmpdir")), get<AppDispatchers>().io) }
+    single<org.tool.kit.domain.repository.JunkSizeEstimator> { object : org.tool.kit.domain.repository.JunkSizeEstimator {
+        override fun bytes(packageCount: Int, activityCount: Int) = org.tool.kit.data.generator.JunkSizePredictor.estimateAarSize(packageCount, activityCount)
+        override fun range(packageCount: Int, activityCount: Int): org.tool.kit.domain.junk.JunkSizeEstimate {
+            val estimate = org.tool.kit.data.generator.JunkSizePredictor.estimate(packageCount, activityCount)
+            return org.tool.kit.domain.junk.JunkSizeEstimate(estimate.minimumBytes, estimate.maximumBytes)
+        }
+    } }
+    single<org.tool.kit.domain.repository.JunkTokenGenerator> { org.tool.kit.domain.repository.JunkTokenGenerator({ min, max -> org.tool.kit.utils.generateSecureToken(min, max) }) }
+    single<org.tool.kit.domain.repository.ImageProcessor> { org.tool.kit.data.source.JvmImageProcessor(get<AppDispatchers>().io) }
+    single<org.tool.kit.domain.repository.IconOutputs> { org.tool.kit.data.source.JvmIconOutputs(get<AppDispatchers>().io) }
+    single<org.tool.kit.domain.repository.ApkToolRepository> { org.tool.kit.data.source.JvmApkToolDataSource(org.tool.kit.platform.DesktopToolResources.APKTOOL_FILE, get<AppDispatchers>().io) }
+    single<org.tool.kit.domain.repository.ApkBuildWorkspaces> { org.tool.kit.data.source.JvmApkBuildWorkspaces(java.io.File(System.getProperty("java.io.tmpdir")), get<AppDispatchers>().io) }
+    single { org.tool.kit.feature.signature.SigningPresets(
+        org.tool.kit.platform.DesktopToolResources.APK.entries.map { org.tool.kit.feature.signature.SigningPreset(it.title, it.path) },
+        org.tool.kit.platform.DesktopToolResources.APK.All.path, org.tool.kit.platform.DesktopToolResources.APK.Huawei.path) }
+    single<org.tool.kit.domain.repository.ApkSigningRepository> { org.tool.kit.data.source.JvmApkSignerDataSource(get<AppDispatchers>().io) }
+    single<org.tool.kit.core.process.ProcessRunner> { org.tool.kit.data.process.JvmProcessRunner(get<AppDispatchers>().io) }
+    single { org.tool.kit.data.source.Aapt2Locator() }
+    single { org.tool.kit.data.source.Aapt2DataSource(get(), get(), get<AppDispatchers>().io) }
+    single { org.tool.kit.data.source.ApkIconDataSource(get<AppDispatchers>().io) }
+    single<org.tool.kit.domain.repository.ApkInformationRepository> { org.tool.kit.data.repository.JvmApkInformationRepository(get(), get(), get<AppDispatchers>().io) }
+    single<org.tool.kit.feature.apk.ApkIconDecoder> { org.tool.kit.platform.JvmApkIconDecoder(get<AppDispatchers>().io) }
+    single<org.tool.kit.domain.repository.UpdateRepository> { org.tool.kit.data.repository.JvmUpdateRepository(get()) }
+    single<org.tool.kit.feature.app.ClipboardWriter> { org.tool.kit.platform.JvmClipboardWriter(get<AppDispatchers>().main) }
+    single<StorageRepository> { JvmStorageRepository(get<AppDispatchers>().io) }
+    single<org.tool.kit.domain.repository.SignatureRepository> { org.tool.kit.data.repository.JvmSignatureRepository(get<AppDispatchers>().io) }
+    single<KeyStoreRepository> { JvmKeyStoreRepository(get<AppDispatchers>().io) }
+    single<org.tool.kit.feature.app.DesktopActionHandler> { org.tool.kit.platform.JvmDesktopActionHandler(get()) }
+    single { DesktopFileSelection(get<AppDispatchers>().io) }
+}

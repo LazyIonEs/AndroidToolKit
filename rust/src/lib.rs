@@ -17,6 +17,11 @@ use srgb::linear_to_srgb;
 mod srgb;
 include!("./lut.inc");
 
+/// 使用 fast_image_resize 按目标像素尺寸缩放，输出格式由文件扩展名决定。
+/// 算法索引 0–5 对应 Bilinear、Hamming、CatmullRom、Mitchell、Gaussian、Lanczos3。
+///
+/// # Panics
+/// 算法索引越界或解码后的像素类型无法映射时会触发 panic。
 pub fn resize_fir(input_path: String, output_path: String, dst_width: u32, dst_height: u32, typ_idx: u8) -> Result<(), ToolKitRustError> {
     let src_image_open = ImageReader::open(input_path);
 
@@ -36,6 +41,7 @@ pub fn resize_fir(input_path: String, output_path: String, dst_width: u32, dst_h
 
     let (src_width, src_height) = src_image.dimensions();
 
+    // 尺寸一致时跳过重采样，但仍按目标路径重新保存图像。
     if src_width == dst_width && src_height == dst_height {
         let save_result = src_image.save(output_path);
         if save_result.is_err() {
@@ -125,6 +131,11 @@ fn alpha_multiplier_funcs(
     }
 }
 
+/// 在线性 RGB 空间对预乘 Alpha 的 RGBA 浮点像素缩放，减少透明边缘的颜色污染。
+/// 算法索引 0–3 对应 Triangle、Catrom、Mitchell、Lanczos3，输出为 RGBA8 PNG。
+///
+/// # Panics
+/// 算法索引不在 0–3 范围内时触发 panic。
 pub fn resize_png(input_path: String, output_path: String, dst_width: u32, dst_height: u32, typ_idx: u8) -> Result<(), ToolKitRustError> {
     let src_image_open = image::open(input_path);
 
@@ -159,6 +170,7 @@ pub fn resize_png(input_path: String, output_path: String, dst_width: u32, dst_h
 
     // Otherwise, we convert to f32 images to keep the
     // conversions as lossless and high-fidelity as possible.
+    // 先去除 sRGB 的非线性，再预乘 Alpha，让卷积处理颜色与透明度时使用正确权重。
     let (to_linear, to_srgb) = srgb_converter_funcs(true);
     let (premultiplier, demultiplier) = alpha_multiplier_funcs(true);
 
@@ -174,6 +186,7 @@ pub fn resize_png(input_path: String, output_path: String, dst_width: u32, dst_h
         preprocessed_input_image[4 * i + 3] = (input_image[4 * i + 3] as f32) / 255.0;
     }
 
+    // RGBA 四通道都以 f32 参与缩放，避免中间步骤反复量化到 8 位。
     let mut unprocessed_output_image = vec![0.0f32; num_output_pixels * 4];
 
     let resizer_result = resize::new(
@@ -204,6 +217,7 @@ pub fn resize_png(input_path: String, output_path: String, dst_width: u32, dst_h
 
     resize_result.unwrap();
 
+    // 缩放结束后反预乘并转回 sRGB，最后才量化输出颜色和 Alpha。
     for i in 0..num_output_pixels {
         for j in 0..3 {
             output_image[4 * i + j] = to_srgb(demultiplier(
@@ -233,6 +247,7 @@ pub fn resize_png(input_path: String, output_path: String, dst_width: u32, dst_h
     Ok(())
 }
 
+/// 判断是否已经是每通道 8 位的 RGBA，其他输入统一转换后再走透明图像处理链。
 fn is_rgba8(color: ColorType) -> bool {
     match color {
         ColorType::L8 => false,
@@ -249,6 +264,11 @@ fn is_rgba8(color: ColorType) -> bool {
     }
 }
 
+/// 使用 imagequant 生成调色板和像素索引，再经 oxipng 优化后写入 PNG。
+/// minimum/target 为质量上下限，speed 控制量化速度，preset 控制后续无损优化等级。
+///
+/// # Panics
+/// 当前实现对 PNG 解码和部分参数设置使用 unwrap，输入无效时可能触发 panic。
 pub fn quantize(input_path: String, output_path: String, minimum: u8, target: u8, speed: i32, preset: u8) -> Result<(), ToolKitRustError> {
     // 解码图片
     let img = lodepng::decode32_file(input_path).unwrap();
@@ -315,6 +335,7 @@ pub fn quantize(input_path: String, output_path: String, minimum: u8, target: u8
     Ok(())
 }
 
+/// 使用指定 preset 优化 PNG；允许优化透明像素并强制输出优化结果。
 pub fn oxipng(input_path: String, output_path: String, preset: u8) -> Result<(), ToolKitRustError> {
     let input = oxipng::InFile::from(PathBuf::from(input_path));
     let output = oxipng::OutFile::from_path(PathBuf::from(output_path));
@@ -332,6 +353,7 @@ pub fn oxipng(input_path: String, output_path: String, preset: u8) -> Result<(),
     Ok(())
 }
 
+/// JPEG 解码阶段允许读取的 APP 与 COM 标记；此列表本身不负责把元数据写回输出。
 pub const ALL_MARKERS: &[Marker] = &[
     Marker::APP(0), Marker::APP(1), Marker::APP(2), Marker::APP(3), Marker::APP(4),
     Marker::APP(5), Marker::APP(6), Marker::APP(7), Marker::APP(8), Marker::APP(9),
@@ -339,6 +361,11 @@ pub const ALL_MARKERS: &[Marker] = &[
     Marker::COM,
 ];
 
+/// 将 JPEG 解码为 RGB 扫描行，再以指定质量重新编码并写出。
+/// 这一路径不是直接复制压缩数据，quality=100 也会重新编码。
+///
+/// # Panics
+/// 当前实现对 JPEG 文件打开使用 unwrap，无法打开或解析时可能触发 panic。
 pub fn moz_jpeg(input_path: String, output_path: String, quality: f32) -> Result<(), ToolKitRustError> {
     let decompress_builder = mozjpeg::decompress::DecompressBuilder::new();
     let image = decompress_builder.with_markers(ALL_MARKERS)
@@ -401,10 +428,12 @@ pub fn moz_jpeg(input_path: String, output_path: String, quality: f32) -> Result
     Ok(())
 }
 
+/// 跨 UniFFI 边界返回给 Kotlin 的显式图像处理错误。
 #[derive(Debug, thiserror::Error)]
 pub enum ToolKitRustError {
     #[error("{0}")]
     Error(String)
 }
 
+// 载入 toolkit.udl 生成的 FFI 胶水代码，函数名与签名需和接口声明保持对应。
 uniffi::include_scaffolding!("toolkit");

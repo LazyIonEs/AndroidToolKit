@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.koin.compiler)
 }
 
 // Build properties
@@ -50,6 +51,8 @@ kotlin {
 
         // JVM-specific dependencies
         jvmMain.dependencies {
+            implementation(project.dependencies.platform(libs.koin.bom))
+            implementation(libs.koin.core)
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.coroutines.swing)
@@ -95,7 +98,7 @@ compose.desktop {
         )
 
         // Depend on Rust build tasks
-        this@application.dependsOn("rustTasks")
+        this@application.dependsOn(":shared:rustTasks")
 
         // Native distributions configuration
         nativeDistributions {
@@ -177,7 +180,7 @@ compose.desktop {
 
         // ProGuard configuration for release builds
         buildTypes.release.proguard {
-            version.set("7.9.1")
+            version.set("7.10.0")
             obfuscate.set(true)
             optimize.set(true)
             joinOutputJars.set(true)

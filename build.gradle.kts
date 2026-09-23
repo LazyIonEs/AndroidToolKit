@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.githubBuildconfig) apply false
     alias(libs.plugins.compose.compiler) apply false
     alias(libs.plugins.about.libraries) apply false
+    alias(libs.plugins.koin.compiler) apply false
 }
 
 // Root project tasks

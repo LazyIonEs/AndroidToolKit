@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Read Version from gradle.properties
         id: get_version
@@ -50,25 +50,23 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup JDK (x64)
         if: runner.arch == 'X64'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v6
         with:
-          distribution: "zulu"
+          distribution: "jetbrains"
           java-version: "21"
           architecture: x64
-          cache: 'gradle'
 
       - name: Setup JDK (ARM64)
         if: runner.arch == 'ARM64'
         uses: actions/setup-java@v4
         with:
-          distribution: "zulu"
+          distribution: "jetbrains"
           java-version: "21"
           architecture: aarch64
-          cache: 'gradle'
 
       - name: Package Release Distribution
         run: ./gradlew packageReleaseDistributionForCurrentOS

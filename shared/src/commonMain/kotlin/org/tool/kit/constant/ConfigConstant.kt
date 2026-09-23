@@ -2,23 +2,9 @@ package org.tool.kit.constant
 
 import org.tool.kit.model.JpegAlgorithm
 import org.tool.kit.model.PngAlgorithm
-import org.tool.kit.utils.resourcesDirWithCommon
-import java.io.File
 
 
 object ConfigConstant {
-
-    enum class APK(val title: String, val path: String) {
-        Oppo("oppo", File(resourcesDirWithCommon, "oppo.apk").absolutePath),
-        Vivo("vivo", File(resourcesDirWithCommon, "vivo.apk").absolutePath),
-        Huawei("huawei", File(resourcesDirWithCommon, "huawei.apk").absolutePath),
-        Xiaomi("xiaomi", File(resourcesDirWithCommon, "xiaomi.apk").absolutePath),
-        QQ("qq", File(resourcesDirWithCommon, "qq.apk").absolutePath),
-        Honor("honor", File(resourcesDirWithCommon, "honor.apk").absolutePath),
-        All("All", "All"),
-    }
-
-    val APKTOOL_FILE = File(resourcesDirWithCommon, "apktool.apk")
 
     /**
      * Android 图标目录

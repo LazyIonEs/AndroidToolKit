@@ -19,12 +19,18 @@ plugins {
 dependencyResolutionManagement {
     // Prefer settings repositories over project repositories
     repositoriesMode.set(RepositoriesMode.PREFER_SETTINGS)
-    
+
     repositories {
         google()
         mavenCentral()
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://www.jetbrains.com/intellij-repository/releases")
+        maven {
+            url = uri("https://jitpack.io")
+            content {
+                includeGroup("com.github.iBotPeaches.smali")
+            }
+        }
     }
 }
 
