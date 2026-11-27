@@ -36,7 +36,7 @@ data class PreferencesSnapshot(
     val isStartCheckUpdate: Boolean = true,
     val copyMode: CopyPreference = CopyPreference.UPPERCASE_WITH_COLON,
     val junkMode: JunkPreference = JunkPreference.SINGLE,
-    val saveSigningProfiles: Boolean = true,
+    val saveSigningProfiles: Boolean = false,
 )
 
 /** 一次明确的字段修改，避免不同页面用各自的旧快照覆盖其他字段。 */

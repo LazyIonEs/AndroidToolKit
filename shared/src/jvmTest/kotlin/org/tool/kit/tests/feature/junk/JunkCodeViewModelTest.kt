@@ -26,7 +26,7 @@ class JunkCodeViewModelTest {
         try {
             runCurrent()
             listOf(OutputPathChanged(" output "), PackageNameChanged("com.fixture"), SuffixChanged("a.b"),
-                MinimumSizeChanged("017.5"), MaximumSizeChanged("22.5"), ResPrefixChanged(" prefix ")).forEach(f.vm::onIntent)
+                MinimumSizeChanged("017.45"), MaximumSizeChanged("22.45"), ResPrefixChanged(" prefix ")).forEach(f.vm::onIntent)
             runCurrent(); f.vm.onIntent(Submit); f.vm.onIntent(Submit)
             assertTrue(f.vm.uiState.value.busy)
             assertEquals(GenerateJunkCodeRequest(" output ",
@@ -37,12 +37,13 @@ class JunkCodeViewModelTest {
             f.pending.single().complete(GeneratedJunkCode("original-single.aar", listOf("original-single.aar"), 12345)); runCurrent(); f.vm.uiState.first { !it.busy }
             assertFalse(f.vm.uiState.value.busy)
             assertEquals(SnackbarAction.OpenDirectory("original-single.aar"), events.single().snackbar.action)
-            assertEquals(UiMessage.Text(getString(Res.string.build_end, "0.012345 MB")), events.single().snackbar.message)
+            assertEquals(UiMessage.Text(getString(Res.string.build_end, "0.0 MB")), events.single().snackbar.message)
             f.vm.onIntent(Submit)
-            assertEquals(JunkConfiguration.MultiBySize(" batch ", 2, JunkAarSizeRange(500_000, 1_250_000)), f.requests.last().configuration)
+            assertEquals(JunkConfiguration.MultiBySize(" batch ", 2, JunkAarSizeRange(500_000, 1_300_000)), f.requests.last().configuration)
             assertEquals(JunkGenerationStrategy(), f.requests.last().strategy)
-            assertEquals("017.5", f.vm.uiState.value.single.size.minimumMb)
-            assertEquals("1–2.5 MB", f.vm.uiState.value.estimatedSize)
+            assertEquals("17.5", f.vm.uiState.value.single.size.minimumMb)
+            assertEquals("1.3", f.vm.uiState.value.multi.size.maximumMb)
+            assertEquals("1.0–2.6 MB", f.vm.uiState.value.estimatedSize)
             f.pending.last().complete(GeneratedJunkCode(" output / batch ", emptyList(), 0)); runCurrent(); f.vm.uiState.first { !it.busy }
             assertEquals(SnackbarAction.OpenDirectory(" output / batch "), events.last().snackbar.action)
         } finally { f.close() }
@@ -65,9 +66,16 @@ class JunkCodeViewModelTest {
             f.vm.onIntent(AarCountChanged("2")); f.vm.onIntent(ModeChanged(JunkMode.MULTI)); f.vm.onIntent(ResPrefixChanged(" ")); f.vm.onIntent(Submit); runCurrent()
             assertEquals(UiMessage.Resource(Res.string.check_empty), events.last().snackbar.message)
             assertTrue(f.requests.isEmpty()); assertFalse(f.vm.uiState.value.busy)
-            f.vm.onIntent(ResPrefixChanged("f_")); f.vm.onIntent(MinimumSizeChanged("30")); f.vm.onIntent(Submit); runCurrent()
-            assertEquals(UiMessage.Resource(Res.string.aar_size_range_invalid), events.last().snackbar.message)
+            f.vm.onIntent(ResPrefixChanged("f_")); f.vm.onIntent(MinimumSizeChanged("1.05")); f.vm.onIntent(Submit); runCurrent()
+            assertEquals(UiMessage.Text(getString(Res.string.aar_size_range_invalid, "0.5", "10.0", "0.5")), events.last().snackbar.message)
+            f.vm.onIntent(ModeChanged(JunkMode.SINGLE)); f.vm.onIntent(MinimumSizeChanged("20.55")); f.vm.onIntent(Submit); runCurrent()
+            val singleSizeError = UiMessage.Text(getString(Res.string.aar_size_range_invalid, "0.5", "100.0", "2"))
+            assertEquals(singleSizeError, events.last().snackbar.message)
+            f.vm.onIntent(MaximumSizeChanged("100.05")); f.vm.onIntent(Submit); runCurrent()
+            assertEquals(singleSizeError, events.last().snackbar.message)
+            assertTrue(f.requests.isEmpty())
             // A pending path created in the same event turn must gate submit immediately.
+            f.vm.onIntent(MaximumSizeChanged("22.5"))
             f.vm.onIntent(MinimumSizeChanged("0.5")); f.vm.onIntent(OutputPathChanged("new")); f.vm.onIntent(Submit); runCurrent()
             assertTrue(f.requests.isEmpty()); assertEquals(UiMessage.Resource(Res.string.check_error), events.last().snackbar.message)
             gates.last().complete(PathMetadata(false, false)); runCurrent(); assertTrue(f.vm.uiState.value.outputValidation.isError)

@@ -58,6 +58,12 @@ class ApkSigningUiTest {
                 }
             } }
             waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("APK签名").fetchSemanticsNodes().isNotEmpty() }
+            val scroll = onNode(hasScrollAction() and !hasSetTextAction())
+            val saveProfileLabel = "签名后保存当前签名"
+            val saveToggle = hasContentDescription(saveProfileLabel) and isToggleable()
+            onNode(hasText("设置") and hasClickAction()).performClick()
+            scroll.performScrollToNode(saveToggle)
+            onNode(saveToggle).assertIsDisplayed().assertIsOff().performClick().assertIsOn()
             onNode(hasText("APK签名") and hasClickAction()).performClick()
             val apkPicker = onAllNodesWithContentDescription("FolderOpen").onFirst()
             val keyPicker = onNodeWithContentDescription("选择密钥文件")
@@ -112,11 +118,8 @@ class ApkSigningUiTest {
             assertEquals("fixture", requests.single().credentials.alias)
             assertEquals(org.tool.kit.domain.signing.ApkSigningPolicy.V4, requests.single().policy)
 
-            val scroll = onNode(hasScrollAction() and !hasSetTextAction())
-            val saveProfileLabel = "签名后保存当前签名"
             onNodeWithText(saveProfileLabel).assertDoesNotExist()
             onNode(hasText("设置") and hasClickAction()).performClick()
-            val saveToggle = hasContentDescription(saveProfileLabel) and isToggleable()
             scroll.performScrollToNode(saveToggle)
             onNode(saveToggle).assertIsDisplayed().assertIsOn().performClick().assertIsOff()
             onNode(hasText("APK签名") and hasClickAction()).performClick()

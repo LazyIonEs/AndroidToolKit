@@ -37,8 +37,7 @@ class JunkCodeViewModel(
         output.validate(initial.userData.defaultOutputPath)
         viewModelScope.launch {
             preferences.state.filter { it.ready }.collect { snapshot ->
-                val mode = JunkMode.valueOf(snapshot.junkMode.name)
-                if (_uiState.value.mode != mode) setState(_uiState.value.copy(mode = mode))
+                setMode(JunkMode.valueOf(snapshot.junkMode.name))
                 if (snapshot.outputPathVersion != outputVersion) {
                     outputVersion = snapshot.outputPathVersion
                     onIntent(JunkCodeIntent.OutputPathChanged(snapshot.userData.defaultOutputPath))
@@ -57,19 +56,15 @@ class JunkCodeViewModel(
             JunkCodeIntent.RandomPrefix -> onIntent(JunkCodeIntent.ResPrefixChanged(tokens.generate(2, 6) + "_"))
             is JunkCodeIntent.ModeChanged -> {
                 preferences.change(PreferenceChange.JunkModeChanged(JunkPreference.valueOf(intent.value.name)))
-                setState(_uiState.value.copy(mode = intent.value))
+                setMode(intent.value)
             }
             is JunkCodeIntent.OutputPathChanged -> {
                 setState(_uiState.value.copy(outputPath = intent.value))
                 output.validate(intent.value)
             }
-            is JunkCodeIntent.MinimumSizeChanged, is JunkCodeIntent.MaximumSizeChanged, is JunkCodeIntent.SizeRangeChanged -> {
-                val state = _uiState.value
-                setState(when (state.mode) {
-                    JunkMode.SINGLE -> state.copy(single = state.single.copy(size = JunkFormReducer.size(state.single.size, intent)))
-                    JunkMode.MULTI -> state.copy(multi = state.multi.copy(size = JunkFormReducer.size(state.multi.size, intent)))
-                })
-            }
+            is JunkCodeIntent.MinimumSizeChanged, is JunkCodeIntent.MaximumSizeChanged,
+            is JunkCodeIntent.SizeRangeChanged, JunkCodeIntent.SizeEditingFinished ->
+                setState(JunkFormReducer.size(_uiState.value, intent))
             else -> {
                 val state = _uiState.value
                 setState(state.copy(single = JunkFormReducer.single(state.single, intent), multi = JunkFormReducer.multi(state.multi, intent)))
@@ -82,32 +77,47 @@ class JunkCodeViewModel(
         val config = state.configuration()
         val text = if (config is JunkConfiguration.MultiBySize && config.aarCount > 0) {
             val size = estimate(config)
-            val minimum = size.minimum.formatAarMegabytes(groupThousands = true)
-            val maximum = checkNotNull(size.maximum).formatAarMegabytes(groupThousands = true)
+            val minimum = size.minimum.formatRoundedAarMegabytes(groupThousands = true)
+            val maximum = checkNotNull(size.maximum).formatRoundedAarMegabytes(groupThousands = true)
             "$minimum–$maximum MB"
         } else ""
         return state.copy(estimatedSize = text)
     }
     private fun setState(state: JunkCodeUiState) { _uiState.value = withEstimate(state) }
 
+    private fun setMode(mode: JunkMode) {
+        val current = _uiState.value
+        if (current.mode != mode) {
+            setState(JunkFormReducer.size(current, JunkCodeIntent.SizeEditingFinished).copy(mode = mode))
+        }
+    }
+
     /** 从校验所有者读取最新路径状态，并捕获当前模式配置，避免流收集延迟放行无效路径。 */
     private fun submit() {
-        val state = _uiState.value
-        if (state.busy) return
+        val current = _uiState.value
+        if (current.busy) return
+        val state = JunkFormReducer.size(current, JunkCodeIntent.SizeEditingFinished)
+        if (state != current) setState(state)
         // Read the validation owner synchronously: a just-edited path may not have reached the UI collector yet.
         val check = output.state.value
-        val configuration = state.configuration()
         val invalid = when {
             check.pending || check.isError -> Res.string.check_error
             state.hasMissingFields() -> Res.string.check_empty
-            configuration == null -> Res.string.aar_size_range_invalid
             else -> null
         }
         if (invalid != null) {
             viewModelScope.launch { effects.send("junk-code", SnackbarMessage(UiMessage.Resource(invalid))) }
             return
         }
-        val request = GenerateJunkCodeRequest(state.outputPath, checkNotNull(configuration), strategy = JunkGenerationStrategy())
+        val configuration = state.configuration()
+        if (configuration == null) {
+            viewModelScope.launch {
+                val message = getString(Res.string.aar_size_range_invalid, *state.mode.sizeRangeMessageArgs())
+                effects.send("junk-code", SnackbarMessage(UiMessage.Text(message)))
+            }
+            return
+        }
+        val request = GenerateJunkCodeRequest(state.outputPath, configuration, strategy = JunkGenerationStrategy())
         val id = ++operationId
         _uiState.update { it.copy(busy = true) }
         viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
@@ -117,7 +127,7 @@ class JunkCodeViewModel(
                 if (id != operationId) return@launch
                 val message = when (outcome) {
                     is GenerateJunkCodeOutcome.Success -> SnackbarMessage(
-                        UiMessage.Text(getString(Res.string.build_end, outcome.result.totalBytes.formatAarSize())),
+                        UiMessage.Text(getString(Res.string.build_end, outcome.result.totalBytes.formatRoundedAarSize())),
                         actionLabel = getString(Res.string.jump), withDismissAction = true, duration = SnackbarDuration.Short,
                         action = SnackbarAction.OpenDirectory(outcome.result.outputPath))
                     is GenerateJunkCodeOutcome.Failure -> SnackbarMessage(outcome.message?.let(UiMessage::Text) ?: UiMessage.Resource(Res.string.build_failure))

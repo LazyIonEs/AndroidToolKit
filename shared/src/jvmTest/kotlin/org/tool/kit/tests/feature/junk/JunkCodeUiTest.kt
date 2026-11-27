@@ -3,6 +3,7 @@ package org.tool.kit.tests.feature.junk
 import androidx.compose.runtime.*
 import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.DefaultArchitectureComponentsOwner
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsProperties
@@ -44,7 +45,7 @@ class JunkCodeUiTest {
                     JunkCodeScreen(state, onIntent = { intent ->
                         intents += intent
                         if (intent is ModeChanged) {
-                            state = state.copy(mode = intent.value, estimatedSize = "25–75 MB")
+                            state = state.copy(mode = intent.value, estimatedSize = "25.0–75.0 MB")
                         }
                     }, pickOutput = {})
                 }
@@ -79,7 +80,7 @@ class JunkCodeUiTest {
                 multiMode.assertIsOn()
                 assertEquals(settledLeft, multiTitle.getUnclippedBoundsInRoot().left)
                 assertEquals(headerBounds, header.map { it.getUnclippedBoundsInRoot() })
-                onNodeWithText("25–75 MB").assertIsDisplayed()
+                onNodeWithText("25.0–75.0 MB").assertIsDisplayed()
                 generate.performClick()
                 assertEquals(
                     listOf(ModeChanged(JunkMode.MULTI), ModeChanged(JunkMode.SINGLE), ModeChanged(JunkMode.MULTI), Submit),
@@ -132,8 +133,10 @@ class JunkCodeUiTest {
                     .config[SemanticsProperties.VerticalScrollAxisRange].maxValue()
                 if (width == 800) {
                     assertEquals(configuration.top, size.top)
-                    assertEquals(single.right, configuration.right)
-                    assertEquals(multi.left, size.left)
+                    assertTrue(configuration.right < size.left)
+                    val modeGapCenter = (single.right + multi.left) / 2
+                    val panelGapCenter = (configuration.right + size.left) / 2
+                    assertEquals(modeGapCenter, panelGapCenter)
                     assertEquals(0f, scrollRange)
                     listOf(minimumField, maximumField, slider, generate).forEach { it.assertIsDisplayed() }
                 } else {
@@ -160,7 +163,8 @@ class JunkCodeUiTest {
             assertEquals(fixedAction, generate.getUnclippedBoundsInRoot())
             minimumField.assertTextContains("17.5")
             maximumField.assertTextContains("22.5")
-            onNodeWithText("100 MB").assertExists()
+            onNodeWithText("100.0 MB").assertExists()
+            onNodeWithText("0.5 MB 步进").assertDoesNotExist()
             runOnIdle {
                 listOf(MinimumSizeChanged(""), MaximumSizeChanged(""), ResPrefixChanged(""), PackageNameChanged(""), SuffixChanged("")).forEach(vm::onIntent)
             }
@@ -168,8 +172,8 @@ class JunkCodeUiTest {
             checkPanels("批量配置")
             minimumField.assertTextContains("0.5")
             maximumField.assertTextContains("1.5")
-            onNodeWithText("10 MB").assertExists()
-            onNodeWithText("25–75 MB").assertIsDisplayed()
+            onNodeWithText("10.0 MB").assertExists()
+            onNodeWithText("25.0–75.0 MB").assertIsDisplayed()
             generate.assertIsDisplayed()
             onNodeWithText("生成策略", substring = true).assertDoesNotExist()
             runOnIdle { listOf(OutputDirChanged(""), AarCountChanged(""), MinimumSizeChanged(""), MaximumSizeChanged("")).forEach(vm::onIntent) }
@@ -181,45 +185,68 @@ class JunkCodeUiTest {
             }
             maximumField.performScrollTo().performTextReplacement("5.5")
             minimumField.performScrollTo().performTextReplacement("4,375")
+            minimumField.assertTextContains("4,375")
             onNodeWithText("AAR 数量").performScrollTo().performTextReplacement("30")
-            onNodeWithText("131.25–165 MB").assertIsDisplayed()
+            minimumField.assertTextContains("4.4")
+            onNodeWithText("132.0–165.0 MB").assertIsDisplayed()
             thumbs.assertCountEquals(2)
             thumbs.onLast().performScrollTo().performMouseInput { moveTo(center); press(); moveBy(Offset(40f, 0f)) }
             val draggedMaximum = runOnIdle {
                 val state = vm.uiState.value
                 val form = state.multi.size
-                val bytes = checkNotNull(form.range).maximumBytes
-                assertEquals("4,375", form.minimumMb)
-                assertTrue(bytes in 6_000_000L..6_500_000L && bytes % 500_000L == 0L)
-                assertTrue(state.estimatedSize != "131.25–165 MB")
+                val bytes = checkNotNull(form.range(state.mode)).maximumBytes
+                assertEquals("4.4", form.minimumMb)
+                assertTrue(bytes > 5_500_000L)
+                assertEquals(0L, bytes % BYTES_PER_TENTH_MB)
+                assertTrue(state.estimatedSize != "132.0–165.0 MB")
                 form.maximumMb
             }
             maximumField.assertTextContains(draggedMaximum)
             thumbs.onLast().performMouseInput { release() }
 
-            maximumField.performScrollTo().performTextReplacement("5.625")
+            thumbs.onLast().performSemanticsAction(SemanticsActions.SetProgress) { it(5.85f) }
+            maximumField.assertTextContains("5.9")
+            thumbs.onLast().performSemanticsAction(SemanticsActions.SetProgress) { it(4.5f) }
+            maximumField.assertTextContains("4.9")
+            minimumField.assertTextContains("4.4")
+
+            maximumField.performScrollTo().performTextReplacement("5.625003")
+            maximumField.performImeAction()
+            maximumField.assertTextContains("5.6")
             thumbs.onFirst().performScrollTo().performMouseInput { moveTo(center); press(); moveBy(Offset(-40f, 0f)); release() }
             runOnIdle {
-                val range = checkNotNull(vm.uiState.value.multi.size.range)
-                assertTrue(range.minimumBytes < 4_375_000 && range.minimumBytes % 500_000 == 0L)
-                assertEquals(5_625_000L, range.maximumBytes)
+                val state = vm.uiState.value
+                val range = checkNotNull(state.multi.size.range(state.mode))
+                assertTrue(range.minimumBytes < 4_400_000L)
+                assertEquals(5_600_000L, range.maximumBytes)
             }
 
             minimumField.performScrollTo().performTextReplacement("4.375")
-            maximumField.performScrollTo().performTextReplacement("4")
-            onNodeWithText("请输入大于 0 的数值", substring = true).assertExists()
+            maximumField.performScrollTo().performTextReplacement("4.849999")
+            onNodeWithText("最大值须至少比最小值大 0.5 MB", substring = true).assertExists()
             onNodeWithText("—").assertExists()
+            maximumField.performScrollTo().performTextReplacement("9.5")
+            onNodeWithText("132.0–285.0 MB").assertIsDisplayed()
             maximumField.performScrollTo().performTextReplacement("12.25")
-            onNodeWithText("50 MB").assertExists()
-            onNodeWithText("131.25–367.5 MB").assertExists()
+            maximumField.performKeyInput { pressKey(Key.Enter) }
+            maximumField.assertTextContains("12.3")
+            onNodeWithText("大小须在 0.5–10.0 MB 内", substring = true).assertExists()
+            onNodeWithText("—").assertExists()
+            assertEquals(10f, thumbs.onLast().fetchSemanticsNode().config[SemanticsProperties.ProgressBarRangeInfo].range.endInclusive)
+            runOnIdle { assertEquals(JunkAarSizeRange(4_400_000, 9_500_000), vm.uiState.value.multi.size.sliderSelection(JunkMode.MULTI)) }
+
+            maximumField.performScrollTo().performTextReplacement("9.95")
             minimumField.performScrollTo().performTextReplacement("0.125")
-            onNodeWithText("0.125 MB").assertExists()
-            onNodeWithText("50.125 MB").assertExists()
-            onNodeWithText("3.75–367.5 MB").assertExists()
-            assertEquals(0.125f, thumbs.onFirst().fetchSemanticsNode().config[SemanticsProperties.ProgressBarRangeInfo].range.start)
-            assertEquals(50.125f, thumbs.onLast().fetchSemanticsNode().config[SemanticsProperties.ProgressBarRangeInfo].range.endInclusive)
+            minimumField.performKeyInput { pressKey(Key.Enter) }
+            minimumField.assertTextContains("0.1")
+            onNodeWithText("大小须在 0.5–10.0 MB 内", substring = true).assertExists()
+            onNodeWithText("—").assertExists()
+            assertEquals(0.5f, thumbs.onFirst().fetchSemanticsNode().config[SemanticsProperties.ProgressBarRangeInfo].range.start)
+            minimumField.performScrollTo().performTextReplacement("0.45")
+            onNodeWithText("15.0–300.0 MB").assertIsDisplayed()
 
             singleMode.assertIsDisplayed().performClick().assertIsOn()
+            runOnIdle { assertEquals("0.5", vm.uiState.value.multi.size.minimumMb) }
             onNodeWithText("包名").performScrollTo().performTextReplacement("org.fixture.ui")
             onNodeWithText("后缀").performScrollTo().performTextReplacement("part.one")
             onNodeWithText("junk_org_fixture_ui_part.one_TT3.1.0.aar").assertIsDisplayed()
@@ -227,16 +254,25 @@ class JunkCodeUiTest {
             onNode(hasText("垃圾代码") and hasClickAction()).performClick()
             onNodeWithText("后缀").performScrollTo().assertTextContains("part.one")
             onNodeWithText("批量总大小范围").assertDoesNotExist()
-            onNodeWithText("100 MB").assertExists()
-            minimumField.performScrollTo().performTextReplacement("17.500123")
+            onNodeWithText("100.0 MB").assertExists()
+            minimumField.performScrollTo().performTextReplacement("17.55")
+            maximumField.performScrollTo().performTextReplacement("100.05")
+            maximumField.performKeyInput { pressKey(Key.Enter) }
+            maximumField.assertTextContains("100.1")
+            onNodeWithText("大小须在 0.5–100.0 MB 内", substring = true).assertExists()
+            assertEquals(100f, thumbs.onLast().fetchSemanticsNode().config[SemanticsProperties.ProgressBarRangeInfo].range.endInclusive)
             maximumField.performScrollTo().performTextReplacement("22.5")
+            thumbs.onFirst().performSemanticsAction(SemanticsActions.SetProgress) { it(21.5f) }
+            minimumField.assertTextContains("20.5")
+            maximumField.assertTextContains("22.5")
+            minimumField.performScrollTo().performTextReplacement("17.55")
             onNodeWithText("生成策略", substring = true).assertDoesNotExist()
             onNodeWithText("生成 DTO 文本适配方法").assertDoesNotExist()
             generate.assertIsDisplayed().performClick()
             waitUntil(timeoutMillis = 10_000) { vm.uiState.value.busy && requests.size == 1 }
             onAllNodesWithContentDescription("Lottie animation").onFirst().assertExists()
             val request = requests.single()
-            assertEquals(JunkConfiguration.SingleBySize("org.fixture.ui.part.one", JunkAarSizeRange(17_500_123, 22_500_000), "fixture_"),
+            assertEquals(JunkConfiguration.SingleBySize("org.fixture.ui.part.one", JunkAarSizeRange(17_600_000, 22_500_000), "fixture_"),
                 request.configuration)
             assertEquals(JunkGenerationStrategy(), request.strategy)
             runOnIdle { gate.complete(GeneratedJunkCode("fixture-result.aar", listOf("fixture-result.aar"), 123)) }

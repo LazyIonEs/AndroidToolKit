@@ -149,8 +149,7 @@
     <string name="aar_size_per_file">每份 AAR 大小</string>
     <string name="aar_minimum_size">最小大小</string>
     <string name="aar_maximum_size">最大大小</string>
-    <string name="aar_size_slider_step">%1$s MB 步进</string>
-    <string name="aar_size_range_invalid">请输入大于 0 的数值，最多保留 6 位小数，且最大值须大于或等于最小值。</string>
+    <string name="aar_size_range_invalid">四舍五入保留一位小数后，大小须在 %1$s–%2$s MB 内，最大值须至少比最小值大 %3$s MB。</string>
     <string name="aar_count">AAR 数量</string>
     <string name="aar_count_unit">份</string>
     <string name="aar_total_size_range">批量总大小范围</string>

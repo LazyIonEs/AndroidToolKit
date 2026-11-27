@@ -64,14 +64,14 @@ class PreferencesStorageTest {
         assertEquals(JunkPreference.SINGLE, source.read().junkMode)
     }
 
-    @Test fun signingProfileSavingDefaultsToOnAndRemembersOptOut() = runTest {
+    @Test fun signingProfileSavingDefaultsToOffAndRemembersOptIn() = runTest {
         val settings = MapSettings().toFlowSettings(Dispatchers.Unconfined)
         val source = PreferencesDataSource(settings, Dispatchers.Unconfined)
         val initial = source.read()
-        assertTrue(initial.saveSigningProfiles)
-        val change = PreferenceChange.SaveSigningProfiles(false)
+        assertFalse(initial.saveSigningProfiles)
+        val change = PreferenceChange.SaveSigningProfiles(true)
         source.write(change, initial.changed(change))
-        assertFalse(PreferencesDataSource(settings, Dispatchers.Unconfined).read().saveSigningProfiles)
+        assertTrue(PreferencesDataSource(settings, Dispatchers.Unconfined).read().saveSigningProfiles)
     }
 
     @Test fun iconSettingsRoundTripRetainsEnumOrdinalsAndEveryParameter() = runTest {

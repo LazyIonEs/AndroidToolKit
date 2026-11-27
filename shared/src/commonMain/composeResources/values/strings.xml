@@ -149,8 +149,7 @@
     <string name="aar_size_per_file">Size per AAR</string>
     <string name="aar_minimum_size">Minimum size</string>
     <string name="aar_maximum_size">Maximum size</string>
-    <string name="aar_size_slider_step">%1$s MB steps</string>
-    <string name="aar_size_range_invalid">Enter positive sizes with up to 6 decimal places. The maximum must be at least as large as the minimum.</string>
+    <string name="aar_size_range_invalid">After rounding to one decimal place, sizes must be within %1$s–%2$s MB, with a gap of at least %3$s MB.</string>
     <string name="aar_count">AAR count</string>
     <string name="aar_count_unit">files</string>
     <string name="aar_total_size_range">Total size range</string>

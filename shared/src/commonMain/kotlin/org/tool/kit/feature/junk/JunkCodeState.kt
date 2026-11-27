@@ -1,13 +1,45 @@
 package org.tool.kit.feature.junk
 
 import org.tool.kit.domain.junk.*
+import org.tool.kit.domain.junk.JunkAarSizeRange.Companion.BYTES_PER_MB
 import org.tool.kit.model.JunkMode
 
-internal const val AAR_SIZE_STEP_BYTES = JunkAarSizeRange.BYTES_PER_MB / 2
-private const val SLIDER_EXPANSION_BYTES = 50 * JunkAarSizeRange.BYTES_PER_MB
-private val defaultSingleSliderBounds = AAR_SIZE_STEP_BYTES..(100 * JunkAarSizeRange.BYTES_PER_MB)
+private const val MINIMUM_AAR_SIZE_BYTES = BYTES_PER_MB / 2
+private val singleAarSizeBounds = MINIMUM_AAR_SIZE_BYTES..(100 * BYTES_PER_MB)
+private val multiAarSizeBounds = MINIMUM_AAR_SIZE_BYTES..(10 * BYTES_PER_MB)
 private val defaultSingleSize = JunkAarSizeRange(17_500_000, 22_500_000)
 private val defaultMultiSize = JunkAarSizeRange(500_000, 1_500_000)
+private val aarSizeInput = Regex("[0-9]*[.,]?[0-9]*")
+
+internal fun String.isAarSizeInput(): Boolean = aarSizeInput.matches(this)
+
+private fun String.toRoundedAarSizeBytes(): Long? {
+    val input = trim()
+    if (!input.isAarSizeInput()) return null
+    val separator = input.indexOfFirst { it == '.' || it == ',' }
+    // Only the first two decimal digits affect rounding to tenths.
+    val number = if (separator < 0) input else input.take(separator + 3)
+    val bytes = JunkAarSizeRange.megabytesToBytes(number) ?: return null
+    return bytes.roundedAarTenths().takeIf { it <= Long.MAX_VALUE / BYTES_PER_TENTH_MB }?.times(BYTES_PER_TENTH_MB)
+}
+
+internal val JunkMode.sizeBoundsBytes: LongRange
+    get() = when (this) {
+        JunkMode.SINGLE -> singleAarSizeBounds
+        JunkMode.MULTI -> multiAarSizeBounds
+    }
+
+internal val JunkMode.minimumSizeGapBytes: Long
+    get() = when (this) {
+        JunkMode.SINGLE -> 2 * BYTES_PER_MB
+        JunkMode.MULTI -> BYTES_PER_MB / 2
+    }
+
+internal fun JunkMode.sizeRangeMessageArgs(): Array<String> = arrayOf(
+    sizeBoundsBytes.first.formatRoundedAarMegabytes(),
+    sizeBoundsBytes.last.formatRoundedAarMegabytes(),
+    minimumSizeGapBytes.formatAarMegabytes(),
+)
 
 data class SingleJunkForm(
     val aarName: String = "junk_com_dev_junk_plugin_TT$JUNK_AAR_VERSION.aar",
@@ -21,42 +53,53 @@ data class MultiJunkForm(
     val outputDir: String = "junk",
     val aarCount: String = "50",
     val size: JunkAarSizeForm = JunkAarSizeForm(
-        minimumMb = defaultMultiSize.minimumBytes.formatAarMegabytes(),
-        maximumMb = defaultMultiSize.maximumBytes.formatAarMegabytes(),
+        minimumMb = defaultMultiSize.minimumBytes.formatRoundedAarMegabytes(),
+        maximumMb = defaultMultiSize.maximumBytes.formatRoundedAarMegabytes(),
         lastValidRange = defaultMultiSize,
-        trackBounds = AAR_SIZE_STEP_BYTES..(10 * JunkAarSizeRange.BYTES_PER_MB),
     ),
 )
 
 data class JunkAarSizeForm(
-    val minimumMb: String = defaultSingleSize.minimumBytes.formatAarMegabytes(),
-    val maximumMb: String = defaultSingleSize.maximumBytes.formatAarMegabytes(),
+    val minimumMb: String = defaultSingleSize.minimumBytes.formatRoundedAarMegabytes(),
+    val maximumMb: String = defaultSingleSize.maximumBytes.formatRoundedAarMegabytes(),
     private val lastValidRange: JunkAarSizeRange = defaultSingleSize,
-    private val trackBounds: LongRange = defaultSingleSliderBounds,
 ) {
-    val range = JunkAarSizeRange.fromMegabytes(minimumMb, maximumMb)
-    internal val sliderSelection = range ?: lastValidRange
-    internal val sliderBounds: LongRange = run {
-        val lower = minOf(trackBounds.first, sliderSelection.minimumBytes)
-        val upper = if (sliderSelection.maximumBytes > trackBounds.last) {
-            sliderSelection.maximumBytes.roundUp(SLIDER_EXPANSION_BYTES)
-        } else trackBounds.last
-        lower..upper.roundUp(AAR_SIZE_STEP_BYTES, lower)
+    private val minimumBytes = minimumMb.toRoundedAarSizeBytes()
+    private val maximumBytes = maximumMb.toRoundedAarSizeBytes()
+    private val parsedRange = if (minimumBytes != null && maximumBytes != null && minimumBytes > 0 && minimumBytes <= maximumBytes) {
+        JunkAarSizeRange(minimumBytes, maximumBytes)
+    } else null
+
+    internal fun range(mode: JunkMode): JunkAarSizeRange? = parsedRange?.takeIf { it.isValidFor(mode) }
+
+    internal fun sliderSelection(mode: JunkMode): JunkAarSizeRange =
+        range(mode) ?: lastValidRange.takeIf { it.isValidFor(mode) } ?: when (mode) {
+            JunkMode.SINGLE -> defaultSingleSize
+            JunkMode.MULTI -> defaultMultiSize
+        }
+
+    internal fun finishEditing(mode: JunkMode): JunkAarSizeForm {
+        val minimum = minimumBytes?.formatRoundedAarMegabytes() ?: minimumMb
+        val maximum = maximumBytes?.formatRoundedAarMegabytes() ?: maximumMb
+        return if (minimum == minimumMb && maximum == maximumMb) this else withInputs(mode, minimum, maximum)
     }
 
-    /** Keep the last usable selection during text edits and keep the track stable during drags. */
-    internal fun withInputs(minimumMb: String = this.minimumMb, maximumMb: String = this.maximumMb): JunkAarSizeForm =
-        copy(
-            minimumMb = minimumMb,
-            maximumMb = maximumMb,
-            lastValidRange = sliderSelection,
-            trackBounds = sliderBounds,
-        )
+    /** Keep the last usable selection during text edits. */
+    internal fun withInputs(
+        mode: JunkMode,
+        minimumMb: String = this.minimumMb,
+        maximumMb: String = this.maximumMb,
+    ): JunkAarSizeForm = copy(
+        minimumMb = minimumMb,
+        maximumMb = maximumMb,
+        lastValidRange = sliderSelection(mode),
+    )
 }
 
-private fun Long.roundUp(step: Long, origin: Long = 0): Long {
-    val remainder = (this - origin) % step
-    return if (remainder == 0L) this else this + minOf(step - remainder, Long.MAX_VALUE - this)
+private fun JunkAarSizeRange.isValidFor(mode: JunkMode): Boolean {
+    val bounds = mode.sizeBoundsBytes
+    return minimumBytes >= bounds.first && maximumBytes <= bounds.last &&
+        maximumBytes - minimumBytes >= mode.minimumSizeGapBytes
 }
 
 data class JunkCodeUiState(
@@ -79,6 +122,7 @@ sealed interface JunkCodeIntent {
     data class AarCountChanged(val value: String) : JunkCodeIntent
     data class MinimumSizeChanged(val value: String) : JunkCodeIntent
     data class MaximumSizeChanged(val value: String) : JunkCodeIntent
+    data object SizeEditingFinished : JunkCodeIntent
     data class SizeRangeChanged(val value: JunkAarSizeRange) : JunkCodeIntent
     data object RandomSuffix : JunkCodeIntent
     data object RandomPrefix : JunkCodeIntent
@@ -102,14 +146,19 @@ object JunkFormReducer {
         is JunkCodeIntent.AarCountChanged -> form.copy(aarCount = intent.value)
         else -> form
     }
-    fun size(form: JunkAarSizeForm, intent: JunkCodeIntent): JunkAarSizeForm = when (intent) {
-        is JunkCodeIntent.MinimumSizeChanged -> form.withInputs(minimumMb = intent.value)
-        is JunkCodeIntent.MaximumSizeChanged -> form.withInputs(maximumMb = intent.value)
+    fun size(state: JunkCodeUiState, intent: JunkCodeIntent): JunkCodeUiState = when (state.mode) {
+        JunkMode.SINGLE -> state.copy(single = state.single.copy(size = size(state.single.size, state.mode, intent)))
+        JunkMode.MULTI -> state.copy(multi = state.multi.copy(size = size(state.multi.size, state.mode, intent)))
+    }
+
+    private fun size(form: JunkAarSizeForm, mode: JunkMode, intent: JunkCodeIntent): JunkAarSizeForm = when (intent) {
+        is JunkCodeIntent.MinimumSizeChanged -> form.withInputs(mode, minimumMb = intent.value)
+        is JunkCodeIntent.MaximumSizeChanged -> form.withInputs(mode, maximumMb = intent.value)
+        JunkCodeIntent.SizeEditingFinished -> form.finishEditing(mode)
         is JunkCodeIntent.SizeRangeChanged -> form.withInputs(
-            minimumMb = form.minimumMb.takeIf { form.range?.minimumBytes == intent.value.minimumBytes }
-                ?: intent.value.minimumBytes.formatAarMegabytes(),
-            maximumMb = form.maximumMb.takeIf { form.range?.maximumBytes == intent.value.maximumBytes }
-                ?: intent.value.maximumBytes.formatAarMegabytes(),
+            mode,
+            minimumMb = intent.value.minimumBytes.formatRoundedAarMegabytes(),
+            maximumMb = intent.value.maximumBytes.formatRoundedAarMegabytes(),
         )
         else -> form
     }
@@ -117,8 +166,8 @@ object JunkFormReducer {
 }
 
 fun JunkCodeUiState.configuration(): JunkConfiguration? = when (mode) {
-    JunkMode.SINGLE -> single.size.range?.let { JunkConfiguration.SingleBySize(single.packageName + "." + single.suffix, it, single.resPrefix) }
-    JunkMode.MULTI -> multi.size.range?.let { JunkConfiguration.MultiBySize(multi.outputDir, multi.aarCount.toIntOrNull() ?: 0, it) }
+    JunkMode.SINGLE -> single.size.range(mode)?.let { JunkConfiguration.SingleBySize(single.packageName + "." + single.suffix, it, single.resPrefix) }
+    JunkMode.MULTI -> multi.size.range(mode)?.let { JunkConfiguration.MultiBySize(multi.outputDir, multi.aarCount.toIntOrNull() ?: 0, it) }
 }
 
 fun JunkCodeUiState.hasMissingFields(): Boolean = outputPath.isBlank() || with(single) {

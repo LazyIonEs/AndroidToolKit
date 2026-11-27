@@ -197,7 +197,6 @@ private fun AnimatedModeContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun FormPanels(
     state: JunkCodeUiState,
@@ -214,7 +213,7 @@ private fun FormPanels(
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         AarFormPair(
             stacked = stackPanels,
-            spacing = if (stackPanels) 12.dp else ButtonGroupDefaults.ConnectedSpaceBetween,
+            spacing = if (stackPanels) 12.dp else 8.dp,
             first = { fieldModifier ->
                 val panel = fieldModifier.then(panelHeight).testTag("aar-config-panel")
                 when (state.mode) {
@@ -229,7 +228,7 @@ private fun FormPanels(
             second = { fieldModifier ->
                 val panel = fieldModifier.then(panelHeight).testTag("aar-size-panel")
                 FormPanel(stringResource(Res.string.aar_size_per_file), panel) {
-                    AarSizeFields(size, onIntent, stackFields = !stackPanels || stackFields)
+                    AarSizeFields(size, state.mode, onIntent, stackFields = !stackPanels || stackFields)
                 }
             },
         )
@@ -238,7 +237,7 @@ private fun FormPanels(
             shape = MaterialTheme.shapes.large,
             color = MaterialTheme.colorScheme.surfaceContainerLow,
         ) {
-            AarSizeSlider(size, Modifier.padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 8.dp)) {
+            AarSizeSlider(size, state.mode, Modifier.padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 8.dp)) {
                 onIntent(JunkCodeIntent.SizeRangeChanged(it))
             }
         }

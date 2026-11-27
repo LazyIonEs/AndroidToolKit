@@ -72,7 +72,7 @@ class PreferencesDataSource(private val settings: FlowSettings, private val io: 
             isStartCheckUpdate = settings.getBoolean(START_CHECK_UPDATE, true),
             copyMode = CopyPreference.entries.firstOrNull { it.name == settings.getStringOrNull(SIGNATURE_COPY_MODE) } ?: DEFAULT_COPY_MODE,
             junkMode = JunkPreference.entries.firstOrNull { it.name == settings.getStringOrNull(JUNK_MODE) } ?: DEFAULT_JUNK_MODE,
-            saveSigningProfiles = settings.getBoolean(SAVE_SIGNING_PROFILES, true),
+            saveSigningProfiles = settings.getBoolean(SAVE_SIGNING_PROFILES, false),
         )
     }
 

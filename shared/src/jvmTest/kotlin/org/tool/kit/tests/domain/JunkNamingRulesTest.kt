@@ -30,13 +30,21 @@ class JunkNamingRulesTest {
     }
 
     @Test fun sizeFormAcceptsDecimalMegabytesAndOnlyTheSelectedRangeIsSubmitted() {
-        val single = SingleJunkForm(resPrefix = " prefix ", size = JunkAarSizeForm("017.5", "22,5"))
-        val multi = MultiJunkForm(outputDir = " dir ", aarCount = "002", size = JunkAarSizeForm(".5", "1"))
+        val single = SingleJunkForm(resPrefix = " prefix ", size = JunkAarSizeForm("017.45", "19,45"))
+        val multi = MultiJunkForm(outputDir = " dir ", aarCount = "002", size = JunkAarSizeForm(".5499999999", "1.0499999999"))
         val state = JunkCodeUiState(" output ", JunkMode.SINGLE, single, multi)
-        assertEquals(JunkConfiguration.SingleBySize("com.dev.junk.plugin", JunkAarSizeRange(17_500_000, 22_500_000), " prefix "), state.configuration())
+        assertEquals(JunkConfiguration.SingleBySize("com.dev.junk.plugin", JunkAarSizeRange(17_500_000, 19_500_000), " prefix "), state.configuration())
         assertEquals(JunkConfiguration.MultiBySize(" dir ", 2, JunkAarSizeRange(500_000, 1_000_000)),
             state.copy(mode = JunkMode.MULTI).configuration())
+        assertNull(state.copy(single = single.copy(size = single.size.copy(maximumMb = "19.449999"))).configuration())
+        assertNull(state.copy(mode = JunkMode.MULTI, multi = multi.copy(size = multi.size.copy(maximumMb = "0.949999"))).configuration())
         assertNull(state.copy(single = single.copy(size = JunkAarSizeForm("22.5", "17.5"))).configuration())
+        assertEquals(JunkAarSizeRange(500_000, 100_000_000), JunkAarSizeForm("0.45", "100.04").range(JunkMode.SINGLE))
+        assertEquals(JunkAarSizeRange(500_000, 10_000_000), JunkAarSizeForm("0.45", "10.04").range(JunkMode.MULTI))
+        assertNull(JunkAarSizeForm("0.44", "3").range(JunkMode.SINGLE))
+        assertNull(JunkAarSizeForm("1", "100.05").range(JunkMode.SINGLE))
+        assertNull(JunkAarSizeForm("1", "10.05").range(JunkMode.MULTI))
+        assertNull(JunkAarSizeForm("1", "9223372036854.75").range(JunkMode.SINGLE))
         assertNull(JunkAarSizeRange.fromMegabytes("0", "22.5"))
         assertNull(JunkAarSizeRange.fromMegabytes("1", "9223372036854.775808"))
     }

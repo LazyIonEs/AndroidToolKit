@@ -26,7 +26,7 @@ data class JunkAarSizeRange(val minimumBytes: Long, val maximumBytes: Long) {
             return if (lower > 0 && lower <= upper) JunkAarSizeRange(lower, upper) else null
         }
 
-        private fun megabytesToBytes(input: String): Long? {
+        internal fun megabytesToBytes(input: String): Long? {
             val value = input.trim()
             if (!decimal.matches(value)) return null
             val parts = value.split('.', ',')
@@ -38,9 +38,24 @@ data class JunkAarSizeRange(val minimumBytes: Long, val maximumBytes: Long) {
     }
 }
 
-internal fun Long.formatAarMegabytes(groupThousands: Boolean = false): String {
-    val digits = (this / JunkAarSizeRange.BYTES_PER_MB).toString()
+internal const val BYTES_PER_TENTH_MB = JunkAarSizeRange.BYTES_PER_MB / 10
+
+internal fun Long.roundedAarTenths(): Long {
+    val tenths = this / BYTES_PER_TENTH_MB
+    return if (this % BYTES_PER_TENTH_MB >= BYTES_PER_TENTH_MB / 2) tenths + 1 else tenths
+}
+
+internal fun Long.formatRoundedAarMegabytes(groupThousands: Boolean = false): String {
+    val tenths = roundedAarTenths()
+    val digits = (tenths / 10).toString()
     val whole = if (groupThousands) digits.reversed().chunked(3).joinToString(",").reversed() else digits
+    return "$whole.${tenths % 10}"
+}
+
+internal fun Long.formatRoundedAarSize(): String = "${formatRoundedAarMegabytes()} MB"
+
+internal fun Long.formatAarMegabytes(): String {
+    val whole = (this / JunkAarSizeRange.BYTES_PER_MB).toString()
     val fraction = (this % JunkAarSizeRange.BYTES_PER_MB).toString().padStart(6, '0').trimEnd('0')
     return if (fraction.isEmpty()) whole else "$whole.$fraction"
 }

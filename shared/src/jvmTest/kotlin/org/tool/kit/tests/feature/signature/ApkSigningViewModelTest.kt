@@ -30,6 +30,7 @@ class ApkSigningViewModelTest {
             f.preferences.change(PreferenceChange.DuplicateRemoval(false))
             f.preferences.change(PreferenceChange.AlignFileSize(false))
             f.preferences.change(PreferenceChange.HuaweiAlignment(false))
+            f.preferences.change(PreferenceChange.SaveSigningProfiles(true))
             f.vm.onIntent(PolicyChanged(SignaturePolicy.V4)); f.vm.onIntent(V4NameChanged("custom.idsig"))
             f.vm.onIntent(Submit); f.vm.onIntent(Submit); runCurrent()
             val captured = f.signer.requests.single()
@@ -66,6 +67,7 @@ class ApkSigningViewModelTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { f.effects.effects.toList(events) }
         try {
             runCurrent(); fillSigning(f.vm); runCurrent()
+            f.preferences.change(PreferenceChange.SaveSigningProfiles(true))
             f.vm.onIntent(ApkPathChanged("All")); f.vm.onIntent(PolicyChanged(SignaturePolicy.V4)); runCurrent()
             f.vm.onIntent(Submit); f.vm.onIntent(Submit); runCurrent()
             assertEquals(listOf("oppo", "vivo", "huawei", "xiaomi", "qq", "honor"), f.signer.requests.map { it.inputPath })
@@ -86,6 +88,7 @@ class ApkSigningViewModelTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { f.effects.effects.toList(events) }
         try {
             runCurrent(); fillSigning(f.vm); f.vm.onIntent(ApkPathChanged("All")); runCurrent()
+            f.preferences.change(PreferenceChange.SaveSigningProfiles(true))
             for (failure in listOf(SignApkOutcome.Failure("detail"), SignApkOutcome.Success("missing", false))) {
                 val start = f.signer.results.size
                 f.vm.onIntent(Submit); runCurrent()
@@ -106,6 +109,7 @@ class ApkSigningViewModelTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { f.effects.effects.toList(events) }
         try {
             runCurrent(); fillSigning(f.vm); runCurrent()
+            f.preferences.change(PreferenceChange.SaveSigningProfiles(true))
             for (message in listOf(null, "", "wrong password")) {
                 f.vm.onIntent(Submit); runCurrent()
                 f.signer.results.last().complete(SignApkOutcome.Failure(message)); runCurrent()
@@ -201,7 +205,7 @@ class ApkSigningViewModelTest {
         } finally { keys.aliases.forEach { it.complete(null) }; keys.passwords.forEach { it.complete(false) }; f.close() }
     }
 
-    @Test fun selectingSavedProfileRestoresAliasByNameAndOptOutKeepsHistory() = runTest {
+    @Test fun selectingSavedProfileRestoresAliasByNameWithSavingOffByDefault() = runTest {
         val f = SigningFixture(StandardTestDispatcher(testScheduler))
         val saved = SigningCredentials("/saved.jks", "saved store password", "second", "saved alias password")
         val profile = SavedSigningProfile(saved.path, "second")
@@ -210,10 +214,9 @@ class ApkSigningViewModelTest {
             fillSigning(f.vm)
             f.vm.onIntent(Refresh)
             runCurrent()
-            assertTrue(f.preferences.state.value.saveSigningProfiles)
+            assertFalse(f.preferences.state.value.saveSigningProfiles)
             assertEquals(listOf(profile), f.vm.uiState.value.savedSigningProfiles)
 
-            f.preferences.change(PreferenceChange.SaveSigningProfiles(false))
             f.vm.onIntent(SigningProfileSelected(profile))
             runCurrent()
             val credentials = f.vm.uiState.value.form.credentials
@@ -257,6 +260,7 @@ class ApkSigningViewModelTest {
         val events = mutableListOf<AppEffect>()
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { f.effects.effects.toList(events) }
         try {
+            f.preferences.change(PreferenceChange.SaveSigningProfiles(true))
             fillSigning(f.vm)
             runCurrent()
             f.vm.onIntent(Submit)
