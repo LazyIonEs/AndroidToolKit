@@ -36,6 +36,7 @@ data class PreferencesSnapshot(
     val isStartCheckUpdate: Boolean = true,
     val copyMode: CopyPreference = CopyPreference.UPPERCASE_WITH_COLON,
     val junkMode: JunkPreference = JunkPreference.SINGLE,
+    val saveSigningProfiles: Boolean = true,
 )
 
 /** 一次明确的字段修改，避免不同页面用各自的旧快照覆盖其他字段。 */
@@ -55,6 +56,7 @@ sealed interface PreferenceChange {
     data class CopyModeChanged(val value: CopyPreference) : PreferenceChange
     data class JunkModeChanged(val value: JunkPreference) : PreferenceChange
     data class IconSettings(val value: IconFactoryData) : PreferenceChange
+    data class SaveSigningProfiles(val value: Boolean) : PreferenceChange
 }
 
 /** 仅归并业务字段的纯函数；加载标记和版本号由仓库维护。 */
@@ -74,6 +76,7 @@ fun PreferencesSnapshot.changed(change: PreferenceChange): PreferencesSnapshot =
     is PreferenceChange.CopyModeChanged -> copy(copyMode = change.value)
     is PreferenceChange.JunkModeChanged -> copy(junkMode = change.value)
     is PreferenceChange.IconSettings -> copy(iconFactoryData = change.value)
+    is PreferenceChange.SaveSigningProfiles -> copy(saveSigningProfiles = change.value)
 }
 
 interface PreferencesRepository {

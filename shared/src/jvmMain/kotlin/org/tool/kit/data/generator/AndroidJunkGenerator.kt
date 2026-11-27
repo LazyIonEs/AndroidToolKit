@@ -1,8 +1,8 @@
 package org.tool.kit.data.generator
 
+import org.tool.kit.domain.junk.JUNK_AAR_VERSION
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
@@ -66,7 +66,9 @@ class AndroidJunkGenerator(
                 require(metrics.methods <= policy.maxMethods && metrics.fields <= policy.maxFields) { "Generated methods/fields exceed configured work budget" }
                 File(workspace, "classes/$name.class").apply { parentFile.mkdirs(); writeBytes(bytes) }
             }
-            shared.forEachIndexed { i, name -> writeClass(name, JunkCodeComposer.sharedHelper(name, policy.seedFor(i, 3)), "sharedHelper") }
+            shared.forEachIndexed { i, name ->
+                writeClass(name, JunkCodeComposer.sharedHelper(name, policy.seedFor(i, 3), policy.profile), "sharedHelper")
+            }
             val customViews = arrayOfNulls<List<String>>(units.size)
             var completedClasses = 0
             val progressLock = Any()
@@ -88,7 +90,12 @@ class AndroidJunkGenerator(
                     }
                 }
             }
-            val pool = JunkResourcePool(workspace, "${resPrefix}r${token}_", policy.resources)
+            val pool = JunkResourcePool(workspace, "${resPrefix}r${token}_", policy.resources,
+                reuseIdenticalContent = policy.profile?.reusesIdenticalResources == true,
+                groupStringValues = policy.profile?.groupsStringResources == true,
+                useDrawablePalettes = policy.profile?.usesDrawablePalettes == true,
+                shareVectorIcons = policy.profile?.sharesVectorIcons == true,
+                shareResourcePresets = policy.profile?.sharesResourcePresets == true)
             val ids = sortedSetOf<String>()
             val layoutFingerprints = mutableSetOf<String>()
             val layoutTypes = sortedSetOf<String>()
@@ -126,12 +133,6 @@ class AndroidJunkGenerator(
                     activities.forEach { append("<activity android:name=\"$it\" android:exported=\"false\"/>\n") }
                     append("</application></manifest>\n")
                 })
-                // proguard.txt is the consumer rule entry in the AAR specification. No host-wide wildcard.
-                File(workspace, "proguard.txt").bufferedWriter().use { writer ->
-                    classNames.sorted().forEach { writer.write("-keep class ${it.replace('/', '.')} { *; }\n") }
-                }
-                // Layouts have direct R references in kept Activities; XML tracks their resource dependencies.
-                // Do not add an unbudgeted raw keep resource (in particular when total budget is zero).
                 File(workspace, "R.txt").bufferedWriter().use { writer ->
                     symbols.toSortedMap().filterKeys { it != "assets" }.forEach { (type, names) ->
                         names.sorted().forEach { writer.write("int $type $it 0x0\n") }
@@ -141,11 +142,12 @@ class AndroidJunkGenerator(
                     "schema" to 1, "seed" to policy.seed, "codePackagePrefix" to appPackageName, "resourceNamespace" to namespace,
                     "minSdk" to 21, "androidxFragmentRequired" to policy.enableFragments,
                     "activityLayouts" to units.associate { it.activityName.replace('/', '.') to it.layoutName },
-                    "code" to metrics.snapshot(), "optionalResources" to pool.snapshot().generated)))
+                    "code" to metrics.snapshot(), "optionalResources" to pool.snapshot().generated)
+                    .apply { policy.profile?.let { put("profile", it.snapshot()) } }))
             }
             timed("classesJar") { zip(File(workspace, "classes"), File(workspace, "classes.jar")) }
             val classJarBytes = File(workspace, "classes.jar").length()
-            val archiveName = "junk_${appPackageName.replace('.', '_')}_TT3.0.0.aar"
+            val archiveName = "junk_${appPackageName.replace('.', '_')}_TT$JUNK_AAR_VERSION.aar"
             val staged = File(workspace, archiveName)
             timed("aar") { zip(workspace, staged) { !it.startsWith("classes/") && it != archiveName } }
             val resourceFiles = File(workspace, "res").walkTopDown().filter { it.isFile }.toList()
@@ -180,7 +182,7 @@ class AndroidJunkGenerator(
             onProgress(JunkGenerationProgress("publish", 1, 1))
             val destination = File(outputDir, archiveName)
             // Atomic replacement requires staging on the destination filesystem, even when work root is elsewhere.
-            publishAll(listOf(staged to destination))
+            publishJunkFiles(listOf(staged to destination))
             val completedReport = report.copy(values = report.values + ("totalMs" to (System.nanoTime() - start) / 1_000_000))
             lastReport = completedReport
             if (logReport) logJunkArchiveReport(destination, completedReport)
@@ -190,7 +192,7 @@ class AndroidJunkGenerator(
         }
     }
 
-    private fun validate() {
+    internal fun validate() {
         require(packagePattern.matches(appPackageName)) { "Invalid code package prefix: $appPackageName" }
         require(resPrefix.isEmpty() || Regex("[a-z][a-z0-9_]*").matches(resPrefix)) { "Resource prefix must contain lowercase ASCII letters, digits or underscores" }
         require(packageCount >= 0 && activityCountPerPackage > 0) { "Package count must be nonnegative and Activity count positive" }
@@ -206,43 +208,6 @@ class AndroidJunkGenerator(
                 zip.putNextEntry(ZipEntry(name).apply { time = 0L })
                 file.inputStream().use { it.copyTo(zip) }; zip.closeEntry()
             }
-        }
-    }
-
-    private fun publishAll(files: List<Pair<File, File>>) {
-        val staged = mutableListOf<Pair<java.nio.file.Path, java.nio.file.Path>>()
-        val backups = mutableListOf<Pair<java.nio.file.Path, java.nio.file.Path>>()
-        val installed = mutableListOf<java.nio.file.Path>()
-        var committed = false
-        try {
-            files.forEach { (source, destination) ->
-                val temp = Files.createTempFile(destination.parentFile.toPath(), ".${destination.name}", ".part")
-                staged += temp to destination.toPath()
-                Files.copy(source.toPath(), temp, StandardCopyOption.REPLACE_EXISTING)
-            }
-            staged.forEach { (_, destination) ->
-                if (Files.exists(destination)) {
-                    require(Files.isRegularFile(destination)) { "Output is not a regular file: $destination" }
-                    val backup = Files.createTempFile(destination.parent, ".junk-backup-", ".part")
-                    Files.move(destination, backup, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
-                    backups += backup to destination
-                }
-            }
-            staged.forEach { (source, destination) ->
-                Files.move(source, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
-                installed.add(destination)
-            }
-            committed = true
-        } catch (error: Throwable) {
-            installed.forEach { Files.deleteIfExists(it) }
-            backups.asReversed().forEach { (backup, destination) ->
-                try { Files.move(backup, destination, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING) }
-                catch (restore: Exception) { error.addSuppressed(restore) } // Preserve a backup if restoration itself fails.
-            }
-            throw error
-        } finally {
-            staged.forEach { Files.deleteIfExists(it.first) }
-            if (committed) backups.forEach { Files.deleteIfExists(it.first) }
         }
     }
 

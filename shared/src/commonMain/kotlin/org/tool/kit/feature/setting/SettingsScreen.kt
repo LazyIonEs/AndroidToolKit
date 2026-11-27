@@ -45,7 +45,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -79,6 +82,8 @@ import org.tool.kit.shared.generated.resources.icon
 import org.tool.kit.shared.generated.resources.license
 import org.tool.kit.shared.generated.resources.open_source_agreement
 import org.tool.kit.shared.generated.resources.open_source_licenses
+import org.tool.kit.shared.generated.resources.save_signing_profiles
+import org.tool.kit.shared.generated.resources.save_signing_profiles_description
 import org.tool.kit.shared.generated.resources.signature_generation
 import org.tool.kit.shared.generated.resources.signature_suffix
 import org.tool.kit.shared.generated.resources.signature_suffix_tips
@@ -148,7 +153,8 @@ fun SettingsScreen(state: SettingsUiState, isCheckUpdate: Boolean, onIntent: (Se
 private fun ApkSignatureSetUp(
     state: SettingsUiState, onIntent: (SettingsIntent) -> Unit
 ) {
-    val userData = state.preferences.userData
+    val preferences = state.preferences
+    val userData = preferences.userData
 
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
@@ -161,62 +167,58 @@ private fun ApkSignatureSetUp(
             )
             Spacer(Modifier.size(20.dp))
             StringInput(
-                value = state.preferences.userData.defaultSignerSuffix,
+                value = userData.defaultSignerSuffix,
                 label = stringResource(Res.string.signature_suffix),
-                isError = state.preferences.userData.defaultSignerSuffix.isBlank(),
+                isError = userData.defaultSignerSuffix.isBlank(),
                 onValueChange = { onIntent(SettingsIntent.SignerSuffix(it)) })
             Spacer(Modifier.size(3.dp))
             Text(
                 text = stringResource(
                     Res.string.signature_suffix_tips,
-                    state.preferences.userData.defaultSignerSuffix
+                    userData.defaultSignerSuffix
                 ),
                 modifier = Modifier.padding(horizontal = 24.dp),
                 style = MaterialTheme.typography.labelSmall
             )
-            Row(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(start = 24.dp, end = 16.dp, top = 12.dp),
-                verticalAlignment = Alignment.CenterVertically
+            SettingsSwitch(
+                title = stringResource(Res.string.delete_repeat_file),
+                checked = userData.duplicateFileRemoval,
+                onCheckedChange = { onIntent(SettingsIntent.DuplicateRemoval(it)) },
+                topPadding = 12.dp,
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                AnimatedVisibility(!userData.duplicateFileRemoval) {
                     Text(
-                        text = stringResource(Res.string.delete_repeat_file),
-                        style = MaterialTheme.typography.bodyLarge
+                        text = stringResource(Res.string.delete_repeat_file_tips),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelSmall,
                     )
-                    AnimatedVisibility(!userData.duplicateFileRemoval) {
-                        Text(
-                            text = stringResource(Res.string.delete_repeat_file_tips),
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
                 }
-                Switch(
-                    checked = userData.duplicateFileRemoval,
-                    onCheckedChange = { onIntent(SettingsIntent.DuplicateRemoval(it)) })
             }
-            Row(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(start = 24.dp, end = 16.dp, top = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
+            SettingsSwitch(
+                title = stringResource(Res.string.enable_file_alignment),
+                checked = userData.alignFileSize,
+                onCheckedChange = { onIntent(SettingsIntent.AlignFileSize(it)) },
+                topPadding = 6.dp,
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                AnimatedVisibility(!userData.alignFileSize) {
                     Text(
-                        text = stringResource(Res.string.enable_file_alignment),
-                        style = MaterialTheme.typography.bodyLarge
+                        text = stringResource(Res.string.enable_file_alignment_tips),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.labelSmall,
                     )
-                    AnimatedVisibility(!userData.alignFileSize) {
-                        Text(
-                            text = stringResource(Res.string.enable_file_alignment_tips),
-                            color = MaterialTheme.colorScheme.error,
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
                 }
-                Switch(
-                    checked = userData.alignFileSize,
-                    onCheckedChange = { onIntent(SettingsIntent.AlignFileSize(it)) })
+            }
+            SettingsSwitch(
+                title = stringResource(Res.string.save_signing_profiles),
+                checked = preferences.saveSigningProfiles,
+                onCheckedChange = { onIntent(SettingsIntent.SaveSigningProfiles(it)) },
+                topPadding = 6.dp,
+            ) {
+                Text(
+                    text = stringResource(Res.string.save_signing_profiles_description),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.labelSmall,
+                )
             }
         }
     }
@@ -454,7 +456,7 @@ private fun Conventional(
                     }
                 }
             }
-            ExtensionsSwitch(
+            SettingsSwitch(
                 title = stringResource(Res.string.start_check_update),
                 checked = isStartCheckUpdate,
                 onCheckedChange = {
@@ -479,25 +481,25 @@ private fun DeveloperMode(state: SettingsUiState, onIntent: (SettingsIntent) -> 
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium
             )
-            ExtensionsSwitch(
+            SettingsSwitch(
                 title = stringResource(Res.string.enable_extended_options),
                 checked = developerMode,
                 onCheckedChange = {
                     onIntent(SettingsIntent.DeveloperMode(!developerMode))
                 })
-            ExtensionsSwitch(
+            SettingsSwitch(
                 title = stringResource(Res.string.enable_garbage_code_generation_option),
                 checked = showJunkCode,
                 onCheckedChange = {
                     onIntent(SettingsIntent.ShowJunkCode(!showJunkCode))
                 })
-            ExtensionsSwitch(
+            SettingsSwitch(
                 title = stringResource(Res.string.whether_to_always_show_the_navigation_bar_label),
                 checked = alwaysShowLabel,
                 onCheckedChange = {
                     onIntent(SettingsIntent.AlwaysShowLabel(!alwaysShowLabel))
                 })
-            ExtensionsSwitch(
+            SettingsSwitch(
                 title = stringResource(Res.string.whether_to_turn_off_file_alignment_function_when_signing_and_packaging_huawei_channel_package),
                 checked = isHuaweiAlignFileSize,
                 onCheckedChange = {
@@ -666,23 +668,26 @@ private fun ClickAbout(text: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ExtensionsSwitch(
+private fun SettingsSwitch(
     title: String,
     checked: Boolean,
-    onCheckedChange: ((Boolean) -> Unit)?
+    onCheckedChange: (Boolean) -> Unit,
+    topPadding: Dp = 4.dp,
+    supportingContent: @Composable () -> Unit = {},
 ) {
     Row(
         modifier = Modifier.fillMaxWidth()
-            .padding(start = 24.dp, end = 16.dp, top = 4.dp),
+            .padding(start = 24.dp, end = 16.dp, top = topPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f)
-        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, style = MaterialTheme.typography.bodyLarge)
+            supportingContent()
+        }
         Switch(
-            checked = checked, onCheckedChange = onCheckedChange
+            checked = checked,
+            onCheckedChange = onCheckedChange,
+            modifier = Modifier.semantics { contentDescription = title },
         )
     }
 }

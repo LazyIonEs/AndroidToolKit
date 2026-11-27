@@ -14,7 +14,9 @@ use rgb::FromSlice;
 
 use srgb::linear_to_srgb;
 
+mod signing_profiles;
 mod srgb;
+pub use signing_profiles::signing_profiles_key;
 include!("./lut.inc");
 
 /// 使用 fast_image_resize 按目标像素尺寸缩放，输出格式由文件扩展名决定。
@@ -428,7 +430,7 @@ pub fn moz_jpeg(input_path: String, output_path: String, quality: f32) -> Result
     Ok(())
 }
 
-/// 跨 UniFFI 边界返回给 Kotlin 的显式图像处理错误。
+/// 跨 UniFFI 边界返回给 Kotlin 的原生操作错误。
 #[derive(Debug, thiserror::Error)]
 pub enum ToolKitRustError {
     #[error("{0}")]

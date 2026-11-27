@@ -2,6 +2,12 @@ package org.tool.kit.data.generator
 
 import java.security.MessageDigest
 import kotlin.random.Random
+import org.tool.kit.data.generator.JunkDrawableUse.CONTROL
+import org.tool.kit.data.generator.JunkDrawableUse.ICON
+import org.tool.kit.data.generator.JunkDrawableUse.SURFACE
+import org.tool.kit.data.generator.JunkGenerationProfile.Input
+import org.tool.kit.data.generator.JunkGenerationProfile.Program
+import org.tool.kit.data.generator.JunkGenerationProfile.Roles
 
 internal data class JunkLayoutResult(
     val xml: String,
@@ -27,6 +33,20 @@ internal object JunkLayoutComposer {
 
     private enum class Region { TITLE, CONTENT, CARD, FORM, ACTION, PLACEHOLDER }
 
+    private enum class PagePurpose(
+        val region: Region,
+        val minimumDepth: Int,
+        val nestingChance: Int,
+        val sectionTypes: List<String>,
+    ) {
+        DETAIL(Region.CONTENT, 3, 52, listOf("GridLayout", "RelativeLayout", "LinearLayout")),
+        FORM(Region.FORM, 3, 62, listOf("LinearLayout", "RelativeLayout", "GridLayout")),
+        LIST(Region.CARD, 4, 82, listOf("LinearLayout", "LinearLayout", "RelativeLayout")),
+        SETTINGS(Region.FORM, 4, 68, listOf("LinearLayout", "LinearLayout", "GridLayout")),
+    }
+
+    private enum class AdjustmentPage { RANGE_FORM, VALUE_SETTINGS }
+
     private class Node(val type: String) {
         val attributes = linkedMapOf<String, String>()
         val children = mutableListOf<Node>()
@@ -41,12 +61,32 @@ internal object JunkLayoutComposer {
         private val policy: JunkGenerationPolicy,
     ) {
         private val customViews = customViews.filter { it.matches(Regex("[A-Za-z_$][A-Za-z0-9_$]*(\\.[A-Za-z_$][A-Za-z0-9_$]*)+")) }
+        private val layoutProfile = policy.profile?.takeIf { it.usesPurposeSpecificLayouts }
+        private val purpose = layoutProfile?.let { profile ->
+            when (profile.roles) {
+                Roles.MODELS -> PagePurpose.DETAIL
+                Roles.RULES -> PagePurpose.FORM
+                Roles.COLLECTIONS -> PagePurpose.LIST
+                Roles.CONFIGURATION -> PagePurpose.SETTINGS
+            }
+        }
+        private val adjustmentPage = layoutProfile
+            ?.takeIf { it.usesAdjustmentPageLayouts && it.program == Program.ARITHMETIC }
+            ?.let { profile ->
+                when (purpose) {
+                    PagePurpose.FORM -> AdjustmentPage.RANGE_FORM.takeIf { profile.input == Input.PAIR }
+                    PagePurpose.SETTINGS -> AdjustmentPage.VALUE_SETTINGS
+                    else -> null
+                }
+            }
+        private val contentWidgets = layoutProfile?.let(::widgetsForProfile).orEmpty()
         private val complexity = listOf("simple", "medium", "complex").random(random)
-        private val depthLimit = minOf(policy.maxLayoutDepth, when (complexity) {
+        private val sampledDepth = when (complexity) {
             "simple" -> random.nextInt(2, 4)
             "medium" -> random.nextInt(3, 5)
             else -> random.nextInt(3, 6)
-        })
+        }
+        private val depthLimit = minOf(policy.maxLayoutDepth, maxOf(sampledDepth, purpose?.minimumDepth ?: 1))
         private val target = minOf(policy.maxLayoutNodes, when (complexity) {
             "simple" -> random.nextInt(6, 15)
             "medium" -> random.nextInt(15, 34)
@@ -59,8 +99,15 @@ internal object JunkLayoutComposer {
             require(policy.maxLayoutNodes >= 1 && policy.maxLayoutDepth >= 1 && policy.maxLayoutBytes >= 256) {
                 "Layout limits must allow at least one node, one depth level, and 256 bytes"
             }
-            val rootTypes = if (depthLimit < 3) listOf("LinearLayout", "RelativeLayout", "GridLayout") else containers
-            val rootType = rootTypes.random(random)
+            val rootType = when (purpose) {
+                PagePurpose.DETAIL -> if (layoutProfile?.input == Input.TEXT) "RelativeLayout" else "GridLayout"
+                PagePurpose.FORM -> if (layoutProfile?.input == Input.PAIR) "RelativeLayout" else "LinearLayout"
+                PagePurpose.LIST, PagePurpose.SETTINGS -> if (depthLimit >= 4) "ScrollView" else "LinearLayout"
+                null -> {
+                    val rootTypes = if (depthLimit < 3) listOf("LinearLayout", "RelativeLayout", "GridLayout") else containers
+                    rootTypes.random(random)
+                }
+            }
             val root = container(rootType).apply {
                 attribute("layout_width", "match_parent")
                 attribute("layout_height", "match_parent")
@@ -68,7 +115,8 @@ internal object JunkLayoutComposer {
                 if (random.nextBoolean()) attribute("background", backgrounds.random(random))
             }
             count++
-            fill(root, 1, Region.entries.random(random), target - 1)
+            if (purpose == null) fill(root, 1, Region.entries.random(random), target - 1)
+            else fillPage(root, purpose)
             cleanIds(root)
             var xml = render(root)
             while (xml.toByteArray(Charsets.UTF_8).size > policy.maxLayoutBytes && root.children.isNotEmpty()) {
@@ -83,9 +131,111 @@ internal object JunkLayoutComposer {
                 .take(12).joinToString("") { "%02x".format(it.toInt() and 255) }
             return JunkLayoutResult(
                 xml, all.mapNotNull { it.attributes["id"]?.substringAfter('/') }, all.size,
-                depth(root), all.count { it.type in containers }, digest,
+                depth(root), all.count { it.type in containers || it.type == "RadioGroup" }, digest,
                 all.map { it.type }.toSet(), complexity, all.sumOf { it.attributes.size },
             )
+        }
+
+        private fun fillPage(root: Node, page: PagePurpose) {
+            val scroll = root.type == "ScrollView"
+            val body = if (scroll) container("LinearLayout").also { attach(root, it); count++ } else root
+            val bodyDepth = if (scroll) 2 else 1
+            if (body.type == "LinearLayout") body.attribute("orientation", "vertical")
+            val heading = widget(Region.TITLE, "TextView")
+            if (body.type == "GridLayout") {
+                body.attribute("columnCount", "2")
+                heading.attribute("layout_columnSpan", "2")
+            }
+            attach(body, heading)
+            count++
+
+            when (adjustmentPage) {
+                AdjustmentPage.RANGE_FORM -> {
+                    fillRangeForm(body, bodyDepth)
+                    return
+                }
+                AdjustmentPage.VALUE_SETTINGS -> {
+                    fillValueSettings(body, bodyDepth)
+                    return
+                }
+                null -> Unit
+            }
+
+            // Give the first record its own row when the depth budget permits a container and its contents.
+            if (page == PagePurpose.LIST && bodyDepth + 2 <= depthLimit) {
+                val row = pageSection("LinearLayout", page, page.region)
+                attach(body, row)
+                attach(row, widget(page.region, contentWidgets.first()))
+                attach(row, widget(page.region, "TextView"))
+                count += 3
+            } else {
+                attach(body, widget(page.region, contentWidgets.first()))
+                count++
+            }
+            val hasSubmit = page == PagePurpose.FORM
+            fill(body, bodyDepth, page.region, target - count - if (hasSubmit) 1 else 0)
+            if (hasSubmit) {
+                attach(body, widget(Region.ACTION, "Button"))
+                count++
+            }
+        }
+
+        private fun fillRangeForm(body: Node, bodyDepth: Int) {
+            val canGroup = bodyDepth + 2 <= depthLimit
+            var rangeIndex = 0
+            // Reserve room for the submit action while adding complete pairs of bound fields.
+            while (target - count >= 3) {
+                rangeIndex++
+                val prefix = if (rangeIndex == 1) "" else "Range $rangeIndex "
+                val fields = if (canGroup && target - count >= 4) {
+                    container("LinearLayout").apply { attribute("orientation", "horizontal") }
+                        .also { addPageNode(body, it) }
+                } else body
+                addPageNode(fields, widget(Region.FORM, "EditText", "${prefix}Lower bound"))
+                addPageNode(fields, widget(Region.FORM, "EditText", "${prefix}Upper bound"))
+                if (canGroup && target - count >= 4) {
+                    val mode = container("RadioGroup").apply {
+                        attribute("orientation", "vertical")
+                        attribute("contentDescription", "${prefix}Range behavior")
+                    }
+                    addPageNode(body, mode)
+                    addPageNode(mode, widget(Region.FORM, "RadioButton", "Clamp"))
+                    addPageNode(mode, widget(Region.FORM, "RadioButton", "Rescale"))
+                    if (target - count >= 2 && random.nextBoolean()) {
+                        addPageNode(mode, widget(Region.FORM, "RadioButton", "Wrap"))
+                    }
+                }
+            }
+            if (target - count == 2) addPageNode(body, widget(Region.CONTENT, "ProgressBar", "Range preview"))
+            addPageNode(body, widget(Region.ACTION, "Button"))
+        }
+
+        private fun fillValueSettings(body: Node, bodyDepth: Int) {
+            addPageNode(body, widget(Region.FORM, "Switch", "Enable adjustments"))
+            addSliderSetting(body, bodyDepth)
+            while (count < target) {
+                if (target - count >= 2 && random.nextInt(4) != 0) {
+                    addSliderSetting(body, bodyDepth)
+                } else {
+                    addPageNode(body, widget(Region.FORM, "Switch", switchSettingLabels.random(random)))
+                }
+            }
+        }
+
+        private fun addSliderSetting(body: Node, bodyDepth: Int) {
+            val title = sliderSettingLabels.random(random)
+            val row = if (bodyDepth + 2 <= depthLimit && target - count >= 3) {
+                container("LinearLayout").apply {
+                    attribute("orientation", if (random.nextBoolean()) "horizontal" else "vertical")
+                }.also { addPageNode(body, it) }
+            } else body
+            addPageNode(row, widget(Region.FORM, "TextView", title))
+            addPageNode(row, widget(Region.FORM, "SeekBar", title))
+        }
+
+        private fun addPageNode(parent: Node, child: Node) {
+            attach(parent, child)
+            count++
         }
 
         private fun fill(parent: Node, parentDepth: Int, region: Region, allowance: Int) {
@@ -95,13 +245,17 @@ internal object JunkLayoutComposer {
             while (count < target && count - startCount < allowance && (!oneChild || parent.children.isEmpty())) {
                 val available = minOf(allowance - (count - startCount), target - count)
                 val canNest = parentDepth + 1 < depthLimit && available >= 3
-                val nested = canNest && (oneChild || random.nextInt(100) < 48)
+                val nested = canNest && (oneChild || random.nextInt(100) < (purpose?.nestingChance ?: 48))
                 if (nested) {
-                    val childRegion = Region.entries.random(random)
+                    val childRegion = if (purpose == null) Region.entries.random(random)
+                        else if (random.nextInt(6) == 0) Region.TITLE else purpose.region
                     // A single-child wrapper needs a body which can actually hold the region.
-                    val childType = if (oneChild) listOf("LinearLayout", "RelativeLayout", "GridLayout").random(random)
-                        else containerFor(childRegion, parentDepth)
-                    val child = container(childType)
+                    val child = if (purpose != null) pageSection(purpose.sectionTypes.random(random), purpose, childRegion)
+                        else {
+                            val childType = if (oneChild) listOf("LinearLayout", "RelativeLayout", "GridLayout").random(random)
+                                else containerFor(childRegion, parentDepth)
+                            container(childType)
+                        }
                     attach(parent, child)
                     count++
                     val portion = if (oneChild) available - 1 else random.nextInt(2, minOf(available, 14))
@@ -111,6 +265,18 @@ internal object JunkLayoutComposer {
                     attach(parent, child)
                     count++
                 }
+            }
+        }
+
+        private fun pageSection(type: String, page: PagePurpose, region: Region): Node = container(type).apply {
+            if (type == "LinearLayout") {
+                val horizontal = region != Region.TITLE && when (page) {
+                    PagePurpose.LIST -> true
+                    PagePurpose.FORM -> layoutProfile?.input == Input.PAIR
+                    PagePurpose.SETTINGS -> layoutProfile?.program != Program.TEXT
+                    PagePurpose.DETAIL -> false
+                }
+                attribute("orientation", if (horizontal) "horizontal" else "vertical")
             }
         }
 
@@ -175,22 +341,26 @@ internal object JunkLayoutComposer {
             parent.children += child
         }
 
-        private fun widget(region: Region): Node {
-            val type = if (customViews.isNotEmpty() && random.nextInt(12) == 0) customViews.random(random) else when (region) {
-                Region.TITLE -> listOf("TextView", "TextView", "View").random(random)
-                Region.CONTENT -> listOf("TextView", "TextView", "ImageView", "ProgressBar", "View").random(random)
-                Region.CARD -> listOf("TextView", "ImageView", "TextView", "Button").random(random)
-                Region.FORM -> listOf("TextView", "EditText", "CheckBox", "Switch", "SeekBar").random(random)
-                Region.ACTION -> listOf("Button", "ToggleButton", "CheckBox").random(random)
-                Region.PLACEHOLDER -> listOf("TextView", "ProgressBar", "View").random(random)
+        private fun widget(region: Region, requiredType: String? = null, labelText: String? = null): Node {
+            val type = requiredType ?: when {
+                customViews.isNotEmpty() && random.nextInt(12) == 0 -> customViews.random(random)
+                purpose != null -> if (region == Region.TITLE) "TextView" else contentWidgets.random(random)
+                else -> when (region) {
+                    Region.TITLE -> listOf("TextView", "TextView", "View").random(random)
+                    Region.CONTENT -> listOf("TextView", "TextView", "ImageView", "ProgressBar", "View").random(random)
+                    Region.CARD -> listOf("TextView", "ImageView", "TextView", "Button").random(random)
+                    Region.FORM -> listOf("TextView", "EditText", "CheckBox", "Switch", "SeekBar").random(random)
+                    Region.ACTION -> listOf("Button", "ToggleButton", "CheckBox").random(random)
+                    Region.PLACEHOLDER -> listOf("TextView", "ProgressBar", "View").random(random)
+                }
             }
             return Node(type).apply {
                 when (type) {
-                    "TextView", "Button", "CheckBox", "Switch", "ToggleButton" -> {
+                    "TextView", "Button", "CheckBox", "Switch", "ToggleButton", "RadioButton" -> {
                         if (type == "ToggleButton") {
                             attribute("textOn", "Enabled")
                             attribute("textOff", "Disabled")
-                        } else attribute("text", label())
+                        } else attribute("text", labelText ?: if (requiredType == "Button" && region == Region.ACTION) "Apply" else label())
                         attribute("textSize", "${if (region == Region.TITLE) random.nextInt(18, 27) else random.nextInt(12, 18)}sp")
                         if (type == "TextView") {
                             attribute("maxLines", random.nextInt(1, 5).toString())
@@ -203,15 +373,27 @@ internal object JunkLayoutComposer {
                         if (type == "Button") attribute("minHeight", "48dp")
                     }
                     "EditText" -> {
-                        attribute("hint", label())
-                        attribute("inputType", listOf("text", "textCapSentences", "number", "textEmailAddress").random(random))
+                        attribute("hint", labelText ?: label())
+                        val inputTypes = when {
+                            layoutProfile == null -> listOf("text", "textCapSentences", "number", "textEmailAddress")
+                            layoutProfile.input == Input.TEXT || (purpose == PagePurpose.SETTINGS && layoutProfile.program == Program.TEXT) ->
+                                listOf("text", "textCapSentences", "textEmailAddress")
+                            else -> listOf("number", "number|numberSigned", "number|numberDecimal")
+                        }
+                        attribute("inputType", inputTypes.random(random))
                         attribute("maxLength", random.nextInt(16, 65).toString())
                         attribute("singleLine", "true")
                         attribute("imeOptions", "actionDone")
                         attribute("minHeight", "48dp")
                     }
                     "ImageView" -> {
-                        optionalResource(this, "src", if (random.nextInt(4) == 0) "mipmap" else "drawable")
+                        val sharedIcons = policy.profile?.sharesVectorIcons == true
+                        val iconType = if (sharedIcons) {
+                            if (policy.resources.drawable > 0) "drawable" else "mipmap"
+                        } else if (random.nextInt(4) == 0) "mipmap" else "drawable"
+                        if (optionalResource(this, "src", iconType, ICON) && sharedIcons) {
+                            attribute("tint", foregrounds.random(random))
+                        }
                         attribute("contentDescription", "Preview")
                         attribute("adjustViewBounds", "true")
                         attribute("scaleType", listOf("centerInside", "fitCenter", "centerCrop").random(random))
@@ -219,6 +401,7 @@ internal object JunkLayoutComposer {
                         attribute("maxHeight", "128dp")
                     }
                     "ProgressBar", "SeekBar" -> {
+                        labelText?.let { attribute("contentDescription", it) }
                         if (type == "ProgressBar") attribute("style", "@android:style/Widget.ProgressBar.Horizontal")
                         attribute("indeterminate", "false")
                         attribute("max", "100")
@@ -230,8 +413,11 @@ internal object JunkLayoutComposer {
                     }
                 }
                 if (random.nextInt(4) == 0) attribute("padding", "${random.nextInt(2, 13)}dp")
-                if (random.nextInt(10) == 0) optionalResource(this, "background", "drawable")
-                if (random.nextInt(20) == 0 && type != "EditText") attribute("visibility", "invisible")
+                if (random.nextInt(10) == 0) {
+                    val use = if (type in controls) CONTROL else SURFACE
+                    optionalResource(this, "background", "drawable", use)
+                }
+                if (requiredType == null && random.nextInt(20) == 0 && type != "EditText") attribute("visibility", "invisible")
             }
         }
 
@@ -240,8 +426,10 @@ internal object JunkLayoutComposer {
             return labels.random(random) + if (random.nextBoolean()) " ${qualifiers.random(random)}" else ""
         }
 
-        private fun optionalResource(node: Node, attribute: String, type: String) {
-            pool.request(type, random)?.let { node.attribute(attribute, "@$type/$it") }
+        private fun optionalResource(node: Node, attribute: String, type: String, use: JunkDrawableUse = SURFACE): Boolean {
+            val name = pool.request(type, random, use) ?: return false
+            node.attribute(attribute, "@$type/$name")
+            return true
         }
 
         private fun cleanIds(root: Node) {
@@ -297,7 +485,37 @@ internal object JunkLayoutComposer {
         private fun escape(value: String): String = value.replace("&", "&amp;").replace("\"", "&quot;").replace("<", "&lt;").replace(">", "&gt;")
     }
 
+    // The first entry is the required field, value, or preview for the page.
+    private fun widgetsForProfile(profile: JunkGenerationProfile): List<String> = when (profile.roles) {
+        Roles.MODELS -> when (profile.input) {
+            Input.TEXT -> listOf("TextView", "TextView", "TextView", "TextView", "ImageView", "View")
+            Input.INTEGER -> listOf("ProgressBar", "ProgressBar", "ProgressBar", "TextView", "TextView", "View")
+            Input.PAIR, Input.WIDE -> listOf("TextView", "TextView", "ProgressBar", "ImageView", "View")
+        }
+        Roles.RULES -> when {
+            profile.input == Input.TEXT -> listOf("EditText", "EditText", "EditText", "CheckBox", "TextView")
+            profile.input == Input.PAIR && profile.program == Program.ARITHMETIC ->
+                listOf("SeekBar", "SeekBar", "SeekBar", "EditText", "TextView")
+            profile.input == Input.PAIR -> listOf("EditText", "EditText", "EditText", "CheckBox", "TextView")
+            profile.program == Program.BRANCHING ->
+                listOf("CheckBox", "CheckBox", "ToggleButton", "ToggleButton", "EditText", "TextView")
+            else -> listOf("EditText", "EditText", "SeekBar", "TextView", "CheckBox")
+        }
+        Roles.COLLECTIONS -> if (profile.input == Input.TEXT)
+            listOf("ImageView", "ImageView", "ImageView", "TextView", "TextView")
+            else listOf("CheckBox", "CheckBox", "ProgressBar", "TextView", "TextView")
+        Roles.CONFIGURATION -> when (profile.program) {
+            Program.ARITHMETIC -> listOf("SeekBar", "SeekBar", "SeekBar", "Switch", "TextView")
+            Program.BRANCHING -> listOf("Switch", "Switch", "Switch", "CheckBox", "TextView")
+            Program.ACCUMULATION -> listOf("SeekBar", "ProgressBar", "TextView", "Switch")
+            Program.TEXT -> listOf("EditText", "EditText", "TextView", "TextView", "TextView", "View")
+        }
+    }
+
     private val containers = listOf("LinearLayout", "FrameLayout", "RelativeLayout", "GridLayout", "ScrollView")
+    private val controls = setOf("Button", "CheckBox", "Switch", "ToggleButton", "EditText", "SeekBar", "RadioButton")
+    private val sliderSettingLabels = listOf("Adjustment limit", "Step size", "Fine tuning", "Tolerance")
+    private val switchSettingLabels = listOf("Use last value", "Restore defaults at startup", "Enable fine tuning")
     private val labels = listOf("Overview", "Details", "Available items", "Review", "Continue", "Summary", "Options", "Recent entries", "Preferences", "Selection")
     private val qualifiers = listOf("today", "saved", "pending", "ready", "optional", "local")
     private val backgrounds = listOf("#F2F5F8", "#E7EFEA", "#F5EEDF", "#E9E7F0", "#DDE8ED")

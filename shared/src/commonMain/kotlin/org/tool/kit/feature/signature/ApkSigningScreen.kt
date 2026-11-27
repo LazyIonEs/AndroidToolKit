@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Done
+import androidx.compose.material.icons.rounded.FolderOpen
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
@@ -28,9 +29,16 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults.rememberTooltipPositionProvider
+import androidx.compose.material3.minimumInteractiveComponentSize
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -38,8 +46,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.stringResource
+import org.tool.kit.domain.repository.SavedSigningProfile
 import org.tool.kit.feature.ui.FileInput
 import org.tool.kit.feature.ui.FolderInput
 import org.tool.kit.feature.ui.PasswordInput
@@ -48,6 +58,7 @@ import org.tool.kit.feature.ui.UploadAnimate
 import org.tool.kit.model.SignaturePolicy
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.apk_file
+import org.tool.kit.shared.generated.resources.choose_signing_keystore
 import org.tool.kit.shared.generated.resources.key_alias
 import org.tool.kit.shared.generated.resources.key_password
 import org.tool.kit.shared.generated.resources.key_store_file
@@ -125,16 +136,14 @@ private fun SignatureCard(state: ApkSigningUiState, presets: List<SigningPreset>
             }
             item {
                 Spacer(Modifier.size(6.dp))
-                Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                    FileInput(
-                        value = state.form.credentials.path,
-                        label = stringResource(Res.string.key_store_file),
-                        isError = signatureError,
-                        onPickerRequest = pickKey
-                    ) { keyStorePath ->
-                        onIntent(ApkSigningIntent.KeyPathChanged(keyStorePath))
-                    }
-                }
+                SigningKeyPath(
+                    path = state.form.credentials.path,
+                    profiles = state.savedSigningProfiles,
+                    isError = signatureError,
+                    pickKey = pickKey,
+                    onPathChanged = { onIntent(ApkSigningIntent.KeyPathChanged(it)) },
+                    onProfileSelected = { onIntent(ApkSigningIntent.SigningProfileSelected(it)) },
+                )
             }
             item {
                 Spacer(Modifier.size(6.dp))
@@ -168,6 +177,103 @@ private fun SignatureCard(state: ApkSigningUiState, presets: List<SigningPreset>
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun SigningKeyPath(
+    path: String,
+    profiles: List<SavedSigningProfile>,
+    isError: Boolean,
+    pickKey: () -> Unit,
+    onPathChanged: (String) -> Unit,
+    onProfileSelected: (SavedSigningProfile) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var filtering by remember { mutableStateOf(false) }
+    val options = remember(path, profiles, filtering) {
+        val query = path.trim()
+        if (filtering) profiles.filter { it.matches(query) } else profiles
+    }
+    val menuExpanded = expanded && options.isNotEmpty()
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 16.dp, bottom = 3.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        ExposedDropdownMenuBox(
+            modifier = Modifier.weight(1f),
+            expanded = menuExpanded,
+            onExpandedChange = {
+                expanded = it
+                filtering = false
+            },
+        ) {
+            OutlinedTextField(
+                value = path,
+                onValueChange = { value ->
+                    onPathChanged(value)
+                    filtering = true
+                    val query = value.trim()
+                    expanded = profiles.any { it.matches(query) }
+                },
+                modifier = Modifier.fillMaxWidth()
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryEditable, enabled = profiles.isNotEmpty()),
+                label = { Text(stringResource(Res.string.key_store_file), style = MaterialTheme.typography.labelLarge) },
+                singleLine = true,
+                isError = isError && !menuExpanded,
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                trailingIcon = if (profiles.isEmpty()) null else {
+                    {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = menuExpanded,
+                            modifier = Modifier.menuAnchor(ExposedDropdownMenuAnchorType.SecondaryEditable)
+                                .minimumInteractiveComponentSize(),
+                        )
+                    }
+                },
+            )
+            ExposedDropdownMenu(expanded = menuExpanded, onDismissRequest = { expanded = false }) {
+                options.forEach { profile ->
+                    DropdownMenuItem(
+                        text = {
+                            Column(Modifier.padding(vertical = 8.dp)) {
+                                Text(profile.alias, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                Text(
+                                    profile.path,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        },
+                        onClick = {
+                            expanded = false
+                            onProfileSelected(profile)
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                    )
+                }
+            }
+        }
+        val pickerLabel = stringResource(Res.string.choose_signing_keystore)
+        TooltipBox(
+            positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
+            tooltip = { PlainTooltip { Text(pickerLabel) } },
+            state = rememberTooltipState(),
+        ) {
+            SmallFloatingActionButton(onClick = {
+                expanded = false
+                pickKey()
+            }) {
+                Icon(Icons.Rounded.FolderOpen, contentDescription = pickerLabel)
+            }
+        }
+    }
+}
+
+private fun SavedSigningProfile.matches(query: String): Boolean =
+    path.contains(query, ignoreCase = true) || alias.contains(query, ignoreCase = true)
 
 /**
  * 签名路径

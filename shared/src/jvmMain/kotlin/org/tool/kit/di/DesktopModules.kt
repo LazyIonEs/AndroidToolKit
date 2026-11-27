@@ -7,8 +7,10 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import org.tool.kit.core.coroutine.AppDispatchers
 import org.tool.kit.data.repository.JvmKeyStoreRepository
+import org.tool.kit.data.repository.JvmSigningProfileRepository
 import org.tool.kit.data.repository.JvmStorageRepository
 import org.tool.kit.domain.repository.KeyStoreRepository
+import org.tool.kit.domain.repository.SigningProfileRepository
 import org.tool.kit.domain.repository.StorageRepository
 import org.tool.kit.platform.createFlowSettings
 import org.tool.kit.platform.DesktopFileSelection
@@ -55,6 +57,7 @@ private fun desktopDataModule() = module {
     single<StorageRepository> { JvmStorageRepository(get<AppDispatchers>().io) }
     single<org.tool.kit.domain.repository.SignatureRepository> { org.tool.kit.data.repository.JvmSignatureRepository(get<AppDispatchers>().io) }
     single<KeyStoreRepository> { JvmKeyStoreRepository(get<AppDispatchers>().io) }
+    single<SigningProfileRepository> { JvmSigningProfileRepository(get<AppDispatchers>().io) }
     single<org.tool.kit.feature.app.DesktopActionHandler> { org.tool.kit.platform.JvmDesktopActionHandler(get()) }
     single { DesktopFileSelection(get<AppDispatchers>().io) }
 }

@@ -9,6 +9,8 @@ namespace toolkit {
     void oxipng(string input_path, string output_path, u8 preset);
     [Throws=ToolKitRustError]
     void moz_jpeg(string input_path, string output_path, float quality);
+    [Throws=ToolKitRustError]
+    bytes signing_profiles_key(bytes? key_if_missing);
 };
 
 [Error]

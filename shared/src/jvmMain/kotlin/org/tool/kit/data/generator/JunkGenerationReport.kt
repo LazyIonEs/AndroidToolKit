@@ -51,7 +51,7 @@ internal class JunkCodeMetrics {
             }
             override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<out String>?): MethodVisitor {
                 methods++
-                val body = StringBuilder(normalize(descriptor))
+                val body = StringBuilder(normalizeGeneratedType(descriptor))
                 var count = 0
                 val labels = mutableMapOf<Label, Int>()
                 fun label(l: Label) = labels.getOrPut(l) { labels.size }
@@ -66,9 +66,9 @@ internal class JunkCodeMetrics {
                     })
                     override fun visitIntInsn(opcode: Int, operand: Int) = token(if (opcode == Opcodes.NEWARRAY) "array$operand" else "cInteger")
                     override fun visitVarInsn(opcode: Int, slot: Int) = token("v$opcode:$slot")
-                    override fun visitTypeInsn(opcode: Int, type: String) = token("t$opcode:${normalize(type)}")
-                    override fun visitFieldInsn(opcode: Int, owner: String, name: String, descriptor: String) = token("f$opcode:${normalize(owner)}:${normalize(descriptor)}")
-                    override fun visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) = token("m$opcode:${normalize(owner)}:${if (isPlatformType(owner)) name else "member"}:${normalize(descriptor)}:$isInterface")
+                    override fun visitTypeInsn(opcode: Int, type: String) = token("t$opcode:${normalizeGeneratedType(type)}")
+                    override fun visitFieldInsn(opcode: Int, owner: String, name: String, descriptor: String) = token("f$opcode:${normalizeGeneratedType(owner)}:${normalizeGeneratedType(descriptor)}")
+                    override fun visitMethodInsn(opcode: Int, owner: String, name: String, descriptor: String, isInterface: Boolean) = token("m$opcode:${normalizeGeneratedType(owner)}:${if (isPlatformType(owner)) name else "member"}:${normalizeGeneratedType(descriptor)}:$isInterface")
                     override fun visitJumpInsn(opcode: Int, target: Label) = token("j$opcode:${label(target)}")
                     override fun visitLabel(target: Label) { body.append("|l${label(target)}") }
                     override fun visitLdcInsn(value: Any) = token("c${value.javaClass.simpleName}")
@@ -93,12 +93,16 @@ internal class JunkCodeMetrics {
         "uniqueNormalizedMethods" to structures.size, "mostRepeatedNormalizedMethodCount" to (structures.values.maxOrNull() ?: 0),
         "normalizedMethodDuplicateRate" to if (algorithmMethods == 0L) 0.0 else 1.0 - structures.size.toDouble() / algorithmMethods)
 
-    private fun normalize(s: String): String = s.replace(Regex("L(?!java/|android/|androidx/)[^;]+;"), "Lgenerated;")
-        .let { if ('/' in it && !isPlatformType(it) && !it.contains('(') && !it.startsWith('L')) "generated" else it }
-
-    private fun isPlatformType(name: String): Boolean =
-        name.startsWith("java/") || name.startsWith("android/") || name.startsWith("androidx/")
+    fun methodFingerprints(): Map<String, Int> = structures.toMap()
 }
+
+private val generatedTypeDescriptor = Regex("L(?!java/|android/|androidx/)[^;]+;")
+
+internal fun normalizeGeneratedType(type: String): String = type.replace(generatedTypeDescriptor, "Lgenerated;")
+    .let { if ('/' in it && !isPlatformType(it) && !it.contains('(') && !it.startsWith('L')) "generated" else it }
+
+private fun isPlatformType(name: String): Boolean =
+    name.startsWith("java/") || name.startsWith("android/") || name.startsWith("androidx/")
 
 /** Reads actual Code attributes, rather than estimating their size from ASM instruction counts. */
 internal fun codeLengths(bytes: ByteArray): List<Int> = DataInputStream(ByteArrayInputStream(bytes)).use { input ->

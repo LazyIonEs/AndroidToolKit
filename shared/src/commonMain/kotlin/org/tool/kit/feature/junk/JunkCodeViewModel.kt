@@ -13,7 +13,6 @@ import org.tool.kit.domain.usecase.*
 import org.tool.kit.feature.app.*
 import org.tool.kit.model.JunkMode
 import org.tool.kit.shared.generated.resources.*
-import org.tool.kit.utils.formatFileSize
 
 /** 管理单个与批量 AAR 草稿，随字段变化计算体积估计，提交时固定所选模式的参数。 */
 class JunkCodeViewModel(
@@ -64,6 +63,13 @@ class JunkCodeViewModel(
                 setState(_uiState.value.copy(outputPath = intent.value))
                 output.validate(intent.value)
             }
+            is JunkCodeIntent.MinimumSizeChanged, is JunkCodeIntent.MaximumSizeChanged, is JunkCodeIntent.SizeRangeChanged -> {
+                val state = _uiState.value
+                setState(when (state.mode) {
+                    JunkMode.SINGLE -> state.copy(single = state.single.copy(size = JunkFormReducer.size(state.single.size, intent)))
+                    JunkMode.MULTI -> state.copy(multi = state.multi.copy(size = JunkFormReducer.size(state.multi.size, intent)))
+                })
+            }
             else -> {
                 val state = _uiState.value
                 setState(state.copy(single = JunkFormReducer.single(state.single, intent), multi = JunkFormReducer.multi(state.multi, intent)))
@@ -71,10 +77,15 @@ class JunkCodeViewModel(
         }
     }
 
-    /** 根据当前模式的数量配置重新生成大小提示，不启动实际文件生成。 */
+    /** 批量模式显示按份数计算的总大小范围。 */
     private fun withEstimate(state: JunkCodeUiState): JunkCodeUiState {
-        val size = estimate(state.configuration())
-        val text = size.minimum.formatFileSize(scale = 1) + (size.maximum?.let { " ~ ${it.formatFileSize(scale = 1)}" } ?: "")
+        val config = state.configuration()
+        val text = if (config is JunkConfiguration.MultiBySize && config.aarCount > 0) {
+            val size = estimate(config)
+            val minimum = size.minimum.formatAarMegabytes(groupThousands = true)
+            val maximum = checkNotNull(size.maximum).formatAarMegabytes(groupThousands = true)
+            "$minimum–$maximum MB"
+        } else ""
         return state.copy(estimatedSize = text)
     }
     private fun setState(state: JunkCodeUiState) { _uiState.value = withEstimate(state) }
@@ -85,16 +96,18 @@ class JunkCodeViewModel(
         if (state.busy) return
         // Read the validation owner synchronously: a just-edited path may not have reached the UI collector yet.
         val check = output.state.value
+        val configuration = state.configuration()
         val invalid = when {
             check.pending || check.isError -> Res.string.check_error
             state.hasMissingFields() -> Res.string.check_empty
+            configuration == null -> Res.string.aar_size_range_invalid
             else -> null
         }
         if (invalid != null) {
             viewModelScope.launch { effects.send("junk-code", SnackbarMessage(UiMessage.Resource(invalid))) }
             return
         }
-        val request = GenerateJunkCodeRequest(state.outputPath, state.configuration())
+        val request = GenerateJunkCodeRequest(state.outputPath, checkNotNull(configuration), strategy = JunkGenerationStrategy())
         val id = ++operationId
         _uiState.update { it.copy(busy = true) }
         viewModelScope.launch(start = CoroutineStart.UNDISPATCHED) {
@@ -104,7 +117,7 @@ class JunkCodeViewModel(
                 if (id != operationId) return@launch
                 val message = when (outcome) {
                     is GenerateJunkCodeOutcome.Success -> SnackbarMessage(
-                        UiMessage.Text(getString(Res.string.build_end, outcome.result.totalBytes.formatFileSize())),
+                        UiMessage.Text(getString(Res.string.build_end, outcome.result.totalBytes.formatAarSize())),
                         actionLabel = getString(Res.string.jump), withDismissAction = true, duration = SnackbarDuration.Short,
                         action = SnackbarAction.OpenDirectory(outcome.result.outputPath))
                     is GenerateJunkCodeOutcome.Failure -> SnackbarMessage(outcome.message?.let(UiMessage::Text) ?: UiMessage.Resource(Res.string.build_failure))

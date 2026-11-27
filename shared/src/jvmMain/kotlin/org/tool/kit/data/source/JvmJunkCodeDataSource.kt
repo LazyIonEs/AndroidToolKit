@@ -8,8 +8,11 @@ import org.tool.kit.domain.repository.JunkCodeRepository
 import org.tool.kit.data.generator.AndroidJunkGenerator
 import org.tool.kit.data.generator.MultiAarGenerator
 import org.tool.kit.data.generator.JunkGenerationPolicy
+import org.tool.kit.data.generator.JunkGenerationProfile
 import org.tool.kit.data.generator.JunkGenerationProgress
 import org.tool.kit.data.generator.JunkGeneratedArchive
+import org.tool.kit.data.generator.generateJunkAarInRange
+import org.tool.kit.data.generator.logJunkArchiveReport
 import java.io.File
 import java.nio.file.Files
 import kotlin.random.Random
@@ -27,10 +30,17 @@ class JvmJunkCodeDataSource(
         // Shared across instances, covering destructive batch preparation and completed output measurement.
         outputMutex.withLock {
             ensureActive()
+            val strategy = request.strategy
+            strategy?.let { JunkGenerationProfile.requireSupportedVersion(it.generatorVersion) }
             temporaryRoot.mkdirs()
             val context = currentCoroutineContext()
             val defaults = policy ?: JunkGenerationPolicy(seed = random.nextLong())
-            val runPolicy = request.seed?.let { defaults.copy(seed = it) } ?: defaults
+            val seeded = request.seed?.let { defaults.copy(seed = it) } ?: defaults
+            val runPolicy = if (strategy == null) seeded else seeded.copy(includeDtoStringAdapters = false, includeDtoComparison = false)
+            fun singlePolicy(): JunkGenerationPolicy = strategy?.let {
+                val id = Random(runPolicy.seed).nextInt(JunkGenerationProfile.CAPACITY)
+                runPolicy.copy(profile = JunkGenerationProfile(id, it.generatorVersion))
+            } ?: runPolicy
             fun generate(path: String, output: String, config: JunkConfiguration.Single, selectedPolicy: JunkGenerationPolicy,
                 check: () -> Unit = { context.ensureActive() }, logReport: Boolean = true): JunkGeneratedArchive {
                 generateArchive?.let { return JunkGeneratedArchive(it(path, output, config)) }
@@ -40,25 +50,45 @@ class JvmJunkCodeDataSource(
             }
             val workspace = Files.createTempDirectory(temporaryRoot.toPath(), "toolkit-junk-").toFile()
             try {
-                val archives: List<File>
-                val result: File
-                when (val config = request.configuration) {
-                    is JunkConfiguration.Single -> {
-                        result = generate(workspace.path, request.outputPath, config, runPolicy).file
-                        archives = listOf(result)
-                    }
-                    is JunkConfiguration.Multi -> {
-                        archives = MultiAarGenerator.generate(workspace.path, request.outputPath, config.outputDir, config.aarCount,
-                            config.leastPackages, config.maximumPackages, config.leastActivities, config.maximumActivities, Random(runPolicy.seed), runPolicy) { entry, output ->
-                            val workerContext = currentCoroutineContext()
-                            // Distinct package names can still collide after removing dots. Each worker owns a private root.
-                            val worker = Files.createTempDirectory(workspace.toPath(), "aar-").toFile()
-                            generate(worker.path, output.absolutePath,
-                                JunkConfiguration.Single(entry.packageName, entry.packageCount, entry.activityCount, entry.resPrefix), entry.policy,
-                                { workerContext.ensureActive() }, logReport = false)
+                suspend fun generateBatch(
+                    outputDir: String, aarCount: Int, packageCounts: IntRange = 1..1,
+                    activityCounts: IntRange = 1..1, size: JunkAarSizeRange? = null,
+                ): Pair<File, List<File>> {
+                    val archives = MultiAarGenerator.generate(workspace.path, request.outputPath, outputDir, aarCount,
+                        packageCounts.first, packageCounts.last, activityCounts.first, activityCounts.last,
+                        Random(runPolicy.seed), runPolicy, profileVersion = strategy?.generatorVersion) { entry, output ->
+                        val workerContext = currentCoroutineContext()
+                        val check = { workerContext.ensureActive() }
+                        val worker = Files.createTempDirectory(workspace.toPath(), "aar-").toFile()
+                        val config = JunkConfiguration.Single(entry.packageName, entry.packageCount, entry.activityCount, entry.resPrefix)
+                        if (size == null) {
+                            generate(worker.path, output.absolutePath, config, entry.policy, check, logReport = false)
+                        } else {
+                            generateJunkAarInRange(output, size, entry.policy, check) { activities, stage ->
+                                generate(worker.path, stage.path, config.copy(packageCount = activities, activityCount = 1),
+                                    entry.policy, check, logReport = false)
+                            }.archive
                         }
-                        result = File(request.outputPath, config.outputDir)
                     }
+                    return File(request.outputPath, outputDir) to archives
+                }
+                val (result, archives) = when (val config = request.configuration) {
+                    is JunkConfiguration.Single -> {
+                        val file = generate(workspace.path, request.outputPath, config, singlePolicy()).file
+                        file to listOf(file)
+                    }
+                    is JunkConfiguration.SingleBySize -> {
+                        val selectedPolicy = singlePolicy()
+                        val generated = generateJunkAarInRange(File(request.outputPath), config.size, selectedPolicy, { context.ensureActive() }) { activities, stage ->
+                            generate(workspace.path, stage.path, JunkConfiguration.Single(config.appPackageName, activities, 1, config.resPrefix),
+                                selectedPolicy, logReport = false)
+                        }.archive
+                        generated.report?.let { logJunkArchiveReport(generated.file, it) }
+                        generated.file to listOf(generated.file)
+                    }
+                    is JunkConfiguration.Multi -> generateBatch(config.outputDir, config.aarCount,
+                        config.leastPackages..config.maximumPackages, config.leastActivities..config.maximumActivities)
+                    is JunkConfiguration.MultiBySize -> generateBatch(config.outputDir, config.aarCount, size = config.size)
                 }
                 ensureActive()
                 val size = archives.sumOf { it.length() }

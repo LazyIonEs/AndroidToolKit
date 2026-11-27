@@ -2,6 +2,7 @@ package org.tool.kit.tests.feature.signature
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.InternalComposeUiApi
+import androidx.compose.ui.graphics.toPixelMap
 import androidx.compose.ui.platform.DefaultArchitectureComponentsOwner
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
@@ -18,8 +19,11 @@ import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import org.tool.kit.App
 import org.tool.kit.di.desktopModules
+import org.tool.kit.domain.repository.SigningProfileRepository
+import org.tool.kit.domain.signing.SigningCredentials
 import org.tool.kit.feature.apk.*
 import org.tool.kit.feature.signature.*
+import org.tool.kit.tests.support.TestSigningProfiles
 import org.tool.kit.tests.support.prepareTestPreferences
 
 @OptIn(ExperimentalTestApi::class, InternalComposeUiApi::class, ExperimentalSettingsApi::class)
@@ -31,8 +35,10 @@ class ApkSigningUiTest {
         val owner = DefaultArchitectureComponentsOwner(enforceMainThread = false)
         owner.setLifecycleState(Lifecycle.State.RESUMED)
         val fixture = File(System.getProperty("test.fixtureRoot"), "signing fixture.apk").apply { writeText("fixture") }
+        val profiles = TestSigningProfiles(listOf(SigningCredentials("/another-key.jks", "store", "alternate", "alias")))
         val requests = mutableListOf<org.tool.kit.domain.signing.SignApkRequest>()
         val container = koinApplication { modules(desktopModules() + module {
+            single<SigningProfileRepository> { profiles }
             single<org.tool.kit.domain.repository.ApkSigningRepository> { org.tool.kit.domain.repository.ApkSigningRepository { request ->
                 requests += request
                 org.tool.kit.domain.signing.SignApkOutcome.Success("/fixture/signed.apk", true)
@@ -44,7 +50,7 @@ class ApkSigningUiTest {
             } }
         }) }
         lateinit var vm: org.tool.kit.feature.signature.ApkSigningViewModel
-        container.koin.loadModules(listOf(module { viewModel { org.tool.kit.feature.signature.ApkSigningViewModel(get(), get(), get(), get(), get(), get()).also { vm = it } } }))
+        container.koin.loadModules(listOf(module { viewModel { org.tool.kit.feature.signature.ApkSigningViewModel(get(), get(), get(), get(), get(), get(), get()).also { vm = it } } }))
         try {
             setContent { CompositionLocalProvider(LocalViewModelStoreOwner provides owner) {
                 KoinIsolatedContext(container) {
@@ -53,6 +59,13 @@ class ApkSigningUiTest {
             } }
             waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("APK签名").fetchSemanticsNodes().isNotEmpty() }
             onNode(hasText("APK签名") and hasClickAction()).performClick()
+            val apkPicker = onAllNodesWithContentDescription("FolderOpen").onFirst()
+            val keyPicker = onNodeWithContentDescription("选择密钥文件")
+            fun buttonFill(picker: SemanticsNodeInteraction) = picker.assertIsDisplayed().captureToImage().toPixelMap().let {
+                it[it.width / 2, it.height / 5]
+            }
+            assertEquals(buttonFill(apkPicker), buttonFill(keyPicker))
+            assertEquals(apkPicker.getUnclippedBoundsInRoot().right, keyPicker.getUnclippedBoundsInRoot().right)
             runOnIdle {
                 vm.onIntent(ApkSigningIntent.PolicyChanged(org.tool.kit.model.SignaturePolicy.V4))
                 vm.onIntent(ApkSigningIntent.ApkPathChanged(fixture.path))
@@ -98,6 +111,39 @@ class ApkSigningUiTest {
             assertEquals("中文 prefix", requests.single().prefix)
             assertEquals("fixture", requests.single().credentials.alias)
             assertEquals(org.tool.kit.domain.signing.ApkSigningPolicy.V4, requests.single().policy)
+
+            val scroll = onNode(hasScrollAction() and !hasSetTextAction())
+            val saveProfileLabel = "签名后保存当前签名"
+            onNodeWithText(saveProfileLabel).assertDoesNotExist()
+            onNode(hasText("设置") and hasClickAction()).performClick()
+            val saveToggle = hasContentDescription(saveProfileLabel) and isToggleable()
+            scroll.performScrollToNode(saveToggle)
+            onNode(saveToggle).assertIsDisplayed().assertIsOn().performClick().assertIsOff()
+            onNode(hasText("APK签名") and hasClickAction()).performClick()
+
+            val keyPath = hasSetTextAction() and hasText("密钥文件路径")
+            val savedItem = hasText("fixture") and hasText(fixture.path) and hasClickAction()
+            scroll.performScrollToNode(keyPath)
+            onNode(keyPath).performMouseInput { click(centerRight.copy(x = centerRight.x - 24f)) }
+            onNodeWithText("alternate").assertIsDisplayed()
+            onNode(savedItem).assertIsDisplayed()
+            onNode(keyPath).performTextReplacement("ALTERNATE")
+            onNode(savedItem).assertDoesNotExist()
+            onNodeWithText("alternate").assertIsDisplayed()
+            onNode(keyPath).performTextReplacement("SIGNING FIXTURE")
+            onNodeWithText("alternate").assertDoesNotExist()
+            onNode(savedItem).performClick()
+            waitUntil(timeoutMillis = 10_000) {
+                val state = vm.uiState.value
+                state.form.credentials.path == fixture.path && !state.validation.pending
+            }
+            assertEquals(requests.single().credentials.storePassword, vm.uiState.value.form.credentials.storePassword)
+            assertEquals(requests.single().credentials.aliasPassword, vm.uiState.value.form.credentials.aliasPassword)
+
+            scroll.performScrollToNode(hasText("开始签名"))
+            onNodeWithText("开始签名").performClick()
+            waitUntil(timeoutMillis = 10_000) { requests.size == 2 && !vm.uiState.value.busy }
+            assertEquals(listOf(requests.first().credentials), profiles.saves)
         } finally { owner.viewModelStore.clear(); container.close() }
     }
 }

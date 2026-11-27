@@ -18,6 +18,7 @@ mozjpeg = "0.10.13"
 oxipng = { version = "10.1.0", features = ["parallel", "zopfli"], default-features = false }
 rgb = { version = "0.8.52", default-features = false }
 resize = "0.8.9"
+keyring = { version = "3.6.3", features = ["apple-native", "windows-native", "async-secret-service", "async-io", "crypto-rust"] }
 
 [build-dependencies]
 uniffi = { version = "0.32.1", features = ["build"] }

@@ -48,6 +48,11 @@
     <string name="signature_strategy">Signature Strategy: </string>
     <string name="v2_tips">The APK package signed with V2 Only supports Android 7 and higher system installation and use. Please note</string>
     <string name="start_signing">Start Signing</string>
+    <string name="save_signing_profiles">Save signing profile after signing</string>
+    <string name="save_signing_profiles_description">Keep the keystore path, alias, and passwords for future signing.</string>
+    <string name="choose_signing_keystore">Choose keystore file</string>
+    <string name="signing_profile_load_failed">Could not load the saved signing profile</string>
+    <string name="apk_signed_profile_save_failed">APK signed. Saving the signing profile failed.</string>
     <string name="apk_signature_v1">APK Signature Scheme V1</string>
     <string name="apk_signature_v2">APK Signature Scheme V2, including V1</string>
     <string name="apk_signature_v2_only">APK Signature Scheme V2, not including V1</string>
@@ -136,13 +141,23 @@
 
     <string name="aar_output_path">AAR Output Path</string>
     <string name="aar_name">AAR Name</string>
-    <string name="number_of_packages">Number of packages</string>
-    <string name="number_of_activities">The Number Of Activities In Each Package</string>
+    <string name="aar_package_and_resources">Package and resources</string>
+    <string name="aar_batch_configuration">Batch configuration</string>
+    <string name="aar_output_folder_name">Output folder name</string>
+    <string name="junk_random_suffix">Randomize suffix</string>
+    <string name="junk_random_resource_prefix">Randomize resource prefix</string>
+    <string name="aar_size_per_file">Size per AAR</string>
+    <string name="aar_minimum_size">Minimum size</string>
+    <string name="aar_maximum_size">Maximum size</string>
+    <string name="aar_size_slider_step">%1$s MB steps</string>
+    <string name="aar_size_range_invalid">Enter positive sizes with up to 6 decimal places. The maximum must be at least as large as the minimum.</string>
+    <string name="aar_count">AAR count</string>
+    <string name="aar_count_unit">files</string>
+    <string name="aar_total_size_range">Total size range</string>
     <string name="resource_prefix">Resource Prefix</string>
     <string name="junk_package_name">Package Name</string>
     <string name="suffix">Suffix</string>
     <string name="start_generating">Start Generating</string>
-    <string name="estimated_size">Estimated Size</string>
 
     <string name="apk_signature">APK Signature</string>
     <string name="signature_suffix">Signature Suffix</string>

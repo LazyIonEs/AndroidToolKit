@@ -49,6 +49,7 @@ object MultiAarGenerator {
      * @param random 配置随机源，测试可提供固定种子
      * @param onReport 整批成功发布后提供内存汇总；报告默认记录到日志，不另建文件。
      * 通知回调的普通异常只记录警告，不撤销已发布产物；取消异常与 JVM Error 仍向调用方传播。
+     * @param profileVersion 指定版本时，按批次种子为每份 AAR 分配不同的 profile。
      * @param generateArchive 可替换的单个归档生成入口，默认使用 AndroidJunkGenerator
      * @return 按预先生成的配置顺序排列的 AAR 文件列表
      */
@@ -64,13 +65,19 @@ object MultiAarGenerator {
         random: Random? = null,
         policy: JunkGenerationPolicy = JunkGenerationPolicy(),
         onReport: (JunkGenerationReport) -> Unit = {},
+        profileVersion: Int? = null,
         generateArchive: (suspend (AarConfig, File) -> JunkGeneratedArchive)? = null,
     ): List<File> = withContext(Dispatchers.IO) {
         
         val context = currentCoroutineContext()
         context.ensureActive()
         val started = System.nanoTime()
-        require(aarCount in 1..256) { "AAR count must be in 1..256" }
+        require(aarCount in 1..JunkGenerationProfile.CAPACITY) { "AAR count must be in 1..${JunkGenerationProfile.CAPACITY}" }
+        val profiles = profileVersion?.let { version ->
+            JunkGenerationProfile.requireSupportedVersion(version)
+            (0 until JunkGenerationProfile.CAPACITY).shuffled(Random(policy.seedFor(0, 13)))
+                .take(aarCount).map { JunkGenerationProfile(it, version) }
+        }
         val concurrentAars = minOf(aarCount, MAX_CONCURRENT_TASKS, policy.maxParallelism)
         // Validate before touching the existing output. Staging is owned by this batch only.
         val base = File(outputPath).apply { mkdirs() }.canonicalFile
@@ -80,6 +87,7 @@ object MultiAarGenerator {
             .mapIndexed { index, config ->
                 val budget = policy.batchResourceTotal / aarCount + if (index < policy.batchResourceTotal % aarCount) 1 else 0
                 config.copy(policy = policy.copy(seed = policy.seedFor(index, 11),
+                    profile = profiles?.get(index) ?: policy.profile,
                     resourceNamespace = policy.resourceNamespace?.let { "$it.module${index}_${java.lang.Long.toUnsignedString(policy.seedFor(index, 12), 36)}" },
                     maxParallelism = maxOf(1, policy.maxParallelism / concurrentAars),
                     resources = policy.resources.copy(total = minOf(policy.resources.total, budget))))

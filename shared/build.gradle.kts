@@ -396,8 +396,24 @@ tasks.register<JavaExec>("generateValidationAar") {
     mainClass.set("org.tool.kit.data.generator.JunkValidationCli")
     maxHeapSize = "3g"
     doFirst {
-        args(rootProject.file(providers.gradleProperty("junkOutput").getOrElse(layout.buildDirectory.dir("aar-validation/small").get().asFile.path)).absolutePath,
-            providers.gradleProperty("junkPackages").getOrElse("12"), providers.gradleProperty("junkActivities").getOrElse("1"),
-            providers.gradleProperty("junkSeed").getOrElse("20260922"), providers.gradleProperty("junkAars").getOrElse("1"))
+        val manifest = providers.gradleProperty("junkProjects").orNull
+        val projectId = providers.gradleProperty("junkProject").orNull
+        val generatorVersion = providers.gradleProperty("junkGeneratorVersion").orNull
+        val compare = providers.gradleProperty("junkCompare").orNull?.toBooleanStrict() ?: false
+        val defaultOutput = layout.buildDirectory.dir(if (manifest == null) "aar-validation/small" else "aar-validation/projects")
+        val output = rootProject.file(providers.gradleProperty("junkOutput").getOrElse(defaultOutput.get().asFile.path))
+        if (manifest != null) {
+            args("--projects", rootProject.file(manifest).absolutePath, output.absolutePath)
+            projectId?.let { args("--project", it) }
+            generatorVersion?.let { args("--generator-version", it) }
+            if (compare) args("--compare")
+        } else {
+            require(projectId == null && generatorVersion == null && !compare) {
+                "junkProject, junkGeneratorVersion and junkCompare require junkProjects"
+            }
+            args(output.absolutePath,
+                providers.gradleProperty("junkPackages").getOrElse("12"), providers.gradleProperty("junkActivities").getOrElse("1"),
+                providers.gradleProperty("junkSeed").getOrElse("20260922"), providers.gradleProperty("junkAars").getOrElse("1"))
+        }
     }
 }

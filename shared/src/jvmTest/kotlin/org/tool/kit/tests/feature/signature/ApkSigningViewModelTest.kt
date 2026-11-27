@@ -16,6 +16,7 @@ import org.tool.kit.feature.signature.ApkSigningIntent.*
 import org.tool.kit.model.SignaturePolicy
 import org.tool.kit.shared.generated.resources.*
 import org.tool.kit.tests.support.EmptyKeys
+import org.tool.kit.tests.support.TestSigningProfiles
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ApkSigningViewModelTest {
@@ -48,6 +49,8 @@ class ApkSigningViewModelTest {
             assertEquals("next", f.vm.uiState.value.form.outputPrefix)
             assertEquals("/next", f.vm.uiState.value.form.outputPath)
             assertEquals("store password", captured.credentials.storePassword)
+            assertEquals(listOf(captured.credentials), f.profiles.saves)
+            assertEquals(listOf(SavedSigningProfile("/key.jks", "first")), f.vm.uiState.value.savedSigningProfiles)
             assertEquals(UiMessage.Resource(Res.string.apk_is_signed_successfully), events.single().snackbar.message)
             assertEquals(SnackbarAction.OpenDirectory("/output/signed.apk"), events.single().snackbar.action)
             assertEquals("apk-signing", events.single().originFeature)
@@ -72,6 +75,7 @@ class ApkSigningViewModelTest {
             runCurrent()
             assertEquals(1, events.size)
             assertEquals(SnackbarAction.OpenDirectory("output-5"), events.single().snackbar.action)
+            assertEquals(1, f.profiles.saves.size)
             assertFalse(f.vm.uiState.value.busy)
         } finally { f.close() }
     }
@@ -92,6 +96,7 @@ class ApkSigningViewModelTest {
             }
             assertEquals(2, events.size)
             assertNotEquals(events[0].effectId, events[1].effectId)
+            assertTrue(f.profiles.saves.isEmpty())
         } finally { f.close() }
     }
 
@@ -110,6 +115,7 @@ class ApkSigningViewModelTest {
             f.vm.onIntent(Submit); runCurrent()
             f.signer.results.last().complete(SignApkOutcome.Success("absent", false)); runCurrent()
             assertEquals(UiMessage.Resource(Res.string.apk_is_signed_successfully), events.last().snackbar.message)
+            assertTrue(f.profiles.saves.isEmpty())
         } finally { f.close() }
     }
 
@@ -194,6 +200,74 @@ class ApkSigningViewModelTest {
             assertNull(f.vm.uiState.value.validation.credentials.aliasPasswordValid)
         } finally { keys.aliases.forEach { it.complete(null) }; keys.passwords.forEach { it.complete(false) }; f.close() }
     }
+
+    @Test fun selectingSavedProfileRestoresAliasByNameAndOptOutKeepsHistory() = runTest {
+        val f = SigningFixture(StandardTestDispatcher(testScheduler))
+        val saved = SigningCredentials("/saved.jks", "saved store password", "second", "saved alias password")
+        val profile = SavedSigningProfile(saved.path, "second")
+        try {
+            f.profiles.save(saved)
+            fillSigning(f.vm)
+            f.vm.onIntent(Refresh)
+            runCurrent()
+            assertTrue(f.preferences.state.value.saveSigningProfiles)
+            assertEquals(listOf(profile), f.vm.uiState.value.savedSigningProfiles)
+
+            f.preferences.change(PreferenceChange.SaveSigningProfiles(false))
+            f.vm.onIntent(SigningProfileSelected(profile))
+            runCurrent()
+            val credentials = f.vm.uiState.value.form.credentials
+            assertEquals(saved.path, credentials.path)
+            assertEquals(saved.storePassword, credentials.storePassword)
+            assertEquals(saved.alias, credentials.aliases?.getOrNull(credentials.aliasIndex))
+            assertEquals(saved.aliasPassword, credentials.aliasPassword)
+            assertEquals(true, f.vm.uiState.value.validation.credentials.aliasPasswordValid)
+            f.vm.onIntent(AliasPasswordChanged("new alias password"))
+            runCurrent()
+            f.vm.onIntent(Submit)
+            runCurrent()
+            f.signer.results.single().complete(SignApkOutcome.Success("signed.apk", true))
+            runCurrent()
+            assertEquals(listOf(saved), f.profiles.saves)
+            assertEquals(listOf(profile), f.vm.uiState.value.savedSigningProfiles)
+        } finally { f.close() }
+    }
+
+    @Test fun typingOverridesAnInFlightProfileSelection() = runTest {
+        val selection = CompletableDeferred<SigningCredentials?>()
+        val saved = SigningCredentials("/saved.jks", "store", "second", "alias")
+        val f = SigningFixture(StandardTestDispatcher(testScheduler), overrideProfiles = object : SigningProfileRepository by TestSigningProfiles() {
+            override suspend fun load(profile: SavedSigningProfile) = withContext(NonCancellable) { selection.await() }
+        })
+        try {
+            f.vm.onIntent(SigningProfileSelected(SavedSigningProfile(saved.path, "second")))
+            runCurrent()
+            f.vm.onIntent(KeyPathChanged("/new.jks"))
+            selection.complete(saved)
+            runCurrent()
+            assertEquals(SigningCredentialsUi(path = "/new.jks"), f.vm.uiState.value.form.credentials)
+            assertFalse(f.vm.uiState.value.validation.pending)
+        } finally { selection.complete(null); f.close() }
+    }
+
+    @Test fun savingFailureStillReportsTheSignedApkWithItsOutputAction() = runTest {
+        val f = SigningFixture(StandardTestDispatcher(testScheduler), overrideProfiles = object : SigningProfileRepository by TestSigningProfiles() {
+            override suspend fun save(credentials: SigningCredentials): List<SavedSigningProfile> = error("Unavailable credential store")
+        })
+        val events = mutableListOf<AppEffect>()
+        backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { f.effects.effects.toList(events) }
+        try {
+            fillSigning(f.vm)
+            runCurrent()
+            f.vm.onIntent(Submit)
+            runCurrent()
+            f.signer.results.single().complete(SignApkOutcome.Success("signed.apk", true))
+            runCurrent()
+            assertEquals(UiMessage.Resource(Res.string.apk_signed_profile_save_failed), events.single().snackbar.message)
+            assertEquals(SnackbarAction.OpenDirectory("signed.apk"), events.single().snackbar.action)
+            assertFalse(f.vm.uiState.value.busy)
+        } finally { f.close() }
+    }
 }
 
 private object SigningStorage : StorageRepository {
@@ -225,16 +299,18 @@ private class SigningFixture(dispatcher: TestDispatcher, storage: StorageReposit
     keys: KeyStoreRepository = object : KeyStoreRepository by EmptyKeys {
         override suspend fun loadAliases(path: String, password: String) = listOf("first", "second")
         override suspend fun validateAliasPassword(path: String, storePassword: String, alias: String?, password: String) = true
-    }) : AutoCloseable {
+    }, overrideProfiles: SigningProfileRepository? = null) : AutoCloseable {
     val preferences = SigningPreferences()
     val effects = AppEffectSink()
     val signer = ControlledSigning()
+    val profiles = TestSigningProfiles()
     val store = ViewModelStore()
     val vm: ApkSigningViewModel
     init {
         Dispatchers.setMain(dispatcher)
         vm = ApkSigningViewModel(SignApkUseCase(signer), preferences, storage, keys, effects,
-            SigningPresets(listOf("oppo", "vivo", "huawei", "xiaomi", "qq", "honor", "All").map { SigningPreset(it, it) }, "All", "huawei"))
+            SigningPresets(listOf("oppo", "vivo", "huawei", "xiaomi", "qq", "honor", "All").map { SigningPreset(it, it) }, "All", "huawei"),
+            overrideProfiles ?: profiles)
         store.put("signing", vm)
     }
     override fun close() { store.clear(); effects.close(); Dispatchers.resetMain() }

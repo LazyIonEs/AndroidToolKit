@@ -10,6 +10,7 @@ sealed interface SettingsIntent {
     data class SignerSuffix(val value: String) : SettingsIntent
     data class DuplicateRemoval(val value: Boolean) : SettingsIntent
     data class AlignFileSize(val value: Boolean) : SettingsIntent
+    data class SaveSigningProfiles(val value: Boolean) : SettingsIntent
     data class StoreType(val value: DestStoreType) : SettingsIntent
     data class StoreSize(val value: DestStoreSize) : SettingsIntent
     data class ShowJunkCode(val value: Boolean) : SettingsIntent

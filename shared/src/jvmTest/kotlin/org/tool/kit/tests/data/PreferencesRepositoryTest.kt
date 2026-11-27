@@ -73,7 +73,8 @@ class PreferencesRepositoryTest {
         val vm = SettingsViewModel(repository, AllPathsExist, sink, RecordingDesktopActions())
         val junk = junkViewModel(repository, AllPathsExist, sink)
         val signing = org.tool.kit.feature.signature.ApkSigningViewModel(org.tool.kit.domain.usecase.SignApkUseCase { error("Unexpected signing") },
-            repository, AllPathsExist, EmptyKeys, sink, org.tool.kit.feature.signature.SigningPresets(emptyList(), "All", "Huawei"))
+            repository, AllPathsExist, EmptyKeys, sink, org.tool.kit.feature.signature.SigningPresets(emptyList(), "All", "Huawei"),
+            org.tool.kit.tests.support.TestSigningProfiles())
         val icons = org.tool.kit.feature.iconfactory.IconFactoryViewModel(unusedGenerateIcons(), repository, AllPathsExist, sink)
         val apkTool = org.tool.kit.feature.apk.ApkToolViewModel(unusedBuildApk(), repository, AllPathsExist, EmptyKeys, sink, "Huawei")
         val keys = KeyStoreGenerationViewModel(GenerateKeyStoreUseCase(EmptyKeys), repository, AllPathsExist, sink)

@@ -1,5 +1,6 @@
 package org.tool.kit.feature.signature
 
+import org.tool.kit.domain.repository.SavedSigningProfile
 import org.tool.kit.model.SignaturePolicy
 
 /** Immutable credential composition shared with signing validation. */
@@ -21,13 +22,15 @@ data class ApkSigningValidation(
     val apkError: Boolean = false, val outputError: Boolean = false, val keyError: Boolean = false,
     val apkPending: Boolean = false, val outputPending: Boolean = false, val keyPending: Boolean = false,
     val namePending: Boolean = false, val credentials: SignValidationState = SignValidationState(),
+    val profilePending: Boolean = false,
 ) {
-    val pending get() = apkPending || outputPending || keyPending || namePending || credentials.pending
+    val pending get() = apkPending || outputPending || keyPending || namePending || credentials.pending || profilePending
 }
 
 data class ApkSigningUiState(
     val form: ApkSignatureForm = ApkSignatureForm(), val validation: ApkSigningValidation = ApkSigningValidation(),
     val busy: Boolean = false,
+    val savedSigningProfiles: List<SavedSigningProfile> = emptyList(),
 ) {
     val storePasswordError get() = form.credentials.storePassword.isNotBlank() && form.credentials.aliases.isNullOrEmpty()
     val aliasPasswordError get() = !form.credentials.aliases.isNullOrEmpty() && form.credentials.aliasPassword.isNotBlank() && validation.credentials.aliasPasswordValid == false
@@ -40,6 +43,7 @@ sealed interface ApkSigningIntent {
     data class PrefixChanged(val value: String) : ApkSigningIntent
     data class PolicyChanged(val value: SignaturePolicy) : ApkSigningIntent
     data class KeyPathChanged(val value: String) : ApkSigningIntent
+    data class SigningProfileSelected(val profile: SavedSigningProfile) : ApkSigningIntent
     data class StorePasswordChanged(val value: String) : ApkSigningIntent { override fun toString() = "StorePasswordChanged(redacted)" }
     data class AliasChanged(val index: Int) : ApkSigningIntent
     data class AliasPasswordChanged(val value: String) : ApkSigningIntent { override fun toString() = "AliasPasswordChanged(redacted)" }

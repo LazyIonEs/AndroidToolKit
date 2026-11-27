@@ -16,6 +16,12 @@ class EstimateJunkSizeUseCase(private val estimator: JunkSizeEstimator) {
                 maxOf(configuration.leastActivities, configuration.maximumActivities))
             JunkSizeEstimate(multiplySaturated(lower.minimum, count), multiplySaturated(upper.maximum ?: upper.minimum, count))
         }
+        is JunkConfiguration.SingleBySize -> JunkSizeEstimate(configuration.size.minimumBytes, configuration.size.maximumBytes)
+        is JunkConfiguration.MultiBySize -> {
+            val count = configuration.aarCount.toLong()
+            JunkSizeEstimate(multiplySaturated(configuration.size.minimumBytes, count),
+                multiplySaturated(configuration.size.maximumBytes, count))
+        }
     }
 
     private fun multiplySaturated(bytes: Long, count: Long): Long = when {

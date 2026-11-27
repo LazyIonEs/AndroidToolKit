@@ -50,6 +50,9 @@ data class JunkGenerationPolicy(
         "utility" to 1, "dto" to 1, "converter" to 1, "validator" to 1,
         "collection" to 1, "config" to 1, "customView" to 1, "interface" to 1,
     ),
+    val profile: JunkGenerationProfile? = null,
+    val includeDtoStringAdapters: Boolean = false,
+    val includeDtoComparison: Boolean = false,
 ) {
     init {
         require(minAssociatedClasses in 0..maxAssociatedClasses && maxAssociatedClasses <= 32)
@@ -79,7 +82,11 @@ data class JunkGenerationPolicy(
         "maxLayoutNodes" to maxLayoutNodes, "maxLayoutDepth" to maxLayoutDepth, "maxLayoutBytes" to maxLayoutBytes,
         "resourceNamespace" to resourceNamespace,
         "associatedRoleWeights" to associatedRoleWeights.toSortedMap(),
-    )
+    ).apply {
+        profile?.let { put("profile", it.snapshot()) }
+        if (includeDtoStringAdapters) put("includeDtoStringAdapters", true)
+        if (includeDtoComparison) put("includeDtoComparison", true)
+    }
 
     /** SplitMix64-derived streams depend on task identity, never on worker scheduling. */
     fun seedFor(index: Int, phase: Int = 0): Long {

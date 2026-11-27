@@ -8,6 +8,10 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes.*
 import org.tool.kit.data.generator.*
+import org.tool.kit.data.generator.JunkGenerationProfile.Calls
+import org.tool.kit.data.generator.JunkGenerationProfile.Input
+import org.tool.kit.data.generator.JunkGenerationProfile.Program
+import org.tool.kit.data.generator.JunkGenerationProfile.Roles
 import kotlin.test.*
 
 /** JVM execution complements archive parsing; platform stubs do not replace device/inflate tests. */
@@ -45,41 +49,223 @@ class JunkCodeComposerTest {
 
     @Test fun generatedClassesVerifyAndExecuteAcrossSeedsAndBoundaryInputs() {
         repeat(32) { index ->
-            val policy = JunkGenerationPolicy(seed = index.toLong(), enableFragments = index % 2 == 0)
-            val helper = "com/fixture/shared/MathOps"
-            val unit = JunkCodeUnit(index, "com/fixture/Activity$index", "page_$index", policy.seedFor(index), listOf(helper))
-            val output = JunkCodeComposer.compose(unit, "com.fixture.resources", policy)
-            val loader = FixtureLoader(output.classes + (helper to JunkCodeComposer.sharedHelper(helper, index.toLong())), unit.layoutName)
-            output.classes.forEach { (name, _) ->
-                val type = loader.loadClass(name.replace('/', '.'))
-                // Resolving all descriptors and methods triggers JVM verification of every method.
-                val methods = type.declaredMethods
-                if (type.isInterface) return@forEach
-                val context = loader.loadClass("android.content.Context").getConstructor().newInstance()
-                val instance = if (output.roles[name] == "customView") {
-                    val contextClass = context.javaClass
-                    val attributesClass = loader.loadClass("android.util.AttributeSet")
-                    type.getConstructor(contextClass, attributesClass).newInstance(context, null)
-                    type.getConstructor(contextClass).newInstance(context)
-                } else type.getConstructor().newInstance()
-                methods.forEach { method ->
-                    method.isAccessible = true
-                    repeat(3) { sample ->
-                        val arguments = method.parameterTypes.map { argument ->
-                            when (argument) {
-                                Int::class.javaPrimitiveType -> listOf(Int.MIN_VALUE, 0, Int.MAX_VALUE)[sample]
-                                Long::class.javaPrimitiveType -> listOf(Long.MIN_VALUE, 0L, Long.MAX_VALUE)[sample]
-                                Boolean::class.javaPrimitiveType -> sample != 0
-                                String::class.java -> listOf(null, "", "  Sample 4  ".repeat(128))[sample]
-                                List::class.java -> listOf(null, emptyList<Any?>(), listOf(null, "abc", 4, ""))[sample]
-                                else -> if (argument == type && sample > 0) instance else null
-                            }
-                        }.toTypedArray()
-                        try {
-                            method.invoke(instance, *arguments)
-                        } catch (failure: ReflectiveOperationException) {
-                            throw AssertionError("$name.${method.name} failed for sample $sample", failure)
+            assertUnitExecutes(index, JunkGenerationPolicy(seed = index.toLong(), enableFragments = index % 2 == 0))
+        }
+    }
+
+    @Test fun projectProfilesVerifyAndExecuteAcrossDimensions() {
+        for (id in 0 until JunkGenerationProfile.CAPACITY step 7) {
+            assertUnitExecutes(id, JunkGenerationPolicy(seed = id.toLong(), enableFragments = id % 2 == 0,
+                profile = JunkGenerationProfile(id)))
+        }
+    }
+
+    @Test fun programSpecificStepsExecuteWithShortOperationBudgets() {
+        for (id in 16..19) {
+            for (budget in listOf(1, 2, 6)) {
+                assertUnitExecutes(id, JunkGenerationPolicy(seed = id.toLong(), maxMethodOperations = budget,
+                    profile = JunkGenerationProfile(id, generatorVersion = 12)))
+            }
+        }
+    }
+
+    @Test fun topologyIntStepsExecuteWithEvenAndOddOperationCounts() {
+        for (calls in Calls.entries) {
+            for (budget in 1..3) {
+                val id = Input.PAIR.ordinal * 16 + calls.ordinal * 4 + Program.BRANCHING.ordinal
+                assertUnitExecutes(id, JunkGenerationPolicy(seed = 31, maxMethodOperations = budget,
+                    profile = JunkGenerationProfile(id, 26)))
+            }
+        }
+    }
+
+    @Test fun branchingTextExecutesAcrossInputsAndTopologies() {
+        val samples = listOf(null, "", "Sample 4  ".repeat(128), "single", " leading", "trailing ",
+            "left rightmost", "first second_x")
+        for (id in 1..61 step 4) {
+            assertUnitExecutes(id, JunkGenerationPolicy(seed = id.toLong(), maxMethodOperations = 1,
+                profile = JunkGenerationProfile(id, generatorVersion = 13)), samples)
+        }
+    }
+
+    @Test fun profiledLongAndPredicateMethodsExecuteAcrossRolesAndTopologies() {
+        val samples = listOf(null, "", "Sample 4  ".repeat(128), "=value", " ".repeat(128),
+            "first second_x", "x".repeat(256), "x".repeat(257))
+        for (role in Roles.entries) {
+            for (calls in Calls.entries) {
+                val id = role.ordinal * 64 + Input.TEXT.ordinal * 16 + calls.ordinal * 4 + Program.BRANCHING.ordinal
+                assertUnitExecutes(id, JunkGenerationPolicy(seed = id.toLong(),
+                    profile = JunkGenerationProfile(id, generatorVersion = 14)), samples)
+            }
+        }
+    }
+
+    @Test fun longMethodsExecuteAcrossProgramTypesAndTopologies() {
+        for (calls in Calls.entries) {
+            for (program in Program.entries) {
+                val id = Input.WIDE.ordinal * 16 + calls.ordinal * 4 + program.ordinal
+                assertUnitExecutes(id, JunkGenerationPolicy(seed = id.toLong(),
+                    profile = JunkGenerationProfile(id, generatorVersion = 15)))
+            }
+        }
+    }
+
+    @Test fun textTransformsExecuteAcrossInputsAndTopologies() {
+        val samples = listOf(null, "", "Sample 4  ".repeat(128), "single", " leading", "trailing ",
+            "first  second_part", " part_with spaces ", " ".repeat(192))
+        for (input in Input.entries) {
+            for (calls in Calls.entries) {
+                val id = input.ordinal * 16 + calls.ordinal * 4 + Program.TEXT.ordinal
+                assertUnitExecutes(id, JunkGenerationPolicy(seed = id.toLong(), maxMethodOperations = 1,
+                    profile = JunkGenerationProfile(id, generatorVersion = 16)), samples)
+            }
+        }
+    }
+
+    @Test fun longOperandsExecuteAcrossInputsAndPrograms() {
+        for (input in Input.entries) {
+            for (program in Program.entries) {
+                val id = Roles.RULES.ordinal * 64 + input.ordinal * 16 + Calls.TREE.ordinal * 4 + program.ordinal
+                assertUnitExecutes(id, JunkGenerationPolicy(seed = id.toLong(),
+                    profile = JunkGenerationProfile(id, generatorVersion = 17)))
+            }
+        }
+    }
+
+    @Test fun profiledListFiltersApplyProgramRulesInTraversalOrder() {
+        val padded = "  abcdefghij  "
+        val clean = padded.trim()
+        val long = "x".repeat(129)
+        val punctuated = "_abcdefghij"
+        val items = listOf(padded, clean, long, punctuated, "", null, 7)
+        for (calls in Calls.entries) {
+            for (program in Program.entries) {
+                val id = Roles.COLLECTIONS.ordinal * 64 + calls.ordinal * 4 + program.ordinal
+                val policy = JunkGenerationPolicy(seed = 31, minAssociatedClasses = 1, maxAssociatedClasses = 1,
+                    enableFragments = false, profile = JunkGenerationProfile(id, 18))
+                val unit = JunkCodeUnit(0, "com/fixture/FilterActivity", "filters", policy.seedFor(0), emptyList())
+                val composed = JunkCodeComposer.compose(unit, "com.fixture.resources", policy)
+                val collectionName = composed.roles.entries.single { it.value == "collection" }.key
+                val type = FixtureLoader(composed.classes, unit.layoutName).loadClass(collectionName.replace('/', '.'))
+                val select = type.getMethod("selectStrings", List::class.java)
+                val instance = type.getConstructor().newInstance()
+                val accepted = when (program) {
+                    Program.ARITHMETIC -> listOf(padded, clean, long, punctuated)
+                    Program.BRANCHING -> listOf(clean, long)
+                    Program.ACCUMULATION -> listOf(padded, clean, punctuated)
+                    Program.TEXT -> listOf(clean, clean, punctuated)
+                }
+                val input = items.toMutableList()
+                // INTEGER input with PAIRS topology uses backward traversal.
+                assertEquals(if (calls == Calls.PAIRS) accepted.reversed() else accepted, select.invoke(instance, input))
+                assertEquals(items, input)
+                assertEquals(emptyList<String>(), select.invoke(instance, null))
+            }
+        }
+    }
+
+    @Test fun branchingTextTransformsAndPredicatesUseTheValueOrFallBackToTheKey() {
+        for (calls in Calls.entries) {
+            val id = Roles.RULES.ordinal * 64 + Input.TEXT.ordinal * 16 + calls.ordinal * 4 + Program.BRANCHING.ordinal
+            val policy = JunkGenerationPolicy(seed = 31, maxMethodOperations = 1, minAssociatedClasses = 1,
+                maxAssociatedClasses = 1, enableFragments = false, profile = JunkGenerationProfile(id, 25))
+            val unit = JunkCodeUnit(0, "com/fixture/FieldActivity", "fields", policy.seedFor(0), emptyList())
+            val composed = JunkCodeComposer.compose(unit, "com.fixture.resources", policy)
+            val validator = composed.roles.entries.single { it.value == "validator" }.key
+            val type = FixtureLoader(composed.classes, unit.layoutName).loadClass(validator.replace('/', '.'))
+            val instance = type.getConstructor().newInstance()
+            val samples = mapOf("longKey \t7x\t" to "7x", "longKey \t" to "longKey",
+                "longKey " to "longKey", "\t7x\t" to "7x", " \t" to "")
+            val inputs = if (calls == Calls.FAN_OUT) samples + mapOf("_7x" to "7x", "longKey_" to "longKey") else samples
+            for (name in listOf("describe", "accepts")) {
+                val method = type.getMethod(name, String::class.java)
+                for ((input, selected) in inputs) {
+                    assertEquals(method.invoke(instance, selected), method.invoke(instance, input), "$calls $name($input)")
+                }
+            }
+        }
+    }
+
+    @Test fun modelCountsApplyTheProgramRuleAndCountNonStringObjects() {
+        val ineligible = mapOf(Program.BRANCHING to "_bad", Program.ACCUMULATION to "x".repeat(129), Program.TEXT to "   ")
+        for ((program, rejected) in ineligible) {
+            val verified = (0L..31L).any { seed ->
+                val policy = JunkGenerationPolicy(seed = seed, maxMethodOperations = 1,
+                    minAssociatedClasses = 2, maxAssociatedClasses = 2, enableFragments = false,
+                    associatedRoleWeights = mapOf("collection" to 1), profile = JunkGenerationProfile(program.ordinal, 26))
+                val unit = JunkCodeUnit(0, "com/fixture/CountActivity", "counts", policy.seedFor(0), emptyList())
+                val composed = JunkCodeComposer.compose(unit, "com.fixture.resources", policy)
+                val collection = composed.roles.entries.single { it.value == "collection" }.key
+                val type = FixtureLoader(composed.classes, unit.layoutName).loadClass(collection.replace('/', '.'))
+                val instance = type.getConstructor().newInstance()
+                val summarize = type.getMethod("summarize", List::class.java)
+                val zero = summarize.invoke(instance, emptyList<Any>())
+                val one = summarize.invoke(instance, listOf(7))
+                val two = summarize.invoke(instance, listOf(7, 8))
+                // Select a fixture that takes the non-string count path and distinguishes adjacent counts.
+                if (zero == one || one == two) return@any false
+                assertEquals(one, summarize.invoke(instance, listOf(7, null, rejected)))
+                assertEquals(two, summarize.invoke(instance, listOf(7, "valid")))
+                true
+            }
+            assertTrue(verified, "Could not find a count-sensitive fixture for $program")
+        }
+    }
+
+    private fun assertUnitExecutes(
+        index: Int,
+        policy: JunkGenerationPolicy,
+        textSamples: List<String?> = listOf(null, "", "Sample 4  ".repeat(128)),
+    ) {
+        val helpers = if (policy.profile?.usesTypedStages == true) {
+            listOf("com/fixture/shared/FirstStage", "com/fixture/shared/SecondStage")
+        } else {
+            listOf("com/fixture/shared/MathOps")
+        }
+        val unit = JunkCodeUnit(index, "com/fixture/Activity$index", "page_$index", policy.seedFor(index), helpers)
+        val output = JunkCodeComposer.compose(unit, "com.fixture.resources", policy)
+        val shared = helpers.associateWith { JunkCodeComposer.sharedHelper(it, index.toLong(), policy.profile) }
+        val loader = FixtureLoader(output.classes + shared, unit.layoutName)
+        output.classes.forEach { (name, _) ->
+            val type = loader.loadClass(name.replace('/', '.'))
+            // Resolving all descriptors and methods triggers JVM verification of every method.
+            val methods = type.declaredMethods
+            if (type.isInterface) return@forEach
+            val context = loader.loadClass("android.content.Context").getConstructor().newInstance()
+            val instance = if (output.roles[name] == "customView") {
+                val contextClass = context.javaClass
+                val attributesClass = loader.loadClass("android.util.AttributeSet")
+                type.getConstructor(contextClass, attributesClass).newInstance(context, null)
+                type.getConstructor(contextClass).newInstance(context)
+            } else type.getConstructor().newInstance()
+            if (policy.profile?.usesRequiredFieldsOnly == true) {
+                val fields = type.declaredFields.map { it.name }
+                assertTrue(fields.none { it.startsWith("value") })
+                if (output.roles[name] == "dto") {
+                    val label = type.getMethod("getValue").invoke(instance).toString()
+                    assertEquals(label, type.getMethod("getLabel").invoke(instance))
+                } else {
+                    assertFalse("label" in fields)
+                }
+            }
+            methods.forEach { method ->
+                method.isAccessible = true
+                val parameterTypes = method.parameterTypes
+                repeat(if (parameterTypes.singleOrNull() == String::class.java) textSamples.size else 3) { sample ->
+                    val arguments = parameterTypes.map { argument ->
+                        when (argument) {
+                            Int::class.javaPrimitiveType -> listOf(Int.MIN_VALUE, 0, Int.MAX_VALUE)[sample]
+                            Long::class.javaPrimitiveType -> listOf(Long.MIN_VALUE, 0L, Long.MAX_VALUE)[sample]
+                            Boolean::class.javaPrimitiveType -> sample != 0
+                            String::class.java -> textSamples[sample]
+                            List::class.java -> listOf(null, emptyList<Any?>(), listOf(null, "abc", 4, ""))[sample]
+                            else -> if (argument == type && sample > 0) instance else null
                         }
+                    }.toTypedArray()
+                    try {
+                        method.invoke(instance, *arguments)
+                    } catch (failure: ReflectiveOperationException) {
+                        throw AssertionError("Profile ${policy.profile?.id}, $name.${method.name} failed for sample $sample", failure)
                     }
                 }
             }
@@ -138,6 +324,62 @@ class JunkCodeComposerTest {
         }
         assertTrue(seenRoles.containsAll(listOf("dto", "customView", "fragment", "interface", "implementation")))
         assertTrue(seenFragmentCounts.containsAll((0..4).toList()))
+    }
+
+    @Test fun dtoStringAdaptersAreOptInAndRespectTheMethodMinimum() {
+        val policy = JunkGenerationPolicy(seed = 24, minAssociatedClasses = 2, maxAssociatedClasses = 2,
+            minMethodsPerClass = 11, maxMethodsPerClass = 11, enableFragments = false,
+            associatedRoleWeights = mapOf("converter" to 1), profile = JunkGenerationProfile(14, 24))
+        val unit = JunkCodeUnit(0, "com/fixture/AdapterActivity", "adapter_screen", policy.seedFor(0), emptyList())
+        val legacy = JunkCodeComposer.compose(unit, "com.fixture.resources",
+            policy.copy(profile = JunkGenerationProfile(14, 23)))
+        val lean = JunkCodeComposer.compose(unit, "com.fixture.resources", policy)
+        val enabled = JunkCodeComposer.compose(unit, "com.fixture.resources", policy.copy(includeDtoStringAdapters = true))
+        val converterName = legacy.roles.entries.single { it.value == "converter" }.key
+        val dtoName = legacy.roles.entries.single { it.value == "dto" }.key
+        assertEquals(legacy.classes.keys, lean.classes.keys)
+        assertEquals(legacy.classes.keys, enabled.classes.keys)
+        legacy.classes.forEach { (name, bytes) ->
+            assertContentEquals(bytes, enabled.classes.getValue(name))
+            if (name != converterName) assertContentEquals(bytes, lean.classes.getValue(name))
+        }
+        val leanConverter = lean.classes.getValue(converterName)
+        assertEquals(policy.minMethodsPerClass, methodCount(leanConverter))
+        val leanLoader = FixtureLoader(lean.classes, unit.layoutName)
+        assertFalse(leanLoader.loadClass(converterName.replace('/', '.')).declaredMethods.any { it.name == "convert" })
+
+        val loader = FixtureLoader(enabled.classes, unit.layoutName)
+        val converter = loader.loadClass(converterName.replace('/', '.'))
+        val dto = loader.loadClass(dtoName.replace('/', '.'))
+        val call = converter.getMethod("convert", dto)
+        val adapter = converter.getConstructor().newInstance()
+        val value = dto.getConstructor(Int::class.javaPrimitiveType, String::class.java).newInstance(-42, "fixture")
+        assertEquals("-42", call.invoke(adapter, value))
+        assertEquals("", call.invoke(adapter, null))
+    }
+
+    @Test fun dtoComparisonOptInKeepsTheMethodBudgetAndComparesSignedValues() {
+        val policy = JunkGenerationPolicy(seed = 24, minAssociatedClasses = 1, maxAssociatedClasses = 1,
+            minMethodsPerClass = 11, maxMethodsPerClass = 11, enableFragments = false,
+            profile = JunkGenerationProfile(46, 26))
+        val unit = JunkCodeUnit(0, "com/fixture/ComparisonActivity", "comparison_screen", policy.seedFor(0), emptyList())
+        val lean = JunkCodeComposer.compose(unit, "com.fixture.resources", policy)
+        val enabled = JunkCodeComposer.compose(unit, "com.fixture.resources", policy.copy(includeDtoComparison = true))
+        val dtoName = lean.roles.entries.single { it.value == "dto" }.key
+        assertEquals(11, methodCount(lean.classes.getValue(dtoName)))
+        assertEquals(11, methodCount(enabled.classes.getValue(dtoName)))
+        val leanType = FixtureLoader(lean.classes, unit.layoutName).loadClass(dtoName.replace('/', '.'))
+        assertTrue(leanType.declaredMethods.none { it.name == "compareValue" })
+
+        val dto = FixtureLoader(enabled.classes, unit.layoutName).loadClass(dtoName.replace('/', '.'))
+        val comparison = dto.getMethod("compareValue", dto)
+        val constructor = dto.getConstructor(Int::class.javaPrimitiveType, String::class.java)
+        val small = constructor.newInstance(Int.MIN_VALUE, "small")
+        val large = constructor.newInstance(Int.MAX_VALUE, "large")
+        assertEquals(-1, comparison.invoke(small, large))
+        assertEquals(0, comparison.invoke(small, small))
+        assertEquals(1, comparison.invoke(large, small))
+        assertEquals(1, comparison.invoke(small, null))
     }
 
     @Test fun defaultMethodAndAssociatedClassRangesAreHonored() {

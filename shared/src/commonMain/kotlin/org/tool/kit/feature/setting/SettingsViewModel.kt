@@ -43,6 +43,7 @@ class SettingsViewModel(private val preferences: PreferencesRepository, private 
             is SettingsIntent.SignerSuffix -> PreferenceChange.SignerSuffix(intent.value)
             is SettingsIntent.DuplicateRemoval -> PreferenceChange.DuplicateRemoval(intent.value)
             is SettingsIntent.AlignFileSize -> PreferenceChange.AlignFileSize(intent.value)
+            is SettingsIntent.SaveSigningProfiles -> PreferenceChange.SaveSigningProfiles(intent.value)
             is SettingsIntent.StoreType -> PreferenceChange.StoreType(intent.value)
             is SettingsIntent.StoreSize -> PreferenceChange.StoreSize(intent.value)
             is SettingsIntent.ShowJunkCode -> PreferenceChange.ShowJunkCode(intent.value)

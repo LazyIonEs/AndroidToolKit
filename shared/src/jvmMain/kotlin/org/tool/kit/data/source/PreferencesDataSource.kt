@@ -49,6 +49,7 @@ class PreferencesDataSource(private val settings: FlowSettings, private val io: 
         private const val START_CHECK_UPDATE = "start_check_update"
         private const val SIGNATURE_COPY_MODE = "signature_copy_mode"
         private const val JUNK_MODE = "junk_mode"
+        private const val SAVE_SIGNING_PROFILES = "save_signing_profiles"
         val DEFAULT_JUNK_MODE = JunkPreference.SINGLE
     }
 
@@ -71,6 +72,7 @@ class PreferencesDataSource(private val settings: FlowSettings, private val io: 
             isStartCheckUpdate = settings.getBoolean(START_CHECK_UPDATE, true),
             copyMode = CopyPreference.entries.firstOrNull { it.name == settings.getStringOrNull(SIGNATURE_COPY_MODE) } ?: DEFAULT_COPY_MODE,
             junkMode = JunkPreference.entries.firstOrNull { it.name == settings.getStringOrNull(JUNK_MODE) } ?: DEFAULT_JUNK_MODE,
+            saveSigningProfiles = settings.getBoolean(SAVE_SIGNING_PROFILES, true),
         )
     }
 
@@ -92,6 +94,7 @@ class PreferencesDataSource(private val settings: FlowSettings, private val io: 
             is PreferenceChange.CopyModeChanged -> settings.putString(SIGNATURE_COPY_MODE, change.value.name)
             is PreferenceChange.JunkModeChanged -> settings.putString(JUNK_MODE, change.value.name)
             is PreferenceChange.IconSettings -> blockingSettings.encodeValue(IconFactoryData.serializer(), ICON_FACTORY_DATA, snapshot.iconFactoryData)
+            is PreferenceChange.SaveSigningProfiles -> settings.putBoolean(SAVE_SIGNING_PROFILES, change.value)
         }
     }
 }

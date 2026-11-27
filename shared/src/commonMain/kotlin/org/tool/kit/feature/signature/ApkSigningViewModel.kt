@@ -8,6 +8,8 @@ import org.jetbrains.compose.resources.getString
 import org.tool.kit.core.validation.LatestRequest
 import org.tool.kit.domain.preferences.PreferencesRepository
 import org.tool.kit.domain.repository.KeyStoreRepository
+import org.tool.kit.domain.repository.SavedSigningProfile
+import org.tool.kit.domain.repository.SigningProfileRepository
 import org.tool.kit.domain.repository.StorageRepository
 import org.tool.kit.domain.signing.*
 import org.tool.kit.domain.usecase.SignApkUseCase
@@ -24,6 +26,7 @@ class ApkSigningViewModel(
     keyStores: KeyStoreRepository,
     private val effects: AppEffectSink,
     val presets: SigningPresets,
+    private val signingProfiles: SigningProfileRepository,
 ) : ViewModel() {
     private val initial = preferences.state.value
     private val _uiState = MutableStateFlow(ApkSigningUiState(form = ApkSignatureForm(outputPath = initial.userData.defaultOutputPath)))
@@ -33,6 +36,8 @@ class ApkSigningViewModel(
     private val outputRequest = LatestRequest(viewModelScope)
     private val keyRequest = LatestRequest(viewModelScope)
     private val nameRequest = LatestRequest(viewModelScope)
+    private val profileListRequest = LatestRequest(viewModelScope)
+    private val profileSelection = LatestRequest(viewModelScope)
     private var outputVersion = initial.takeIf { it.ready }?.outputPathVersion
     // 标识本页面接受的操作；关闭或替换操作后，旧任务不能再发布结果。
     private var operationId = 0L
@@ -55,6 +60,7 @@ class ApkSigningViewModel(
         addCloseable {
             operationId++
             apkRequest.cancel(); outputRequest.cancel(); keyRequest.cancel(); nameRequest.cancel()
+            profileListRequest.cancel(); profileSelection.cancel()
             _uiState.update { it.copy(busy = false) }
         }
     }
@@ -63,7 +69,21 @@ class ApkSigningViewModel(
     fun onIntent(intent: ApkSigningIntent) {
         when (intent) {
             ApkSigningIntent.Submit -> { submit(); return }
-            ApkSigningIntent.Refresh -> { refreshPaths(); credentials.refreshAliasPassword(_uiState.value.form.credentials); return }
+            ApkSigningIntent.Refresh -> {
+                refreshPaths()
+                refreshSigningProfiles()
+                credentials.refreshAliasPassword(_uiState.value.form.credentials)
+                return
+            }
+            is ApkSigningIntent.SigningProfileSelected -> {
+                selectSigningProfile(intent.profile)
+                return
+            }
+            is ApkSigningIntent.KeyPathChanged, is ApkSigningIntent.StorePasswordChanged,
+            is ApkSigningIntent.AliasChanged, is ApkSigningIntent.AliasPasswordChanged -> {
+                profileSelection.cancel()
+                validation { it.copy(profilePending = false) }
+            }
             is ApkSigningIntent.FilesDropped -> {
                 intent.paths.firstOrNull { it.isApk }?.let { onIntent(ApkSigningIntent.ApkPathChanged(it)) }
                 intent.paths.firstOrNull { it.isKey }?.let { onIntent(ApkSigningIntent.KeyPathChanged(it)) }
@@ -91,6 +111,57 @@ class ApkSigningViewModel(
     }
     private fun validation(update: (ApkSigningValidation) -> ApkSigningValidation) {
         _uiState.update { it.copy(validation = update(it.validation)) }
+    }
+
+    private fun refreshSigningProfiles() {
+        profileListRequest.launch(block = { tryProfileOperation { signingProfiles.list() } }) { profiles ->
+            if (profiles != null) _uiState.update { it.copy(savedSigningProfiles = profiles) }
+            else notify(UiMessage.Resource(Res.string.signing_profile_load_failed))
+        }
+    }
+
+    private fun selectSigningProfile(profile: SavedSigningProfile) {
+        validation { it.copy(profilePending = true) }
+        profileSelection.launch(block = { tryProfileOperation { signingProfiles.load(profile) } }) { saved ->
+            validation { it.copy(profilePending = false) }
+            if (saved == null) {
+                notify(UiMessage.Resource(Res.string.signing_profile_load_failed))
+                return@launch
+            }
+            val restored = SigningCredentialsUi(
+                path = saved.path,
+                storePassword = saved.storePassword,
+                aliasPassword = saved.aliasPassword,
+            )
+            setForm(_uiState.value.form.copy(credentials = restored))
+            validateKey()
+            credentials.passwordChanged(restored) { aliases ->
+                val form = _uiState.value.form
+                val index = aliases?.indexOf(profile.alias) ?: -1
+                val currentPassword = form.credentials.aliasPassword
+                setForm(form.copy(credentials = form.credentials.copy(
+                    aliases = aliases?.toList(),
+                    aliasIndex = index,
+                    aliasPassword = if (index < 0 && currentPassword == saved.aliasPassword) "" else currentPassword,
+                )))
+            }
+        }
+    }
+
+    private suspend fun <T> tryProfileOperation(operation: suspend () -> T): T? = try {
+        operation()
+    } catch (cancelled: CancellationException) {
+        throw cancelled
+    } catch (_: Exception) {
+        null
+    }
+
+    private suspend fun saveSigningProfile(credentials: SigningCredentials): Boolean {
+        val profiles = tryProfileOperation { signingProfiles.save(credentials) } ?: return false
+        currentCoroutineContext().ensureActive()
+        profileListRequest.cancel()
+        _uiState.update { it.copy(savedSigningProfiles = profiles) }
+        return true
     }
     /** 页面恢复时重查路径，反映应用外部发生的文件变化。 */
     private fun refreshPaths() { validateApk(); validateOutput(); validateKey() }
@@ -143,8 +214,9 @@ class ApkSigningViewModel(
         if (state.busy) return
         val form = state.form
         val keys = form.credentials
+        val alias = keys.aliases?.getOrNull(keys.aliasIndex)
         if (state.hasError || state.validation.pending || credentials.state.value.pending ||
-            listOf(form.apkPath, form.outputPath, keys.path, keys.storePassword, keys.aliasPassword).any { it.isBlank() } || keys.aliases.isNullOrEmpty()) {
+            listOf(form.apkPath, form.outputPath, keys.path, keys.storePassword, keys.aliasPassword).any { it.isBlank() } || alias == null) {
             notify(UiMessage.Resource(Res.string.check_error)); return
         }
         val settings = preferences.state.value
@@ -152,7 +224,7 @@ class ApkSigningViewModel(
             settings.userData.defaultSignerSuffix, settings.userData.duplicateFileRemoval,
             settings.userData.alignFileSize, settings.isHuaweiAlignFileSize, presets.huaweiPath,
             ApkSigningPolicy.valueOf(form.policy.name), form.v4FileName,
-            SigningCredentials(keys.path, keys.storePassword, keys.aliases.getOrNull(keys.aliasIndex), keys.aliasPassword))
+            SigningCredentials(keys.path, keys.storePassword, alias, keys.aliasPassword))
         val batch = form.apkPath == presets.allPath
         val requests = if (batch) presets.batchPaths.map { request.copy(inputPath = it) } else listOf(request)
         val id = ++operationId
@@ -166,13 +238,19 @@ class ApkSigningViewModel(
                 val outcome = if (batch && outcomes.any { it !is SignApkOutcome.Success || !it.outputExists })
                     SignApkOutcome.Failure(null) else outcomes.last()
                 val message = when (outcome) {
-                    is SignApkOutcome.Success -> SnackbarMessage(UiMessage.Resource(Res.string.apk_is_signed_successfully),
-                        actionLabel = getString(Res.string.jump), withDismissAction = true,
-                        action = SnackbarAction.OpenDirectory(outcome.outputPath))
+                    is SignApkOutcome.Success -> {
+                        val shouldSave = settings.saveSigningProfiles && outcome.outputExists
+                        val message = if (shouldSave && !saveSigningProfile(request.credentials)) {
+                            Res.string.apk_signed_profile_save_failed
+                        } else Res.string.apk_is_signed_successfully
+                        SnackbarMessage(UiMessage.Resource(message), actionLabel = getString(Res.string.jump),
+                            withDismissAction = true, action = SnackbarAction.OpenDirectory(outcome.outputPath))
+                    }
                     is SignApkOutcome.OutputAlreadyExists -> SnackbarMessage(UiMessage.Text(getString(Res.string.output_file_already_exists, outcome.fileName)))
                     is SignApkOutcome.Failure -> SnackbarMessage(outcome.message?.let(UiMessage::Text) ?: UiMessage.Resource(Res.string.signature_failed))
                 }
-                effects.send("apk-signing", message, id)
+                currentCoroutineContext().ensureActive()
+                if (id == operationId) effects.send("apk-signing", message, id)
             } catch (cancelled: CancellationException) { throw cancelled }
             catch (error: Exception) {
                 currentCoroutineContext().ensureActive()

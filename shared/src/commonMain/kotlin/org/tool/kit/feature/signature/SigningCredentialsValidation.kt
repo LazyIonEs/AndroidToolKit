@@ -21,7 +21,7 @@ private data class StoreCredentials(val path: String, val password: String) {
     override fun toString() = "StoreCredentials(redacted)"
 }
 
-private data class AliasCredentials(val store: StoreCredentials, val alias: String?, val password: String) {
+private data class AliasCredentials(val store: StoreCredentials, val alias: String, val password: String) {
     override fun toString() = "AliasCredentials(redacted)"
 }
 
@@ -55,8 +55,9 @@ class SigningCredentialsValidation(
             aliasesRequest.cancel()
             _state.update { it.copy(aliasesPending = false) }
         }
-        val nextKey = if (!form.aliases.isNullOrEmpty() && form.aliasPassword.isNotBlank()) {
-            AliasCredentials(nextStore, form.aliases?.getOrNull(form.aliasIndex), form.aliasPassword)
+        val alias = form.aliases?.getOrNull(form.aliasIndex)
+        val nextKey = if (alias != null && form.aliasPassword.isNotBlank()) {
+            AliasCredentials(nextStore, alias, form.aliasPassword)
         } else null
         if (nextKey == key) return
         key = nextKey
@@ -72,7 +73,7 @@ class SigningCredentialsValidation(
     }
 
     /** An unavailable path leaves the loaded aliases unchanged. */
-    fun passwordChanged(form: SigningCredentialsUi) {
+    fun passwordChanged(form: SigningCredentialsUi, onLoaded: (List<String>?) -> Unit = onAliases) {
         refreshAliasPassword(form)
         val credentials = StoreCredentials(form.path, form.storePassword)
         if (credentials.path.isBlank()) return
@@ -83,7 +84,7 @@ class SigningCredentialsValidation(
             } else false to null
         }) { (fileAvailable, aliases) ->
             _state.update { it.copy(aliasesPending = false) }
-            if (fileAvailable) onAliases(aliases)
+            if (fileAvailable) onLoaded(aliases)
         }
     }
 }

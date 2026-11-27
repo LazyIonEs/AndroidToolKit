@@ -12,16 +12,18 @@ import org.tool.kit.data.generator.*
 import java.io.File
 import java.util.jar.JarInputStream
 import java.util.zip.ZipFile
+import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
+import org.w3c.dom.Element
 
 class JunkArchiveSafetyTest {
     @get:Rule val temporary = TemporaryFolder()
     private fun generate(out: File, policy: JunkGenerationPolicy, count: Int = 12): File = AndroidJunkGenerator(
         temporary.root.path, out.path, "com.host.sameprefix", count, 1, "unit_", policy).startGenerate()
 
-    @Test fun deterministicAcrossParallelismAndEveryActivityHasItsOwnLayoutAndPreciseKeep() {
+    @Test fun deterministicAcrossParallelismAndEveryActivityHasItsOwnLayout() {
         val policy = JunkGenerationPolicy(seed = 17, resources = JunkResourceBudget(total = 3, newResourceProbability = 1.0))
         val first = generate(temporary.newFolder("a"), policy.copy(maxParallelism = 1))
         val second = generate(temporary.newFolder("b"), policy.copy(maxParallelism = 4))
@@ -33,9 +35,8 @@ class JunkArchiveSafetyTest {
             val manifest = zip.getInputStream(zip.getEntry("AndroidManifest.xml")).reader().readText()
             assertEquals(12, Regex("<activity ").findAll(manifest).count())
             assertTrue(manifest.contains("com.host.sameprefix.toolkitres"))
-            val rules = zip.getInputStream(zip.getEntry("proguard.txt")).reader().readText()
-            assertFalse(rules.contains(".**"))
             assertFalse(entries.any { it.endsWith("/R.class") || it.contains("/R$") })
+            assertNull(zip.getEntry("proguard.txt"))
             assertNull(zip.getEntry("consumer-rules.pro"))
             val optional = entries.count { it.startsWith("res/") && !it.startsWith("res/layout/") && !it.startsWith("res/raw/") } + entries.count { it.startsWith("assets/") }
             assertTrue(optional <= 3)
@@ -49,7 +50,6 @@ class JunkArchiveSafetyTest {
                     for (method in node.methods) {
                         if (method.access and Opcodes.ACC_ABSTRACT == 0) Analyzer(BasicVerifier()).analyze(node.name, method)
                     }
-                    assertTrue(rules.contains("-keep class ${node.name.replace('/', '.')} { *; }"))
                 }
             }
         }
@@ -81,7 +81,7 @@ class JunkArchiveSafetyTest {
 
     @Test fun existingReportDirectoryDoesNotBlockPublicationOrGetDeleted() {
         val out = temporary.newFolder("publication")
-        val previous = File(out, "junk_com_host_sameprefix_TT3.0.0.aar").apply { writeText("previous complete archive") }
+        val previous = File(out, "junk_com_host_sameprefix_TT3.1.0.aar").apply { writeText("previous complete archive") }
         val existingReport = File(out, "${previous.name}.report.json").apply { mkdirs(); resolve("sentinel").writeText("keep") }
         val existingBatchReport = File(out, "batch-report.json").apply { writeText("user-owned historical report") }
         val generated = generate(out, JunkGenerationPolicy(seed = 71), count = 2)
@@ -92,9 +92,40 @@ class JunkArchiveSafetyTest {
         assertEquals(setOf(generated.name, existingReport.name, existingBatchReport.name), out.list()!!.toSet())
     }
 
+    @Test fun groupedValuesPreserveStringDeclarationsAndSymbols() {
+        val policy = JunkGenerationPolicy(seed = 19, resources = JunkResourceBudget(total = 4,
+            drawable = 0, mipmap = 0, anim = 0, string = 4, assets = 0, newResourceProbability = 1.0))
+        val old = generate(temporary.newFolder("strings-old"), policy.copy(profile = JunkGenerationProfile(231, 17)))
+        val grouped = generate(temporary.newFolder("strings-grouped"), policy.copy(profile = JunkGenerationProfile(231, 18)))
+
+        fun declarations(file: File, expectedFiles: Int): Map<String, String> = ZipFile(file).use { zip ->
+            val entries = zip.entries().asSequence().filter { it.name.startsWith("res/values/") }.toList()
+            assertEquals(expectedFiles, entries.size)
+            val parser = DocumentBuilderFactory.newInstance().newDocumentBuilder()
+            val rows = entries.flatMap { entry ->
+                val document = zip.getInputStream(entry).use { parser.parse(it) }
+                val nodes = document.getElementsByTagName("string")
+                List(nodes.length) { i ->
+                    val element = nodes.item(i) as Element
+                    assertEquals("false", element.getAttribute("translatable"))
+                    element.getAttribute("name") to element.textContent
+                }
+            }
+            assertEquals(4, rows.size)
+            val names = zip.getInputStream(zip.getEntry("R.txt")).bufferedReader().useLines { lines ->
+                lines.filter { it.startsWith("int string ") }.map { it.split(' ')[2] }.toSet()
+            }
+            assertEquals(names, rows.map { it.first }.toSet())
+            assertEquals(rows.size, names.size)
+            rows.toMap()
+        }
+
+        assertEquals(declarations(old, 4), declarations(grouped, 1))
+    }
+
     @Test fun archiveTargetDirectoryBlocksPublicationWithoutRemovingExistingFiles() {
         val out = temporary.newFolder("blocked-publication")
-        val target = File(out, "junk_com_host_sameprefix_TT3.0.0.aar").apply {
+        val target = File(out, "junk_com_host_sameprefix_TT3.1.0.aar").apply {
             mkdirs(); resolve("sentinel").writeText("keep existing directory")
         }
         val previous = File(out, "previous.aar").apply { writeText("previous complete archive") }

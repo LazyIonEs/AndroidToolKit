@@ -48,6 +48,11 @@
     <string name="signature_strategy">签名策略：</string>
     <string name="v2_tips">使用 V2 Only 签名的APK包仅支持Android 7及更高版本的系统安装和使用，请注意</string>
     <string name="start_signing">开始签名</string>
+    <string name="save_signing_profiles">签名后保存当前签名</string>
+    <string name="save_signing_profiles_description">保存密钥文件路径、别名和密码，供下次签名时选用。</string>
+    <string name="choose_signing_keystore">选择密钥文件</string>
+    <string name="signing_profile_load_failed">无法读取已保存的签名信息</string>
+    <string name="apk_signed_profile_save_failed">APK 已签名，签名信息保存失败</string>
     <string name="apk_signature_v1">APK Signature Scheme V1</string>
     <string name="apk_signature_v2">APK Signature Scheme V2，包含V1</string>
     <string name="apk_signature_v2_only">APK Signature Scheme V2，不包含V1</string>
@@ -136,13 +141,23 @@
 
     <string name="aar_output_path">AAR输出路径</string>
     <string name="aar_name">AAR 名称</string>
-    <string name="number_of_packages">包的数量</string>
-    <string name="number_of_activities">每个包里 activity 的数量</string>
+    <string name="aar_package_and_resources">包名与资源</string>
+    <string name="aar_batch_configuration">批量配置</string>
+    <string name="aar_output_folder_name">输出文件夹名称</string>
+    <string name="junk_random_suffix">随机生成后缀</string>
+    <string name="junk_random_resource_prefix">随机生成资源前缀</string>
+    <string name="aar_size_per_file">每份 AAR 大小</string>
+    <string name="aar_minimum_size">最小大小</string>
+    <string name="aar_maximum_size">最大大小</string>
+    <string name="aar_size_slider_step">%1$s MB 步进</string>
+    <string name="aar_size_range_invalid">请输入大于 0 的数值，最多保留 6 位小数，且最大值须大于或等于最小值。</string>
+    <string name="aar_count">AAR 数量</string>
+    <string name="aar_count_unit">份</string>
+    <string name="aar_total_size_range">批量总大小范围</string>
     <string name="resource_prefix">资源前缀</string>
     <string name="junk_package_name">包名</string>
     <string name="suffix">后缀</string>
     <string name="start_generating">开始生成</string>
-    <string name="estimated_size">预估大小</string>
 
     <string name="apk_signature">APK签名</string>
     <string name="signature_suffix">签名后缀</string>

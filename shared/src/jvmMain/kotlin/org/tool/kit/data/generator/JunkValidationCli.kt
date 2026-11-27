@@ -12,6 +12,10 @@ object JunkValidationCli {
     private val logger = KotlinLogging.logger("JunkGeneration")
     private val reportJson = Json { prettyPrint = true }
     @JvmStatic fun main(args: Array<String>) = runBlocking {
+        if (args.firstOrNull() == "--projects") {
+            generateProjects(args)
+            return@runBlocking
+        }
         require(args.size >= 4) { "Usage: outputDirectory packageCount activitiesPerPackage seed [aarCount]" }
         val output = File(args[0]).absoluteFile.apply { mkdirs() }
         val packages = args[1].toInt(); val activities = args[2].toInt(); val seed = args[3].toLong()
@@ -33,5 +37,27 @@ object JunkValidationCli {
                     reportJson.encodeToString(kotlinx.serialization.json.JsonElement.serializer(), Json.parseToJsonElement(jsonValue(run)))
             }
         } finally { work.deleteRecursively() }
+    }
+
+    private fun generateProjects(args: Array<String>) {
+        val usage = "Usage: --projects manifestFile outputDirectory [--project projectId] [--generator-version version] [--compare]"
+        require(args.size >= 3) { usage }
+        val options = args.drop(3)
+        val named = options.filterNot { it == "--compare" }
+        require(named.size % 2 == 0) { usage }
+        val values = named.chunked(2).associate { (key, value) -> key to value }
+        require(values.size * 2 == named.size && values.keys.all { it == "--project" || it == "--generator-version" }) { usage }
+        val result = JunkProjectGenerator.generate(
+            File(args[1]), File(args[2]).absoluteFile, values["--project"], compare = "--compare" in options,
+            generatorVersion = values["--generator-version"]?.toInt(),
+        )
+        logger.info {
+            buildString {
+                appendLine("已生成 ${result.archives.size} 份单 AAR")
+                if (result.archives.size == 1) appendLine(result.archives.single().file.absolutePath)
+                appendLine("已分配项目清单 ${result.manifest.absolutePath}")
+                result.comparison?.let { append("两两重合度报告 ${it.absolutePath}") }
+            }.trimEnd()
+        }
     }
 }

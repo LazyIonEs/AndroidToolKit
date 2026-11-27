@@ -17,7 +17,6 @@ import org.tool.kit.model.JunkMode
 import org.tool.kit.shared.generated.resources.*
 import org.tool.kit.tests.support.AllPathsExist
 import org.tool.kit.tests.support.junkViewModel
-import org.tool.kit.utils.formatFileSize
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class JunkCodeViewModelTest {
@@ -26,18 +25,24 @@ class JunkCodeViewModelTest {
         backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) { f.effects.effects.toList(events) }
         try {
             runCurrent()
-            listOf(OutputPathChanged(" output "), PackageNameChanged("com.fixture"), SuffixChanged("a.b"), PackageCountChanged("0002"), ActivityCountChanged("3"), ResPrefixChanged(" prefix ")).forEach(f.vm::onIntent)
+            listOf(OutputPathChanged(" output "), PackageNameChanged("com.fixture"), SuffixChanged("a.b"),
+                MinimumSizeChanged("017.5"), MaximumSizeChanged("22.5"), ResPrefixChanged(" prefix ")).forEach(f.vm::onIntent)
             runCurrent(); f.vm.onIntent(Submit); f.vm.onIntent(Submit)
             assertTrue(f.vm.uiState.value.busy)
-            assertEquals(GenerateJunkCodeRequest(" output ", JunkConfiguration.Single("com.fixture.a.b", 2, 3, " prefix ")), f.requests.single())
-            listOf(ModeChanged(JunkMode.MULTI), OutputDirChanged(" batch "), AarCountChanged("2"), LeastPackagesChanged("1"), MaximumPackagesChanged("3"), LeastActivitiesChanged("2"), MaximumActivitiesChanged("4")).forEach(f.vm::onIntent)
+            assertEquals(GenerateJunkCodeRequest(" output ",
+                JunkConfiguration.SingleBySize("com.fixture.a.b", JunkAarSizeRange(17_500_000, 22_500_000), " prefix "),
+                strategy = JunkGenerationStrategy()), f.requests.single())
+            listOf(ModeChanged(JunkMode.MULTI), OutputDirChanged(" batch "), AarCountChanged("2"),
+                MinimumSizeChanged("0.5"), MaximumSizeChanged("1.25")).forEach(f.vm::onIntent)
             f.pending.single().complete(GeneratedJunkCode("original-single.aar", listOf("original-single.aar"), 12345)); runCurrent(); f.vm.uiState.first { !it.busy }
             assertFalse(f.vm.uiState.value.busy)
             assertEquals(SnackbarAction.OpenDirectory("original-single.aar"), events.single().snackbar.action)
-            assertEquals(UiMessage.Text(getString(Res.string.build_end, 12345L.formatFileSize())), events.single().snackbar.message)
+            assertEquals(UiMessage.Text(getString(Res.string.build_end, "0.012345 MB")), events.single().snackbar.message)
             f.vm.onIntent(Submit)
-            assertEquals(JunkConfiguration.Multi(" batch ", 2, 1, 3, 2, 4), f.requests.last().configuration)
-            assertEquals("0002", f.vm.uiState.value.single.packageCount)
+            assertEquals(JunkConfiguration.MultiBySize(" batch ", 2, JunkAarSizeRange(500_000, 1_250_000)), f.requests.last().configuration)
+            assertEquals(JunkGenerationStrategy(), f.requests.last().strategy)
+            assertEquals("017.5", f.vm.uiState.value.single.size.minimumMb)
+            assertEquals("1–2.5 MB", f.vm.uiState.value.estimatedSize)
             f.pending.last().complete(GeneratedJunkCode(" output / batch ", emptyList(), 0)); runCurrent(); f.vm.uiState.first { !it.busy }
             assertEquals(SnackbarAction.OpenDirectory(" output / batch "), events.last().snackbar.action)
         } finally { f.close() }
@@ -60,8 +65,10 @@ class JunkCodeViewModelTest {
             f.vm.onIntent(AarCountChanged("2")); f.vm.onIntent(ModeChanged(JunkMode.MULTI)); f.vm.onIntent(ResPrefixChanged(" ")); f.vm.onIntent(Submit); runCurrent()
             assertEquals(UiMessage.Resource(Res.string.check_empty), events.last().snackbar.message)
             assertTrue(f.requests.isEmpty()); assertFalse(f.vm.uiState.value.busy)
+            f.vm.onIntent(ResPrefixChanged("f_")); f.vm.onIntent(MinimumSizeChanged("30")); f.vm.onIntent(Submit); runCurrent()
+            assertEquals(UiMessage.Resource(Res.string.aar_size_range_invalid), events.last().snackbar.message)
             // A pending path created in the same event turn must gate submit immediately.
-            f.vm.onIntent(ResPrefixChanged("f_")); f.vm.onIntent(OutputPathChanged("new")); f.vm.onIntent(Submit); runCurrent()
+            f.vm.onIntent(MinimumSizeChanged("0.5")); f.vm.onIntent(OutputPathChanged("new")); f.vm.onIntent(Submit); runCurrent()
             assertTrue(f.requests.isEmpty()); assertEquals(UiMessage.Resource(Res.string.check_error), events.last().snackbar.message)
             gates.last().complete(PathMetadata(false, false)); runCurrent(); assertTrue(f.vm.uiState.value.outputValidation.isError)
         } finally { f.close() }
@@ -74,7 +81,7 @@ class JunkCodeViewModelTest {
             runCurrent(); f.vm.onIntent(RandomSuffix); f.vm.onIntent(RandomPrefix)
             assertEquals(listOf(3 to 8, 2 to 6), calls)
             assertEquals("random1", f.vm.uiState.value.single.suffix); assertEquals("random2_", f.vm.uiState.value.single.resPrefix)
-            assertEquals("junk_com_dev_junk_random1_TT3.0.0.aar", f.vm.uiState.value.single.aarName)
+            assertEquals("junk_com_dev_junk_random1_TT3.1.0.aar", f.vm.uiState.value.single.aarName)
             val single = f.vm.uiState.value.single
             f.vm.onIntent(ModeChanged(JunkMode.MULTI)); f.vm.onIntent(OutputDirChanged(" batch ")); f.vm.onIntent(ModeChanged(JunkMode.SINGLE)); runCurrent()
             assertEquals(single, f.vm.uiState.value.single); assertEquals(" batch ", f.vm.uiState.value.multi.outputDir)
