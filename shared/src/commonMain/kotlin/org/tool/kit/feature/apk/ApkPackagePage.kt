@@ -19,12 +19,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ChevronRight
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Memory
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -53,7 +56,9 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import org.tool.kit.domain.apk.ApkArchiveInformation
+import org.tool.kit.domain.apk.ApkArchivePreviewKind
 import org.tool.kit.domain.apk.ApkFileCategory
+import org.tool.kit.domain.apk.previewKind
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.apk_info_abi_count
 import org.tool.kit.shared.generated.resources.apk_info_all
@@ -71,10 +76,12 @@ import org.tool.kit.shared.generated.resources.apk_info_original_size
 import org.tool.kit.shared.generated.resources.apk_info_metadata_zip_label
 import org.tool.kit.shared.generated.resources.apk_info_abi
 import org.tool.kit.shared.generated.resources.apk_info_no_native_libraries
+import org.tool.kit.shared.generated.resources.apk_info_preview_file
 import org.tool.kit.shared.generated.resources.apk_info_sdk_minimum
 import org.tool.kit.shared.generated.resources.apk_info_sdk_target
 import org.tool.kit.shared.generated.resources.apk_info_sdk_compile
 import org.tool.kit.shared.generated.resources.apk_info_path_checksums
+import org.tool.kit.shared.generated.resources.apk_info_preview_manifest
 import org.tool.kit.shared.generated.resources.apk_info_runtime
 import org.tool.kit.shared.generated.resources.apk_info_search_details
 import org.tool.kit.shared.generated.resources.apk_info_size
@@ -88,7 +95,9 @@ internal fun ApkPackageWorkspace(
     result: ApkInformationResultUi,
     onCopy: (String) -> Unit,
     onLibraries: () -> Unit,
-    onChecks: () -> Unit
+    onChecks: () -> Unit,
+    onOpenManifest: () -> Unit = {},
+    onPreviewFile: (String, ApkArchivePreviewKind) -> Unit = { _, _ -> },
 ) {
     var page by rememberSaveable { mutableIntStateOf(0) }
     val pages = rememberSaveableStateHolder()
@@ -98,15 +107,16 @@ internal fun ApkPackageWorkspace(
         pages.SaveableStateProvider(current) {
             when (current) {
                 0 -> ApkPackageOverview(
-                    result,
-                    onCopy,
-                    { navigate(1) },
-                    { navigate(2) },
-                    onLibraries,
-                    onChecks
+                    result = result,
+                    onCopy = onCopy,
+                    onFiles = { navigate(1) },
+                    onBreakdown = { navigate(2) },
+                    onLibraries = onLibraries,
+                    onChecks = onChecks,
+                    onOpenManifest = onOpenManifest,
                 )
 
-                1 -> ApkPackagePage(result.archive, 20.dp, onCopy) { navigate(0) }
+                1 -> ApkPackagePage(result.archive, 20.dp, onCopy, { navigate(0) }, onPreviewFile)
                 2 -> ApkFullBreakdown(result.archive, { navigate(0) }, { navigate(1) })
             }
         }
@@ -115,17 +125,22 @@ internal fun ApkPackageWorkspace(
 
 @Composable
 private fun ApkPackageOverview(
-    result: ApkInformationResultUi, onCopy: (String) -> Unit, onFiles: () -> Unit,
-    onBreakdown: () -> Unit, onLibraries: () -> Unit, onChecks: () -> Unit
+    result: ApkInformationResultUi,
+    onCopy: (String) -> Unit,
+    onFiles: () -> Unit,
+    onBreakdown: () -> Unit,
+    onLibraries: () -> Unit,
+    onChecks: () -> Unit,
+    onOpenManifest: () -> Unit,
 ) {
     val archive = result.archive
     val sizes = remember(archive) {
         archive?.files.orEmpty().groupBy { it.category }
             .mapValues { (_, files) -> files.sumOf { it.compressedSize } }
     }
-    // Always include resources, even when another category or metadata is larger.
+    // Always include resources; exclude metadata and "other" from the overview bars so AndroidManifest.xml action fits cleanly.
     val categories = remember(sizes) {
-        ApkFileCategory.entries.filter { it != ApkFileCategory.Metadata }
+        ApkFileCategory.entries.filter { it != ApkFileCategory.Metadata && it != ApkFileCategory.Other }
             .sortedByDescending { sizes[it] ?: 0L }
     }
     val total = archive?.let { it.files.sumOf { file -> file.compressedSize } + it.overheadBytes }
@@ -140,7 +155,10 @@ private fun ApkPackageOverview(
             shape = MaterialTheme.shapes.extraLarge,
             color = MaterialTheme.colorScheme.secondaryContainer
         ) {
-            Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(
+                Modifier.fillMaxSize().padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(stringResource(Res.string.apk_info_apk_size), style = MaterialTheme.typography.bodySmall)
                     archive?.let { Text(stringResource(Res.string.apk_info_file_count, it.files.size),
@@ -154,12 +172,12 @@ private fun ApkPackageOverview(
                 ApkFillScrollColumn(Modifier.weight(1f).fillMaxWidth().testTag("apk-size-categories")) {
                     if (archive == null) ApkDetailEmpty(true, false) else categories.forEach { category ->
                         ApkSizeBar(apkCategoryLabel(category), sizes[category] ?: 0L, total,
-                            Modifier.padding(bottom = if (category == categories.last()) 0.dp else 8.dp)
+                            Modifier.padding(bottom = if (category == categories.last()) 0.dp else 4.dp)
                                 .testTag("apk-overview-size-${category.name}"))
                     }
                 }
                 if (archive != null) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         HorizontalDivider()
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -173,6 +191,11 @@ private fun ApkPackageOverview(
                             }
                         }
                     }
+                }
+                OutlinedButton(onOpenManifest, Modifier.fillMaxWidth().testTag("apk-open-manifest")) {
+                    Icon(Icons.Outlined.Description, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text(stringResource(Res.string.apk_info_preview_manifest))
                 }
             }
         }
@@ -274,7 +297,8 @@ internal fun ApkPackagePage(
     archive: ApkArchiveInformation?,
     inset: Dp,
     onCopy: (String) -> Unit,
-    onBack: () -> Unit = {}
+    onBack: () -> Unit = {},
+    onPreviewFile: (String, ApkArchivePreviewKind) -> Unit = { _, _ -> },
 ) {
     var searchExpanded by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
@@ -360,11 +384,26 @@ internal fun ApkPackagePage(
                             )
                         },
                         trailingContent = {
+                            val previewKind = file.previewKind()
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     file.compressedSize.apkBytes(),
                                     style = MaterialTheme.typography.bodyMedium
                                 )
+                                if (previewKind != null) {
+                                    ApkInfoTooltip(stringResource(Res.string.apk_info_preview_file)) {
+                                        IconButton(
+                                            onClick = { onPreviewFile(file.path, previewKind) },
+                                            modifier = Modifier.testTag("apk-file-preview-${file.path}"),
+                                        ) {
+                                            Icon(
+                                                Icons.Outlined.Visibility,
+                                                stringResource(Res.string.apk_info_preview_file),
+                                                Modifier.size(20.dp),
+                                            )
+                                        }
+                                    }
+                                }
                                 ApkCopyButton(
                                     stringResource(Res.string.apk_info_copy, file.path),
                                     { onCopy(file.path) })

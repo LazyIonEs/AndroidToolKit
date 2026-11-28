@@ -1,9 +1,16 @@
 package org.tool.kit.feature.setting
 
+import org.tool.kit.domain.apk.ApkLibRulesMetadata
 import org.tool.kit.domain.preferences.PreferencesSnapshot
 import org.tool.kit.model.*
 
-data class SettingsUiState(val preferences: PreferencesSnapshot = PreferencesSnapshot(), val outputPathError: Boolean = false, val logFilePath: String? = null)
+data class SettingsUiState(
+    val preferences: PreferencesSnapshot = PreferencesSnapshot(),
+    val outputPathError: Boolean = false,
+    val logFilePath: String? = null,
+    val rulesMetadata: ApkLibRulesMetadata? = null,
+    val updatingRules: Boolean = false,
+)
 sealed interface SettingsIntent {
     data class Theme(val value: DarkThemeConfig) : SettingsIntent
     data class OutputPath(val value: String) : SettingsIntent
@@ -19,4 +26,5 @@ sealed interface SettingsIntent {
     data class DeveloperMode(val value: Boolean) : SettingsIntent
     data class StartCheckUpdate(val value: Boolean) : SettingsIntent
     data object Refresh : SettingsIntent
+    data object UpdateLibRules : SettingsIntent
 }

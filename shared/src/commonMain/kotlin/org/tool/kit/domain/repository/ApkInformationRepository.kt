@@ -14,4 +14,8 @@ interface ApkInformationRepository {
     /** Optional inspection failure must not discard basic APK information. */
     suspend fun archive(path: String): ApkArchiveInformation? = null
     suspend fun components(path: String): List<ApkComponent>? = null
+    suspend fun manifestExtras(path: String): ApkManifestExtras? = null
+    suspend fun dexPackages(path: String): Set<String>? = null
+    suspend fun decodedManifestXml(path: String): String? = null
+    suspend fun archiveEntryPreview(path: String, entryPath: String): ApkArchiveEntryContent? = null
 }

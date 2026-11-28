@@ -47,6 +47,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
@@ -59,6 +60,8 @@ import androidx.compose.ui.window.rememberWindowState
 import com.github.panpf.zoomimage.CoilZoomAsyncImage
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import org.tool.kit.domain.apk.ApkArchivePreviewKind
+import org.tool.kit.domain.apk.ApkLibRulesMetadata
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.apk_info_abi
 import org.tool.kit.shared.generated.resources.apk_info_back
@@ -83,6 +86,7 @@ import org.tool.kit.shared.generated.resources.apk_info_size
 import org.tool.kit.shared.generated.resources.apk_info_tab_components
 import org.tool.kit.shared.generated.resources.apk_info_tab_libraries
 import org.tool.kit.shared.generated.resources.apk_info_tab_permissions
+import org.tool.kit.shared.generated.resources.apk_info_tab_sdks
 import org.tool.kit.shared.generated.resources.apk_info_target_sdk
 import org.tool.kit.shared.generated.resources.apk_info_version_code
 import org.tool.kit.shared.generated.resources.apk_info_version_name
@@ -98,13 +102,26 @@ internal fun ApkInformationResult(
     inputFile: String?,
     dark: Boolean,
     active: Boolean = true,
+    ruleIcons: Map<String, ImageBitmap> = emptyMap(),
+    ruleDetails: Map<String, RuleDetailState> = emptyMap(),
+    rulesMetadata: ApkLibRulesMetadata? = null,
+    updatingRules: Boolean = false,
+    manifestPreview: ManifestPreviewState = ManifestPreviewState.Idle,
+    entryPreview: ArchiveEntryPreviewState = ArchiveEntryPreviewState.Idle,
     onPickFile: () -> Unit,
+    onLoadRuleDetail: (String, Int, Boolean) -> Unit = { _, _, _ -> },
+    onOpenUrl: (String) -> Unit = {},
+    onUpdateRules: () -> Unit = {},
+    onOpenManifest: () -> Unit = {},
+    onPreviewFile: (String, ApkArchivePreviewKind) -> Unit = { _, _ -> },
+    onCloseEntryPreview: () -> Unit = {},
     onCopy: (String) -> Unit
 ) {
     key(inputFile, result) {
         var tab by rememberSaveable { mutableIntStateOf(0) }
         var checksOrigin by rememberSaveable { mutableStateOf<Int?>(null) }
         var iconOpen by rememberSaveable { mutableStateOf(false) }
+        var manifestOpen by rememberSaveable { mutableStateOf(false) }
         val pages = rememberSaveableStateHolder()
         val focus = LocalFocusManager.current
         val select: (Int) -> Unit = { focus.clearFocus(); checksOrigin = null; tab = it }
@@ -117,14 +134,16 @@ internal fun ApkInformationResult(
                     stringResource(Res.string.apk_info_tab_permissions),
                     stringResource(Res.string.apk_info_tab_components),
                     stringResource(Res.string.apk_info_tab_libraries),
-                    stringResource(Res.string.apk_info_profile)
+                    stringResource(Res.string.apk_info_profile),
+                    stringResource(Res.string.apk_info_tab_sdks),
                 )
                 val counts = listOf(
                     null,
                     result.usesPermissionList?.size,
                     result.components?.size,
                     result.archive?.nativeLibraries?.size,
-                    null
+                    null,
+                    result.ruleAnalysis?.sdks?.size,
                 )
                 titles.forEachIndexed { index, title ->
                     Tab(
@@ -139,17 +158,55 @@ internal fun ApkInformationResult(
                 }
             }
             ApkPageMotion(
-                if (checksOrigin != null) 5 else tab,
+                if (checksOrigin != null) 6 else tab,
                 Modifier.weight(1f).testTag("apk-pages"),
                 forward = { a, b -> b > a }) { page ->
                 pages.SaveableStateProvider(page) {
                     when (page) {
-                        0 -> ApkPackageWorkspace(result, onCopy, { select(3) }, checks)
+                        0 -> ApkPackageWorkspace(
+                            result = result,
+                            onCopy = onCopy,
+                            onLibraries = { select(3) },
+                            onChecks = checks,
+                            onOpenManifest = {
+                                manifestOpen = true
+                                onOpenManifest()
+                            },
+                            onPreviewFile = onPreviewFile,
+                        )
                         1 -> ApkPermissionsPage(result.usesPermissionList, onCopy)
-                        2 -> ApkComponentPage(result.components, 20.dp, onCopy)
-                        3 -> ApkLibraryPage(result.archive?.nativeLibraries, 20.dp, onCopy)
+                        2 -> ApkComponentPage(
+                            result.components,
+                            20.dp,
+                            onCopy,
+                            ruleIcons,
+                            ruleDetails,
+                            onLoadRuleDetail,
+                            onOpenUrl,
+                        )
+                        3 -> ApkLibraryPage(
+                            result.archive?.nativeLibraries,
+                            20.dp,
+                            onCopy,
+                            ruleIcons,
+                            ruleDetails,
+                            onLoadDetail = onLoadRuleDetail,
+                            onOpenUrl = onOpenUrl,
+                        )
                         4 -> ApkProfilePage(result, inputFile, onCopy, checks)
-                        5 -> ApkChecksumsPage(result, inputFile, onCopy) {
+                        5 -> ApkSdkPage(
+                            analysis = result.ruleAnalysis,
+                            ruleIcons = ruleIcons,
+                            ruleDetails = ruleDetails,
+                            rulesMetadata = rulesMetadata,
+                            updatingRules = updatingRules,
+                            inset = 20.dp,
+                            onLoadDetail = onLoadRuleDetail,
+                            onOpenUrl = onOpenUrl,
+                            onUpdateRules = onUpdateRules,
+                            onCopy = onCopy,
+                        )
+                        6 -> ApkChecksumsPage(result, inputFile, onCopy) {
                             select(
                                 checksOrigin ?: 4
                             )
@@ -158,7 +215,7 @@ internal fun ApkInformationResult(
                 }
             }
         }
-        // Dispose the native icon window immediately when this file leaves the result state.
+        // Dispose the native icon and manifest windows immediately when this file leaves the result state.
         if (active && iconOpen && result.icon != null) {
             Window(
                 onCloseRequest = { iconOpen = false },
@@ -177,6 +234,24 @@ internal fun ApkInformationResult(
                     }
                 }
             }
+        }
+        if (active && manifestOpen) {
+            ApkManifestPreviewWindow(
+                appLabel = result.label,
+                state = manifestPreview,
+                dark = dark,
+                onCopy = onCopy,
+                onCloseRequest = { manifestOpen = false },
+            )
+        }
+        if (active && entryPreview !is ArchiveEntryPreviewState.Idle) {
+            ApkArchivePreviewWindow(
+                appLabel = result.label,
+                state = entryPreview,
+                dark = dark,
+                onCopy = onCopy,
+                onCloseRequest = onCloseEntryPreview,
+            )
         }
     }
 }

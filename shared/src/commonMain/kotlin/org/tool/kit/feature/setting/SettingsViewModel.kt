@@ -2,22 +2,34 @@ package org.tool.kit.feature.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import org.tool.kit.domain.apk.ApkRuleUpdateStatus
 import org.tool.kit.domain.preferences.*
+import org.tool.kit.domain.repository.LibRulesRepository
 import org.tool.kit.domain.repository.StorageRepository
 import org.tool.kit.core.validation.LatestRequest
 import org.tool.kit.feature.app.*
 import org.tool.kit.shared.generated.resources.Res
+import org.tool.kit.shared.generated.resources.lib_rules_up_to_date
+import org.tool.kit.shared.generated.resources.lib_rules_update_failed
+import org.tool.kit.shared.generated.resources.lib_rules_update_success
 import org.tool.kit.shared.generated.resources.toolkit_extension_mode_is_enabled
 
 /** 将设置事件映射为单字段修改，立即回显仓库快照并异步校验输出路径。 */
-class SettingsViewModel(private val preferences: PreferencesRepository, private val storage: StorageRepository,
-    private val effects: AppEffectSink, private val actions: DesktopActionHandler) : ViewModel() {
+class SettingsViewModel(
+    private val preferences: PreferencesRepository,
+    private val storage: StorageRepository,
+    private val effects: AppEffectSink,
+    private val actions: DesktopActionHandler,
+    private val libRules: LibRulesRepository? = null,
+) : ViewModel() {
     private val _uiState = MutableStateFlow(SettingsUiState(preferences.state.value))
     val uiState = _uiState.asStateFlow()
     private val pathRequest = LatestRequest(viewModelScope)
     private var validatedPath: String? = null
+    private var ruleOperationId = 0L
     init {
         viewModelScope.launch {
             preferences.state.collect { snapshot ->
@@ -33,7 +45,49 @@ class SettingsViewModel(private val preferences: PreferencesRepository, private 
     fun onIntent(intent: SettingsIntent) {
         if (intent == SettingsIntent.Refresh) {
             validatePath(force = true)
-            viewModelScope.launch { _uiState.value = _uiState.value.copy(logFilePath = actions.logFilePath()) }
+            viewModelScope.launch {
+                val logPath = actions.logFilePath()
+                val metadata = if (libRules == null) null else try {
+                    libRules.metadata()
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
+                } catch (_: Exception) {
+                    null
+                }
+                _uiState.update {
+                    it.copy(
+                        logFilePath = logPath,
+                        rulesMetadata = metadata ?: it.rulesMetadata,
+                    )
+                }
+            }
+            return
+        }
+        if (intent == SettingsIntent.UpdateLibRules) {
+            val repo = libRules ?: return
+            if (_uiState.value.updatingRules) return
+            val opId = ++ruleOperationId
+            _uiState.update { it.copy(updatingRules = true) }
+            viewModelScope.launch {
+                val result = try {
+                    repo.checkAndUpdate()
+                } catch (cancelled: CancellationException) {
+                    _uiState.update { it.copy(updatingRules = false) }
+                    throw cancelled
+                }
+                _uiState.update {
+                    it.copy(
+                        updatingRules = false,
+                        rulesMetadata = result.metadata ?: it.rulesMetadata,
+                    )
+                }
+                val message = when (result.status) {
+                    ApkRuleUpdateStatus.Updated -> Res.string.lib_rules_update_success
+                    ApkRuleUpdateStatus.AlreadyUpToDate -> Res.string.lib_rules_up_to_date
+                    ApkRuleUpdateStatus.Failed -> Res.string.lib_rules_update_failed
+                }
+                effects.send("settings", SnackbarMessage(UiMessage.Resource(message)), opId)
+            }
             return
         }
         val wasDeveloper = _uiState.value.preferences.isEnableDeveloperMode
@@ -51,7 +105,7 @@ class SettingsViewModel(private val preferences: PreferencesRepository, private 
             is SettingsIntent.HuaweiAlignment -> PreferenceChange.HuaweiAlignment(intent.value)
             is SettingsIntent.DeveloperMode -> PreferenceChange.DeveloperMode(intent.value)
             is SettingsIntent.StartCheckUpdate -> PreferenceChange.StartCheckUpdate(intent.value)
-            SettingsIntent.Refresh -> error("Handled above")
+            SettingsIntent.Refresh, SettingsIntent.UpdateLibRules -> error("Handled above")
         }
         val snapshot = preferences.change(change)
         _uiState.value = _uiState.value.copy(preferences = snapshot)

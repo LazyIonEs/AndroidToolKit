@@ -177,13 +177,15 @@ class ApkInformationPolishUiTest {
         }
         checkFullyVisible("apk-overview-checksums")
         checkFullyVisible("apk-open-breakdown")
+        checkFullyVisible("apk-open-manifest")
+        onNodeWithTag("apk-overview-size-Other").assertDoesNotExist()
         val categories = onNodeWithTag("apk-size-categories").getUnclippedBoundsInRoot()
         val bars = onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
-        assertEquals(5, bars.fetchSemanticsNodes().size)
+        assertEquals(4, bars.fetchSemanticsNodes().size)
         // Native progress indicators expand their accessibility bounds beyond the painted track.
         // Compare the full category row's actual layout instead of that virtual hit region.
-        assertTrue(onNodeWithTag("apk-overview-size-Other").getUnclippedBoundsInRoot().bottom <= categories.bottom,
-            "All five category rows must fit without scrolling")
+        assertTrue(onNodeWithTag("apk-overview-size-Assets").getUnclippedBoundsInRoot().bottom <= categories.bottom,
+            "All four category rows must fit without scrolling")
         assertTrue(onNodeWithTag("apk-runtime").getUnclippedBoundsInRoot().bottom <=
             onNodeWithTag("apk-overview-details").getUnclippedBoundsInRoot().bottom, "The normal runtime panel must fit in full")
         val fixedAction = onNodeWithTag("apk-overview-checksums").getUnclippedBoundsInRoot()
@@ -214,7 +216,7 @@ class ApkInformationPolishUiTest {
         // Native buttons reserve a 48 dp interaction layout around their 40 dp visual surface.
         val runtimeGap = bounds("apk-overview-checksums").top - bounds("apk-runtime").bottom
         assertTrue(runtimeGap in 12.dp..16.dp)
-        assertEquals(bounds("apk-size-categories").bottom, bounds("apk-overview-size-Other").bottom)
+        assertEquals(bounds("apk-size-categories").bottom, bounds("apk-overview-size-Assets").bottom)
         onNodeWithTag("apk-open-breakdown").performClick()
         assertTrue(bottom - bounds("apk-breakdown-files").bottom in 0.dp..4.dp)
         val actionGap = bounds("apk-breakdown-files").top - bounds("apk-size-breakdown").bottom
@@ -242,7 +244,7 @@ class ApkInformationPolishUiTest {
         for (theme in listOf(false, true)) {
             runOnIdle { dark = theme }
             val bars = onAllNodes(SemanticsMatcher.keyIsDefined(SemanticsProperties.ProgressBarRangeInfo))
-            assertEquals(5, bars.fetchSemanticsNodes().size)
+            assertEquals(4, bars.fetchSemanticsNodes().size)
             // The largest fixture category fills 67%; 85% lies on the remaining native track.
             val pixels = bars[0].captureToImage().toPixelMap()
             val track = pixels[(pixels.width * .85f).toInt(), pixels.height / 2]

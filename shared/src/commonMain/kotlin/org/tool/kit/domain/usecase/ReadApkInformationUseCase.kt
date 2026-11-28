@@ -3,8 +3,12 @@ package org.tool.kit.domain.usecase
 import kotlinx.coroutines.CancellationException
 import org.tool.kit.domain.apk.*
 import org.tool.kit.domain.repository.ApkInformationRepository
+import org.tool.kit.domain.repository.LibRulesRepository
 
-class ReadApkInformationUseCase(private val repository: ApkInformationRepository) {
+class ReadApkInformationUseCase(
+    private val repository: ApkInformationRepository,
+    private val rules: LibRulesRepository? = null,
+) {
     /**
      * 合并 aapt badging、清单和文件元信息，得到与平台 UI 无关的 APK 信息。
      * 无法解析出应用名、包名和版本信息时返回空信息错误；取消继续传播。
@@ -41,9 +45,42 @@ class ReadApkInformationUseCase(private val repository: ApkInformationRepository
         // aapt may include ordinary lib/ subdirectories in native-code; prefer actual packaged .so entries.
         result = result.copy(archive = archive, nativeCode = archive?.nativeLibraries
             ?.map { it.abi }?.distinct()?.sorted()?.joinToString(" ") ?: result.nativeCode)
+        if (rules != null) {
+            val outcome = try {
+                val manifestExtras = repository.manifestExtras(path)
+                val dexPackages = repository.dexPackages(path)
+                val matcher = rules.matcher()
+                val rulesMetadata = rules.metadata()
+                matcher.analyze(
+                    components = result.components,
+                    nativeLibraries = result.archive?.nativeLibraries,
+                    dexPackages = dexPackages,
+                    manifestExtras = manifestExtras,
+                    rulesVersion = rulesMetadata.dataVersion,
+                )
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                null
+            }
+            if (outcome != null) {
+                result = result.copy(
+                    components = outcome.components,
+                    archive = result.archive?.copy(nativeLibraries = outcome.nativeLibraries.orEmpty()),
+                    ruleAnalysis = outcome.analysis,
+                )
+            }
+        }
         if (result.isBlank()) Result.failure(EmptyApkInformation()) else Result.success(result)
     } catch (cancelled: CancellationException) { throw cancelled }
     catch (error: Exception) { Result.failure(error) }
+
+    /** Decode `AndroidManifest.xml` on demand for the manifest preview window. */
+    suspend fun readManifestXml(path: String): String? = repository.decodedManifestXml(path)
+
+    /** Decode an image or XML archive entry on demand for the file preview window. */
+    suspend fun readArchiveEntryPreview(path: String, entryPath: String): ApkArchiveEntryContent? =
+        repository.archiveEntryPreview(path, entryPath)
 }
 
 /** 提取 badging 中单引号包围的属性值，未匹配时返回空字符串。 */

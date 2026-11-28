@@ -25,6 +25,7 @@ data class ApkInformationData(
     val launchableActivity: String = "",
     val components: List<ApkComponent>? = null,
     val archive: ApkArchiveInformation? = null,
+    val ruleAnalysis: ApkRuleAnalysis? = null,
 ) {
     /** 以应用名、包名和两个版本字段判断是否取得有效信息，忽略文件大小等基础元数据。 */
     fun isBlank() = label.isBlank() && packageName.isBlank() && versionCode.isBlank() && versionName.isBlank()

@@ -45,6 +45,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -61,6 +62,7 @@ import org.tool.kit.model.DestStoreSize
 import org.tool.kit.model.DestStoreType
 import org.tool.kit.shared.generated.resources.Res
 import org.tool.kit.shared.generated.resources.about
+import org.tool.kit.shared.generated.resources.apk_analysis
 import org.tool.kit.shared.generated.resources.apk_signature
 import org.tool.kit.shared.generated.resources.appearance
 import org.tool.kit.shared.generated.resources.application_author
@@ -79,6 +81,12 @@ import org.tool.kit.shared.generated.resources.enable_file_alignment
 import org.tool.kit.shared.generated.resources.enable_file_alignment_tips
 import org.tool.kit.shared.generated.resources.enable_garbage_code_generation_option
 import org.tool.kit.shared.generated.resources.icon
+import org.tool.kit.shared.generated.resources.lib_rules_bundled
+import org.tool.kit.shared.generated.resources.lib_rules_check_update
+import org.tool.kit.shared.generated.resources.lib_rules_repository
+import org.tool.kit.shared.generated.resources.lib_rules_summary
+import org.tool.kit.shared.generated.resources.lib_rules_title
+import org.tool.kit.shared.generated.resources.lib_rules_updated
 import org.tool.kit.shared.generated.resources.license
 import org.tool.kit.shared.generated.resources.open_source_agreement
 import org.tool.kit.shared.generated.resources.open_source_licenses
@@ -119,6 +127,10 @@ fun SettingsScreen(state: SettingsUiState, isCheckUpdate: Boolean, onIntent: (Se
             }
             item {
                 Spacer(Modifier.size(16.dp))
+                ApkAnalysisSetUp(state, onIntent, onBrowse)
+            }
+            item {
+                Spacer(Modifier.size(16.dp))
                 ApkSignatureSetUp(state, onIntent)
             }
             item {
@@ -141,6 +153,82 @@ fun SettingsScreen(state: SettingsUiState, isCheckUpdate: Boolean, onIntent: (Se
                 Spacer(Modifier.size(16.dp))
                 About(state, onIntent, onBrowse, onOpenLog, librariesWindow)
                 Spacer(Modifier.size(20.dp))
+            }
+        }
+    }
+}
+
+/**
+ * APK分析设置页
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ApkAnalysisSetUp(
+    state: SettingsUiState,
+    onIntent: (SettingsIntent) -> Unit,
+    onBrowse: (String) -> Unit,
+) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(vertical = 12.dp, horizontal = 8.dp)) {
+            Spacer(Modifier.size(4.dp))
+            Text(
+                text = stringResource(Res.string.apk_analysis),
+                modifier = Modifier.padding(horizontal = 16.dp),
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+                    .padding(start = 24.dp, end = 16.dp, top = 12.dp),
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(Res.string.lib_rules_title),
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                    val meta = state.rulesMetadata
+                    val summaryText = if (meta != null) {
+                        "${
+                            stringResource(
+                                Res.string.lib_rules_summary,
+                                meta.dataVersion.toInt(),
+                                meta.ruleCount,
+                            )
+                        } · ${
+                            stringResource(
+                                if (meta.isBundled) Res.string.lib_rules_bundled
+                                else Res.string.lib_rules_updated
+                            )
+                        }"
+                    } else {
+                        "LibChecker Rules"
+                    }
+                    Text(
+                        text = summaryText,
+                        color = MaterialTheme.colorScheme.secondary,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                AnimatedContent(targetState = state.updatingRules) { updating ->
+                    if (updating) {
+                        ContainedLoadingIndicator()
+                    } else {
+                        Button(
+                            onClick = { onIntent(SettingsIntent.UpdateLibRules) },
+                            modifier = Modifier.testTag("settings-update-lib-rules"),
+                        ) {
+                            Text(text = stringResource(Res.string.lib_rules_check_update))
+                        }
+                    }
+                }
+            }
+            Spacer(Modifier.size(8.dp))
+            ClickAbout(
+                text = stringResource(Res.string.lib_rules_repository),
+                modifier = Modifier.testTag("settings-open-lib-rules-repo"),
+            ) {
+                onBrowse("https://github.com/LibChecker/LibChecker-Rules")
             }
         }
     }
@@ -643,9 +731,9 @@ private fun TextAbout(title: String, value: String) {
 }
 
 @Composable
-private fun ClickAbout(text: String, onClick: () -> Unit) {
+private fun ClickAbout(text: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth()
             .padding(start = 16.dp, end = 8.dp, top = 1.dp, bottom = 1.dp).height(36.dp),
         onClick = onClick
     ) {

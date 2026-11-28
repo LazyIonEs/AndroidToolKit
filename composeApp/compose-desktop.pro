@@ -1,121 +1,135 @@
--ignorewarnings
-# -verbose
+# ProGuard rules for Compose Desktop release builds.
+# Note: compose-gradle-plugin automatically appends default-compose-desktop-rules.pro,
+# which already covers kotlin.**, Skiko, kotlinx.coroutines volatile fields /
+# MainDispatcherFactory / SwingDispatcherFactory, kotlinx.serialization serializers,
+# Compose ComposerKt source info removal, and -dontnote for androidx/coroutines/serialization.
 
--dontnote java.awt.*
--dontnote java.nio.*
--dontnote java.util.*
--dontnote com.intellij.**
--dontnote org.jdom.**
--dontnote com.google.**
--dontnote org.apache.**
--dontnote com.sun.**
--dontnote javax.activation.**
--dontnote org.intellij.**
--dontnote org.jetbrains.**
+# Preserve stack trace metadata, generic signatures, annotations, and inner-class info.
+-keepattributes SourceFile,LineNumberTable,Signature,InnerClasses,EnclosingMethod,*Annotation*
 
--dontwarn java.awt.*
--dontwarn java.nio.*
--dontwarn java.util.*
--dontwarn com.intellij.**
--dontwarn org.jdom.**
--dontwarn com.google.**
--dontwarn org.apache.**
--dontwarn ch.qos.logback.**
--dontwarn androidx.compose.**
--dontwarn androidx.lifecycle.**
--dontwarn org.jetbrains.**
--dontwarn kotlinx.coroutines.**
+# Preserve standard enum reflection methods.
+-keepclassmembers enum * {
+    public static **[] values();
+    public static ** valueOf(java.lang.String);
+}
 
--keep class androidx.compose.** { *; }
+# Keep Compose runtime/UI/Material classes (see commit 78c9351), while allowing
+# unused material-icons-extended classes to be shrunk.
+-keep class !androidx.compose.material.icons.**, androidx.compose.** { *; }
+
 # Plain -keep still permits method-body optimization. ProGuard 7.10.0 produces
 # invalid stack-map frames in Material3's InteractiveListItem without includecode.
 -keep,includecode class androidx.compose.material3.ListItemKt { *; }
--keep enum org.jetbrains.nav_cupcake.** { *; }
--keep class com.android.ddmlib.** { *; }
--keep class org.lwjgl.** { *; }
--keep class org.bouncycastle.** { *; }
--keep class com.android.apksig.** { *; }
--keep class org.sqlite.** { *; }
--keep class org.slf4j.** { *; }
--keep class ch.qos.logback.** { *; }
-#-keep class java.nio.** { *; }
-#-keep class java.util.concurrent.** { *; }
+
+# Navigation 3 DesktopNavKeySerializer resolves concrete NavKey classes via Class.forName.
+-keep class androidx.navigation3.runtime.NavKey
+-keep class * implements androidx.navigation3.runtime.NavKey { *; }
+
+# Rust UniFFI generated bindings.
 -keep class uniffi.toolkit.** { *; }
--keep class androidx.datastore.** { *; }
+
+# JNA native mappings, structs, and callbacks (used by UniFFI and FileKit).
 -keep class com.sun.jna.** { *; }
 -keep class * implements com.sun.jna.** { *; }
--keepclassmembers class * extends com.sun.jna.* { public *; }
--keepclassmembers class androidx.datastore.** { *; }
--keep class kotlinx.coroutines.swing.SwingDispatcherFactory
--keep class androidx.datastore.preferences.protobuf.** { *; }
--keepclassmembers class androidx.datastore.preferences.protobuf.** { *; }
--keepattributes Signature,LineNumberTable,RuntimeVisibleAnnotations,AnnotationDefault,*Annotation*,InnerClasses,EnclosingMethod
+-keep class * extends com.sun.jna.Structure {
+    <fields>;
+    <init>(...);
+}
+-keep class * extends com.sun.jna.Callback { *; }
+-keepclassmembers class * extends com.sun.jna.** {
+    public *;
+}
 
-# coil3
--keep class okio.** { *; }
--keep class * extends coil3.util.DecoderServiceLoaderTarget { *; }
--keep class * extends coil3.util.FetcherServiceLoaderTarget { *; }
-
-# apktool
--keep class brut.apktool.** { *; }
--keep class brut.androlib.** { *; }
-
-# 保留 YAML 解析库
--keep class org.yaml.snakeyaml.** { *; }
-
-# 保留枚举的 values()/valueOf()
--keepclassmembers enum * { public static **[] values(); public static ** valueOf(java.lang.String); }
-
-# 保留 Kotlin 元数据（若使用 Kotlin）
-#-keep class kotlin.Metadata { *; }
-
-# 忽略第三方库警告
--dontwarn com.google.common.**
--dontwarn javax.xml.xpath.**
-
--keep class model.** { *; }
-
-# ktor
--keep class io.ktor.** { *; }
--keepclassmembers class io.ktor.** { volatile <fields>; }
--keep class io.ktor.client.engine.cio.** { *; }
--dontwarn kotlinx.atomicfu.**
--dontwarn io.netty.**
--dontwarn com.typesafe.**
--dontwarn org.slf4j.**
--dontnote io.ktor.**
--dontnote org.slf4j.**
--dontnote kotlinx.serialization.**
-
-# dbus-java
+# FileKit Linux XDG Portal & DBus transport SPI.
 -keep class org.freedesktop.dbus.** { *; }
 -keep class io.github.vinceglb.filekit.dialogs.platform.xdg.** { *; }
--keepattributes Signature,InnerClasses,RuntimeVisibleAnnotations
 
-# kotlinx.coroutines
--keep class kotlinx.coroutines.** { *; }
--keep class kotlinx.coroutines.internal.MainDispatcherFactory { *; }
--keep class kotlinx.coroutines.swing.SwingDispatcherFactory { *; }
+# SLF4J & Logback (instantiated via ServiceLoader and logback-release.xml reflection).
+-keep class org.slf4j.** { *; }
+-keep class ch.qos.logback.** { *; }
 
-# Allow R8 to optimize away the FastServiceLoader.
-# Together with ServiceLoader optimization in R8
-# this results in direct instantiation when loading Dispatchers.Main
--assumenosideeffects class kotlinx.coroutines.internal.MainDispatcherLoader {
-    boolean FAST_SERVICE_LOADER_ENABLED return false;
+# Coil 3 ServiceLoader targets (META-INF/proguard rules inside JARs are not auto-loaded on Desktop).
+-keep class coil3.util.DecoderServiceLoaderTarget { *; }
+-keep class coil3.util.FetcherServiceLoaderTarget { *; }
+-keep class coil3.util.ServiceLoaderComponentRegistry { *; }
+-keep class * implements coil3.util.DecoderServiceLoaderTarget { *; }
+-keep class * implements coil3.util.FetcherServiceLoaderTarget { *; }
+
+# Ktor Apache5 HTTP client engine and atomic/volatile fields.
+-keep class io.ktor.client.HttpClientEngineContainer { *; }
+-keep class * implements io.ktor.client.HttpClientEngineContainer { *; }
+-keep class io.ktor.client.engine.apache5.** { *; }
+-keepclassmembers class io.ktor.** {
+    volatile <fields>;
 }
 
--assumenosideeffects class kotlinx.coroutines.internal.FastServiceLoaderKt {
-    boolean ANDROID_DETECTED return true;
-}
+# APK signing, verification, and Apktool internals.
+-keep class org.bouncycastle.** { *; }
+-keep class com.android.apksig.** { *; }
+-keep class brut.androlib.** { *; }
 
-# Disable support for "Missing Main Dispatcher", since we always have Android main dispatcher
--assumenosideeffects class kotlinx.coroutines.internal.MainDispatchersKt {
-    boolean SUPPORT_MISSING return false;
-}
+# ---------------------------------------------------------------------------
+# Targeted warning/note suppressions for optional & excluded third-party APIs
+# ---------------------------------------------------------------------------
 
-# Statically turn off all debugging facilities and assertions
--assumenosideeffects class kotlinx.coroutines.DebugKt {
-    boolean getASSERTIONS_ENABLED() return false;
-    boolean getDEBUG() return false;
-    boolean getRECOVER_STACK_TRACES() return false;
-}
+# Excluded transitive dependencies of com.jetbrains.intellij.platform:util
+# (see shared/build.gradle.kts) and optional IntelliJ/Fleet references.
+-dontwarn com.intellij.**
+-dontwarn org.jdom.**
+-dontwarn it.unimi.dsi.fastutil.**
+-dontwarn com.fasterxml.aalto.**
+-dontwarn net.jpountz.lz4.**
+-dontwarn org.apache.log4j.**
+-dontwarn org.apache.oro.**
+-dontwarn gnu.trove.**
+-dontwarn fleet.util.multiplatform.**
+-dontwarn kotlinx.coroutines.internal.intellij.**
+-dontwarn kotlinx.coroutines.debug.**
+
+# Excluded kxml2 (see composeApp/build.gradle.kts) and optional Android tools deps.
+-dontwarn org.kxml2.io.**
+-dontwarn com.google.archivepatcher.**
+-dontwarn com.android.tools.apk.analyzer.internal.ApkFileByFileDiffParser$ListeningDiffGenerator
+-dontwarn com.google.auto.service.AutoService
+
+# Optional Logback & Jakarta/Javax Servlet/Mail/Activation integrations.
+-dontwarn jakarta.servlet.**
+-dontwarn javax.servlet.**
+-dontwarn jakarta.mail.**
+-dontwarn ch.qos.logback.classic.servlet.**
+-dontwarn ch.qos.logback.classic.selector.servlet.**
+-dontwarn ch.qos.logback.classic.helpers.MDCInsertingServletFilter
+-dontwarn ch.qos.logback.core.net.LoginAuthenticator
+-dontwarn ch.qos.logback.core.status.ViewStatusMessagesServletBase
+-dontwarn org.apache.commons.logging.impl.ServletContextCleaner
+-dontwarn com.sun.activation.registries.**
+-dontwarn org.apache.avalon.**
+-dontwarn org.apache.log.**
+-dontwarn org.codehaus.stax2.**
+-dontwarn org.jline.jansi.**
+
+# Optional compression, TLS, GraalVM SVM, and ICU4J integrations in third-party libs.
+-dontwarn org.tukaani.xz.**
+-dontwarn com.aayushatharva.brotli4j.**
+-dontwarn com.github.luben.zstd.**
+-dontwarn org.apache.hc.client5.http.async.methods.DeflatingZstdEntityProducer*
+-dontwarn org.brotli.dec.**
+-dontwarn org.conscrypt.**
+-dontwarn com.oracle.svm.core.annotate.**
+-dontwarn com.ibm.icu.**
+
+# ProGuard does not resolve signature-polymorphic MethodHandle/VarHandle calls in Guava/ddmlib.
+-dontwarn java.lang.invoke.MethodHandle
+-dontwarn java.lang.invoke.VarHandle
+
+# Suppress noisy harmless reflection/dynamic-class notes in third-party libraries.
+-dontnote com.google.**
+-dontnote com.intellij.**
+-dontnote com.sun.**
+-dontnote org.apache.**
+-dontnote org.bouncycastle.**
+-dontnote com.beust.**
+-dontnote javax.xml.**
+-dontnote ch.qos.logback.**
+-dontnote io.ktor.**
+-dontnote org.freedesktop.dbus.**

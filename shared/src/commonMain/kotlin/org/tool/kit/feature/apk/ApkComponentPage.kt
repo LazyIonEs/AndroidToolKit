@@ -12,6 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.Dp
@@ -25,18 +26,25 @@ import org.tool.kit.shared.generated.resources.*
 internal fun ApkComponentPage(
     components: List<ApkComponent>?,
     inset: Dp,
-    onCopy: (String) -> Unit
+    onCopy: (String) -> Unit,
+    ruleIcons: Map<String, ImageBitmap> = emptyMap(),
+    ruleDetails: Map<String, RuleDetailState> = emptyMap(),
+    onLoadDetail: (String, Int, Boolean) -> Unit = { _, _, _ -> },
+    onOpenUrl: (String) -> Unit = {},
 ) {
     var searchExpanded by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable { mutableStateOf("") }
     var type by rememberSaveable { mutableStateOf<String?>(null) }
     var selected by rememberSaveable { mutableStateOf<String?>(null) }
     val filtered = remember(components, query, type) {
+        val trimmed = query.trim()
         components.orEmpty().filter {
-            (type == null || it.type.name == type) && (it.name.contains(
-                query.trim(),
-                true
-            ) || it.process.contains(query.trim(), true))
+            val matchesType = type == null || it.type.name == type
+            val matchesQuery = trimmed.isEmpty() ||
+                it.name.contains(trimmed, true) ||
+                it.process.contains(trimmed, true) ||
+                it.rule?.label?.contains(trimmed, true) == true
+            matchesType && matchesQuery
         }.sortedWith(compareBy({ it.type.ordinal }, { it.name }))
     }
     val counts = remember(components) { components.orEmpty().groupingBy { it.type }.eachCount() }
@@ -71,6 +79,27 @@ internal fun ApkComponentPage(
                         ApkCopyField(stringResource(Res.string.apk_info_process), component.process, onCopy, technical = true)
                         component.targetActivity?.let {
                             ApkCopyField(stringResource(Res.string.apk_info_target_activity), it, onCopy, technical = true)
+                        }
+                    }
+                    component.rule?.let { matchedRule ->
+                        Column(Modifier.padding(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            HorizontalDivider()
+                            ApkRuleDetailSection(
+                                uuid = matchedRule.uuid,
+                                ruleId = matchedRule.ruleId,
+                                label = matchedRule.label,
+                                iconId = matchedRule.iconId,
+                                isSimpleColorIcon = matchedRule.isSimpleColorIcon,
+                                hasDetail = matchedRule.hasDetail,
+                                matchedByRegex = matchedRule.matchedByRegex,
+                                ruleName = matchedRule.ruleName,
+                                icons = ruleIcons,
+                                detailState = ruleDetails[ruleDetailKey(matchedRule.uuid, matchedRule.ruleId)],
+                                onLoadDetail = onLoadDetail,
+                                onOpenUrl = onOpenUrl,
+                                onCopy = onCopy,
+                                fallbackIcon = Icons.Outlined.Widgets,
+                            )
                         }
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -119,20 +148,40 @@ internal fun ApkComponentPage(
                         )
                     }
                     items(filtered, key = { "${it.type}:${it.name}" }) { item ->
-                        ApkNavigationRow(
-                            item.name.substringAfterLast('.'),
-                            "${item.type.name} · ${
-                                stringResource(
-                                    Res.string.apk_info_exported_value,
-                                    apkExportedLabel(item.exported)
-                                )
-                            }",
-                            item.name,
-                            Icons.Outlined.Widgets,
-                            Modifier.animateItem(effects, placement, effects)
-                                .testTag("apk-component-${item.type}:${item.name}")
-                        ) {
-                            focus.clearFocus(); selected = "${item.type}:${item.name}"
+                        val rule = item.rule
+                        val subtitle = buildString {
+                            if (rule != null) append("${rule.label} · ")
+                            append("${item.type.name} · ${stringResource(Res.string.apk_info_exported_value, apkExportedLabel(item.exported))}")
+                        }
+                        if (rule != null) {
+                            ApkRuleNavigationRow(
+                                item.name.substringAfterLast('.'),
+                                subtitle,
+                                item.name,
+                                icon = {
+                                    ApkRuleIcon(
+                                        rule.iconId,
+                                        rule.isSimpleColorIcon,
+                                        ruleIcons,
+                                        Icons.Outlined.Widgets,
+                                    )
+                                },
+                                Modifier.animateItem(effects, placement, effects)
+                                    .testTag("apk-component-${item.type}:${item.name}")
+                            ) {
+                                focus.clearFocus(); selected = "${item.type}:${item.name}"
+                            }
+                        } else {
+                            ApkNavigationRow(
+                                item.name.substringAfterLast('.'),
+                                subtitle,
+                                item.name,
+                                Icons.Outlined.Widgets,
+                                Modifier.animateItem(effects, placement, effects)
+                                    .testTag("apk-component-${item.type}:${item.name}")
+                            ) {
+                                focus.clearFocus(); selected = "${item.type}:${item.name}"
+                            }
                         }
                     }
                 }

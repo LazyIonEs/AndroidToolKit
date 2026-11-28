@@ -86,11 +86,40 @@ fun ApkInformationScreen(
                             }
 
                             ApkInformationPhase.Result -> displayed.result?.let { result ->
+                                val isActiveResult =
+                                    state.phase == ApkInformationPhase.Result && state.inputFile == displayed.inputFile
                                 ApkInformationResult(
-                                    result, displayed.inputFile, useDarkTheme,
-                                    active = state.phase == ApkInformationPhase.Result && state.inputFile == displayed.inputFile,
-                                    onPickFile = { if (state.phase == ApkInformationPhase.Result) onPickFile() }) {
-                                    if (state.phase == ApkInformationPhase.Result && state.inputFile == displayed.inputFile) {
+                                    result = result,
+                                    inputFile = displayed.inputFile,
+                                    dark = useDarkTheme,
+                                    active = isActiveResult,
+                                    ruleIcons = displayed.ruleIcons,
+                                    ruleDetails = displayed.ruleDetails,
+                                    rulesMetadata = displayed.rulesMetadata,
+                                    updatingRules = displayed.updatingRules,
+                                    manifestPreview = displayed.manifestPreview,
+                                    entryPreview = displayed.entryPreview,
+                                    onPickFile = { if (state.phase == ApkInformationPhase.Result) onPickFile() },
+                                    onLoadRuleDetail = { uuid, ruleId, force ->
+                                        if (isActiveResult) onIntent(ApkInformationIntent.LoadRuleDetail(uuid, ruleId, force))
+                                    },
+                                    onOpenUrl = { url ->
+                                        if (isActiveResult) onIntent(ApkInformationIntent.OpenUrl(url))
+                                    },
+                                    onUpdateRules = {
+                                        if (isActiveResult) onIntent(ApkInformationIntent.UpdateLibRules)
+                                    },
+                                    onOpenManifest = {
+                                        if (isActiveResult) onIntent(ApkInformationIntent.LoadManifestPreview)
+                                    },
+                                    onPreviewFile = { path, kind ->
+                                        if (isActiveResult) onIntent(ApkInformationIntent.PreviewArchiveEntry(path, kind))
+                                    },
+                                    onCloseEntryPreview = {
+                                        if (isActiveResult) onIntent(ApkInformationIntent.CloseArchiveEntryPreview)
+                                    },
+                                ) {
+                                    if (isActiveResult) {
                                         onIntent(ApkInformationIntent.CopyText(it))
                                     }
                                 }

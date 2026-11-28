@@ -10,7 +10,11 @@ import org.tool.kit.domain.repository.ApkInformationRepository
 import org.tool.kit.data.source.Aapt2DataSource
 import org.tool.kit.data.source.ApkIconDataSource
 import org.tool.kit.data.source.inspectApkArchive
+import org.tool.kit.data.source.inspectApkArchiveEntryPreview
 import org.tool.kit.data.source.inspectApkComponents
+import org.tool.kit.data.source.inspectApkDexPackages
+import org.tool.kit.data.source.inspectApkManifestExtras
+import org.tool.kit.data.source.inspectDecodedManifestXml
 import java.io.File
 import java.io.FileInputStream
 import java.security.MessageDigest
@@ -25,6 +29,11 @@ class JvmApkInformationRepository(
     override suspend fun icon(path: String, manifest: String?, iconPath: String) = icons.read(manifest, path, iconPath)
     override suspend fun archive(path: String) = withContext(io) { inspectApkArchive(path) }
     override suspend fun components(path: String) = withContext(io) { inspectApkComponents(path) }
+    override suspend fun manifestExtras(path: String) = withContext(io) { inspectApkManifestExtras(path) }
+    override suspend fun dexPackages(path: String) = withContext(io) { inspectApkDexPackages(path) }
+    override suspend fun decodedManifestXml(path: String) = withContext(io) { inspectDecodedManifestXml(path) }
+    override suspend fun archiveEntryPreview(path: String, entryPath: String) =
+        withContext(io) { inspectApkArchiveEntryPreview(path, entryPath) }
     /** 一次流式读取同时计算两种文件摘要，不把整个 APK 载入内存；换包时可及时取消。 */
     override suspend fun metadata(path: String) = withContext(io) {
         val file = File(path)

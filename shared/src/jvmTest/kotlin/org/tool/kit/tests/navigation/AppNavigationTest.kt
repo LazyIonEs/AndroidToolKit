@@ -36,6 +36,12 @@ class AppNavigationTest {
         prepareTestPreferences(fixtureRoot, theme)
         setContent { KoinIsolatedContext(container) { App() } }
         waitUntil(timeoutMillis = 10_000) { onAllNodesWithText("APK签名").fetchSemanticsNodes().isNotEmpty() }
+        val sigNav = onNode(hasText("签名信息") and hasClickAction()).assertIsSelected()
+        val apkNav = onNode(hasText("APK信息") and hasClickAction())
+        kotlin.test.assertTrue(
+            sigNav.getUnclippedBoundsInRoot().top < apkNav.getUnclippedBoundsInRoot().top,
+            "签名信息 must appear before APK信息 in the navigation rail",
+        )
         val pages = listOf(
             "签名信息", "APK信息",
             "APK签名", "签名生成",

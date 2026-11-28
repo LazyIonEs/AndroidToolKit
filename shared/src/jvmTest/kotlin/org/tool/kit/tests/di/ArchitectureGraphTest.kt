@@ -56,6 +56,7 @@ class ArchitectureGraphTest {
                 single<KeyStoreRepository> { forbiddenCalls(unexpected) }
                 single<SignatureRepository> { forbiddenCalls(unexpected) }
                 single<ApkInformationRepository> { forbiddenCalls(unexpected) }
+                single<LibRulesRepository> { forbiddenCalls(unexpected) }
                 single<ApkSigningRepository> { forbiddenCalls(unexpected) }
                 single<ApkToolRepository> { forbiddenCalls(unexpected) }
                 single<ApkBuildWorkspaces> { forbiddenCalls(unexpected) }
@@ -65,6 +66,7 @@ class ArchitectureGraphTest {
                 single<BuildCachesRepository> { forbiddenCalls(unexpected) }
                 single<UpdateRepository> { forbiddenCalls(unexpected) }
                 single<ApkIconDecoder> { forbiddenCalls(unexpected) }
+                single<LibRuleIconDecoder> { forbiddenCalls(unexpected) }
                 single<ClipboardWriter> { forbiddenCalls(unexpected) }
                 single<DesktopActionHandler> { forbiddenCalls(unexpected) }
                 single<JunkSizeEstimator> { JunkSizeEstimator { _, _ -> 42L } }
